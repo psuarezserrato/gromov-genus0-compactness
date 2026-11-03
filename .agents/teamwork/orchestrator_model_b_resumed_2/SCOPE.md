@@ -4,11 +4,11 @@
 Phase 1 formalizes the foundational layer for Gromov Compactness in Lean 4:
 1. `GromovCompactness.LibraryAudit` (`F00`): Mathlib prerequisite audit and axiom check (Verified 100% zero-sorry).
 2. `GromovCompactness.Geometry.Target` (`F01`): Almost complex manifold $(M, J)$, symplectic form $\omega$, taming/compatibility, Riemannian metric $g_J$, and Cauchy-Riemann equations $\bar{\partial}_J u = 0$ (Verified 100% zero-sorry).
-3. `GromovCompactness.Geometry.Sphere` (`F02`): Riemann sphere $\mathbb{CP}^1 \cong \mathbb{C} \cup \{\infty\}$, stereographic charts, Möbius group $\operatorname{PSL}(2, \mathbb{C})$, and affine scalings $z \mapsto a + \lambda z$ (Verified 100% zero-sorry, Gate PASS).
-4. `GromovCompactness.Analysis.Energy` (`F03`): Symplectic energy $E(u) = \int u^* \omega$, nonnegativity, conformal invariance under Möbius transformations, and domain additivity.
-5. `GromovCompactness.Topology.SmoothLocal` (`F04`): $C^\infty_{\mathrm{loc}}$ convergence on exhausting domains, and closure of the Cauchy-Riemann equation under $C^1_{\mathrm{loc}}$ limits.
+3. `GromovCompactness.Geometry.Sphere` (`F02`): Riemann sphere $\mathbb{CP}^1 \cong \mathbb{C} \cup \{\infty\}$, stereographic charts, Möbius group $\operatorname{PSL}(2, \mathbb{C})$, and affine scalings $z \mapsto a + \lambda z$ (Verified 100% zero-sorry, Gate PASS, commit bad4363).
+4. `GromovCompactness.Analysis.Energy` (`F03`): Symplectic energy $E(u) = \int u^* \omega$, nonnegativity, conformal invariance under Möbius transformations, domain additivity, null points/circles (Verified 100% zero-sorry, Gate PASS).
+5. `GromovCompactness.Topology.SmoothLocal` (`F04`): $C^\infty_{\mathrm{loc}}$ convergence on exhausting domains, and closure of the Cauchy-Riemann equation under $C^1_{\mathrm{loc}}$ limits (Verified 100% zero-sorry, Gate PASS).
 6. `GromovCompactness.Topology.Subsequence` (`F05`): Monotone extractions and the Cantor diagonal subsequence theorem for countable sequences of properties (Verified 100% zero-sorry, commit 2797f0a).
-7. `GromovCompactness.Topology.SphereTree` (`F06`): Rooted tree graphs, labelled sphere trees, nodal attachments, and ghost component stability.
+7. `GromovCompactness.Topology.SphereTree` (`F06`): Rooted tree graphs, labelled sphere trees, nodal attachments, ghost component stability, degree sum formula, and tree grafting (Verified 100% zero-sorry, Gate PASS).
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
@@ -28,8 +28,8 @@ Phase 1 formalizes the foundational layer for Gromov Compactness in Lean 4:
 | M1 | Survey & Technical Audit | Explorers examine current F00–F06 Lean files, inventory all existing `sorry` placeholders, identify exact Mathlib lemmas available, assess local Gemma / Ollama pipeline readiness | none | DONE |
 | M2 | Subsequence Proofs (F05) | Eliminate all `sorry` in `Topology/Subsequence.lean` via machine-checked proofs using standard Mathlib order and topology tools | M1 | DONE |
 | M3 | Target & Sphere Proofs (F01, F02) | Target.lean verified zero-sorry. Sphere.lean remediation: genuine stereographic projective definitions for affine_scaling, inversion, rotation, disk_at, and authentic 3-point transitivity theorem | M1 | DONE |
-| M4 | Energy, SmoothLocal & SphereTree (F03, F04, F06) | Eliminate `sorry` in `Analysis/Energy.lean`, `Topology/SmoothLocal.lean`, and `Topology/SphereTree.lean` | M2, M3 | IN_PROGRESS |
-| M5 | Comprehensive Audit & Gate Check | Independent Reviewers, Challengers, and Forensic Auditor verify 0 sorry, compile with Lake, check axioms, create checkpoint and Git commit | M4 | PLANNED |
+| M4 | Energy, SmoothLocal & SphereTree (F03, F04, F06) | Eliminate `sorry` in `Analysis/Energy.lean`, `Topology/SmoothLocal.lean`, and `Topology/SphereTree.lean` | M2, M3 | DONE |
+| M5 | Comprehensive Audit & Gate Check | Independent Reviewers, Challengers, and Forensic Auditor verify 0 sorry, compile with Lake, check axioms, create checkpoint and Git commit | M4 | IN_PROGRESS |
 
 ## Interface Contracts
 ### Subsequence ↔ SmoothLocal & Compactness

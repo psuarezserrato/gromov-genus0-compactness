@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Autoformalization Team
 -/
 import Mathlib.Analysis.Hofer
-import Mathlib.Geometry.Manifold.SmoothManifoldWithCorners
+import Mathlib.Geometry.Manifold.IsManifold.Basic
 import Mathlib.Geometry.Manifold.Instances.Sphere
 import Mathlib.Topology.MetricSpace.HausdorffDistance
-import Mathlib.Topology.MetricSpace.ArzelaAscoli
+import Mathlib.Topology.UniformSpace.Ascoli
 import Mathlib.Combinatorics.SimpleGraph.Acyclic
 
 /-!
