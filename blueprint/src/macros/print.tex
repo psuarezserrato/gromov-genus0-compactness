@@ -11,15 +11,19 @@
 \newcommand{\dochome}[1]{}
 \newcommand{\graphcolor}[3]{}
 
+% Fallback definitions in case expl3/xparse are unavailable
+\providecommand{\uses}[1]{}
+\providecommand{\proves}[1]{}
+
 % Emulate \uses and \proves by creating invisible references via expl3.
 % This ensures undefined labels produce standard LaTeX warnings without breaking PDF output.
 \ExplSyntaxOn
-\NewDocumentCommand{\uses}{m}
+\DeclareDocumentCommand{\uses}{m}
  {
   \clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
   \ignorespaces
  }
-\NewDocumentCommand{\proves}{m}
+\DeclareDocumentCommand{\proves}{m}
  {
   \clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
   \ignorespaces

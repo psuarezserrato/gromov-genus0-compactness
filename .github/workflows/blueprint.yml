@@ -38,6 +38,7 @@ jobs:
             texlive-latex-recommended \
             texlive-fonts-recommended \
             texlive-latex-extra \
+            texlive-pictures \
             latexmk || echo "::warning::TeX Live optional packages had install warnings"
 
       - name: Install Python Dependencies
