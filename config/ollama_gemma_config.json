@@ -1,0 +1,187 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OllamaGemmaLean4Configuration",
+  "description": "Operational configuration for local Gemma models via Ollama targeting Lean 4 autoformalization of Gromov compactness.",
+  "version": "1.0.0",
+  "service": {
+    "default_host": "http://localhost:11434",
+    "endpoints": {
+      "tags": "/api/tags",
+      "generate": "/api/generate",
+      "chat": "/api/chat",
+      "show": "/api/show",
+      "version": "/api/version"
+    },
+    "connect_timeout_seconds": 3.0,
+    "request_timeout_seconds": 60.0,
+    "keep_alive": "30m"
+  },
+  "environment_variables": {
+    "OLLAMA_HOST": "Address and port for Ollama daemon (default: 127.0.0.1:11434)",
+    "OLLAMA_MODELS": "Path to local GGUF model manifests and weights (default: ~/.ollama/models)",
+    "OLLAMA_KEEP_ALIVE": "Model in-VRAM residency duration. Recommended '30m' or '-1' for interactive theorem proving."
+  },
+  "model_fallback_cascade": [
+    "gemma2:9b",
+    "gemma2:27b",
+    "codegemma:7b",
+    "gemma:7b",
+    "gemma2:2b",
+    "codegemma:2b",
+    "gemma:2b"
+  ],
+  "model_specifications": {
+    "gemma2:9b": {
+      "family": "gemma2",
+      "parameter_count": "9.2B",
+      "quantization": "Q4_K_M",
+      "vram_requirement_mb": 6500,
+      "context_window_tokens": 8192,
+      "role": "Primary target for Lean 4 autoformalization and complex proof synthesis. Fits on 8GB-16GB unified memory Apple Silicon."
+    },
+    "gemma2:27b": {
+      "family": "gemma2",
+      "parameter_count": "27.2B",
+      "quantization": "Q4_K_M",
+      "vram_requirement_mb": 17500,
+      "context_window_tokens": 8192,
+      "role": "High-compute tier for deep mathematical reasoning, delicate typeclass resolution, and subtle dependent type signatures. Recommended for 24GB+ RAM."
+    },
+    "codegemma:7b": {
+      "family": "codegemma",
+      "parameter_count": "8.5B",
+      "quantization": "Q4_K_M",
+      "vram_requirement_mb": 5800,
+      "context_window_tokens": 8192,
+      "role": "Code-specialized Gemma 1 checkpoint fine-tuned on mathematics and code. Excellent syntax accuracy for Lean 4 token distribution."
+    },
+    "gemma:7b": {
+      "family": "gemma",
+      "parameter_count": "8.5B",
+      "quantization": "Q4_0",
+      "vram_requirement_mb": 5200,
+      "context_window_tokens": 8192,
+      "role": "Legacy 7B tier. Produces reliable Lean 4 declarations with slightly higher type hallucination rate than Gemma 2."
+    },
+    "gemma2:2b": {
+      "family": "gemma2",
+      "parameter_count": "2.6B",
+      "quantization": "Q4_K_M",
+      "vram_requirement_mb": 2200,
+      "context_window_tokens": 8192,
+      "role": "Lightweight tier for fast single-tactic suggestions, premise filtering, and signature drafting on resource-constrained hardware."
+    },
+    "codegemma:2b": {
+      "family": "codegemma",
+      "parameter_count": "2.5B",
+      "quantization": "Q4_K_M",
+      "vram_requirement_mb": 2000,
+      "context_window_tokens": 8192,
+      "role": "Fast lightweight code-generation model for sub-second tactic responses."
+    },
+    "gemma:2b": {
+      "family": "gemma",
+      "parameter_count": "2.5B",
+      "quantization": "Q4_0",
+      "vram_requirement_mb": 1800,
+      "context_window_tokens": 2048,
+      "role": "Base lightweight legacy fallback for minimal compute overhead."
+    }
+  },
+  "parameter_profiles": {
+    "autoformalize": {
+      "temperature": 0.1,
+      "top_p": 0.90,
+      "top_k": 40,
+      "num_predict": 512,
+      "num_ctx": 8192,
+      "repeat_penalty": 1.10,
+      "stop": [
+        "<end_of_turn>",
+        "<eos>",
+        "\n\n--",
+        "\n\ntheorem ",
+        "\n\nlemma "
+      ],
+      "rationale": "Near-deterministic generation for Lean 4 declarations, types, structures, and theorems to prevent hallucinated types."
+    },
+    "tactic": {
+      "temperature": 0.4,
+      "top_p": 0.95,
+      "top_k": 50,
+      "num_predict": 128,
+      "num_ctx": 8192,
+      "repeat_penalty": 1.05,
+      "stop": [
+        "<end_of_turn>",
+        "<eos>",
+        "\n\n"
+      ],
+      "rationale": "Moderate stochastic exploration for tactic synthesis to escape local proof search dead ends while maintaining syntactical validity."
+    },
+    "proof_skeleton": {
+      "temperature": 0.3,
+      "top_p": 0.90,
+      "top_k": 40,
+      "num_predict": 1024,
+      "num_ctx": 8192,
+      "repeat_penalty": 1.10,
+      "stop": [
+        "<end_of_turn>",
+        "<eos>"
+      ],
+      "rationale": "High-token ceiling for generating multi-step proof outlines with intermediate 'have' statements and 'sorry' placeholders."
+    },
+    "premise": {
+      "temperature": 0.0,
+      "top_p": 0.85,
+      "top_k": 20,
+      "num_predict": 256,
+      "num_ctx": 8192,
+      "repeat_penalty": 1.15,
+      "stop": [
+        "<end_of_turn>",
+        "<eos>",
+        "\n\n"
+      ],
+      "rationale": "Greedy decoding for strictly grounded retrieval of Mathlib lemma identifiers and typeclass instances without invented names."
+    }
+  },
+  "prompt_templates": {
+    "autoformalize_declaration": {
+      "system_instruction": "You are an expert mathematician and Lean 4 formalizer specializing in symplectic geometry, almost complex manifolds, and Mathlib.\nYour task is to translate informal mathematical definitions, lemmas, and theorems into syntactically valid Lean 4 code.\n\nGuidelines:\n1. Use standard Mathlib naming conventions (snake_case for terms/theorems, UpperCamelCase for types).\n2. Explicitly specify all typeclass arguments (e.g. [MetricSpace M], [SmoothManifoldWithCorners I M]).\n3. For theorems whose proofs are not requested, terminate with ':= by sorry'.\n4. Output Lean 4 code enclosed in a ```lean4 ... ``` block.",
+      "few_shot_examples": [
+        {
+          "user": "Informal:\n\"Definition: An almost complex structure J on a smooth manifold M is a smooth bundle endomorphism J of the tangent bundle TM such that J^2 = -Id. J is said to be tame with respect to a symplectic 2-form omega if omega(v, J v) > 0 for all non-zero tangent vectors v.\"",
+          "model": "```lean4\nimport Mathlib.Geometry.Manifold.SmoothManifoldWithCorners\nimport Mathlib.Analysis.Calculus.FDeriv.Basic\n\nvariable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]\nvariable {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)\nvariable (M : Type*) [TopologicalSpace M] [ChartedSpace H M] [SmoothManifoldWithCorners I M]\n\n/-- An almost complex structure on a smooth manifold is a fiberwise endomorphism of TM whose square is -Id. -/\nstructure AlmostComplexStructure where\n  J : (x : M) → TangentSpace I x →L[ℝ] TangentSpace I x\n  J_sq : ∀ (x : M) (v : TangentSpace I x), J x (J x v) = -v\n  smooth_J : ContMDiff I (I.prod I) ⊤ (fun (p : TangentBundle I M) => (p.1, J p.1 p.2))\n\n/-- An almost complex structure J is tame with respect to a 2-form ω if ω(v, J v) > 0 for all non-zero tangent vectors. -/\ndef IsTame (J : AlmostComplexStructure I M) (ω : (x : M) → TangentSpace I x →L[ℝ] TangentSpace I x →L[ℝ] ℝ) : Prop :=\n  ∀ (x : M) (v : TangentSpace I x), v ≠ 0 → 0 < ω x v (J.J x v)\n```"
+        }
+      ],
+      "query_template": "Informal:\n\"{informal_statement}\""
+    },
+    "tactic_suggestion": {
+      "system_instruction": "You are an interactive Lean 4 tactic reasoning engine. Given a current proof state, the target goal, and the compiler diagnostic or error generated by the previous tactic attempt, your task is to propose the next correct Lean 4 tactic.\n\nGuidelines:\n1. Provide a single, minimal tactic or a short tactic sequence ('by ...').\n2. Do not hallucinate premises: prioritize standard Mathlib tactics (apply, exact, intro, cases, obtain, linarith, simp, positivity).\n3. Briefly explain the mathematical rationale in a one-line comment.",
+      "few_shot_examples": [
+        {
+          "user": "Context and Goal State:\n```lean4\nM : Type*\n[MetricSpace M] [CompleteSpace M]\nf : M → ℝ\nhf_cont : Continuous f\nhf_nonneg : ∀ x, 0 ≤ f x\nx0 : M\nε0 : ℝ\nhε0 : 0 < ε0\n⊢ ∃ x : M, ∃ ε : ℝ, 0 < ε ∧ ε ≤ ε0 ∧ f x * ε ≥ f x0 * ε0 ∧ ∀ y ∈ Metric.closedBall x ε, f y ≤ 2 * f x\n```\n\nFailed Tactic Attempt:\n`exact Hofer.hofer hf_cont x0 hε0`\n\nCompiler Error:\n```\ntype mismatch:\n  Hofer.hofer hf_cont x0 hε0\nhas type:\n  0 < ε0 → ∃ x ε, 0 < ε ∧ ε ≤ ε0 ∧ ...\nbut is expected to have type:\n  ∃ x ε, 0 < ε ∧ ε ≤ ε0 ∧ ...\n```",
+          "model": "```lean4\n-- Hofer's lemma in Mathlib takes hε0 as an explicit argument after the continuity hypothesis\nexact Hofer.hofer hf_cont x0 hε0\n```"
+        }
+      ],
+      "query_template": "Context and Goal State:\n```lean4\n{context_and_goal}\n```\n\nFailed Tactic Attempt:\n`{failed_tactic}`\n\nCompiler Error:\n```\n{compiler_error}\n```"
+    },
+    "premise_selection": {
+      "system_instruction": "You are an expert Mathlib search assistant for Lean 4.\nGiven the current goal and available hypotheses, identify the top 5 most relevant Mathlib lemmas, definitions, or typeclass instances needed to advance the proof.\n\nOutput Format:\n1. `Exact.Mathlib.Name` — brief 1-line explanation of applicability\n2. `Exact.Mathlib.Name` — brief 1-line explanation of applicability\n3. ...",
+      "few_shot_examples": [
+        {
+          "user": "Goal:\n```lean4\nM : Type*\n[MetricSpace M]\nx y z : M\nr : ℝ\nh1 : dist x y < r / 2\nh2 : dist y z < r / 2\n⊢ dist x z < r\n```",
+          "model": "Selected Premises:\n1. `dist_triangle` — Triangle inequality dist x z ≤ dist x y + dist y z\n2. `lt_of_le_of_lt` — Transitivity to chain weak and strict inequalities\n3. `add_lt_add` — Strict addition of inequalities a < b → c < d → a + c < b + d\n4. `add_halves` — Simplification lemma r / 2 + r / 2 = r\n5. `dist_comm` — Symmetry of metric distance dist x y = dist y x"
+        }
+      ],
+      "query_template": "Goal and Context:\n```lean4\n{lean_goal_and_context}\n```"
+    },
+    "subgoal_decomposition": {
+      "system_instruction": "You are an expert mathematical theorist and Lean 4 architect specializing in symplectic topology and Gromov compactness.\nBreak down the informal proof of the bubbling-off phenomenon for genus 0 pseudo-holomorphic curves into an ordered list of 4 to 6 formal sub-lemmas with their Lean 4 type signatures.",
+      "few_shot_examples": [],
+      "query_template": "Context:\n{context_statement}\n\nRequired Decomposition:\nProvide formal lemma signatures for:\n1. Gradient blow-up point extraction via Hofer's Lemma.\n2. Conformal dilation and coordinate rescaling.\n3. Uniform gradient bounds on dilated sequence.\n4. Elliptic regularity and C^infty_loc convergence.\n5. Removal of singularity and energy quantization."
+    }
+  }
+}

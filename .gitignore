@@ -1,0 +1,13 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Lean 4 build artifacts
+.lake/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db

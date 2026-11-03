@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GemmaHyperparameterMatrix",
+  "profiles": {
+    "autoformalize": {
+      "temperature": 0.1,
+      "top_p": 0.90,
+      "top_k": 40,
+      "num_predict": 512,
+      "repeat_penalty": 1.10,
+      "stop": [
+        "<end_of_turn>",
+        "<eos>",
+        "\n\n--",
+        "\n\ntheorem ",
+        "\n\nlemma "
+      ],
+      "use_case": "Synthesizing Lean 4 types, structures, and theorem signatures with near-zero hallucinations."
+    },
+    "tactic": {
+      "temperature": 0.4,
+      "top_p": 0.95,
+      "top_k": 50,
+      "num_predict": 128,
+      "repeat_penalty": 1.05,
+      "stop": [
+        "<end_of_turn>",
+        "<eos>",
+        "\n\n"
+      ],
+      "use_case": "Interactive tactic search with moderate stochastic exploration to bypass dead ends."
+    },
+    "proof_skeleton": {
+      "temperature": 0.3,
+      "top_p": 0.90,
+      "top_k": 40,
+      "num_predict": 1024,
+      "repeat_penalty": 1.10,
+      "stop": [
+        "<end_of_turn>",
+        "<eos>"
+      ],
+      "use_case": "Multi-step proof outlines with intermediate 'have' statements and 'sorry' placeholders."
+    },
+    "premise": {
+      "temperature": 0.0,
+      "top_p": 0.85,
+      "top_k": 20,
+      "num_predict": 256,
+      "repeat_penalty": 1.15,
+      "stop": [
+        "<end_of_turn>",
+        "<eos>",
+        "\n\n"
+      ],
+      "use_case": "Greedy retrieval of grounded Mathlib identifiers without invented names."
+    }
+  }
+}

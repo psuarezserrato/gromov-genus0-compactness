@@ -1,0 +1,16 @@
+[
+  {
+    "file": "skills/lean4-proof-repair-engine/examples/broken_symplectic_form.lean",
+    "pos": {
+      "line": 15,
+      "col": 9
+    },
+    "endPos": {
+      "line": 15,
+      "col": 14
+    },
+    "severity": "error",
+    "caption": "",
+    "data": "unknown identifier 'hofer' (did you mean 'Mathlib.Analysis.Hofer.hofer'?)"
+  }
+]

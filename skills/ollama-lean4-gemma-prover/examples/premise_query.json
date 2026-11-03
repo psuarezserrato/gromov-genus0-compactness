@@ -1,0 +1,19 @@
+{
+  "query_type": "premise_selection",
+  "goal": "⊢ dist x z ≤ dist x y + dist y z",
+  "context": "x y z : M\n[MetricSpace M]",
+  "suggested_premises": [
+    {
+      "name": "dist_triangle",
+      "module": "Mathlib.Topology.MetricSpace.Basic",
+      "type_signature": "dist x z ≤ dist x y + dist y z",
+      "rationale": "Directly proves the metric triangle inequality."
+    },
+    {
+      "name": "dist_comm",
+      "module": "Mathlib.Topology.MetricSpace.Basic",
+      "type_signature": "dist x y = dist y x",
+      "rationale": "Symmetry of metric distance."
+    }
+  ]
+}

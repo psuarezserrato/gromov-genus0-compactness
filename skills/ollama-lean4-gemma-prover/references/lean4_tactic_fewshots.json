@@ -1,0 +1,25 @@
+{
+  "few_shots": [
+    {
+      "task": "tactic_suggestion",
+      "context": "M : Type*\n[MetricSpace M] [CompleteSpace M]\nf : M → ℝ\nhf_cont : Continuous f\nx0 : M\nε0 : ℝ\nhε0 : 0 < ε0\n⊢ ∃ x ε, 0 < ε ∧ ε ≤ ε0 ∧ f x ≤ f x' ∧ ∀ y, dist y x' ≤ ε' → f y ≤ 2 * f x'",
+      "error": "unknown identifier 'hofer'",
+      "suggested_tactic": "exact Mathlib.Analysis.Hofer.hofer f x0 ε0 hε0 hf_cont (by positivity)",
+      "rationale": "Directly invokes Patrick Massot's Hofer lemma with explicit arguments and nonnegativity hypothesis."
+    },
+    {
+      "task": "tactic_suggestion",
+      "context": "x y z : M\n[MetricSpace M]\nr : ℝ\nh1 : dist x y < r / 2\nh2 : dist y z < r / 2\n⊢ dist x z < r",
+      "error": "unsolved goals",
+      "suggested_tactic": "calc dist x z ≤ dist x y + dist y z := dist_triangle x y z\n  _ < r / 2 + r / 2 := add_lt_add h1 h2\n  _ = r := add_halves r",
+      "rationale": "Chains the metric triangle inequality with strict addition and half-sum simplification."
+    },
+    {
+      "task": "tactic_suggestion",
+      "context": "E : ℝ\nhE : E ≤ 0\nhpos : 0 ≤ E\n⊢ E = 0",
+      "error": "unsolved goals",
+      "suggested_tactic": "exact le_antisymm hE hpos",
+      "rationale": "Closes equality from opposing weak inequalities via antisymmetry of the linear order."
+    }
+  ]
+}

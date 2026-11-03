@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "mode": "autoformalize",
+  "model_used": "gemma2:9b",
+  "formalized_code": "structure AlmostComplexStructure (M : Type*) [MetricSpace M] where\n  J : (x : M) → TangentSpace x →L[ℝ] TangentSpace x\n  J_sq : ∀ (x : M) (v : TangentSpace x), J x (J x v) = -v",
+  "parameters": {
+    "temperature": 0.1,
+    "top_p": 0.9,
+    "num_predict": 512
+  }
+}

@@ -1,0 +1,182 @@
+---
+name: ollama-lean4-gemma-prover
+description: >-
+  Interfaces with local Gemma models via Ollama (http://localhost:11434)
+  for Lean 4 autoformalization, lemma extraction, premise selection, and tactic
+  search. Features health checking, model fallback cascade (gemma2:9b -> gemma2:27b ->
+  codegemma:7b -> gemma2:2b), parameter tuning matrix, and official Gemma turn syntax.
+---
+
+# Ollama Lean 4 Gemma Prover
+
+## Overview
+
+The `ollama-lean4-gemma-prover` skill provides an operational, zero-cost, local model integration pipeline targeting local Gemma models served via Ollama (`http://localhost:11434`). It enables interactive theorem proving, premise retrieval from Mathlib, tactic suggestion, and lemma extraction without calling external cloud APIs.
+
+Key features:
+1. **Model Fallback Cascade**: Automatically identifies available local weights (`gemma2:9b` $\to$ `gemma2:27b` $\to$ `codegemma:7b` $\to$ `gemma:7b` $\to$ `gemma2:2b` $\to$ legacy).
+2. **Deterministic Hyperparameter Matrix**: Presets tailored to task types (`autoformalize`, `tactic`, `premise`, `proof_skeleton`).
+3. **Official Gemma Turn Syntax**: Strict enforcement of `<start_of_turn>` and `<end_of_turn>` control tokens to eliminate run-on hallucinations.
+4. **Offline Mock & Dry-Run Support**: Allows automated test suites and continuous integration to verify prompt formatting and parsing pipelines when the local Ollama daemon is offline.
+5. **Output Sanitization**: Strips markdown backtick code blocks and normalizes Lean 4 syntax.
+
+---
+
+## Triggers & Invocation Criteria
+
+### Trigger When:
+- Generating tactic suggestions for open subgoals in Lean 4 proofs (e.g. applying Hofer's lemma or Stokes' theorem).
+- Searching for relevant Mathlib lemmas or premises matching a target mathematical proposition.
+- Extracting intermediate lemmas from complex multi-step informal proofs (e.g. neck energy vanishing).
+- Synthesizing formal type declarations with local compute.
+
+### Do Not Trigger When:
+- Compiling or verifying Lean 4 files with the Lean kernel / Lake (use `lean4-proof-repair-engine`).
+- Translating whole informal literature chapters into structural skeletons (use `lean4-symplectic-autoformalizer`).
+
+---
+
+## Dependencies & Environmental Requirements
+
+- **Local Ollama Daemon**: Accessible at `http://localhost:11434` (or configured via `OLLAMA_HOST`).
+- **Local Gemma Models**: At least one model pulled locally (e.g. `ollama pull gemma2:9b` or `gemma2:2b`).
+- **Python 3.6+** (Standard library: `urllib.request`, `urllib.error`, `json`, `argparse`, `sys`).
+- **References**:
+  - `references/gemma_turn_templates.md`
+  - `references/hyperparameter_matrix.json`
+  - `references/lean4_tactic_fewshots.json`
+  - `references/ollama_api_specification.md`
+
+---
+
+## Quick Start
+
+### 1. Connection Healthcheck
+Test connection to the local Ollama daemon and inspect installed models:
+```bash
+python3 skills/ollama-lean4-gemma-prover/scripts/ollama_query.py healthcheck \
+  --output /tmp/ollama_health.json
+```
+
+### 2. Tactic Suggestion Query
+Query Gemma for candidate tactics to close an open proof state:
+```bash
+python3 skills/ollama-lean4-gemma-prover/scripts/ollama_query.py query \
+  --mode tactic \
+  --prompt "M : Type*\n[MetricSpace M]\n⊢ ∃ x' ε', 0 < ε' ∧ f y ≤ 2 * f x'" \
+  --output /tmp/tactic_result.json
+```
+
+### 3. Offline Dry-Run Mode (No Daemon Required)
+Verify prompt compilation and parser pipelines deterministically:
+```bash
+python3 skills/ollama-lean4-gemma-prover/scripts/ollama_query.py query \
+  --mode premise \
+  --prompt "Select Mathlib lemmas for metric balls and triangle inequality" \
+  --mock \
+  --output /tmp/premise_mock_result.json
+```
+
+---
+
+## Operational Workflows
+
+### Workflow 1: Local Daemon Health Check & Fallback Cascade Resolution
+
+Before executing mathematical queries:
+1. Probe `GET http://localhost:11434/api/tags` with a 3.0-second connection timeout.
+2. If connection is refused:
+   - Output diagnostic message: `Ollama daemon offline at http://localhost:11434`.
+   - Provide recovery instruction: `Run 'ollama serve' in terminal and ensure port 11434 is listening`.
+3. If reachable, extract installed model tags:
+   - Scan against prioritized fallback cascade:
+     1. `gemma2:9b` (Default recommended: 9.2B params, fits in 8–16GB RAM)
+     2. `gemma2:27b` (Deep mathematical reasoning: 27.2B params)
+     3. `codegemma:7b` (Code-specialized checkpoint)
+     4. `gemma:7b` (Legacy 7B)
+     5. `gemma2:2b` (Ultra-lightweight: 2.6B params, fast response)
+     6. First available model reported by `/api/tags`
+4. Store selected model tag in memory or configuration cache.
+
+### Workflow 2: Tactic Search & Suggestion for Open Lean 4 Goals
+
+1. **Extract Goal State**: Capture the current hypotheses, variable declarations, and goal target ($\vdash$).
+2. **Build Gemma Turn Prompt**:
+   ```
+   <start_of_turn>user
+   You are an interactive Lean 4 tactic reasoning engine. Given a current proof state, the target goal, and the compiler diagnostic or error generated by the previous tactic attempt, your task is to propose the next correct Lean 4 tactic.
+
+   Context and Goal State:
+   ```lean4
+   {context_and_goal}
+   ```
+
+   Failed Tactic Attempt:
+   `{failed_tactic}`
+
+   Compiler Error:
+   ```
+   {compiler_error}
+   ```
+   <end_of_turn>
+   <start_of_turn>model
+   ```
+3. **Execute Query with Profile `tactic`**:
+   - `temperature = 0.4`
+   - `top_p = 0.95`
+   - `top_k = 50`
+   - `num_predict = 128`
+   - `stop = ["<end_of_turn>", "<eos>", "\n\n"]`
+4. **Sanitize Response**:
+   Extract tactic string, strip extraneous explanations or markdown code blocks.
+
+### Workflow 3: Premise Selection from Mathlib
+
+1. Formulate mathematical goal requiring external lemmas (e.g. Hofer rescaling, Stokes' theorem, Arzelà-Ascoli).
+2. Execute query with profile `premise` (`temperature = 0.0`, greedy decoding).
+3. Gemma outputs top candidate Mathlib identifiers with 1-line rationales.
+4. Downstream autoformalizer incorporates premise candidates into `import` and `open` statements.
+
+### Workflow 4: Lemma Extraction & Subgoal Decomposition
+
+For complex informal steps (e.g. Contract B03 neck energy vanishing):
+1. Send prompt with profile `proof_skeleton` (`temperature = 0.3`, `num_predict = 1024`).
+2. Model decomposes the statement into 3–5 intermediate `have` statements.
+3. Each intermediate statement is stubbed with `sorry` on first pass, preserving logical flow.
+
+---
+
+## Utility Script: `scripts/ollama_query.py`
+
+The script provides four subcommands:
+
+| Subcommand | Description | Arguments |
+|------------|-------------|-----------|
+| `healthcheck` | Checks daemon status and model availability | `--host <url>`, `--output <file>` |
+| `query` | Submits prompt to Ollama with mode presets | `--mode <autoformalize\|tactic\|premise\|proof_skeleton>`, `--prompt <str>`, `--prompt-file <path>`, `--output <file>`, `--mock`, `--model <name>` |
+| `benchmark` | Tests throughput and response latency | `--host <url>`, `--output <file>` |
+| `test` | Runs internal test suite | `--output <file>` |
+
+### CLI Example:
+```bash
+python3 skills/ollama-lean4-gemma-prover/scripts/ollama_query.py test
+```
+
+---
+
+## Common Mistakes & Edge Cases
+
+1. **Missing Gemma Turn Tokens**:
+   - *Mistake*: Sending raw prompt strings without `<start_of_turn>user` and `<end_of_turn>`.
+   - *Result*: Gemma fails to switch roles, generating rambling natural language text instead of Lean tactics.
+   - *Fix*: Always wrap prompts using the canonical template.
+2. **High Temperature on Declarations**:
+   - *Mistake*: Using `temperature > 0.5` for autoformalizing definitions.
+   - *Result*: Model invents non-existent Mathlib types and invalid syntax.
+   - *Fix*: Use `temperature = 0.1` for autoformalization and `0.0` for premise retrieval.
+3. **Markdown Fences in Lean Code**:
+   - *Mistake*: Writing raw LLM response directly to `.lean` file.
+   - *Fix*: `scripts/ollama_query.py` strips all ```lean4 and ``` delimiters automatically.
+4. **Unreachable Ollama Daemon**:
+   - *Mistake*: Script crashing with unhandled socket error.
+   - *Fix*: Robust error handling with actionable recovery advice or `--mock` fallback.
