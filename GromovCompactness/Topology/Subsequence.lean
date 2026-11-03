@@ -58,6 +58,17 @@ theorem subsequence_trans (σ₁ σ₂ σ₃ : SubseqMap)
   use τ₁.comp τ₂
   rfl
 
+/-- Subsequence refinement along nested chains across any offset `d`. -/
+theorem isSubsequenceOf_add (σ_family : ℕ → SubseqMap)
+    (h_nested : ∀ k, IsSubsequenceOf (σ_family (k + 1)) (σ_family k)) (k d : ℕ) :
+    IsSubsequenceOf (σ_family (k + d)) (σ_family k) := by
+  induction d with
+  | zero =>
+    use SubseqMap.id
+    exact Subtype.ext rfl
+  | succ d ih =>
+    exact subsequence_trans (σ_family k) (σ_family (k + d)) (σ_family (k + d + 1)) ih (h_nested (k + d))
+
 /-- Cantor diagonal extraction for a countable family of nested subsequences:
 Given a sequence of subsequences $\sigma_k$ where $\sigma_{k+1}$ refines $\sigma_k$,
 there exists a diagonal subsequence $\sigma_{\mathrm{diag}}$ that is eventually a sub-subsequence
@@ -65,13 +76,36 @@ of every $\sigma_k$. -/
 theorem countable_diagonal_extraction (σ_family : ℕ → SubseqMap)
     (h_nested : ∀ k, IsSubsequenceOf (σ_family (k + 1)) (σ_family k)) :
     ∃ (σ_diag : SubseqMap), ∀ k, ∃ N, ∀ n ≥ N, ∃ m, σ_diag.1 n = (σ_family k).1 m := by
-  -- Construct diagonal map σ_diag(n) = (σ_family n).1 n
-  -- Show strict monotonicity by inductive index skipping
-  -- Show eventual containment for each fixed level k
-  sorry
+  let diag_fun : ℕ → ℕ := fun n => (σ_family n).1 n
+  have h_mono : StrictMono diag_fun := by
+    apply strictMono_nat_of_lt_succ
+    intro n
+    dsimp [diag_fun]
+    rcases h_nested n with ⟨τ, hτ⟩
+    have h_eval : (σ_family (n + 1)).1 (n + 1) = (σ_family n).1 (τ.1 (n + 1)) := by
+      rw [hτ]
+      rfl
+    rw [h_eval]
+    have h_lt : n < τ.1 (n + 1) := by
+      have h_le := τ.id_le (n + 1)
+      omega
+    exact (σ_family n).2 h_lt
+  let σ_diag : SubseqMap := ⟨diag_fun, h_mono⟩
+  use σ_diag
+  intro k
+  use k
+  intro n hn
+  obtain ⟨d, rfl⟩ : ∃ d : ℕ, n = k + d := Nat.exists_eq_add_of_le hn
+  have h_sub : IsSubsequenceOf (σ_family (k + d)) (σ_family k) :=
+    isSubsequenceOf_add σ_family h_nested k d
+  rcases h_sub with ⟨τ, hτ⟩
+  use τ.1 (k + d)
+  dsimp [σ_diag, diag_fun]
+  rw [hτ]
+  rfl
 
 /-- Tendsto compatibility along extracted subsequences. -/
-theorem tendsto_subseq_comp {α β : Type*} [TopologicalSpace β]
+theorem tendsto_subseq_comp {β : Type*} [TopologicalSpace β]
     (f : ℕ → β) (b : β) (σ : SubseqMap)
     (h : Tendsto f atTop (nhds b)) :
     Tendsto (f ∘ σ.1) atTop (nhds b) := by
