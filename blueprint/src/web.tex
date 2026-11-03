@@ -1,0 +1,36 @@
+% This file compiles the web version of the blueprint via plasTeX.
+\documentclass{report}
+
+\usepackage{amssymb, amsthm, amsmath}
+\usepackage{graphicx}
+\DeclareGraphicsExtensions{.svg,.png,.jpg}
+\usepackage{hyperref}
+\usepackage[capitalize]{cleveref}
+\usepackage[showmore, dep_graph, project=../../]{blueprint}
+
+\usepackage{tikz}
+\usepackage{tikz-cd}
+
+\input{macros/common}
+\input{macros/web}
+
+\home{https://psuarezserrato.github.io/gromov-genus0-compactness/}
+\github{https://github.com/psuarezserrato/gromov-genus0-compactness}
+\dochome{https://psuarezserrato.github.io/gromov-genus0-compactness/docs}
+
+% Dependency graph color legend customization
+\graphcolor{stated}{#A3D6FF}{Stated in Lean}
+\graphcolor{can_state}{blue}{Blue}
+\graphcolor{not_ready}{#FFAA33}{Orange}
+\graphcolor{proved}{#9CEC8B}{Proved in Lean}
+\graphcolor{can_prove}{#A3D6FF}{Can prove}
+\graphcolor{defined}{#B0ECA3}{Defined in Lean}
+\graphcolor{fully_proved}{#1CAC78}{Fully proved in Lean}
+
+\title{Gromov Compactness for Genus 0 Pseudo-Holomorphic Curves}
+\author{Autoformalization Team}
+
+\begin{document}
+\maketitle
+\input{content}
+\end{document}

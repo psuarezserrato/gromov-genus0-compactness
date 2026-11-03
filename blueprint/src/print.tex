@@ -1,0 +1,26 @@
+% This file compiles the printable PDF version of the blueprint via xelatex/lualatex/pdflatex.
+\documentclass[a4paper,11pt]{report}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{expl3}
+\usepackage{amssymb, amsthm, amsmath, mathtools}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{tikz-cd}
+
+\usepackage[unicode,colorlinks=true,linkcolor=blue,urlcolor=magenta,citecolor=blue]{hyperref}
+\usepackage[nameinlink, capitalize]{cleveref}
+
+\input{macros/common}
+\input{macros/print}
+
+\title{Gromov Compactness for Genus 0 Pseudo-Holomorphic Curves\\
+\large A Formalization Blueprint in Lean 4}
+\author{Autoformalization Team}
+\date{November 2026}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\input{content}
+\end{document}

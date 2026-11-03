@@ -1,0 +1,43 @@
+% Macros common to both web (plasTeX) and print (PDF) versions.
+
+% Theorem-like environments tracked in the dependency graph
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{axiom}[theorem]{Axiom}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+% Symplectic and Complex Geometry Notation
+\newcommand{\CP}{\mathbb{CP}^1}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+
+\newcommand{\delbar}{\bar{\partial}}
+\newcommand{\delbarJ}{\bar{\partial}_{J, j}}
+\newcommand{\dbar}{\bar{\partial}}
+
+\newcommand{\omegaForm}{\omega}
+\newcommand{\metricG}{g}
+\newcommand{\acsJ}{J}
+
+\newcommand{\Energy}{\mathcal{E}}
+\newcommand{\PSL}{\operatorname{PSL}(2, \mathbb{C})}
+\newcommand{\PGL}{\operatorname{PGL}(2, \mathbb{C})}
+\newcommand{\GL}{\operatorname{GL}(2, \mathbb{C})}
+\newcommand{\dist}{\operatorname{dist}}
+\newcommand{\diam}{\operatorname{diam}}
+\newcommand{\inj}{\operatorname{inj}}
+\newcommand{\vol}{\operatorname{vol}}
+\newcommand{\dvol}{d\operatorname{vol}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\re}{\operatorname{Re}}
+\newcommand{\im}{\operatorname{Im}}
