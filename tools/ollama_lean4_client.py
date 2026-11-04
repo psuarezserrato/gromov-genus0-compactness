@@ -45,19 +45,24 @@ import time
 import urllib.request
 import urllib.error
 import re
+import subprocess
+import shutil
 from typing import Dict, List, Optional, Tuple, Any
 
 DEFAULT_OLLAMA_HOST = "http://localhost:11434"
 
-# 7-tier model fallback cascade for mathematical formalization
+# Model fallback cascade for mathematical formalization (local fine-tuned/quantized first)
 MODEL_PRIORITY_CASCADE = [
-    "gemma2:9b",       # Tier 1: Primary target, SOTA 10B math/dependent type reasoning (~6.5GB VRAM)
-    "gemma2:27b",      # Tier 2: High-compute tier, deep mathematical reasoning (~17.5GB VRAM)
-    "codegemma:7b",    # Tier 3: Code-specialized Gemma 1 checkpoint (~5.8GB VRAM)
-    "gemma:7b",        # Tier 4: Base Gemma 1 7B (~5.2GB VRAM)
-    "gemma2:2b",       # Tier 5: Lightweight Gemma 2 for resource-constrained hardware (~2.2GB VRAM)
-    "codegemma:2b",    # Tier 6: Lightweight CodeGemma 2B (~2.0GB VRAM)
-    "gemma:2b",        # Tier 7: Base Gemma 1 2B (~1.8GB VRAM)
+    "gemma-lean4:latest",        # Tier 0: Domain-customized Lean 4 Gemma model (~6.6GB VRAM)
+    "gemma-lean4",               # Tier 0 alias
+    "gemma2:9b-instruct-q5_K_M", # Tier 0.5: Local quantized instruct Gemma 2 (~6.6GB VRAM)
+    "gemma2:9b",                 # Tier 1: Primary target, SOTA 10B math/dependent type reasoning (~6.5GB VRAM)
+    "gemma2:27b",                # Tier 2: High-compute tier, deep mathematical reasoning (~17.5GB VRAM)
+    "codegemma:7b",              # Tier 3: Code-specialized Gemma 1 checkpoint (~5.8GB VRAM)
+    "gemma:7b",                  # Tier 4: Base Gemma 1 7B (~5.2GB VRAM)
+    "gemma2:2b",                 # Tier 5: Lightweight Gemma 2 for resource-constrained hardware (~2.2GB VRAM)
+    "codegemma:2b",              # Tier 6: Lightweight CodeGemma 2B (~2.0GB VRAM)
+    "gemma:2b",                  # Tier 7: Base Gemma 1 2B (~1.8GB VRAM)
 ]
 
 # Tuned task-specific generation parameters for Lean 4 proving
@@ -143,9 +148,78 @@ def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
     }
 
 
-def check_connection(base_url: str = DEFAULT_OLLAMA_HOST, timeout: float = 3.0) -> Tuple[bool, str, Dict[str, Any]]:
+def find_ollama_binary() -> Optional[str]:
+    """Locate the ollama binary executable across system, App bundle, and user paths."""
+    candidates = [
+        shutil.which("ollama"),
+        "/usr/local/bin/ollama",
+        "/opt/homebrew/bin/ollama",
+        "/Applications/Ollama.app/Contents/Resources/ollama",
+        os.path.expanduser("~/bin/ollama"),
+        os.path.expanduser("~/.local/bin/ollama"),
+    ]
+    for c in candidates:
+        if c and os.path.isfile(c) and os.access(c, os.X_OK):
+            return os.path.abspath(c)
+    return None
+
+
+def is_ollama_running(base_url: str = DEFAULT_OLLAMA_HOST, timeout: float = 2.0) -> bool:
+    """Fast check whether Ollama server is active and responding at base_url."""
+    tags_url = f"{base_url.rstrip('/')}/api/tags"
+    req = urllib.request.Request(tags_url, headers={"User-Agent": "Lean4AutoForm-GemmaClient/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            return response.status == 200
+    except Exception:
+        return False
+
+
+def ensure_ollama_daemon(base_url: str = DEFAULT_OLLAMA_HOST,
+                         autostart: bool = True,
+                         timeout: float = 12.0) -> Tuple[bool, str, Optional[int]]:
+    """
+    Ensures that an Ollama daemon is running and responding at base_url.
+    If not running and autostart=True, launches a headless `ollama serve` background daemon.
+    Returns: (is_healthy, status_message, pid_or_none)
+    """
+    if is_ollama_running(base_url, timeout=2.0):
+        return True, f"Ollama daemon is active and responding at {base_url}", None
+
+    if not autostart:
+        return False, f"Ollama daemon is not responding at {base_url} (autostart disabled)", None
+
+    ollama_bin = find_ollama_binary()
+    if not ollama_bin:
+        return False, "Ollama executable not found in PATH or standard installation locations", None
+
+    try:
+        proc = subprocess.Popen(
+            [ollama_bin, "serve"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+            close_fds=True,
+        )
+        pid = proc.pid
+    except Exception as e:
+        return False, f"Failed to spawn headless ollama serve process: {e}", None
+
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        time.sleep(0.5)
+        if is_ollama_running(base_url, timeout=1.0):
+            return True, f"Successfully started headless Ollama daemon (PID {pid}) at {base_url}", pid
+
+    return False, f"Spawned Ollama daemon (PID {pid}), but failed to respond at {base_url} within {timeout}s", pid
+
+
+def check_connection(base_url: str = DEFAULT_OLLAMA_HOST,
+                     timeout: float = 3.0,
+                     autostart: bool = True) -> Tuple[bool, str, Dict[str, Any]]:
     """
     Validates connectivity to Ollama /api/tags endpoint.
+    If unreachable and autostart is True, attempts to start headless daemon automatically.
     Returns: (is_connected, message, metadata)
     """
     tags_url = f"{base_url.rstrip('/')}/api/tags"
@@ -158,8 +232,19 @@ def check_connection(base_url: str = DEFAULT_OLLAMA_HOST, timeout: float = 3.0) 
                 return True, "Successfully connected to Ollama /api/tags", data
             else:
                 return False, f"HTTP error {response.status} from Ollama tags endpoint", {}
-    except urllib.error.URLError as e:
-        reason_str = str(e.reason)
+    except (urllib.error.URLError, ConnectionError, OSError) as e:
+        if autostart:
+            started, start_msg, _ = ensure_ollama_daemon(base_url, autostart=True, timeout=8.0)
+            if started:
+                try:
+                    with urllib.request.urlopen(req, timeout=timeout) as response:
+                        if response.status == 200:
+                            body = response.read().decode("utf-8")
+                            data = json.loads(body)
+                            return True, f"Connected to Ollama /api/tags ({start_msg})", data
+                except Exception:
+                    pass
+        reason_str = getattr(e, "reason", str(e))
         hint = "\nHint: Ensure the Ollama daemon is running with 'ollama serve'."
         return False, f"Connection failed to {base_url}: {reason_str}.{hint}", {}
     except Exception as e:
@@ -434,6 +519,9 @@ def query_ollama(base_url: str,
             "lean_code": extract_lean_code(mock_text)
         }
 
+    if not is_ollama_running(base_url, timeout=1.5):
+        ensure_ollama_daemon(base_url, autostart=True, timeout=10.0)
+
     generate_url = f"{base_url.rstrip('/')}/api/generate"
     data_bytes = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
@@ -496,6 +584,21 @@ def run_self_test() -> int:
         print(f"  PASS: Correctly selected primary tier '{best}' ({reason})")
     else:
         print(f"  FAIL: Expected 'gemma2:9b', got '{best}'")
+        failures += 1
+
+    # Test 1a: Fine-tuned gemma-lean4 top priority
+    print("\n[Test 1a] Testing fine-tuned gemma-lean4 top priority...")
+    mock_tags_lean4 = {
+        "models": [
+            {"name": "gemma2:9b"},
+            {"name": "gemma-lean4:latest"},
+        ]
+    }
+    best_lean4, reason_lean4, _ = detect_best_model(tags_data=mock_tags_lean4)
+    if best_lean4 == "gemma-lean4:latest":
+        print(f"  PASS: Correctly selected domain model '{best_lean4}' ({reason_lean4})")
+    else:
+        print(f"  FAIL: Expected 'gemma-lean4:latest', got '{best_lean4}'")
         failures += 1
 
     # Test 2: Cascade fallback when primary is missing
@@ -588,7 +691,13 @@ def run_self_test() -> int:
 def cmd_health(args) -> int:
     """Subcommand: Check Ollama service connectivity and endpoint readiness."""
     print(f"Checking connection to Ollama service at {args.host}...")
-    ok_tags, msg_tags, tags_data = check_connection(args.host, timeout=args.timeout)
+    ok_daemon, msg_daemon, _ = ensure_ollama_daemon(args.host, autostart=True, timeout=args.timeout)
+    if ok_daemon:
+        print(f"[OK]   daemon: {msg_daemon}")
+    else:
+        print(f"[WARN] daemon: {msg_daemon}")
+
+    ok_tags, msg_tags, tags_data = check_connection(args.host, timeout=args.timeout, autostart=True)
     if not ok_tags:
         print(f"[FAIL] /api/tags: {msg_tags}")
         if args.dry_run:

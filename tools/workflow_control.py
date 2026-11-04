@@ -226,6 +226,19 @@ class WorkflowController:
         except Exception:
             pass
 
+        # Verify and ensure Ollama daemon is active to guarantee local compute upon resumption
+        try:
+            from tools.ollama_lean4_client import ensure_ollama_daemon, DEFAULT_OLLAMA_HOST
+            ok_o, msg_o, _ = ensure_ollama_daemon(DEFAULT_OLLAMA_HOST, autostart=True, timeout=8.0)
+            resume_record["ollama_daemon"] = {"active": ok_o, "message": msg_o}
+        except Exception:
+            try:
+                from ollama_lean4_client import ensure_ollama_daemon, DEFAULT_OLLAMA_HOST
+                ok_o, msg_o, _ = ensure_ollama_daemon(DEFAULT_OLLAMA_HOST, autostart=True, timeout=8.0)
+                resume_record["ollama_daemon"] = {"active": ok_o, "message": msg_o}
+            except Exception:
+                pass
+
         return resume_record
 
     def scan_contracts(self) -> Dict[str, Any]:
@@ -299,12 +312,44 @@ class WorkflowController:
         except Exception:
             return None
 
+    def get_ollama_status(self) -> Dict[str, Any]:
+        """Check Ollama service status and optimal model discovery."""
+        try:
+            from tools.ollama_lean4_client import (
+                is_ollama_running, check_connection, detect_best_model, DEFAULT_OLLAMA_HOST
+            )
+        except ImportError:
+            try:
+                from ollama_lean4_client import (
+                    is_ollama_running, check_connection, detect_best_model, DEFAULT_OLLAMA_HOST
+                )
+            except ImportError:
+                return {"active": False, "status": "UNKNOWN", "model": None, "host": "http://localhost:11434"}
+
+        active = is_ollama_running(DEFAULT_OLLAMA_HOST, timeout=1.5)
+        if not active:
+            return {"active": False, "status": "STOPPED", "model": None, "host": DEFAULT_OLLAMA_HOST}
+
+        ok, msg, data = check_connection(DEFAULT_OLLAMA_HOST, timeout=2.0, autostart=False)
+        if not ok:
+            return {"active": False, "status": "UNRESPONSIVE", "model": None, "host": DEFAULT_OLLAMA_HOST}
+
+        best, _, models = detect_best_model(DEFAULT_OLLAMA_HOST, tags_data=data)
+        return {
+            "active": True,
+            "status": "RUNNING",
+            "model": best,
+            "host": DEFAULT_OLLAMA_HOST,
+            "model_count": len(models),
+        }
+
     def get_status_dict(self) -> Dict[str, Any]:
         """Return structured real-time status dictionary."""
         paused = self.is_paused()
         pause_data = self.get_pause_data() if paused else None
         scan = self.scan_contracts()
         latest_cp = self.get_latest_checkpoint_time()
+        ollama_info = self.get_ollama_status()
 
         # Determine active phase
         if scan["phase1_completed"] < scan["phase1_total"]:
@@ -329,6 +374,7 @@ class WorkflowController:
             "phase1_total": scan["phase1_total"],
             "phase1_percentage": scan["phase1_percentage"],
             "latest_checkpoint_timestamp": latest_cp,
+            "ollama_prover": ollama_info,
         }
 
     def checkpoint(
@@ -426,6 +472,14 @@ def format_status_output(status: Dict[str, Any]) -> str:
     lines.append(f"  Overall Progress:   {status['progress_percentage']}% ({status['completed_contracts_count']} of {status['total_contracts_count']} contracts)")
     lines.append(f"  Phase 1 Progress:   {status['phase1_percentage']}% ({status['phase1_completed']} of {status['phase1_total']} contracts)")
     lines.append(f"  Last Checkpoint:    {status['latest_checkpoint_timestamp'] or 'None recorded'}")
+
+    ollama_info = status.get("ollama_prover") or {}
+    if ollama_info.get("active"):
+        model_str = f", Model: {ollama_info.get('model')}" if ollama_info.get('model') else ""
+        lines.append(f"  Ollama Prover:      🟢 ACTIVE ({ollama_info.get('host')}{model_str})")
+    else:
+        st = ollama_info.get("status", "STOPPED")
+        lines.append(f"  Ollama Prover:      🔴 {st} ({ollama_info.get('host', 'http://localhost:11434')})")
 
     if status["is_paused"]:
         pd = status.get("pause_details") or {}
