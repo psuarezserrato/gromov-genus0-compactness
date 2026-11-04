@@ -37,6 +37,13 @@ import GromovCompactness.Compactness.GenusZero
 import GromovCompactness.Topology.ComponentCount
 import GromovCompactness.Main
 
+-- Phase 4: Extensions & Moduli Space Topology (E01–E05)
+import GromovCompactness.Extensions.VaryingJ
+import GromovCompactness.Extensions.MarkedCurves
+import GromovCompactness.Extensions.Homology
+import GromovCompactness.Extensions.Automorphisms
+import GromovCompactness.Extensions.ModuliSpace
+
 /-!
 # Master Entry Point for Gromov Compactness in Genus 0
 
@@ -78,4 +85,11 @@ This package provides a formalization of Gromov Compactness for genus 0 pseudo-h
 - `GromovCompactness.Compactness.GenusZero` (`G03`): Core genus 0 Gromov compactness theorem and CompactnessWitness certificate.
 - `GromovCompactness.Topology.ComponentCount` (`G04`): Component bounds $P \cdot h \le B$, $G \le P - 2$, $|V| \le \max(1, 2\lfloor B/h \rfloor - 2)$.
 - `GromovCompactness.Main` (`G05`): Master integration theorem `gromov_compactness_genus_zero` and axiom audit.
+
+## Phase 4 Modules (Extensions & Moduli Space Topology: E01–E05)
+- `GromovCompactness.Extensions.VaryingJ` (`E01`): Smooth convergence of almost-complex structures $J_n \to J_\infty$, uniform constants, and Gromov compactness transfer.
+- `GromovCompactness.Extensions.MarkedCurves` (`E02`): $k$-marked stable curves, cross-ratio projective invariance, ghost bubble collision blow-up, and marked Gromov compactness.
+- `GromovCompactness.Extensions.Homology` (`E03`): Preservation of total integral homology class $[u_n] = \sum [u_v] \in H_2(M; \mathbb{Z})$ and tree symplectic area identity.
+- `GromovCompactness.Extensions.Automorphisms` (`E04`): Combinatorial tree automorphisms, 3-point Möbius rigidity, and component stability equivalence $\operatorname{stable} \iff \operatorname{Finite}(\operatorname{Aut})$.
+- `GromovCompactness.Extensions.ModuliSpace` (`E05`): Marked stable map isomorphism quotient, Gromov metric, Hausdorff separation ($T_2$), and compact Hausdorff moduli space $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$ and $\overline{\mathcal{M}}_{0, k}(M, J, A)$.
 -/

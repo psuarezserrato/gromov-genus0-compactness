@@ -55,7 +55,7 @@ DEFAULT_ROOT = Path("/Users/pablosuarez/Desktop/SympTopAutoForm")
 SENTINEL_FILENAME = ".pause_workflow"
 CHECKPOINTS_DIRNAME = ".agents/teamwork/checkpoints"
 
-# Complete 32-contract inventory across the 4 tracks as defined in gromov_compactness.pdf
+# Complete 39-contract inventory across the 5 tracks as defined in gromov_compactness.pdf and blueprint
 ALL_CONTRACT_IDS = [
     # Track 1: Foundations & Bookkeeping Layer (F00–F06)
     "F00", "F01", "F02", "F03", "F04", "F05", "F06",
@@ -65,6 +65,8 @@ ALL_CONTRACT_IDS = [
     "C01", "C02", "C03", "B01", "B02", "B03", "B04", "B05", "B06", "B07",
     # Track 4: Global Assembly & Master Theorems (G01–G05)
     "G01", "G02", "G03", "G04", "G05",
+    # Track 5: Extensions (E01–E05)
+    "E01", "E02", "E03", "E04", "E05",
 ]
 
 CONTRACT_FILE_MAPPING = {
@@ -102,6 +104,29 @@ CONTRACT_FILE_MAPPING = {
     "G03": "GromovCompactness/Compactness/GenusZero.lean",
     "G04": "GromovCompactness/Topology/ComponentCount.lean",
     "G05": "GromovCompactness/Main.lean",
+    "E01": "GromovCompactness/Extensions/VaryingJ.lean",
+    "E02": "GromovCompactness/Extensions/MarkedCurves.lean",
+    "E03": "GromovCompactness/Extensions/Homology.lean",
+    "E04": "GromovCompactness/Extensions/Automorphisms.lean",
+    "E05": "GromovCompactness/Extensions/ModuliSpace.lean",
+}
+
+CONTRACT_FILE_FALLBACKS = {
+    "A01": ["GromovCompactness/Analysis/Monotonicity.lean"],
+    "A04": ["GromovCompactness/Analysis/EllipticBootstrap.lean"],
+    "A05": ["GromovCompactness/Analysis/EllipticBootstrap.lean"],
+    "A06": ["GromovCompactness/Analysis/EllipticBootstrap.lean"],
+    "A09": ["GromovCompactness/Analysis/SingularityRemoval.lean"],
+    "A10": ["GromovCompactness/Analysis/SingularityRemoval.lean"],
+    "A11": ["GromovCompactness/Analysis/SingularityRemoval.lean"],
+    "A12": ["GromovCompactness/Analysis/SingularityRemoval.lean"],
+    "B01": ["GromovCompactness/Analysis/HoferRescaling.lean"],
+    "B02": ["GromovCompactness/Analysis/HoferRescaling.lean"],
+    "E01": ["GromovCompactness/Moduli/VaryingJ.lean"],
+    "E02": ["GromovCompactness/Moduli/MarkedCurves.lean", "GromovCompactness/Compactness/Marked.lean"],
+    "E03": ["GromovCompactness/Topology/Homology.lean", "GromovCompactness/Moduli/Homology.lean"],
+    "E04": ["GromovCompactness/Topology/Automorphisms.lean", "GromovCompactness/Moduli/Automorphisms.lean"],
+    "E05": ["GromovCompactness/Topology/ModuliCompactness.lean", "GromovCompactness/Moduli/ModuliSpace.lean"],
 }
 
 
@@ -254,15 +279,23 @@ class WorkflowController:
             rel_file = CONTRACT_FILE_MAPPING.get(cid)
             if not rel_file:
                 continue
-            full_path = self.root_dir / rel_file
-            if full_path.is_file():
+            candidates = [rel_file] + CONTRACT_FILE_FALLBACKS.get(cid, [])
+            actual_file = None
+            full_path = None
+            for cand in candidates:
+                cand_path = self.root_dir / cand
+                if cand_path.is_file():
+                    actual_file = cand
+                    full_path = cand_path
+                    break
+            if actual_file and full_path:
                 try:
                     size = full_path.stat().st_size
                     with open(str(full_path), "r", encoding="utf-8") as f:
                         lines = len(f.readlines())
                     scanned[cid] = {
                         "exists": True,
-                        "path": rel_file,
+                        "path": actual_file,
                         "lines": lines,
                         "size_bytes": size,
                         "status": "SCAFFOLDED_OR_VERIFIED",
@@ -273,7 +306,7 @@ class WorkflowController:
                 except Exception as e:
                     scanned[cid] = {
                         "exists": True,
-                        "path": rel_file,
+                        "path": actual_file,
                         "error": str(e),
                         "status": "READ_ERROR",
                     }
@@ -682,6 +715,7 @@ Examples:
 
     # checkpoint
     p_chk = subparsers.add_parser("checkpoint", help="Create progress checkpoint JSON snapshot")
+    p_chk.add_argument("--name", type=str, default=None, help="Name or label for checkpoint")
     p_chk.add_argument("--label", type=str, default=None, help="Descriptive label for checkpoint")
     p_chk.add_argument("--phase", type=str, default=None, help="Phase identifier for checkpoint (e.g. 3-model-b)")
     p_chk.add_argument("--notes", type=str, default="", help="Optional notes")
@@ -732,7 +766,7 @@ Examples:
             print(format_status_output(status))
 
     elif args.command == "checkpoint":
-        chk_label = args.phase if args.phase else (args.label or "manual_checkpoint")
+        chk_label = args.name or args.phase or args.label or "manual_checkpoint"
         chk_notes = args.summary if args.summary is not None else args.notes
         snap = ctrl.checkpoint(label=chk_label, notes=chk_notes)
         if args.json:

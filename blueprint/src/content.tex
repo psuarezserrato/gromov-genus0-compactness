@@ -562,39 +562,115 @@ The complete master theorem uniting subsequence convergence, energy conservation
 \end{theorem}
 
 % =========================================================================
-\chapter{Extensions}
+\chapter{Extensions and Moduli Space Topology}
+
+\section{Varying Almost-Complex Structures}
+
+\begin{definition}[Smooth Convergence of Tamed Almost-Complex Structures]
+\label{def:varying_j}
+\lean{GromovCompactness.Extensions.VaryingAlmostComplexStructures}
+\uses{f01:target_geometry}
+A sequence of smooth almost complex structures $J_n$ on $(M, \omega)$ tamed by $\omega$ converging in $C^\infty$ to a limit $J_\infty$.
+\end{definition}
+
+\begin{theorem}[Uniform Target Thresholds]
+\label{thm:uniform_target_thresholds}
+\lean{GromovCompactness.Extensions.UniformTargetThresholds}
+\uses{def:varying_j, b01:threshold_h}
+Across any compact family of tamed almost-complex structures, the bubbling threshold $h > 0$, regularity threshold $\varepsilon_{\mathrm{reg}}$, and monotonicity constants are bounded uniformly away from zero.
+\end{theorem}
+
+\begin{theorem}[Gromov Compactness with Varying Almost-Complex Structures]
+\label{e01:varying_j}
+\label{e01:homology_old}
+\lean{GromovCompactness.Extensions.gromov_compactness_varying_J}
+\uses{g05:final_gate, def:varying_j, thm:uniform_target_thresholds}
+Every sequence of non-constant $J_n$-holomorphic spheres with $E(u_n) \le B$ and $J_n \to J_\infty$ has a subsequence converging to a $J_\infty$-holomorphic stable sphere tree limit.
+\end{theorem}
+
+\section{Marked Curves and Tree Stabilization}
+
+\begin{definition}[$k$-Marked Sphere Trees and Stable Maps]
+\label{def:marked_stable_map}
+\label{e02:marked_curves}
+\label{e03:marked}
+\lean{GromovCompactness.Extensions.MarkedStableMap}
+\leanok
+\uses{f06:sphere_tree, f02:sphere_geometry}
+A $k$-marked stable genus 0 pseudo-holomorphic map carrying $k$ pairwise distinct marked points on component spheres, satisfying $\operatorname{deg}_{\mathrm{nodal}}(v) + k_v \ge 3$ on all ghost components.
+\end{definition}
+
+\begin{theorem}[Marked Gromov Compactness]
+\label{thm:marked_gromov_compactness}
+\label{e04:nodal_input}
+\lean{GromovCompactness.Extensions.marked_gromov_compactness}
+\uses{def:marked_stable_map, g05:final_gate}
+Compactness for sequences of $k$-marked $J$-holomorphic spheres via cross-ratio ghost bubble insertion.
+\end{theorem}
+
+\section{Preservation of Integral Homology Classes}
 
 \begin{theorem}[Preservation of Integral Homology Classes]
+\label{e03:homology}
 \label{e01:homology}
 \lean{GromovCompactness.Extensions.integral_homology_preserved}
 \uses{g05:final_gate, f01:target_geometry}
-$[u_{\sigma(n)}] = \sum_{v \in V} [u_v]$ in $H_2(M; \Z)$ via 2-chain neck pinching.
+$[u_{\sigma(n)}] = \sum_{v \in V} [u_v]$ in $H_2(M; \Z)$ via small neck pinching and geodesic homotopy.
 \end{theorem}
+
+\begin{theorem}[Symplectic Area Identity for Sphere Trees]
+\label{thm:tree_energy_eq_symplectic_area}
+\lean{GromovCompactness.Extensions.tree_energy_eq_symplectic_area}
+\leanok
+\uses{e03:homology, f03:energy_definition}
+For any stable sphere tree limit, total symplectic energy equals total pullback symplectic area: $\sum E(u_v) = \sum \int u_v^* \omega$.
+\end{theorem}
+
+\section{Automorphism Group Finiteness}
 
 \begin{theorem}[Component Stability Equals Finite Automorphisms]
+\label{e04:automorphisms}
 \label{e02:automorphisms}
 \lean{GromovCompactness.Extensions.stability_iff_finite_automorphisms}
-\uses{f06:sphere_tree, a05:bootstrap}
-The geometric stability condition $\operatorname{deg} \ge 3$ on ghost components is equivalent to finiteness of the tree automorphism group.
+\uses{f06:sphere_tree, f02:sphere_geometry, a05:bootstrap}
+The geometric stability condition $\operatorname{deg}_{\mathrm{nodal}}(v) + k_v \ge 3$ on ghost components is equivalent to finiteness of the marked tree automorphism group $\operatorname{Aut}(T, \{u_v\}, \{z_i\})$.
 \end{theorem}
 
-\begin{theorem}[Marked Point Compactness]
-\label{e03:marked}
-\lean{GromovCompactness.Extensions.marked_gromov_compactness}
-\uses{g05:final_gate}
-Compactness for sequences of $k$-marked $J$-holomorphic spheres via ratio-of-differences bubble insertion.
+\section{Compact Hausdorff Moduli Space}
+
+\begin{definition}[Stable Map Isomorphism and Moduli Quotient]
+\label{def:moduli_space}
+\lean{GromovCompactness.Extensions.ModuliSpace}
+\uses{def:marked_stable_map}
+The Kontsevich moduli space $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$ is the quotient of bounded $k$-marked stable maps by tree and component Möbius isomorphisms.
+\end{definition}
+
+\begin{theorem}[Reflexivity of Stable Map Isomorphism]
+\label{thm:stableMapEquiv_refl}
+\lean{GromovCompactness.Extensions.stableMapEquiv_refl}
+\leanok
+\uses{def:moduli_space}
+Isomorphism of marked stable maps is reflexive (proved in Lean 4 with zero sorry).
 \end{theorem}
 
-\begin{theorem}[Already Nodal Inputs]
-\label{e04:nodal_input}
-\lean{GromovCompactness.Extensions.nodal_input_gromov_compactness}
-\uses{e03:marked, g04:component_bounds}
-Extension of compactness to sequences of already-nodal genus 0 curves.
+\begin{theorem}[Hausdorff Separation of the Moduli Space]
+\label{thm:moduli_space_t2}
+\lean{GromovCompactness.Extensions.moduli_space_t2}
+\uses{def:moduli_space, e04:automorphisms}
+The moduli space $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$ is a Hausdorff topological space ($T_2$).
 \end{theorem}
 
 \begin{theorem}[Compact Hausdorff Moduli Space]
 \label{e05:moduli_topology}
 \lean{GromovCompactness.Extensions.moduli_space_compact_hausdorff}
-\uses{e04:nodal_input, e02:automorphisms, e01:homology}
-The compactified moduli space $\overline{\mathcal{M}}_{0, k}(M, A; J)$ is a compact Hausdorff topological space.
+\uses{thm:moduli_space_t2, e01:varying_j, e03:homology, e04:automorphisms}
+The moduli space $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$ is a compact Hausdorff topological space.
 \end{theorem}
+
+\begin{theorem}[Compact Hausdorff Moduli Space for Fixed Homology Class]
+\label{thm:moduli_space_in_class}
+\lean{GromovCompactness.Extensions.moduli_space_in_class_compact_hausdorff}
+\uses{e05:moduli_topology, e03:homology}
+For any fixed homology class $A \in H_2(M; \Z)$, the moduli space $\overline{\mathcal{M}}_{0, k}(M, J, A)$ is compact and Hausdorff.
+\end{theorem}
+
