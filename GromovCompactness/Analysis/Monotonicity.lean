@@ -109,10 +109,8 @@ lemma isConnected_sphere_3 : IsConnected (Metric.sphere (0 : EuclideanSpace ℝ 
 instance connectedSpace_CP1 : ConnectedSpace CP1 :=
   Subtype.connectedSpace isConnected_sphere_3
 
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-variable {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-variable {M : Type*} [MetricSpace M] [ChartedSpace H M]
-variable [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+variable {M : Type*} [MetricSpace M]
+
 
 lemma continuous_dist_u (u : CP1 → M) (x : M) (h_cont : Continuous u) :
     Continuous (fun z => dist (u z) x) :=
@@ -169,6 +167,10 @@ theorem exists_boundary_hit (u : CP1 → M) (x : M) (r : ℝ) (hr : 0 < r)
     ∃ z : CP1, z ∈ frontier (u ⁻¹' (Metric.ball x r)) ∧ dist (u z) x = r := by
   obtain ⟨z, hz⟩ := frontier_preimage_ball_nonempty u x r hr hx h_out
   exact ⟨z, hz, dist_eq_r_of_mem_frontier_preimage_ball u x r h_cont z hz⟩
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+variable [ChartedSpace H M] [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
 
 lemma continuous_of_jhol (u : CP1 → M)
     (h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :

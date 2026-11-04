@@ -239,16 +239,21 @@ By the handshake lemma on finite trees: $\sum_{v \in V} \operatorname{deg}(v) = 
 \begin{lemma}[Scalar Mean-Value Inequality]
 \label{a01:mean_value}
 \lean{GromovCompactness.Analysis.scalar_mean_value_inequality}
+\leanok
 \uses{f00:library_audit}
 Let $e \ge 0$ satisfy the subharmonic differential inequality $\Delta e \ge -b e^2$ on the Euclidean disk $D_r$. If $\int_{D_r} e < \eta = \frac{1}{2b}$, then:
 \[
 \sup_{D_{r/2}} e \le \frac{C}{r^2} \int_{D_r} e.
 \]
 \end{lemma}
+\begin{proof}
+Follows by subharmonic comparison and the maximum selection argument on $(r - |z|)^2 e(z)$, with the vanishing energy branch handled by \texttt{mvi\_branch\_zero}.
+\end{proof}
 
 \begin{lemma}[Bochner Energy-Density Inequality]
 \label{a02:bochner}
 \lean{GromovCompactness.Analysis.bochner_differential_inequality}
+\leanok
 \uses{f01:target_geometry, f03:energy_measure}
 The Riemannian energy density $e = \frac{1}{2}|du|^2$ of any $J$-holomorphic curve on a conformal chart satisfies the Bochner differential inequality:
 \[
@@ -256,10 +261,14 @@ The Riemannian energy density $e = \frac{1}{2}|du|^2$ of any $J$-holomorphic cur
 \]
 where the constants $b, c > 0$ depend only on the Riemann curvature of $(M, g)$ and $\|\nabla J\|_{C^1}$.
 \end{lemma}
+\begin{proof}
+Follows from the Weitzenb\"ock formula for the Laplacian of $|du|^2$, curvature bounds on $(M, g)$, and $\|\nabla J\|_{C^1}$.
+\end{proof}
 
 \begin{theorem}[$\varepsilon$-Regularity via Hofer's Lemma]
 \label{a03:eps_regularity}
 \lean{GromovCompactness.Analysis.epsilon_regularity}
+\leanok
 \uses{a01:mean_value, a02:bochner, f00:library_audit}
 There exist uniform constants $\varepsilon_{\mathrm{reg}} > 0$ and $C_{\mathrm{reg}} > 0$ such that for every $J$-holomorphic curve $u : D_r \to M$, if:
 \[
@@ -270,10 +279,14 @@ then:
 \sup_{D_{r/2}} |du|^2 \le \frac{C_{\mathrm{reg}}}{r^2} E(u; D_r).
 \]
 \end{theorem}
+\begin{proof}
+Follows by applying Hofer's lemma to the gradient blow-up, combined with the Bochner inequality and the scalar mean-value inequality.
+\end{proof}
 
 \begin{lemma}[Euclidean Elliptic and Sobolev Toolkit]
 \label{a04:elliptic_toolkit}
 \lean{GromovCompactness.Analysis.interior_cauchy_riemann_estimate}
+\leanok
 \uses{f00:library_audit}
 Interior $W^{k+1, p}$ estimates for the linear and perturbed Cauchy-Riemann operator $\delbar$: for $p > 2$,
 \[
@@ -281,73 +294,108 @@ Interior $W^{k+1, p}$ estimates for the linear and perturbed Cauchy-Riemann oper
 \]
 along with the Morrey embedding $W^{1, p}(D_r) \hookrightarrow C^{0, 1 - 2/p}(D_r)$.
 \end{lemma}
+\begin{proof}
+Established via Calder\'on-Zygmund singular integral estimates for the Cauchy-Riemann operator on the plane and standard 2D Morrey-Sobolev inequality.
+\end{proof}
 
 \begin{theorem}[Nonlinear Elliptic Bootstrap]
 \label{a05:bootstrap}
 \lean{GromovCompactness.Analysis.nonlinear_elliptic_bootstrap}
+\leanok
 \uses{a04:elliptic_toolkit, f01:target_geometry, f04:smooth_local_convergence}
 Every continuous weak solution $u \in W^{1, p}_{\mathrm{loc}}(\Omega, M)$ ($p > 2$) of the Cauchy-Riemann equation $\delbar_J u = 0$ is smooth ($C^\infty$).
 \end{theorem}
+\begin{proof}
+By induction using the interior Cauchy-Riemann estimate and difference quotient method in local charts, upgrading $W^{1, p}_{\mathrm{loc}}$ to $W^{k, p}_{\mathrm{loc}}$ for all $k$, which yields $C^\infty$ via the Sobolev embedding tower.
+\end{proof}
 
 \begin{theorem}[Local Compactness Under Gradient Bounds]
 \label{a06:local_compactness}
 \lean{GromovCompactness.Analysis.local_smooth_compactness}
+\leanok
 \uses{a05:bootstrap, f04:smooth_local_convergence, f05:subsequence_bookkeeping, f00:library_audit}
 Let $u_n : \Omega \to M$ be a sequence of $J$-holomorphic maps satisfying a uniform gradient bound $\sup_{K} |du_n| \le C_K < \infty$ on each compact subset $K \subset \Omega$. Then there exists a subsequence $u_{\sigma(n)}$ converging in $C^\infty_{\mathrm{loc}}(\Omega, M)$ to a $J$-holomorphic map $u : \Omega \to M$.
 \end{theorem}
+\begin{proof}
+Follows from Arzel\`a-Ascoli theorem providing a $C^0$ limit, upgraded to $C^\infty_{\mathrm{loc}}$ via uniform elliptic derivative bounds from bootstrap and diagonal extraction.
+\end{proof}
 
 \section{Minimal Energy Gap and Singularity Removal}
 
 \begin{theorem}[Minimal Energy Gap for Non-Constant Spheres]
 \label{a07:sphere_energy_gap}
 \lean{GromovCompactness.Analysis.sphere_energy_gap}
+\leanok
 \uses{a03:eps_regularity, f01:target_geometry, f02:sphere_geometry, f03:energy_measure}
 There exists a strictly positive constant $\varepsilon_{\mathrm{sph}} > 0$ depending only on $(M, \omega, J)$ such that every non-constant $J$-holomorphic sphere $u : \CP \to M$ satisfies:
 \[
 E(u) \ge \varepsilon_{\mathrm{sph}}.
 \]
 \end{theorem}
+\begin{proof}
+Follows from target monotonicity when the curve leaves a small ball, or by contracting small-energy spheres into Darboux charts and applying Stokes' theorem.
+\end{proof}
 
 \begin{lemma}[Target Monotonicity]
 \label{a08:monotonicity}
 \lean{GromovCompactness.Analysis.target_monotonicity}
+\leanok
 \uses{f01:target_geometry, f03:energy_measure, a04:elliptic_toolkit}
 There exist $r_0 > 0$ and $c > 0$ such that for all $x \in M$ and $0 < r < r_0$, if a $J$-holomorphic curve $u$ intersects the metric ball $B_r(x)$ and has boundary outside $B_r(x)$, then:
 \[
 E\big(u; u^{-1}(B_r(x))\big) \ge c r^2.
 \]
 \end{lemma}
+\begin{proof}
+Follows by integrating the radial energy differential inequality on preimages of geodesic balls using tameness and the boundary hit point on the sphere frontier.
+\end{proof}
 
 \begin{lemma}[Cylinder Localization]
 \label{a09:cylinder_localization}
 \lean{GromovCompactness.Analysis.cylinder_localization}
+\leanok
 \uses{a03:eps_regularity, a08:monotonicity}
 On a long conformal cylinder $[-T, T] \times S^1$, if the total energy is sufficiently small ($E \le \varepsilon_{\mathrm{loc}}$), the entire central segment $[-T/2, T/2] \times S^1$ maps into a single geodesic ball in $M$.
 \end{lemma}
+\begin{proof}
+Follows from $\varepsilon$-regularity gradient bounds controlling the loop diameter by $C_{\mathrm{cyl}}\sqrt{E}$, localizing the central cylinder into a single ball of radius $d_0$.
+\end{proof}
 
 \begin{theorem}[Cylinder Exponential Decay]
 \label{a10:cylinder_decay}
 \lean{GromovCompactness.Analysis.cylinder_exponential_decay}
+\leanok
 \uses{a09:cylinder_localization, a03:eps_regularity, f03:energy_measure}
 On any conformal cylinder $[-T, T] \times S^1$ mapped into a coordinate chart, energy and loop diameter decay exponentially away from the ends:
 \[
 E(u; [t - 1, t + 1] \times S^1) \le C e^{-\delta(T - |t|)} E(u; [-T, T] \times S^1).
 \]
 \end{theorem}
+\begin{proof}
+Follows by Gr\"onwall integration of the differential inequality $E(t) \le c E'(t)$ derived from the Cauchy-Riemann equation on the cylinder via Fourier expansion / isoperimetric inequality.
+\end{proof}
 
 \begin{theorem}[Sobolev Extension Across Punctures]
 \label{a11:puncture_extension}
 \lean{GromovCompactness.Analysis.puncture_sobolev_extension}
+\leanok
 \uses{a09:cylinder_localization, a10:cylinder_decay, a03:eps_regularity, f03:energy_measure}
 Any finite-energy $J$-holomorphic curve on a punctured disk $D^* = D_1 \setminus \{0\}$ extends to a continuous map in $W^{1, p}(D_1, M)$ ($p > 2$).
 \end{theorem}
+\begin{proof}
+Follows by summing the exponentially decaying neck diameters across dyadic annuli to obtain Cauchy convergence to a continuous extension at the puncture.
+\end{proof}
 
 \begin{theorem}[Removal of Singularities]
 \label{a12:removal_of_singularities}
 \lean{GromovCompactness.Analysis.removal_of_singularities}
+\leanok
 \uses{a11:puncture_extension, a05:bootstrap, f02:sphere_geometry}
 Any $J$-holomorphic map $u : D_1 \setminus \{0\} \to M$ with finite energy $E(u) < \infty$ extends smoothly to a $J$-holomorphic map $\tilde{u} : D_1 \to M$.
 \end{theorem}
+\begin{proof}
+Follows by extending continuously across the puncture via Sobolev extension and upgrading from continuous weak solution to smooth via nonlinear elliptic bootstrap.
+\end{proof}
 
 % =========================================================================
 \chapter{Concentration Compactness and Bubbling Engine}
@@ -384,6 +432,7 @@ where each point mass satisfies $m_p \ge \varepsilon_{\mathrm{sph}}$, and the to
 \begin{definition}[Universal Energy Threshold $h > 0$]
 \label{b01:threshold_h}
 \lean{GromovCompactness.Bubbling.TargetThresholds}
+\leanok
 \uses{a03:eps_regularity, a07:sphere_energy_gap, a10:cylinder_decay}
 Fix a target geometric constant $h > 0$ satisfying:
 \[
@@ -393,10 +442,15 @@ Fix a target geometric constant $h > 0$ satisfying:
 
 \begin{theorem}[Calibrated Rescaling Centers and Radii]
 \label{b02:calibration}
-\lean{GromovCompactness.Bubbling.CalibratedRescaling}
+\lean{GromovCompactness.Bubbling.exists_calibrated_rescaling}
+\leanok
 \uses{c03:defect_identity, b01:threshold_h, f02:sphere_geometry}
 At each concentration point $p \in S$, there exist moving centers $a_n \to p$ and radii $\lambda_n \to 0$ satisfying the calibration condition $E(u_n; D_{\lambda_n}(a_n)) = m_p - h/2$.
 \end{theorem}
+\begin{proof}
+\leanok
+Follows from Hofer's lemma producing gradient blow-up centers and the Intermediate Value Theorem for continuous radial energy measures.
+\end{proof}
 
 \begin{theorem}[Vanishing Neck Energy and Diameter]
 \label{b03:neck_vanishing}
