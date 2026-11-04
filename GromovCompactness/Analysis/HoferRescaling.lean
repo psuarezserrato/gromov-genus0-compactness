@@ -38,20 +38,44 @@ References:
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 variable {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-variable {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+variable {M : Type*} [MetricSpace M] [ChartedSpace H M]
   [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
 
 /-- TargetThresholds bundles the universal positive bubbling threshold `h > 0` (Contract B01).
-It is bounded above by `min(ε_reg / 2, ε_sph, ε_neck / 2)` and fixed once for the target manifold. -/
+It is bounded above by `min(ε_reg / 2, ε_sph, ε_neck / 2)` and fixed once for the target manifold,
+bundled with proofs that the thresholds satisfy epsilon-regularity, sphere energy gap, and
+cylinder exponential collar decay. -/
 structure TargetThresholds (I : ModelWithCorners ℝ E H) (M : Type*)
-    [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [CompactSpace M]
+    [MetricSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [CompactSpace M]
     [ClosedTameTarget I M] where
   ε_reg : ℝ
   ε_reg_pos : 0 < ε_reg
+  C_reg : ℝ
+  C_reg_pos : 0 < C_reg
+  h_reg : ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (_ : 0 < r),
+    JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+    energyMeasure I u (disk_at a r) < ε_reg →
+    ∀ z ∈ disk_at a (r / 2),
+      riemannianEnergyDensity I u z ≤ C_reg * r^(-2 : ℝ) * energyMeasure I u (disk_at a r)
   ε_sph : ℝ
   ε_sph_pos : 0 < ε_sph
+  h_sph : ∀ (u : CP1 → M),
+    JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+    (¬ ∃ c : M, ∀ z, u z = c) →
+    ε_sph ≤ totalEnergy I u
   ε_neck : ℝ
   ε_neck_pos : 0 < ε_neck
+  C_neck : ℝ
+  C_neck_pos : 0 < C_neck
+  a_decay : ℝ
+  a_decay_pos : 0 < a_decay
+  h_neck : ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+    0 < r → 2 * r < R →
+    JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+    energyMeasure I u (annulus_at center r R) < ε_neck →
+    ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
+      energyMeasure I u (annulus_at center r₁ r₂) ≤
+        C_neck * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R)
   h : ℝ
   h_pos : 0 < h
   h_le_reg : h ≤ ε_reg / 2
@@ -65,7 +89,7 @@ theorem exists_target_thresholds :
 
 /-- Calibrated Rescaling Data (Contract B02).
 At an isolated concentration point `p ∈ CP1`, moving centers `a_n → 0` and scaling radii `λ_n → 0`
-satisfy the calibrated energy identity `E(u_n; D_{λ_n}(a_n)) = m_p - h / 2`. -/
+satisfy the calibrated energy identity `E(u_n; D_{λ_n}(a_n)) = m_defect - h / 2`. -/
 structure CalibratedRescaling
     (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ) where
   a : ℕ → ℂ
@@ -76,10 +100,17 @@ structure CalibratedRescaling
   calibrated_energy : ∀ n,
     energyMeasure I (u_seq n) (disk_at (a n) («λ» n)) = m_defect - thresh.h / 2
 
-/-- Existence of calibrated moving centers and radii (Contract B02). -/
+/-- Existence of calibrated moving centers and radii (Contract B02).
+Under energy concentration at `0` with defect mass `m_defect`, the Intermediate Value
+Theorem yields calibrated moving centers and scaling radii. -/
 theorem exists_calibrated_rescaling
     (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
-    (hm : thresh.h ≤ m_defect) :
+    (hm : thresh.h ≤ m_defect)
+    (h_jhol : ∀ (n : ℕ), JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
+    (h_defect : ∀ (n : ℕ), ∃ (a_n : ℂ) (R_n : ℝ),
+      dist a_n 0 ≤ 1 / ((n : ℝ) + 1) ∧
+      0 < R_n ∧ R_n ≤ 1 / ((n : ℝ) + 1) ∧
+      m_defect - thresh.h / 2 ≤ energyMeasure I (u_seq n) (disk_at a_n R_n)) :
     Nonempty (CalibratedRescaling I u_seq thresh m_defect) := by
   sorry
 

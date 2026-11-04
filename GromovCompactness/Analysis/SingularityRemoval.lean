@@ -36,8 +36,8 @@ curve on an annular neck with energy `< η` has its central collar image contain
 theorem cylinder_localization
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] [MetricSpace M]
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
     (d₀ : ℝ) (hd₀ : 0 < d₀) :
     ∃ (η : ℝ), 0 < η ∧
     ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
@@ -49,11 +49,12 @@ theorem cylinder_localization
 
 /-- Cylinder Energy and Diameter Exponential Decay (Contract A10).
 On a conformal cylinder, if the total neck energy is below `ε_neck`, energy decays exponentially
-away from the boundary collars. -/
+away from both boundary collars:
+$E(u; A(r_1, r_2)) \le C_0 ((r/r_1)^{a_{\text{decay}}} + (r_2/R)^{a_{\text{decay}}}) E(u; A(r, R))$. -/
 theorem cylinder_exponential_decay
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] :
     ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
     ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
@@ -62,7 +63,7 @@ theorem cylinder_exponential_decay
       energyMeasure I u (annulus_at center r R) < ε_neck →
       ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
         energyMeasure I u (annulus_at center r₁ r₂) ≤
-          C₀ * (r₁ / R)^a_decay * energyMeasure I u (annulus_at center r R) := by
+          C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R) := by
   sorry
 
 /-- Continuous and Sobolev Extension at a Puncture (Contract A11).
