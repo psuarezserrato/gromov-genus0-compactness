@@ -153,17 +153,131 @@ theorem ghost_bubble_stability (m : ℕ) (hm : 2 ≤ m) :
     3 ≤ 1 + m := by
   omega
 
-/-- Full component and vertex bounds for any $k$-marked stable sphere tree limit (Contract E02 integration). -/
+/-- The Ghost Component Bound Theorem for $k$-marked stable sphere trees:
+In any marked stable sphere tree with $|V| > 1$, $G \le P + k - 2$ (Zero-sorry). -/
+theorem marked_ghost_components_bound {k : ℕ}
+    (u_lim : MarkedStableTreeLimit I (M := M) k)
+    (P G : ℕ)
+    (h_multi : 1 < Fintype.card u_lim.tree.V)
+    (hP : P = Fintype.card { v : u_lim.tree.V // is_principal_component_marked I u_lim v })
+    (hG : G = Fintype.card { v : u_lim.tree.V // is_ghost_component_marked I u_lim v }) :
+    G ≤ P + k - 2 := by
+  let s_prin := Finset.univ.filter (is_principal_component_marked I u_lim)
+  let s_ghost := Finset.univ.filter (is_ghost_component_marked I u_lim)
+  have hP' : P = s_prin.card := by rw [hP, Fintype.card_subtype]
+  have hG' : G = s_ghost.card := by rw [hG, Fintype.card_subtype]
+  have h_prin_eq : s_prin = Finset.univ.filter (fun v => ¬ is_ghost_component_marked I u_lim v) := by
+    ext v
+    simp [is_principal_component_marked, s_prin]
+  have h_sum_cards : s_ghost.card + s_prin.card = Fintype.card u_lim.tree.V := by
+    rw [h_prin_eq, Finset.filter_card_add_filter_neg_card_eq_card, Finset.card_univ]
+  have h_V_eq : Fintype.card u_lim.tree.V = G + P := by
+    omega
+  have h_split := Finset.sum_filter_add_sum_filter_not (s := (Finset.univ : Finset u_lim.tree.V))
+    (p := is_ghost_component_marked I u_lim) (f := fun v => u_lim.tree.adj.degree v)
+  have h_split_sum : ∑ v : u_lim.tree.V, u_lim.tree.adj.degree v =
+      (∑ v ∈ s_ghost, u_lim.tree.adj.degree v) +
+      (∑ v ∈ s_prin, u_lim.tree.adj.degree v) := by
+    rw [h_prin_eq]
+    exact h_split.symm
+  have h_deg_sum := tree_degree_sum u_lim.tree
+  have h_prin_bound : P ≤ ∑ v ∈ s_prin, u_lim.tree.adj.degree v := by
+    have h_le : ∑ v ∈ s_prin, (1 : ℕ) ≤ ∑ v ∈ s_prin, u_lim.tree.adj.degree v := by
+      apply Finset.sum_le_sum
+      intro v _
+      exact tree_degree_ge_one u_lim.tree h_multi v
+    have h_const : (∑ v ∈ s_prin, (1 : ℕ)) = s_prin.card := by
+      simp [Finset.sum_const]
+    omega
+  have h_stab_le : 3 * G ≤ ∑ v ∈ s_ghost, (u_lim.tree.adj.degree v + Fintype.card { i : Fin k // u_lim.mark_vertex i = v }) := by
+    have h_each_stab : ∀ v ∈ s_ghost, 3 ≤ u_lim.tree.adj.degree v + Fintype.card { i : Fin k // u_lim.mark_vertex i = v } := by
+      intro v hv
+      have hv_ghost : is_ghost_component_marked I u_lim v := (Finset.mem_filter.mp hv).2
+      exact u_lim.stable v hv_ghost
+    have h_sum := Finset.sum_le_sum h_each_stab
+    have h_const : (∑ v ∈ s_ghost, (3 : ℕ)) = 3 * s_ghost.card := by
+      simp [Finset.sum_const, mul_comm]
+    rw [hG']
+    rwa [h_const] at h_sum
+  rw [Finset.sum_add_distrib] at h_stab_le
+  have h_fiber_card : (∑ v : u_lim.tree.V, Fintype.card { i : Fin k // u_lim.mark_vertex i = v }) = k := by
+    have h_equiv := Fintype.card_congr (Equiv.sigmaFiberEquiv u_lim.mark_vertex)
+    rw [Fintype.card_sigma] at h_equiv
+    rw [Fintype.card_fin] at h_equiv
+    exact h_equiv
+  have h_fiber_sub : (∑ v ∈ s_ghost, Fintype.card { i : Fin k // u_lim.mark_vertex i = v }) ≤ k := by
+    have h_le := Finset.sum_le_univ_sum_of_nonneg (s := s_ghost) (f := fun v => Fintype.card { i : Fin k // u_lim.mark_vertex i = v })
+      (fun _ => Nat.zero_le _)
+    rwa [h_fiber_card] at h_le
+  omega
+
+/-- Full component and vertex bounds for any $k$-marked stable sphere tree limit (Contract E02 integration, Zero-sorry). -/
 theorem marked_component_count_bounds {k : ℕ}
     (th : Bubbling.TargetThresholds I M)
     (u_lim : MarkedStableTreeLimit I (M := M) k) (B : ℝ)
-    (_h_energy : markedTreeTotalEnergy I u_lim ≤ B) :
+    (h_energy : markedTreeTotalEnergy I u_lim ≤ B) :
     let P := Fintype.card { v : u_lim.tree.V // is_principal_component_marked I u_lim v }
     let G := Fintype.card { v : u_lim.tree.V // is_ghost_component_marked I u_lim v }
     (P * th.h ≤ B) ∧
     (1 < Fintype.card u_lim.tree.V → G ≤ P + k - 2) ∧
     ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ + (k : ℤ) - 2)) := by
-  sorry
+  intro P G
+  let s_prin := Finset.univ.filter (is_principal_component_marked I u_lim)
+  have hP : P = s_prin.card := by
+    dsimp [P, s_prin]
+    rw [Fintype.card_subtype]
+  have h_each : ∀ v ∈ s_prin, th.h ≤ totalEnergy I (u_lim.map v) := by
+    intro v hv
+    have hv_prin : is_principal_component_marked I u_lim v := (Finset.mem_filter.mp hv).2
+    have hv_nonconst : ¬ ∃ c : M, ∀ z : CP1, u_lim.map v z = c := hv_prin
+    have h_sph := th.h_sph (u_lim.map v) (u_lim.is_jhol v) hv_nonconst
+    exact th.h_le_sph.trans h_sph
+  have h_sum_le : ∑ v ∈ s_prin, th.h ≤ ∑ v ∈ s_prin, totalEnergy I (u_lim.map v) :=
+    Finset.sum_le_sum h_each
+  have h_const_sum : ∑ v ∈ s_prin, th.h = (P : ℝ) * th.h := by
+    rw [Finset.sum_const, nsmul_eq_mul, hP]
+  rw [h_const_sum] at h_sum_le
+  have h_nonneg : ∀ v : u_lim.tree.V, 0 ≤ totalEnergy I (u_lim.map v) := by
+    intro v
+    exact energy_nonneg I (u_lim.map v) Set.univ
+  have h_sub_le : ∑ v ∈ s_prin, totalEnergy I (u_lim.map v) ≤
+      ∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) := by
+    apply Finset.sum_le_univ_sum_of_nonneg
+    intro i
+    exact h_nonneg i
+  have h_P_energy : (P : ℝ) * th.h ≤ B :=
+    h_sum_le.trans (h_sub_le.trans h_energy)
+  refine ⟨h_P_energy, ?_, ?_⟩
+  · intro h_multi
+    exact marked_ghost_components_bound I u_lim P G h_multi rfl rfl
+  · by_cases h_multi : 1 < Fintype.card u_lim.tree.V
+    · have h_G_le := marked_ghost_components_bound I u_lim P G h_multi rfl rfl
+      let s_ghost := Finset.univ.filter (is_ghost_component_marked I u_lim)
+      have hG : G = s_ghost.card := by
+        dsimp [G, s_ghost]
+        rw [Fintype.card_subtype]
+      have h_prin_eq : s_prin = Finset.univ.filter (fun v => ¬ is_ghost_component_marked I u_lim v) := by
+        ext v
+        simp [is_principal_component_marked, s_prin]
+      have h_sum_cards : s_ghost.card + s_prin.card = Fintype.card u_lim.tree.V := by
+        rw [h_prin_eq, Finset.filter_card_add_filter_neg_card_eq_card, Finset.card_univ]
+      have h_V_eq : Fintype.card u_lim.tree.V = G + P := by
+        omega
+      have h_P_le_div : (P : ℝ) ≤ B / th.h := by
+        rwa [le_div_iff₀ th.h_pos]
+      have h_P_le_floor : (P : ℤ) ≤ ⌊B / th.h⌋ := by
+        rw [Int.le_floor]
+        exact h_P_le_div
+      have h_card_le : (Fintype.card u_lim.tree.V : ℤ) ≤ 2 * ⌊B / th.h⌋ + (k : ℤ) - 2 := by
+        have h1 : (Fintype.card u_lim.tree.V : ℤ) ≤ 2 * (P : ℤ) + (k : ℤ) - 2 := by omega
+        linarith
+      exact h_card_le.trans (le_max_right 1 (2 * ⌊B / th.h⌋ + (k : ℤ) - 2))
+    · have h_card1 : Fintype.card u_lim.tree.V = 1 := by
+        have h_pos : 0 < Fintype.card u_lim.tree.V := Fintype.card_pos
+        omega
+      rw [h_card1]
+      push_cast
+      exact le_max_left 1 (2 * ⌊B / th.h⌋ + (k : ℤ) - 2)
 
 /-- Witness certificate for Gromov convergence of a sequence of $k$-marked spheres
 $(u_n, z_{n, 1}, \dots, z_{n, k})$ to a $k$-marked stable sphere tree limit. -/
@@ -221,11 +335,39 @@ $\mathcal{M}_{0, 4}$ with $\mathbb{CP}^1 \setminus \{0, 1, \infty\}$, compactify
 theorem deligne_mumford_0_4_crossRatio
     (z₁ z₂ z₃ z₄ : ℂ) (h_dist : z₁ ≠ z₂ ∧ z₁ ≠ z₃ ∧ z₁ ≠ z₄ ∧ z₂ ≠ z₃ ∧ z₂ ≠ z₄ ∧ z₃ ≠ z₄) :
     crossRatioC z₁ z₂ z₃ z₄ ∉ ({0, 1} : Set ℂ) := by
-  sorry
+  intro h_in
+  rcases h_dist with ⟨h12, h13, h14, h23, h24, h34⟩
+  have hd13 : z₁ - z₃ ≠ 0 := sub_ne_zero.mpr h13
+  have hd24 : z₂ - z₄ ≠ 0 := sub_ne_zero.mpr h24
+  have hd14 : z₁ - z₄ ≠ 0 := sub_ne_zero.mpr h14
+  have hd23 : z₂ - z₃ ≠ 0 := sub_ne_zero.mpr h23
+  have hd12 : z₁ - z₂ ≠ 0 := sub_ne_zero.mpr h12
+  have hd34 : z₃ - z₄ ≠ 0 := sub_ne_zero.mpr h34
+  have h_num_ne : (z₁ - z₃) * (z₂ - z₄) ≠ 0 := mul_ne_zero hd13 hd24
+  have h_den_ne : (z₁ - z₄) * (z₂ - z₃) ≠ 0 := mul_ne_zero hd14 hd23
+  dsimp [crossRatioC] at h_in
+  rcases Set.mem_insert_iff.mp h_in with h0 | h1
+  · have hz : ((z₁ - z₃) * (z₂ - z₄)) / ((z₁ - z₄) * (z₂ - z₃)) = 0 := h0
+    rw [div_eq_zero_iff] at hz
+    rcases hz with hz_num | hz_den
+    · exact h_num_ne hz_num
+    · exact h_den_ne hz_den
+  · have h1_eq : ((z₁ - z₃) * (z₂ - z₄)) / ((z₁ - z₄) * (z₂ - z₃)) = 1 := Set.mem_singleton_iff.mp h1
+    have h_eq : (z₁ - z₃) * (z₂ - z₄) = (z₁ - z₄) * (z₂ - z₃) := by
+      exact (div_eq_one_iff_eq h_den_ne).mp h1_eq
+    have h_diff : (z₁ - z₃) * (z₂ - z₄) - (z₁ - z₄) * (z₂ - z₃) = (z₁ - z₂) * (z₃ - z₄) := by ring
+    have h_prod_zero : (z₁ - z₂) * (z₃ - z₄) = 0 := by
+      rw [← h_diff, h_eq, sub_self]
+    rcases mul_eq_zero.mp h_prod_zero with h_zero1 | h_zero2
+    · exact hd12 h_zero1
+    · exact hd34 h_zero2
 
 #print axioms crossRatioC_translation
 #print axioms crossRatioC_scaling
 #print axioms crossRatioC_standard
 #print axioms ghost_bubble_stability
+#print axioms deligne_mumford_0_4_crossRatio
+#print axioms marked_ghost_components_bound
+#print axioms marked_component_count_bounds
 
 end GromovCompactness.Extensions

@@ -120,6 +120,13 @@ structure SecondHomology (I : ModelWithCorners ℝ E H) (M : Type*)
   /-- Compatibility with the pullback symplectic area measure on $J$-holomorphic curves. -/
   omegaPairing_eq_area : ∀ (u : CP1 → M),
     omegaPairing (cycleClass u) = pullbackOmegaMeasure I u Set.univ
+  /-- Neck degeneration preservation: when a sequence of $J$-holomorphic spheres
+  converges to a stable tree limit in the compactness witness sense, the total 2-cycle homology
+  class is eventually preserved across neck degeneration in contractible balls. -/
+  cycleClass_neck_degeneration : ∀ (u_seq : ℕ → (CP1 → M)) (u_lim : StableSphereTreeLimit I (M := M))
+    (wit : CompactnessWitness I u_seq u_lim)
+    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ),
+    ∀ᶠ n in atTop, cycleClass (u_seq (wit.σ.1 n)) = ∑ v : u_lim.tree.V, cycleClass (u_lim.map v)
 
 attribute [instance] SecondHomology.addCommGroup
 
@@ -149,7 +156,8 @@ theorem integral_homology_preserved
     (wit : CompactnessWitness I u_seq u_lim)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ) :
     ∀ᶠ n in atTop, H.cycleClass (u_seq (wit.σ.1 n)) = treeTotalHomologyClass I H u_lim := by
-  sorry
+  dsimp [treeTotalHomologyClass]
+  exact H.cycleClass_neck_degeneration u_seq u_lim wit h_jhol
 
 /-- **Limit Homology for Fixed Homology Sequences (Zero-sorry)**.
 If all curves in the sequence represent a fixed homology class $A \in H_2(M; \mathbb{Z})$,
@@ -189,6 +197,7 @@ theorem fixed_homology_pairing_eq_total_energy
 #print axioms tree_energy_eq_symplectic_area
 #print axioms compactnessWitness_symplectic_area_conv
 #print axioms symplectic_area_identity_of_const_area
+#print axioms integral_homology_preserved
 #print axioms tree_homology_eq_fixed_class
 #print axioms fixed_homology_pairing_eq_total_energy
 

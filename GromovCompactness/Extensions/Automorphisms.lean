@@ -130,6 +130,13 @@ theorem full_automorphisms_finite_iff_pure_finite
     Finite (StableMapAutomorphism I lim) ↔ Finite (PureComponentAutomorphism I lim) := by
   sorry
 
+/-- Pure componentwise automorphism group of a stable map is finite whenever the full automorphism group is finite (Zero-sorry). -/
+theorem pure_automorphisms_finite_of_full_finite
+    (lim : StableSphereTreeLimit I (M := M))
+    (_h : Finite (StableMapAutomorphism I lim)) :
+    Finite (PureComponentAutomorphism I lim) :=
+  Subtype.finite
+
 /-- **Component Stability Equals Finite Automorphisms (Task E04 / E02)**.
 A pseudo-holomorphic sphere tree limit curve satisfies the stability condition
 (every constant ghost component has nodal degree ≥ 3) if and only if its full
@@ -143,5 +150,6 @@ theorem stability_iff_finite_automorphisms
 
 #print axioms instFintypeTreeAutomorphism
 #print axioms StableMapAutomorphism.id
+#print axioms pure_automorphisms_finite_of_full_finite
 
 end GromovCompactness.Extensions

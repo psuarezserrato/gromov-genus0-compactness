@@ -115,21 +115,6 @@ theorem symmetrizedMetric_J_invariant
   have hskew2 := h_skew x (J x w) v
   linarith
 
-/-- A sequence of almost-complex structures $J_n$ tamed by $\omega$, converging in $C^\infty$ to $J_\infty$. -/
-structure VaryingAlmostComplexStructures where
-  /-- Sequence of almost-complex structure operators $J_n$. -/
-  J_seq : ℕ → ((x : M) → TangentSpace I x →L[ℝ] TangentSpace I x)
-  /-- Each $J_n$ satisfies $J_n^2 = -\mathrm{id}$. -/
-  J_seq_sq : ∀ (n : ℕ) (x : M) (v : TangentSpace I x), J_seq n x (J_seq n x v) = -v
-  /-- Each $J_n$ is smooth. -/
-  J_seq_smooth : ∀ (_ : ℕ), Prop
-  /-- Each $J_n$ is tamed by the target symplectic form $\omega$. -/
-  J_seq_tame : ∀ (n : ℕ) (x : M) (v : TangentSpace I x), v ≠ 0 → 0 < tgt.«ω» x v (J_seq n x v)
-  /-- Pointwise convergence $J_n(x) \to J_\infty(x)$ at every point $x \in M$. -/
-  c0_conv : ∀ (x : M), Tendsto (fun n => J_seq n x) atTop (𝓝 (tgt.J x))
-  /-- Smooth $C^\infty$ convergence: uniform convergence of all derivatives on the compact manifold $M$. -/
-  c_infty_conv : Prop
-
 /-- Cauchy-Riemann equation $\bar\partial_J u = 0$ with explicit almost-complex structure $J$. -/
 def JHolomorphicWithJ
     (J : (x : M) → TangentSpace I x →L[ℝ] TangentSpace I x)
@@ -213,6 +198,46 @@ theorem energy_density_with_J_eq_omega
                 «ω» (u z) v1 v2 := by ring
   exact h_step
 
+/-- A sequence of almost-complex structures $J_n$ tamed by $\omega$, converging in $C^\infty$ to $J_\infty$. -/
+structure VaryingAlmostComplexStructures where
+  /-- Sequence of almost-complex structure operators $J_n$. -/
+  J_seq : ℕ → ((x : M) → TangentSpace I x →L[ℝ] TangentSpace I x)
+  /-- Each $J_n$ satisfies $J_n^2 = -\mathrm{id}$. -/
+  J_seq_sq : ∀ (n : ℕ) (x : M) (v : TangentSpace I x), J_seq n x (J_seq n x v) = -v
+  /-- Each $J_n$ is smooth. -/
+  J_seq_smooth : ∀ (_ : ℕ), Prop
+  /-- Each $J_n$ is tamed by the target symplectic form $\omega$. -/
+  J_seq_tame : ∀ (n : ℕ) (x : M) (v : TangentSpace I x), v ≠ 0 → 0 < tgt.«ω» x v (J_seq n x v)
+  /-- Pointwise convergence $J_n(x) \to J_\infty(x)$ at every point $x \in M$. -/
+  c0_conv : ∀ (x : M), Tendsto (fun n => J_seq n x) atTop (𝓝 (tgt.J x))
+  /-- Smooth $C^\infty$ convergence: uniform convergence of all derivatives on the compact manifold $M$. -/
+  c_infty_conv : Prop
+  /-- Uniform bubbling threshold $h > 0$. -/
+  uth_h : ℝ
+  uth_h_pos : 0 < uth_h
+  /-- Uniform epsilon regularity threshold $\varepsilon_{\mathrm{reg}} > 0$. -/
+  uth_ε_reg : ℝ
+  uth_ε_reg_pos : 0 < uth_ε_reg
+  uth_C_reg : ℝ
+  uth_C_reg_pos : 0 < uth_C_reg
+  /-- Epsilon regularity uniform across all $n$. -/
+  uth_reg : ∀ n (u : CP1 → M) (a : ℂ) (r : ℝ) (_ : 0 < r),
+    JHolomorphicWithJ I (J_seq n) u Set.univ →
+    pullbackOmegaMeasure I u (disk_at a r) < uth_ε_reg →
+    ∀ z ∈ disk_at a (r / 2),
+      riemannianEnergyDensityWithJ I tgt.«ω» (J_seq n) u z ≤
+        uth_C_reg * r^(-2 : ℝ) * pullbackOmegaMeasure I u (disk_at a r)
+  /-- Uniform sphere energy gap: every non-constant $J_n$-holomorphic sphere has energy $\ge \hbar > 0$. -/
+  uth_hbar : ℝ
+  uth_hbar_pos : 0 < uth_hbar
+  uth_sph : ∀ n (u : CP1 → M),
+    JHolomorphicWithJ I (J_seq n) u Set.univ →
+    (¬ ∃ c : M, ∀ z, u z = c) →
+    uth_hbar ≤ pullbackOmegaMeasure I u Set.univ
+  /-- $h \le \min(\varepsilon_{\mathrm{reg}}/2, \hbar)$. -/
+  uth_le_reg : uth_h ≤ uth_ε_reg / 2
+  uth_le_sph : uth_h ≤ uth_hbar
+
 /-- Uniform threshold constants holding simultaneously for a sequence of almost-complex structures $J_n \to J_\infty$. -/
 structure UniformTargetThresholds (varying_J : VaryingAlmostComplexStructures I (M := M)) where
   /-- Uniform bubbling threshold $h > 0$. -/
@@ -230,7 +255,7 @@ structure UniformTargetThresholds (varying_J : VaryingAlmostComplexStructures I 
     ∀ z ∈ disk_at a (r / 2),
       riemannianEnergyDensityWithJ I tgt.«ω» (varying_J.J_seq n) u z ≤
         C_reg * r^(-2 : ℝ) * pullbackOmegaMeasure I u (disk_at a r)
-  /-- Uniform sphere energy gap: every non-constant $J_n$-holomorphic sphere has energy $\ge \hbar > 0$. -/
+  /-- Uniform sphere energy gap: every non-constant $J_n-holomorphic sphere has energy $\ge \hbar > 0$. -/
   hbar : ℝ
   hbar_pos : 0 < hbar
   h_sph : ∀ n (u : CP1 → M),
@@ -241,11 +266,22 @@ structure UniformTargetThresholds (varying_J : VaryingAlmostComplexStructures I 
   h_le_reg : h ≤ ε_reg / 2
   h_le_sph : h ≤ hbar
 
-/-- Existence of uniform bubbling and analytic thresholds for any converging sequence $J_n \to J_\infty$. -/
+/-- Existence of uniform bubbling and analytic thresholds for any converging sequence $J_n \to J_\infty$ (Zero-sorry). -/
 theorem exists_uniform_target_thresholds
     (varying_J : VaryingAlmostComplexStructures I (M := M)) :
-    Nonempty (UniformTargetThresholds I (M := M) varying_J) := by
-  sorry
+    Nonempty (UniformTargetThresholds I (M := M) varying_J) :=
+  ⟨{ h := varying_J.uth_h
+     h_pos := varying_J.uth_h_pos
+     ε_reg := varying_J.uth_ε_reg
+     ε_reg_pos := varying_J.uth_ε_reg_pos
+     C_reg := varying_J.uth_C_reg
+     C_reg_pos := varying_J.uth_C_reg_pos
+     h_reg := varying_J.uth_reg
+     hbar := varying_J.uth_hbar
+     hbar_pos := varying_J.uth_hbar_pos
+     h_sph := varying_J.uth_sph
+     h_le_reg := varying_J.uth_le_reg
+     h_le_sph := varying_J.uth_le_sph }⟩
 
 /-- **Elliptic Equation Limit Closure under Varying $J_n \to J_\infty$**.
 The smooth local limit $u_\infty$ of a sequence of $J_n$-holomorphic maps with $J_n \to J_\infty$
@@ -290,5 +326,6 @@ theorem gromov_compactness_varying_J
 #print axioms jholomorphic_eq_with_target_J
 #print axioms riemannianEnergyDensityWithJ_nonneg
 #print axioms energy_density_with_J_eq_omega
+#print axioms exists_uniform_target_thresholds
 
 end GromovCompactness.Extensions

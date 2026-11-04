@@ -137,16 +137,72 @@ theorem stableMapEquiv_refl {k : ℕ} (u : MarkedStableMap I (M := M) k) :
   · intro i; rfl
   · intro v z; rfl
 
-/-- Symmetry of stable map isomorphism. -/
+/-- Symmetry of stable map isomorphism (Zero-sorry). -/
 theorem stableMapEquiv_symm {k : ℕ} {u₁ u₂ : MarkedStableMap I (M := M) k}
     (h : stableMapEquiv I u₁ u₂) : stableMapEquiv I u₂ u₁ := by
-  sorry
+  obtain ⟨iso⟩ := h
+  refine ⟨{
+    v_equiv := iso.v_equiv.symm
+    adj_compat := fun u v => by
+      have h_adj := (iso.adj_compat (iso.v_equiv.symm u) (iso.v_equiv.symm v)).symm
+      rw [iso.v_equiv.apply_symm_apply u, iso.v_equiv.apply_symm_apply v] at h_adj
+      exact h_adj
+    moeb := fun v => MoebiusFrame.inv (iso.moeb (iso.v_equiv.symm v))
+    node_compat := fun v w h_adj => by
+      dsimp [MoebiusFrame.inv]
+      obtain ⟨v', rfl⟩ := iso.v_equiv.surjective v
+      obtain ⟨w', rfl⟩ := iso.v_equiv.surjective w
+      simp only [Equiv.symm_apply_apply]
+      have h_orig_adj : u₁.tree.adj.Adj v' w' := (iso.adj_compat v' w').mpr h_adj
+      have h_node := iso.node_compat v' w' h_orig_adj
+      rw [← h_node, (iso.moeb v').toHomeo.symm_apply_apply]
+    mark_vertex_compat := fun i => by
+      have h_mv := iso.mark_vertex_compat i
+      exact iso.v_equiv.symm_apply_eq.mpr h_mv.symm
+    mark_point_compat := fun i => by
+      dsimp [MoebiusFrame.inv]
+      have h_mv : iso.v_equiv.symm (u₂.tree.mark_vertex i) = u₁.tree.mark_vertex i := by
+        exact iso.v_equiv.symm_apply_eq.mpr (iso.mark_vertex_compat i).symm
+      rw [h_mv]
+      have h_mp := iso.mark_point_compat i
+      rw [← h_mp, (iso.moeb (u₁.tree.mark_vertex i)).toHomeo.symm_apply_apply]
+    map_compat := fun v z => by
+      dsimp [MoebiusFrame.inv]
+      have h_map := iso.map_compat (iso.v_equiv.symm v) ((iso.moeb (iso.v_equiv.symm v)).toHomeo.symm z)
+      rw [iso.v_equiv.apply_symm_apply v] at h_map
+      rw [(iso.moeb (iso.v_equiv.symm v)).toHomeo.apply_symm_apply z] at h_map
+      exact h_map.symm
+  }⟩
 
-/-- Transitivity of stable map isomorphism. -/
+/-- Transitivity of stable map isomorphism (Zero-sorry). -/
 theorem stableMapEquiv_trans {k : ℕ} {u₁ u₂ u₃ : MarkedStableMap I (M := M) k}
     (h₁₂ : stableMapEquiv I u₁ u₂) (h₂₃ : stableMapEquiv I u₂ u₃) :
     stableMapEquiv I u₁ u₃ := by
-  sorry
+  obtain ⟨iso12⟩ := h₁₂
+  obtain ⟨iso23⟩ := h₂₃
+  refine ⟨{
+    v_equiv := iso12.v_equiv.trans iso23.v_equiv
+    adj_compat := fun u v =>
+      (iso12.adj_compat u v).trans (iso23.adj_compat (iso12.v_equiv u) (iso12.v_equiv v))
+    moeb := fun v => MoebiusFrame.comp (iso23.moeb (iso12.v_equiv v)) (iso12.moeb v)
+    node_compat := fun v w h => by
+      dsimp [MoebiusFrame.comp]
+      have h1 := iso12.node_compat v w h
+      have h2 := iso23.node_compat (iso12.v_equiv v) (iso12.v_equiv w) ((iso12.adj_compat v w).mp h)
+      rw [h1, h2]
+    mark_vertex_compat := fun i => by
+      dsimp [Equiv.trans]
+      rw [iso12.mark_vertex_compat i, iso23.mark_vertex_compat i]
+    mark_point_compat := fun i => by
+      dsimp [MoebiusFrame.comp]
+      rw [iso12.mark_vertex_compat i]
+      rw [iso12.mark_point_compat i, iso23.mark_point_compat i]
+    map_compat := fun v z => by
+      dsimp [MoebiusFrame.comp, Equiv.trans]
+      have h2 := iso23.map_compat (iso12.v_equiv v) ((iso12.moeb v).toHomeo z)
+      have h1 := iso12.map_compat v z
+      rw [h2, h1]
+  }⟩
 
 /-- Equivalence relation on bounded marked stable maps. -/
 def boundedMarkedStableMapSetoid (k : ℕ) (B : ℝ) :
@@ -231,6 +287,8 @@ theorem moduli_space_in_class_compact_hausdorff (k : ℕ) (A : HomologyClass2 M)
   sorry
 
 #print axioms stableMapEquiv_refl
+#print axioms stableMapEquiv_symm
+#print axioms stableMapEquiv_trans
 #print axioms moduli_space_t2
 
 end GromovCompactness.Extensions
