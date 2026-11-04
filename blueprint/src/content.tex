@@ -405,6 +405,7 @@ Follows by extending continuously across the puncture via Sobolev extension and 
 \begin{theorem}[Weak Compactness of Energy Measures]
 \label{c01:weak_measures}
 \lean{GromovCompactness.Compactness.weak_measure_compactness}
+\leanok
 \uses{f03:energy_measure, f05:subsequence_bookkeeping}
 Let $u_n : \CP \to M$ be a sequence of $J$-holomorphic spheres with uniformly bounded energy $E(u_n) \le B < \infty$. Then there exist a subsequence $u_{\sigma(n)}$ and a finite nonnegative Radon measure $\mu$ on $\CP$ such that $\mu_n = E(u_{\sigma(n)}; \cdot) \rightharpoonup \mu$ weakly.
 \end{theorem}
@@ -412,6 +413,7 @@ Let $u_n : \CP \to M$ be a sequence of $J$-holomorphic spheres with uniformly bo
 \begin{theorem}[Finite Concentration Set and Limit Curve]
 \label{c02:concentration_data}
 \lean{GromovCompactness.Compactness.ConcentrationData}
+\leanok
 \uses{c01:weak_measures, a03:eps_regularity, a06:local_compactness, a12:removal_of_singularities}
 The concentration set $S := \{p \in \CP : \mu(\{p\}) \ge \varepsilon_{\mathrm{reg}}\}$ is finite with $|S| \le B / \varepsilon_{\mathrm{reg}}$. On $\CP \setminus S$, $u_{\sigma(n)} \to u_0$ in $C^\infty_{\mathrm{loc}}$, and $u_0$ extends smoothly across $S$ to a $J$-holomorphic curve $u_0 : \CP \to M$.
 \end{theorem}
@@ -419,6 +421,7 @@ The concentration set $S := \{p \in \CP : \mu(\{p\}) \ge \varepsilon_{\mathrm{re
 \begin{theorem}[Defect Measure Identity]
 \label{c03:defect_identity}
 \lean{GromovCompactness.Compactness.defect_measure_identity}
+\leanok
 \uses{c02:concentration_data, f03:energy_measure}
 The weak limit measure decomposes as:
 \[
@@ -455,6 +458,7 @@ Follows from Hofer's lemma producing gradient blow-up centers and the Intermedia
 \begin{theorem}[Vanishing Neck Energy and Diameter]
 \label{b03:neck_vanishing}
 \lean{GromovCompactness.Bubbling.neck_vanishing_quantified}
+\leanok
 \uses{b02:calibration, a10:cylinder_decay, c03:defect_identity}
 On annular neck regions $A(R\lambda_n, \delta; a_n)$, both the symplectic energy and target metric diameter vanish asymptotically as $n \to \infty, \delta \to 0, R \to \infty$.
 \end{theorem}
@@ -462,6 +466,7 @@ On annular neck regions $A(R\lambda_n, \delta; a_n)$, both the symplectic energy
 \begin{theorem}[One-Level Mass Decomposition]
 \label{b04:one_level_decomp}
 \lean{GromovCompactness.Bubbling.OneLevelDecomposition}
+\leanok
 \uses{b03:neck_vanishing, c02:concentration_data, c03:defect_identity, a12:removal_of_singularities}
 Rescaled maps $v_n(z) := u_n(a_n + \lambda_n z)$ converge $C^\infty_{\mathrm{loc}}$ on $\C \setminus S_{\mathrm{child}}$ to a bubble $v : \CP \to M$, with $m_p = E(v) + \sum_{i} m_{p, i}$ where each child defect satisfies $m_{p, i} \ge h$.
 \end{theorem}
@@ -469,6 +474,7 @@ Rescaled maps $v_n(z) := u_n(a_n + \lambda_n z)$ converge $C^\infty_{\mathrm{loc
 \begin{theorem}[Ghost Branching Condition]
 \label{b05:ghost_branching}
 \lean{GromovCompactness.Bubbling.ghost_component_branches}
+\leanok
 \uses{b04:one_level_decomp, b02:calibration}
 If the limit bubble $v$ is a ghost component ($E(v) = 0$), the calibration condition guarantees at least 2 child defect points in $\C$, ensuring the vertex degree is at least 3 (accounting for the nodal attachment at $\infty$).
 \end{theorem}
@@ -476,6 +482,7 @@ If the limit bubble $v$ is a ghost component ($E(v) = 0$), the calibration condi
 \begin{theorem}[Strict Energy Rank Decrease]
 \label{b06:rank_decrease}
 \lean{GromovCompactness.Bubbling.energy_rank_strict_decrease}
+\leanok
 \uses{b04:one_level_decomp, b05:ghost_branching, b01:threshold_h}
 Every child defect satisfies $m_{p, i} \le m_p - h$. Consequently, the discrete energy rank $\lfloor m / h \rfloor \in \N$ strictly decreases:
 \[
@@ -486,6 +493,7 @@ Every child defect satisfies $m_{p, i} \le m_p - h$. Consequently, the discrete 
 \begin{theorem}[Local Defect Tree Resolution]
 \label{b07:local_tree}
 \lean{GromovCompactness.Bubbling.resolve_single_defect_tree}
+\leanok
 \uses{b06:rank_decrease, f06:sphere_tree, f05:subsequence_bookkeeping}
 By well-founded induction on the discrete energy rank $\lfloor m / h \rfloor \in \N$, every defect mass is resolved in finitely many bubbling steps into a finite rooted bubble tree.
 \end{theorem}
@@ -498,6 +506,7 @@ By well-founded induction on the discrete energy rank $\lfloor m / h \rfloor \in
 \begin{theorem}[Prestable Tree Assembly]
 \label{g01:global_assembly}
 \lean{GromovCompactness.Assembly.PrestableLimitData}
+\leanok
 \uses{b07:local_tree, c03:defect_identity, f02:sphere_geometry, f06:sphere_tree}
 By composing and telescoping local rescaling frames, there exist global Möbius transformations $\phi_{v, n} \in \PSL$ for each vertex of the bubble tree such that $u_n \circ \phi_{v, n} \to u_v$ locally smoothly outside the nodal set.
 \end{theorem}
@@ -505,6 +514,7 @@ By composing and telescoping local rescaling frames, there exist global Möbius 
 \begin{theorem}[Root Stabilization]
 \label{g02:root_stabilization}
 \lean{GromovCompactness.Assembly.stabilize_prestable_tree}
+\leanok
 \uses{g01:global_assembly, c02:concentration_data, f06:sphere_tree}
 Contracting unstable ghost roots yields a fully stable sphere tree limit preserving all nodal matching conditions and energy conservation.
 \end{theorem}
@@ -514,6 +524,7 @@ Contracting unstable ghost roots yields a fully stable sphere tree limit preserv
 \begin{theorem}[Gromov Compactness Core in Genus Zero]
 \label{g03:master_compactness}
 \lean{GromovCompactness.gromov_compactness_core}
+\leanok
 \uses{g02:root_stabilization, a07:sphere_energy_gap}
 Every sequence of non-constant $J$-spheres $u_n : \CP \to M$ with uniformly bounded energy $E(u_n) \le B < \infty$ has a subsequence converging to a stable sphere tree limit.
 \end{theorem}
@@ -521,6 +532,7 @@ Every sequence of non-constant $J$-spheres $u_n : \CP \to M$ with uniformly boun
 \begin{theorem}[Universal Component and Vertex Bounds]
 \label{g04:component_bounds}
 \lean{GromovCompactness.Topology.component_count_bounds}
+\leanok
 \uses{f06:sphere_tree, b01:threshold_h}
 For any stable sphere tree limit with total energy bounded by $B$:
 \begin{enumerate}
@@ -532,6 +544,7 @@ For any stable sphere tree limit with total energy bounded by $B$:
 \begin{theorem}[Master Integration Gate and Full Closure]
 \label{g05:final_gate}
 \lean{GromovCompactness.gromov_compactness_genus_zero}
+\leanok
 \uses{g03:master_compactness, g04:component_bounds}
 The complete master theorem uniting subsequence convergence, energy conservation, vanishing necks, and component bounds in Lean 4.
 \end{theorem}

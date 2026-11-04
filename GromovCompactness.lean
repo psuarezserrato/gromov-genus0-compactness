@@ -18,6 +18,25 @@ import GromovCompactness.Topology.SmoothLocal
 import GromovCompactness.Topology.Subsequence
 import GromovCompactness.Topology.SphereTree
 
+-- Phase 3: Concentration Compactness (C01–C03)
+import GromovCompactness.Compactness.Measures
+import GromovCompactness.Compactness.Concentration
+import GromovCompactness.Compactness.Defect
+
+-- Phase 3: Bubbling Engine (B03–B07)
+import GromovCompactness.Bubbling.Neck
+import GromovCompactness.Bubbling.OneLevel
+import GromovCompactness.Bubbling.GhostBranching
+import GromovCompactness.Bubbling.Rank
+import GromovCompactness.Bubbling.LocalTree
+
+-- Phase 3: Global Tree Assembly & Master Compactness (G01–G05)
+import GromovCompactness.Compactness.Assembly
+import GromovCompactness.Compactness.Stabilize
+import GromovCompactness.Compactness.GenusZero
+import GromovCompactness.Topology.ComponentCount
+import GromovCompactness.Main
+
 /-!
 # Master Entry Point for Gromov Compactness in Genus 0
 
@@ -44,4 +63,19 @@ This package provides a formalization of Gromov Compactness for genus 0 pseudo-h
 - `GromovCompactness.Analysis.EnergyGap` (`A07`): Minimal positive energy gap $\varepsilon_{\mathrm{sph}} > 0$ for non-constant $J$-spheres.
 - `GromovCompactness.Analysis.SingularityRemoval` (`A09`, `A10`, `A11`, `A12`): Cylinder localization, exponential decay, Sobolev extension, and smooth singularity removal.
 - `GromovCompactness.Analysis.HoferRescaling` (`B01`, `B02`): Universal bubbling threshold $h > 0$ and calibrated moving center/radius rescaling.
+
+## Phase 3 Modules (Iterative Bubbling & Global Compactness: C01–C03, B03–B07, G01–G05)
+- `GromovCompactness.Compactness.Measures` (`C01`): Weak compactness of energy measures on $\mathbb{CP}^1$.
+- `GromovCompactness.Compactness.Concentration` (`C02`): Finite concentration set $S$ and smooth local convergence on $\mathbb{CP}^1 \setminus S$.
+- `GromovCompactness.Compactness.Defect` (`C03`): Defect measure identity $\mu = u_0^* \omega + \sum m_p \delta_p$ and energy conservation.
+- `GromovCompactness.Bubbling.Neck` (`B03`): Vanishing neck symplectic energy and target metric diameter.
+- `GromovCompactness.Bubbling.OneLevel` (`B04`): One-level bubble extraction and node matching $v(\infty) = u_0(p)$.
+- `GromovCompactness.Bubbling.GhostBranching` (`B05`): Ghost component branching condition ($\ge 2$ children, nodal degree $\ge 3$).
+- `GromovCompactness.Bubbling.Rank` (`B06`): Strict discrete energy rank decrease $\lfloor m_i / h \rfloor < \lfloor m / h \rfloor$.
+- `GromovCompactness.Bubbling.LocalTree` (`B07`): Resolution of defect into finite rooted bubble tree via well-founded induction.
+- `GromovCompactness.Compactness.Assembly` (`G01`): Prestable tree assembly and global Möbius coordinate frames.
+- `GromovCompactness.Compactness.Stabilize` (`G02`): Root stabilization (pruning degree 1 and suppressing degree 2 ghost roots).
+- `GromovCompactness.Compactness.GenusZero` (`G03`): Core genus 0 Gromov compactness theorem and CompactnessWitness certificate.
+- `GromovCompactness.Topology.ComponentCount` (`G04`): Component bounds $P \cdot h \le B$, $G \le P - 2$, $|V| \le \max(1, 2\lfloor B/h \rfloor - 2)$.
+- `GromovCompactness.Main` (`G05`): Master integration theorem `gromov_compactness_genus_zero` and axiom audit.
 -/

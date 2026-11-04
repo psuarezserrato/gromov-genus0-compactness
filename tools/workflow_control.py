@@ -100,8 +100,8 @@ CONTRACT_FILE_MAPPING = {
     "G01": "GromovCompactness/Compactness/Assembly.lean",
     "G02": "GromovCompactness/Compactness/Stabilize.lean",
     "G03": "GromovCompactness/Compactness/GenusZero.lean",
-    "G04": "GromovCompactness/Compactness/MarkedCurves.lean",
-    "G05": "GromovCompactness/Compactness/BoundaryRemoval.lean",
+    "G04": "GromovCompactness/Topology/ComponentCount.lean",
+    "G05": "GromovCompactness/Main.lean",
 }
 
 
