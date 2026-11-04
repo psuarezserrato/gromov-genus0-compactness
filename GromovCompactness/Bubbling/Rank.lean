@@ -54,6 +54,28 @@ theorem energy_rank_strict_decrease (m m_i h : ℝ) (hh : 0 < h)
 
 #print axioms energy_rank_strict_decrease
 
+/-- Monotonicity of the discrete energy rank function (Contract B06 companion). -/
+lemma energy_rank_mono (m₁ m₂ h : ℝ) (hh : 0 < h) (hle : m₁ ≤ m₂) :
+    Nat.floor (m₁ / h) ≤ Nat.floor (m₂ / h) :=
+  Nat.floor_mono (div_le_div_of_nonneg_right hle hh.le)
+
+/-- An energy mass below threshold h has rank zero (Contract B06 companion). -/
+lemma energy_rank_zero_of_lt (m h : ℝ) (_h_pos : 0 ≤ m) (hh : 0 < h) (hlt : m < h) :
+    Nat.floor (m / h) = 0 := by
+  have h_div : m / h < 1 := (div_lt_one hh).mpr hlt
+  exact Nat.floor_eq_zero.mpr h_div
+
+/-- An energy mass of at least h has rank at least 1 (Contract B06 companion). -/
+lemma energy_rank_pos_of_ge (m h : ℝ) (hh : 0 < h) (hge : h ≤ m) :
+    1 ≤ Nat.floor (m / h) := by
+  have h_one_le : 1 ≤ m / h := (one_le_div hh).mpr hge
+  rw [← Nat.cast_one] at h_one_le
+  exact Nat.le_floor h_one_le
+
+#print axioms energy_rank_mono
+#print axioms energy_rank_zero_of_lt
+#print axioms energy_rank_pos_of_ge
+
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 variable {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
 variable {M : Type*} [MetricSpace M] [ChartedSpace H M]
@@ -63,9 +85,41 @@ variable {M : Type*} [MetricSpace M] [ChartedSpace H M]
 theorem child_mass_le_parent_sub_h
     (thresh : TargetThresholds I M) (m_defect : ℝ) (base_val : M)
     (decomp : OneLevelDecomposition I thresh m_defect base_val)
-    (_hm : thresh.h ≤ m_defect) (z : ℂ) (_hz : z ∈ decomp.q) :
+    (hm : thresh.h ≤ m_defect) (z : ℂ) (hz : z ∈ decomp.q) :
     decomp.m_child z ≤ m_defect - thresh.h := by
-  sorry
+  have h_nonneg : ∀ x ∈ decomp.q, 0 ≤ decomp.m_child x := fun x hx =>
+    (thresh.h_pos.trans_le (decomp.m_child_pos x hx)).le
+  by_cases h_const : ∃ c : M, ∀ w, decomp.v w = c
+  · have h_card := ghost_component_branches_of_const I thresh m_defect base_val decomp hm h_const
+    have h_ex_ne : ∃ w ∈ decomp.q, w ≠ z := by
+      by_contra h_all
+      push_neg at h_all
+      have h_sub : decomp.q ⊆ {z} := fun w hw => Finset.mem_singleton.mpr (h_all w hw)
+      have h_card_le : decomp.q.card ≤ 1 := (Finset.card_le_card h_sub).trans_eq (Finset.card_singleton z)
+      omega
+    rcases h_ex_ne with ⟨w, hw, hwz⟩
+    have hw_mem_erase : w ∈ decomp.q.erase z := Finset.mem_erase.mpr ⟨hwz, hw⟩
+    have h_decomp_erase : decomp.q = insert z (decomp.q.erase z) := (Finset.insert_erase hz).symm
+    have hz_not_erase : z ∉ decomp.q.erase z := Finset.not_mem_erase z decomp.q
+    have h_sum_split : (∑ x ∈ decomp.q, decomp.m_child x) =
+        decomp.m_child z + ∑ x ∈ decomp.q.erase z, decomp.m_child x := by
+      nth_rw 1 [h_decomp_erase]
+      rw [Finset.sum_insert hz_not_erase]
+    have h_w_le_sum : decomp.m_child w ≤ ∑ x ∈ decomp.q.erase z, decomp.m_child x :=
+      Finset.single_le_sum (fun x hx => h_nonneg x (Finset.mem_of_mem_erase hx)) hw_mem_erase
+    have h_h_le_w : thresh.h ≤ decomp.m_child w := decomp.m_child_pos w hw
+    have h_h_le_erase : thresh.h ≤ ∑ x ∈ decomp.q.erase z, decomp.m_child x :=
+      h_h_le_w.trans h_w_le_sum
+    have h_sum_le_m : (∑ x ∈ decomp.q, decomp.m_child x) ≤ m_defect :=
+      OneLevelDecomposition.child_mass_sum_le I thresh m_defect base_val decomp
+    linarith [h_sum_split, h_h_le_erase, h_sum_le_m]
+  · have h_en_sph : thresh.ε_sph ≤ totalEnergy I decomp.v :=
+      thresh.h_sph decomp.v decomp.v_jhol h_const
+    have h_h_le_en : thresh.h ≤ totalEnergy I decomp.v := thresh.h_le_sph.trans h_en_sph
+    have h_z_le_sum : decomp.m_child z ≤ ∑ x ∈ decomp.q, decomp.m_child x :=
+      Finset.single_le_sum h_nonneg hz
+    have h_ms := decomp.mass_sum
+    linarith [h_h_le_en, h_z_le_sum, h_ms]
 
 /-- Combined Discrete Energy Rank Strict Decrease for One-Level Decomposition (Contract B06). -/
 theorem child_rank_strict_decrease
@@ -76,5 +130,8 @@ theorem child_rank_strict_decrease
   have h_pos : 0 ≤ decomp.m_child z := (thresh.h_pos.trans_le (decomp.m_child_pos z hz)).le
   have h_le := child_mass_le_parent_sub_h I thresh m_defect base_val decomp hm z hz
   exact energy_rank_strict_decrease m_defect (decomp.m_child z) thresh.h thresh.h_pos h_pos h_le
+
+#print axioms child_mass_le_parent_sub_h
+#print axioms child_rank_strict_decrease
 
 end GromovCompactness.Bubbling

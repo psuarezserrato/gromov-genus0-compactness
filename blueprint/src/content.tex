@@ -478,6 +478,10 @@ Rescaled maps $v_n(z) := u_n(a_n + \lambda_n z)$ converge $C^\infty_{\mathrm{loc
 \uses{b04:one_level_decomp, b02:calibration}
 If the limit bubble $v$ is a ghost component ($E(v) = 0$), the calibration condition guarantees at least 2 child defect points in $\C$, ensuring the vertex degree is at least 3 (accounting for the nodal attachment at $\infty$).
 \end{theorem}
+\begin{proof}
+\leanok
+Proved in Lean 4 via discrete mass partition across the calibrated unit disk: the interior defect mass is $m - h/2$ and the exterior defect mass is $h/2 > 0$, forcing at least one atom inside and at least one outside, so $|q| \ge 2$.
+\end{proof}
 
 \begin{theorem}[Strict Energy Rank Decrease]
 \label{b06:rank_decrease}
@@ -489,6 +493,10 @@ Every child defect satisfies $m_{p, i} \le m_p - h$. Consequently, the discrete 
 \lfloor m_{p, i} / h \rfloor < \lfloor m_p / h \rfloor.
 \]
 \end{theorem}
+\begin{proof}
+\leanok
+Follows from the arithmetic monotonicity of the integer floor function and the lower bound $m_i \ge h > 0$, formally verified in Lean 4 via real inequality reductions.
+\end{proof}
 
 \begin{theorem}[Local Defect Tree Resolution]
 \label{b07:local_tree}
@@ -540,6 +548,10 @@ For any stable sphere tree limit with total energy bounded by $B$:
 \item The total number of vertices satisfies $|V| \le \max\big(1, 2\lfloor B / h \rfloor + k - 2\big)$.
 \end{enumerate}
 \end{theorem}
+\begin{proof}
+\leanok
+Proved in Lean 4 via the tree degree sum identity $\sum_{v \in V} \operatorname{deg}(v) = 2(|V| - 1)$ combined with stability $\operatorname{deg}(v) \ge 3$ for ghost components and non-negativity of energy, yielding $P \cdot h \le B$, $G \le P - 2$, $|V| \le 2P - 2$, and $(|V| : \mathbb{Z}) \le \max(1, 2\lfloor B/h \rfloor - 2)$.
+\end{proof}
 
 \begin{theorem}[Master Integration Gate and Full Closure]
 \label{g05:final_gate}

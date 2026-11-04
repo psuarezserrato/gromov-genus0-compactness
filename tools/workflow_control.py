@@ -682,8 +682,10 @@ Examples:
 
     # checkpoint
     p_chk = subparsers.add_parser("checkpoint", help="Create progress checkpoint JSON snapshot")
-    p_chk.add_argument("--label", type=str, default="manual_checkpoint", help="Descriptive label for checkpoint")
+    p_chk.add_argument("--label", type=str, default=None, help="Descriptive label for checkpoint")
+    p_chk.add_argument("--phase", type=str, default=None, help="Phase identifier for checkpoint (e.g. 3-model-b)")
     p_chk.add_argument("--notes", type=str, default="", help="Optional notes")
+    p_chk.add_argument("--summary", type=str, default=None, help="Summary or notes for checkpoint")
 
     # test
     p_test = subparsers.add_parser("test", help="Run comprehensive automated test suite (100% pass verification)")
@@ -730,7 +732,9 @@ Examples:
             print(format_status_output(status))
 
     elif args.command == "checkpoint":
-        snap = ctrl.checkpoint(label=args.label, notes=args.notes)
+        chk_label = args.phase if args.phase else (args.label or "manual_checkpoint")
+        chk_notes = args.summary if args.summary is not None else args.notes
+        snap = ctrl.checkpoint(label=chk_label, notes=chk_notes)
         if args.json:
             print(json.dumps(snap, indent=2))
         else:

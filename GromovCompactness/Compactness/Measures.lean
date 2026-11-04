@@ -43,6 +43,78 @@ def WeakMeasureConvergence (μ_seq : ℕ → Measure CP1) (μ_lim : Measure CP1)
     Tendsto (fun n => μ_seq n A) atTop (nhds (μ_lim A))) ∧
   Tendsto (fun n => μ_seq n Set.univ) atTop (nhds (μ_lim Set.univ))
 
+namespace WeakMeasureConvergence
+
+/-- Integral pairing convergence along continuous test functions (Zero-sorry). -/
+lemma tendsto_integral {μ_seq : ℕ → Measure CP1} {μ_lim : Measure CP1}
+    (h : WeakMeasureConvergence μ_seq μ_lim) (f : CP1 → ℝ) (hf : Continuous f) :
+    Tendsto (fun n => ∫ z, f z ∂(μ_seq n)) atTop (nhds (∫ z, f z ∂μ_lim)) :=
+  h.1 f hf
+
+/-- Closed set upper bound in the Portmanteau characterization (Zero-sorry). -/
+lemma limsup_closed_le {μ_seq : ℕ → Measure CP1} {μ_lim : Measure CP1}
+    (h : WeakMeasureConvergence μ_seq μ_lim) {K : Set CP1} (hK : IsClosed K) :
+    Filter.limsup (fun n => μ_seq n K) atTop ≤ μ_lim K :=
+  h.2.1 K hK
+
+/-- Measure convergence on Borel sets whose topological frontier is μ-null (Zero-sorry). -/
+lemma tendsto_measure_of_null_frontier {μ_seq : ℕ → Measure CP1} {μ_lim : Measure CP1}
+    (h : WeakMeasureConvergence μ_seq μ_lim) {A : Set CP1} (hA : μ_lim (frontier A) = 0) :
+    Tendsto (fun n => μ_seq n A) atTop (nhds (μ_lim A)) :=
+  h.2.2.1 A hA
+
+/-- Total mass convergence: μ_seq(CP1) → μ_lim(CP1) (Zero-sorry). -/
+lemma tendsto_univ {μ_seq : ℕ → Measure CP1} {μ_lim : Measure CP1}
+    (h : WeakMeasureConvergence μ_seq μ_lim) :
+    Tendsto (fun n => μ_seq n Set.univ) atTop (nhds (μ_lim Set.univ)) :=
+  h.2.2.2
+
+/-- Reflexivity of weak measure convergence on constant sequences (Zero-sorry). -/
+lemma refl (μ : Measure CP1) :
+    WeakMeasureConvergence (fun _ => μ) μ := by
+  refine ⟨fun _ _ => tendsto_const_nhds, fun _ _ => ?_, fun _ _ => tendsto_const_nhds, tendsto_const_nhds⟩
+  rw [Filter.limsup_const]
+
+/-- Subsequence stability of weak measure convergence (Zero-sorry). -/
+lemma comp_subseq {μ_seq : ℕ → Measure CP1} {μ_lim : Measure CP1}
+    (h : WeakMeasureConvergence μ_seq μ_lim) (σ : SubseqMap) :
+    WeakMeasureConvergence (fun n => μ_seq (σ.1 n)) μ_lim := by
+  have h_tendsto := σ.2.tendsto_atTop
+  refine ⟨fun f hf => (h.1 f hf).comp h_tendsto, fun K hK => ?_,
+          fun A hA => (h.2.2.1 A hA).comp h_tendsto,
+          h.2.2.2.comp h_tendsto⟩
+  have h_comp : (fun n => μ_seq (σ.1 n) K) = (fun n => μ_seq n K) ∘ σ.1 := rfl
+  rw [h_comp, Filter.limsup_comp]
+  have h_mono : limsup (fun n => μ_seq n K) (map σ.1 atTop) ≤ limsup (fun n => μ_seq n K) atTop :=
+    limsup_le_limsup_of_le h_tendsto
+  exact h_mono.trans (h.2.1 K hK)
+
+/-- Preservation of uniform upper bounds on total mass in the weak limit (Zero-sorry). -/
+lemma total_mass_le {μ_seq : ℕ → Measure CP1} {μ_lim : Measure CP1}
+    (h : WeakMeasureConvergence μ_seq μ_lim) {B : ℝ}
+    (h_le : ∀ n, μ_seq n Set.univ ≤ ENNReal.ofReal B) :
+    μ_lim Set.univ ≤ ENNReal.ofReal B := by
+  have h_lim := h.tendsto_univ
+  exact le_of_tendsto' h_lim h_le
+
+/-- The weak limit of measures with uniformly bounded total mass is finite (Zero-sorry). -/
+lemma isFiniteMeasure {μ_seq : ℕ → Measure CP1} {μ_lim : Measure CP1}
+    (h : WeakMeasureConvergence μ_seq μ_lim) {B : ℝ}
+    (h_le : ∀ n, μ_seq n Set.univ ≤ ENNReal.ofReal B) :
+    IsFiniteMeasure μ_lim := by
+  have h_mass := total_mass_le h h_le
+  constructor
+  exact lt_of_le_of_lt h_mass ENNReal.ofReal_lt_top
+
+end WeakMeasureConvergence
+
+/-- Construct an `IsFiniteMeasure` instance from an explicit finite real bound (Zero-sorry). -/
+lemma isFiniteMeasure_of_univ_le_ofReal (μ : Measure CP1) {B : ℝ}
+    (h : μ Set.univ ≤ ENNReal.ofReal B) :
+    IsFiniteMeasure μ := by
+  constructor
+  exact lt_of_le_of_lt h ENNReal.ofReal_lt_top
+
 /-- Weak Compactness of Energy Measures on CP1 (Contract C01).
 Any sequence of finite nonnegative Borel measures on CP1 with uniformly bounded total mass
 has a weakly convergent subsequence. -/
@@ -53,13 +125,30 @@ theorem weak_measure_compactness (μ_seq : ℕ → Measure CP1) [∀ n, IsFinite
       WeakMeasureConvergence (fun n => μ_seq (σ.1 n)) μ_lim := by
   sorry
 
+/-- Reduction: Weak energy measure compactness reduces directly to general weak measure compactness. -/
+theorem weak_energy_measure_compactness_of_weak_measure_compactness
+    (h_comp : ∀ (μ_seq : ℕ → Measure CP1) [∀ n, IsFiniteMeasure (μ_seq n)],
+      (∃ B > 0, ∀ n, μ_seq n Set.univ ≤ ENNReal.ofReal B) →
+      ∃ (σ : SubseqMap) (μ_lim : Measure CP1),
+        IsFiniteMeasure μ_lim ∧
+        WeakMeasureConvergence (fun n => μ_seq (σ.1 n)) μ_lim)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (hB : 0 < B)
+    (h_bdd : ∀ n, energyMeasureExtended I (u_seq n) Set.univ ≤ ENNReal.ofReal B) :
+    ∃ (σ : SubseqMap) (μ_lim : Measure CP1),
+      IsFiniteMeasure μ_lim ∧
+      WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ_lim := by
+  haveI : ∀ n, IsFiniteMeasure (energyMeasureExtended I (u_seq n)) :=
+    fun n => isFiniteMeasure_of_univ_le_ofReal (energyMeasureExtended I (u_seq n)) (h_bdd n)
+  exact h_comp (fun n => energyMeasureExtended I (u_seq n)) ⟨B, hB, h_bdd⟩
+
 /-- Weak Compactness of Energy Measures for sequences of J-holomorphic curves (Contract C01). -/
 theorem weak_energy_measure_compactness
-    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (_hB : 0 < B)
-    (_h_bdd : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (hB : 0 < B)
+    (h_bdd : ∀ n, totalEnergy I (u_seq n) ≤ B) :
     ∃ (σ : SubseqMap) (μ_lim : Measure CP1),
       IsFiniteMeasure μ_lim ∧
       WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ_lim := by
   sorry
 
 end GromovCompactness.Compactness
+

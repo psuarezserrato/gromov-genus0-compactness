@@ -34,12 +34,29 @@ inside the unit disk and at least one defect outside, guaranteeing at least 2 ch
 theorem ghost_component_branches
     (thresh : TargetThresholds I M) (m_defect : ℝ) (base_val : M)
     (decomp : OneLevelDecomposition I thresh m_defect base_val)
-    (_hm : thresh.h ≤ m_defect)
+    (hm : thresh.h ≤ m_defect)
     (_h_const : ∃ c : M, ∀ z, decomp.v z = c)
-    (_h_const_en : totalEnergy I decomp.v = 0)
-    (_h_const_disk : energyMeasure I decomp.v (disk_at 0 1) = 0) :
+    (h_const_en : totalEnergy I decomp.v = 0)
+    (h_const_disk : energyMeasure I decomp.v (disk_at 0 1) = 0) :
+    2 ≤ decomp.q.card :=
+  decomp.ghost_branching I thresh m_defect base_val hm h_const_en h_const_disk
+
+/-- Ghost Component Branching Condition from constancy alone (Contract B05). -/
+theorem ghost_component_branches_of_const
+    (thresh : TargetThresholds I M) (m_defect : ℝ) (base_val : M)
+    (decomp : OneLevelDecomposition I thresh m_defect base_val)
+    (hm : thresh.h ≤ m_defect)
+    (h_const : ∃ c : M, ∀ z, decomp.v z = c) :
     2 ≤ decomp.q.card := by
-  sorry
+  rcases h_const with ⟨c, hc⟩
+  have hu : decomp.v = fun _ => c := funext hc
+  have h_en0 : totalEnergy I decomp.v = 0 := by
+    rw [hu]
+    exact totalEnergy_const I c
+  have h_meas0 : energyMeasure I decomp.v (disk_at 0 1) = 0 := by
+    rw [hu]
+    exact energyMeasure_const I c (disk_at 0 1)
+  exact decomp.ghost_branching I thresh m_defect base_val hm h_en0 h_meas0
 
 /-- Total Nodal Degree of Ghost Bubbles is at least 3 (Contract B05). -/
 theorem ghost_bubble_degree_ge_three
@@ -52,5 +69,20 @@ theorem ghost_bubble_degree_ge_three
     3 ≤ decomp.q.card + 1 := by
   have h2 := ghost_component_branches I thresh m_defect base_val decomp hm h_const h_const_en h_const_disk
   omega
+
+/-- Total Nodal Degree of Ghost Bubbles from constancy alone (Contract B05). -/
+theorem ghost_bubble_degree_ge_three_of_const
+    (thresh : TargetThresholds I M) (m_defect : ℝ) (base_val : M)
+    (decomp : OneLevelDecomposition I thresh m_defect base_val)
+    (hm : thresh.h ≤ m_defect)
+    (h_const : ∃ c : M, ∀ z, decomp.v z = c) :
+    3 ≤ decomp.q.card + 1 := by
+  have h2 := ghost_component_branches_of_const I thresh m_defect base_val decomp hm h_const
+  omega
+
+#print axioms ghost_component_branches
+#print axioms ghost_component_branches_of_const
+#print axioms ghost_bubble_degree_ge_three
+#print axioms ghost_bubble_degree_ge_three_of_const
 
 end GromovCompactness.Bubbling

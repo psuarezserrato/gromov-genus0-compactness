@@ -99,6 +99,95 @@ theorem assemble_global_frames
             (fun _ => tree.node_point v w h) atTop K) := by
   sorry
 
+/-- Identity action of left frame composition (Zero-sorry). -/
+theorem frame_comp_id_left (ϕ : MoebiusFrame) :
+    MoebiusFrame.comp MoebiusFrame.id ϕ = ϕ :=
+  moebius_frame_id_comp ϕ
+
+/-- Identity action of right frame composition (Zero-sorry). -/
+theorem frame_comp_id_right (ϕ : MoebiusFrame) :
+    MoebiusFrame.comp ϕ MoebiusFrame.id = ϕ :=
+  moebius_frame_comp_id ϕ
+
+/-- Associativity of frame composition along tree paths (Zero-sorry). -/
+theorem frame_comp_assoc (ϕ₁ ϕ₂ ϕ₃ : MoebiusFrame) :
+    MoebiusFrame.comp (MoebiusFrame.comp ϕ₁ ϕ₂) ϕ₃ =
+    MoebiusFrame.comp ϕ₁ (MoebiusFrame.comp ϕ₂ ϕ₃) :=
+  moebius_frame_comp_assoc ϕ₁ ϕ₂ ϕ₃
+
+/-- Relative frame cancellation: $\phi_v^{-1} \circ (\phi_v \circ \psi) = \psi$ (Zero-sorry). -/
+theorem frame_transition_rel (ϕ_v ψ : MoebiusFrame) :
+    (MoebiusFrame.comp (MoebiusFrame.inv ϕ_v) (MoebiusFrame.comp ϕ_v ψ)).toHomeo = ψ.toHomeo := by
+  ext x
+  dsimp [MoebiusFrame.comp, MoebiusFrame.inv]
+  simp
+
+/-- Frame transition collapse reduction: if local rescalings collapse to a node point,
+the relative global frames collapse identically (Zero-sorry). -/
+theorem transition_collapse_reduction
+    (frames_v : ℕ → MoebiusFrame) (ψ : ℕ → MoebiusFrame) (p : CP1) (K : Set CP1)
+    (h_collapse : TendstoUniformlyOn (fun n => (ψ n).toHomeo) (fun _ => p) atTop K) :
+    TendstoUniformlyOn
+      (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames_v n)) (MoebiusFrame.comp (frames_v n) (ψ n))).toHomeo)
+      (fun _ => p) atTop K := by
+  have h_eq : ∀ n, (MoebiusFrame.comp (MoebiusFrame.inv (frames_v n)) (MoebiusFrame.comp (frames_v n) (ψ n))).toHomeo =
+      (ψ n).toHomeo := fun n => frame_transition_rel (frames_v n) (ψ n)
+  simp_rw [h_eq]
+  exact h_collapse
+
+/-- Any prestable limit data preserves the uniform energy bound $B$ (Zero-sorry). -/
+theorem prestable_limit_energy_bound
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (pdata : PrestableLimitData I u_seq)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B := by
+  have h_conv := pdata.energy_ident
+  have h_le_B : ∀ n, totalEnergy I (u_seq (pdata.σ.1 n)) ≤ B := fun n => h_energy (pdata.σ.1 n)
+  exact le_of_tendsto h_conv (Eventually.of_forall h_le_B)
+
+/-- Construction of a prestable limit for a single non-bubbling curve sequence (Zero-sorry). -/
+def prestable_limit_singleton
+    (u_seq : ℕ → (CP1 → M)) (u_lim : CP1 → M)
+    (h_jhol : JHolomorphicOn I I_CP1 u_lim Set.univ)
+    (h_conv : SmoothLocalConvergesOn I u_seq u_lim Set.univ)
+    (h_energy : Tendsto (fun n => totalEnergy I (u_seq n)) atTop (𝓝 (totalEnergy I u_lim))) :
+    PrestableLimitData I u_seq where
+  tree := Bubbling.singletonSphereTree
+  root := ()
+  map := fun _ => u_lim
+  is_jhol := fun _ => h_jhol
+  nodal_match := fun _ _ h => False.elim h
+  stable_off_root := fun (v : Unit) h_ne => by
+    cases v
+    exact False.elim (h_ne rfl)
+  σ := Bookkeeping.SubseqMap.id
+  frames := fun _ _ => MoebiusFrame.id
+  root_frame_id := fun _ => rfl
+  frame_collapse := fun _ _ h => False.elim h
+  smooth_conv := fun (v : Unit) => by
+    have h_empty : (punctured_sphere { z : CP1 | ∃ (w : Bubbling.singletonSphereTree.V) (h : Bubbling.singletonSphereTree.adj.Adj v w),
+        z = Bubbling.singletonSphereTree.node_point v w h }) = Set.univ := by
+      dsimp [punctured_sphere]
+      have h_none : { z : CP1 | ∃ (w : Bubbling.singletonSphereTree.V) (h : Bubbling.singletonSphereTree.adj.Adj v w),
+          z = Bubbling.singletonSphereTree.node_point v w h } = ∅ := by
+        ext z
+        simp only [mem_setOf_eq, not_exists, mem_empty_iff_false, iff_false]
+        intro w h
+        exact False.elim h
+      rw [h_none, diff_empty]
+    rw [h_empty]
+    have h_seq : (fun n => (u_seq (Bookkeeping.SubseqMap.id.1 n)) ∘ ((fun _ _ => MoebiusFrame.id) v n).toHomeo) = u_seq := by
+      ext n x
+      rfl
+    rw [h_seq]
+    exact h_conv
+  energy_ident := by
+    have h_sum : (∑ v : Bubbling.singletonSphereTree.V, totalEnergy I ((fun _ => u_lim) v)) = totalEnergy I u_lim := by
+      change (∑ _v : Unit, totalEnergy I u_lim) = totalEnergy I u_lim
+      simp
+    rw [h_sum]
+    exact h_energy
+
 /-- Assembles the base map $u_0$ and all defect trees from Contract B07 into a global prestable limit. -/
 theorem assemble_prestable_limit
     (_th : Bubbling.TargetThresholds I M)
@@ -108,5 +197,13 @@ theorem assemble_prestable_limit
     ∃ (pdata : PrestableLimitData I u_seq),
       (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B := by
   sorry
+
+#print axioms frame_comp_id_left
+#print axioms frame_comp_id_right
+#print axioms frame_comp_assoc
+#print axioms frame_transition_rel
+#print axioms transition_collapse_reduction
+#print axioms prestable_limit_energy_bound
+#print axioms prestable_limit_singleton
 
 end GromovCompactness.Assembly

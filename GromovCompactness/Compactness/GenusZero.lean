@@ -11,6 +11,7 @@ import GromovCompactness.Analysis.HoferRescaling
 import GromovCompactness.Topology.SmoothLocal
 import GromovCompactness.Topology.Subsequence
 import GromovCompactness.Topology.SphereTree
+import GromovCompactness.Topology.ComponentCount
 import GromovCompactness.Compactness.Assembly
 import GromovCompactness.Compactness.Stabilize
 
@@ -66,6 +67,56 @@ structure CompactnessWitness
     Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
       (𝓝 (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v)))
 
+/-- Any compactness witness preserves the uniform energy bound $B$ in the limit (Zero-sorry). -/
+theorem compactnessWitness_energy_le
+    (u_seq : ℕ → (CP1 → M)) (u_lim : StableSphereTreeLimit I (M := M)) (B : ℝ)
+    (wit : CompactnessWitness I u_seq u_lim)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v)) ≤ B := by
+  have h_conv := wit.energy_conv
+  have h_le_B : ∀ n, totalEnergy I (u_seq (wit.σ.1 n)) ≤ B := fun n => h_energy (wit.σ.1 n)
+  exact le_of_tendsto h_conv (Eventually.of_forall h_le_B)
+
+/-- Subsequence extraction in a compactness witness is strictly monotone (Zero-sorry). -/
+theorem compactnessWitness_subseq_strictMono
+    (u_seq : ℕ → (CP1 → M)) (u_lim : StableSphereTreeLimit I (M := M))
+    (wit : CompactnessWitness I u_seq u_lim) :
+    StrictMono wit.σ.1 :=
+  wit.σ.2
+
+/-- Vertex count in the limit curve is strictly positive (Zero-sorry). -/
+theorem compactnessWitness_card_pos
+    (u_seq : ℕ → (CP1 → M)) (u_lim : StableSphereTreeLimit I (M := M))
+    (_wit : CompactnessWitness I u_seq u_lim) :
+    0 < Fintype.card u_lim.tree.V :=
+  Fintype.card_pos
+
+/-- Principal components energy bound for any compactness witness limit (Zero-sorry). -/
+theorem compactnessWitness_principal_energy_bound
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (u_lim : StableSphereTreeLimit I (M := M)) (B : ℝ)
+    (wit : CompactnessWitness I u_seq u_lim)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    let P := Fintype.card { v : u_lim.tree.V // is_principal_component I u_lim v }
+    P * th.h ≤ B := by
+  intro P
+  have h_lim := compactnessWitness_energy_le I u_seq u_lim B wit h_energy
+  exact Topology.principal_components_energy_bound I th u_lim B h_lim
+
+/-- Full component and vertex bounds for any compactness witness limit (Zero-sorry). -/
+theorem compactnessWitness_component_bounds
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (u_lim : StableSphereTreeLimit I (M := M)) (B : ℝ)
+    (wit : CompactnessWitness I u_seq u_lim)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    let P := Fintype.card { v : u_lim.tree.V // is_principal_component I u_lim v }
+    let G := Fintype.card { v : u_lim.tree.V // is_ghost_component I u_lim v }
+    (P * th.h ≤ B) ∧
+    (1 < Fintype.card u_lim.tree.V → G + 2 ≤ P ∧ Fintype.card u_lim.tree.V + 2 ≤ 2 * P) ∧
+    ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2)) := by
+  have h_lim := compactnessWitness_energy_le I u_seq u_lim B wit h_energy
+  exact Topology.component_count_bounds I th u_lim B h_lim
+
 /-- **Core Genus 0 Gromov Compactness Theorem (Theorem 1 Core & Contract G03)**.
 Let $u_n : \mathbb{CP}^1 \to M$ be a sequence of non-constant $J$-holomorphic spheres with
 uniformly bounded energy $E(u_n) \le B < \infty$. Then there exists a subsequence converging
@@ -84,14 +135,24 @@ theorem gromov_compactness_core
 Either there exists an infinite constant subsequence converging in the compact manifold $M$,
 or an infinite non-constant subsequence converging to a stable sphere tree limit. -/
 theorem gromov_subsequence_alternative
-    (_th : Bubbling.TargetThresholds I M)
+    (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
-    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (_h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
     (∃ (σ : Bookkeeping.SubseqMap) (c : M),
       Tendsto (fun n => u_seq (σ.1 n)) atTop (𝓝 (fun _ => c))) ∨
     (∃ (σ : Bookkeeping.SubseqMap) (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I (fun n => u_seq (σ.1 n)) u_lim)) := by
-  sorry
+  by_cases h_all_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c
+  · right
+    obtain ⟨u_lim, hwit⟩ := gromov_compactness_core I th u_seq B h_all_nonconst h_jhol h_energy
+    exact ⟨Bookkeeping.SubseqMap.id, u_lim, hwit⟩
+  · sorry
+
+#print axioms compactnessWitness_energy_le
+#print axioms compactnessWitness_subseq_strictMono
+#print axioms compactnessWitness_card_pos
+#print axioms compactnessWitness_principal_energy_bound
+#print axioms compactnessWitness_component_bounds
 
 end GromovCompactness

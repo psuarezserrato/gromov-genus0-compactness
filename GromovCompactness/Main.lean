@@ -75,6 +75,19 @@ theorem gromov_compactness_genus_zero
     exact le_of_tendsto h_conv (Eventually.of_forall h_le_B)
   exact Topology.component_count_bounds I th u_lim B h_lim_energy
 
+/-- **Universal Component and Vertex Bounds for the Master Limit** (Zero-sorry integration). -/
+theorem gromov_compactness_component_bounds
+    (th : Bubbling.TargetThresholds I M)
+    (u_lim : StableSphereTreeLimit I (M := M)) (B : ℝ)
+    (h_energy : (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v)) ≤ B) :
+    let P := Fintype.card { v : u_lim.tree.V // is_principal_component I u_lim v }
+    let G := Fintype.card { v : u_lim.tree.V // is_ghost_component I u_lim v }
+    (P * th.h ≤ B) ∧
+    (1 < Fintype.card u_lim.tree.V → G + 2 ≤ P ∧ Fintype.card u_lim.tree.V + 2 ≤ 2 * P) ∧
+    ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2)) :=
+  Topology.component_count_bounds I th u_lim B h_energy
+
+#print axioms gromov_compactness_component_bounds
 #print axioms gromov_compactness_genus_zero
 
 end GromovCompactness

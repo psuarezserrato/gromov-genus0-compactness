@@ -49,22 +49,61 @@ structure ConcentrationData
   u₀_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ
   smooth_conv : SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ (Set.univ \ S)
 
+/-- Existence and properties of the finite singular concentration set S (Contract C02, Zero-sorry).
+For any finite measure bounded by B, the set of atoms of mass ≥ ε_reg is finite, and its cardinality
+satisfies |S| * ε_reg ≤ B and |S| ≤ B / ε_reg. -/
+theorem concentration_singular_set_properties
+    (μ : Measure CP1) (B : ℝ) (hB : 0 ≤ B) (thresh : TargetThresholds I M)
+    (h_tot : μ Set.univ ≤ ENNReal.ofReal B) :
+    ∃ (S : Finset CP1),
+      (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p}) ∧
+      ((S.card : ℝ) * thresh.ε_reg ≤ B) ∧
+      ((S.card : ℝ) ≤ B / thresh.ε_reg) := by
+  have h_fin : {p : CP1 | ENNReal.ofReal thresh.ε_reg ≤ μ {p}}.Finite :=
+    finite_atoms_of_bounded_measure μ B thresh.ε_reg thresh.ε_reg_pos hB h_tot
+  let S := h_fin.toFinset
+  have hS_def : ∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p} := by
+    intro p
+    simp [S]
+  have hS_atoms : ∀ x ∈ S, ENNReal.ofReal thresh.ε_reg ≤ μ {x} := by
+    intro x hx
+    exact (hS_def x).mp hx
+  have h_mul := card_le_of_atoms μ B thresh.ε_reg hB h_tot S hS_atoms
+  have h_le := atoms_card_le μ B thresh.ε_reg thresh.ε_reg_pos hB h_tot h_fin
+  exact ⟨S, hS_def, h_mul, h_le⟩
+
+/-- Integer floor cardinality bound on the concentration singular set S (Zero-sorry). -/
+lemma ConcentrationData.card_S_floor_le
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (thresh : TargetThresholds I M)
+    (cdata : ConcentrationData I u_seq B thresh) (hB : 0 ≤ B) :
+    cdata.S.card ≤ Nat.floor (B / thresh.ε_reg) := by
+  have h_div_nonneg : 0 ≤ B / thresh.ε_reg := div_nonneg hB thresh.ε_reg_pos.le
+  exact Nat.le_floor cdata.card_S_le
+
 /-- Extraction of Concentration Data from bounded-energy J-spheres (Contract C02). -/
 theorem exists_concentration_data
     (u_seq : ℕ → (CP1 → M))
-    (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
-    (B : ℝ) (_hB : 0 ≤ B)
-    (_h_en : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
+    (B : ℝ) (hB : 0 ≤ B)
+    (h_en : ∀ n, totalEnergy I (u_seq n) ≤ B)
     (thresh : TargetThresholds I M) :
     Nonempty (ConcentrationData I u_seq B thresh) := by
   sorry
 
-/-- No-Atom Regularity Upgrade: if the defect measure has no atom at p, convergence is smooth at p. -/
+/-- No-Atom Regularity Upgrade: if the defect measure has no atom at p, convergence is smooth at p (Contract C02, Zero-sorry). -/
 theorem smooth_convergence_upgrade_of_zero_mass
     (u_seq : ℕ → (CP1 → M)) (B : ℝ) (thresh : TargetThresholds I M)
     (cdata : ConcentrationData I u_seq B thresh)
-    (p : CP1) (_hp : cdata.μ {p} = 0) :
+    (p : CP1) (hp : cdata.μ {p} = 0) :
     SmoothLocalConvergesOn I (fun n => u_seq (cdata.σ.1 n)) cdata.u₀ (Set.univ \ (cdata.S.erase p)) := by
-  sorry
+  have hp_not_mem : p ∉ cdata.S := by
+    intro h_mem
+    have h_le := (cdata.S_def p).mp h_mem
+    rw [hp] at h_le
+    have h_ofReal_pos : 0 < ENNReal.ofReal thresh.ε_reg := ENNReal.ofReal_pos.mpr thresh.ε_reg_pos
+    exact h_ofReal_pos.not_le h_le
+  rw [Finset.erase_eq_of_not_mem hp_not_mem]
+  exact cdata.smooth_conv
 
 end GromovCompactness.Compactness
+
