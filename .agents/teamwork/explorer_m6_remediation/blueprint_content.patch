@@ -1,0 +1,109 @@
+--- blueprint/src/content.tex	2026-11-04 05:27:09
++++ .agents/teamwork/explorer_m6_remediation/proposed_content.tex	2026-11-04 05:56:22
+@@ -247,8 +247,7 @@
+ \]
+ \end{lemma}
+ \begin{proof}
+-\leanok
+-Follows by subharmonic comparison and mean-value integration on concentric disks via \texttt{mvi\_branch\_zero}.
++Follows by subharmonic comparison and the maximum selection argument on $(r - |z|)^2 e(z)$, with the vanishing energy branch handled by \texttt{mvi\_branch\_zero}.
+ \end{proof}
+ 
+ \begin{lemma}[Bochner Energy-Density Inequality]
+@@ -263,7 +262,6 @@
+ where the constants $b, c > 0$ depend only on the Riemann curvature of $(M, g)$ and $\|\nabla J\|_{C^1}$.
+ \end{lemma}
+ \begin{proof}
+-\leanok
+ Follows from the Weitzenb\"ock formula for the Laplacian of $|du|^2$, curvature bounds on $(M, g)$, and $\|\nabla J\|_{C^1}$.
+ \end{proof}
+ 
+@@ -282,7 +280,6 @@
+ \]
+ \end{theorem}
+ \begin{proof}
+-\leanok
+ Follows by applying Hofer's lemma to the gradient blow-up, combined with the Bochner inequality and the scalar mean-value inequality.
+ \end{proof}
+ 
+@@ -298,7 +295,6 @@
+ along with the Morrey embedding $W^{1, p}(D_r) \hookrightarrow C^{0, 1 - 2/p}(D_r)$.
+ \end{lemma}
+ \begin{proof}
+-\leanok
+ Established via Calder\'on-Zygmund singular integral estimates for the Cauchy-Riemann operator on the plane and standard 2D Morrey-Sobolev inequality.
+ \end{proof}
+ 
+@@ -310,7 +306,6 @@
+ Every continuous weak solution $u \in W^{1, p}_{\mathrm{loc}}(\Omega, M)$ ($p > 2$) of the Cauchy-Riemann equation $\delbar_J u = 0$ is smooth ($C^\infty$).
+ \end{theorem}
+ \begin{proof}
+-\leanok
+ By induction using the interior Cauchy-Riemann estimate and difference quotient method in local charts, upgrading $W^{1, p}_{\mathrm{loc}}$ to $W^{k, p}_{\mathrm{loc}}$ for all $k$, which yields $C^\infty$ via the Sobolev embedding tower.
+ \end{proof}
+ 
+@@ -322,7 +317,6 @@
+ Let $u_n : \Omega \to M$ be a sequence of $J$-holomorphic maps satisfying a uniform gradient bound $\sup_{K} |du_n| \le C_K < \infty$ on each compact subset $K \subset \Omega$. Then there exists a subsequence $u_{\sigma(n)}$ converging in $C^\infty_{\mathrm{loc}}(\Omega, M)$ to a $J$-holomorphic map $u : \Omega \to M$.
+ \end{theorem}
+ \begin{proof}
+-\leanok
+ Follows from Arzel\`a-Ascoli theorem providing a $C^0$ limit, upgraded to $C^\infty_{\mathrm{loc}}$ via uniform elliptic derivative bounds from bootstrap and diagonal extraction.
+ \end{proof}
+ 
+@@ -339,7 +333,6 @@
+ \]
+ \end{theorem}
+ \begin{proof}
+-\leanok
+ Follows from target monotonicity when the curve leaves a small ball, or by contracting small-energy spheres into Darboux charts and applying Stokes' theorem.
+ \end{proof}
+ 
+@@ -354,7 +347,6 @@
+ \]
+ \end{lemma}
+ \begin{proof}
+-\leanok
+ Follows by integrating the radial energy differential inequality on preimages of geodesic balls using tameness and the boundary hit point on the sphere frontier.
+ \end{proof}
+ 
+@@ -366,7 +358,6 @@
+ On a long conformal cylinder $[-T, T] \times S^1$, if the total energy is sufficiently small ($E \le \varepsilon_{\mathrm{loc}}$), the entire central segment $[-T/2, T/2] \times S^1$ maps into a single geodesic ball in $M$.
+ \end{lemma}
+ \begin{proof}
+-\leanok
+ Follows from $\varepsilon$-regularity gradient bounds controlling the loop diameter by $C_{\mathrm{cyl}}\sqrt{E}$, localizing the central cylinder into a single ball of radius $d_0$.
+ \end{proof}
+ 
+@@ -381,7 +372,6 @@
+ \]
+ \end{theorem}
+ \begin{proof}
+-\leanok
+ Follows by Gr\"onwall integration of the differential inequality $E(t) \le c E'(t)$ derived from the Cauchy-Riemann equation on the cylinder via Fourier expansion / isoperimetric inequality.
+ \end{proof}
+ 
+@@ -393,7 +383,6 @@
+ Any finite-energy $J$-holomorphic curve on a punctured disk $D^* = D_1 \setminus \{0\}$ extends to a continuous map in $W^{1, p}(D_1, M)$ ($p > 2$).
+ \end{theorem}
+ \begin{proof}
+-\leanok
+ Follows by summing the exponentially decaying neck diameters across dyadic annuli to obtain Cauchy convergence to a continuous extension at the puncture.
+ \end{proof}
+ 
+@@ -405,7 +394,6 @@
+ Any $J$-holomorphic map $u : D_1 \setminus \{0\} \to M$ with finite energy $E(u) < \infty$ extends smoothly to a $J$-holomorphic map $\tilde{u} : D_1 \to M$.
+ \end{theorem}
+ \begin{proof}
+-\leanok
+ Follows by extending continuously across the puncture via Sobolev extension and upgrading from continuous weak solution to smooth via nonlinear elliptic bootstrap.
+ \end{proof}
+ 
+@@ -454,7 +442,7 @@
+ 
+ \begin{theorem}[Calibrated Rescaling Centers and Radii]
+ \label{b02:calibration}
+-\lean{GromovCompactness.Bubbling.CalibratedRescaling}
++\lean{GromovCompactness.Bubbling.exists_calibrated_rescaling}
+ \leanok
+ \uses{c03:defect_identity, b01:threshold_h, f02:sphere_geometry}
+ At each concentration point $p \in S$, there exist moving centers $a_n \to p$ and radii $\lambda_n \to 0$ satisfying the calibration condition $E(u_n; D_{\lambda_n}(a_n)) = m_p - h/2$.

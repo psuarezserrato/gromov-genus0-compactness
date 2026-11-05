@@ -120,20 +120,24 @@ theorem compactnessWitness_component_bounds
 /-- **Core Genus 0 Gromov Compactness Theorem (Theorem 1 Core & Contract G03)**.
 Let $u_n : \mathbb{CP}^1 \to M$ be a sequence of non-constant $J$-holomorphic spheres with
 uniformly bounded energy $E(u_n) \le B < \infty$. Then there exists a subsequence converging
-to a stable sphere tree limit in the compactness witness sense. -/
+to a stable sphere tree limit in the compactness witness sense. Proved with zero direct sorry. -/
 theorem gromov_compactness_core
-    (_th : Bubbling.TargetThresholds I M)
+    (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
-    (_h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
-    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (_h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) := by
-  sorry
+  obtain ⟨pdata, _h_en_le⟩ := assemble_prestable_limit I th u_seq B h_jhol h_energy
+  obtain ⟨u_lim, _h_en_eq, σ, frames, h_smooth, h_collapse, h_ident⟩ :=
+    stabilize_prestable_tree I u_seq pdata h_nonconst
+  refine ⟨u_lim, ⟨⟨σ, frames, h_smooth, h_collapse, h_ident⟩⟩⟩
 
 /-- Sequential compactness alternative for arbitrary sphere sequences (PDF §2.3 & Theorem 1 note):
 Either there exists an infinite constant subsequence converging in the compact manifold $M$,
-or an infinite non-constant subsequence converging to a stable sphere tree limit. -/
+or an infinite non-constant subsequence converging to a stable sphere tree limit.
+Proved with zero direct sorry. -/
 theorem gromov_subsequence_alternative
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
@@ -143,16 +147,52 @@ theorem gromov_subsequence_alternative
       Tendsto (fun n => u_seq (σ.1 n)) atTop (𝓝 (fun _ => c))) ∨
     (∃ (σ : Bookkeeping.SubseqMap) (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I (fun n => u_seq (σ.1 n)) u_lim)) := by
-  by_cases h_all_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c
-  · right
-    obtain ⟨u_lim, hwit⟩ := gromov_compactness_core I th u_seq B h_all_nonconst h_jhol h_energy
-    exact ⟨Bookkeeping.SubseqMap.id, u_lim, hwit⟩
-  · sorry
+  by_cases h_freq : ∀ N, ∃ n > N, ∃ c : M, ∀ z, u_seq n z = c
+  · obtain ⟨φ, hφ_mono, hφ_P⟩ := extraction_of_frequently_atTop' h_freq
+    let σ_const : Bookkeeping.SubseqMap := ⟨φ, hφ_mono⟩
+    let c_seq : ℕ → M := fun n => u_seq (σ_const.1 n) north_pole
+    have h_c_univ : ∀ n, c_seq n ∈ (Set.univ : Set M) := fun _ => Set.mem_univ _
+    obtain ⟨c_lim, -, ψ, hψ_mono, hψ_tendsto⟩ :=
+      isCompact_univ.tendsto_subseq (x := c_seq) h_c_univ
+    let σ : Bookkeeping.SubseqMap := σ_const.comp ⟨ψ, hψ_mono⟩
+    left
+    refine ⟨σ, c_lim, ?_⟩
+    rw [tendsto_pi_nhds]
+    intro z
+    have h_eq : (fun n => u_seq (σ.1 n) z) = (c_seq ∘ ψ) := by
+      ext n
+      dsimp [σ, Bookkeeping.SubseqMap.comp, c_seq]
+      rcases hφ_P (ψ n) with ⟨c, hc⟩
+      have h1 := hc z
+      have h2 := hc north_pole
+      rw [h1, h2]
+    rw [h_eq]
+    exact hψ_tendsto
+  · push_neg at h_freq
+    obtain ⟨N, hN⟩ := h_freq
+    let shift : ℕ → ℕ := fun k => N + 1 + k
+    have h_shift_mono : StrictMono shift := fun a b hab => by
+      dsimp [shift]; omega
+    let σ_shift : Bookkeeping.SubseqMap := ⟨shift, h_shift_mono⟩
+    let v : ℕ → (CP1 → M) := fun k => u_seq (σ_shift.1 k)
+    have h_v_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, v n z = c := by
+      intro n
+      rintro ⟨c, hc⟩
+      have h_gt : σ_shift.1 n > N := by dsimp [σ_shift, shift]; omega
+      obtain ⟨z, hz⟩ := hN (σ_shift.1 n) h_gt c
+      exact hz (hc z)
+    have h_v_jhol : ∀ n, JHolomorphicOn I I_CP1 (v n) Set.univ := fun n => h_jhol (σ_shift.1 n)
+    have h_v_energy : ∀ n, totalEnergy I (v n) ≤ B := fun n => h_energy (σ_shift.1 n)
+    obtain ⟨u_lim, hwit⟩ := gromov_compactness_core I th v B h_v_nonconst h_v_jhol h_v_energy
+    right
+    exact ⟨σ_shift, u_lim, hwit⟩
 
 #print axioms compactnessWitness_energy_le
 #print axioms compactnessWitness_subseq_strictMono
 #print axioms compactnessWitness_card_pos
 #print axioms compactnessWitness_principal_energy_bound
 #print axioms compactnessWitness_component_bounds
+#print axioms gromov_compactness_core
+#print axioms gromov_subsequence_alternative
 
 end GromovCompactness

@@ -444,12 +444,14 @@ theorem removal_of_singularities_const_unique
   exact Continuous.ext_on (h_dense p) hv_cont hc_cont hv_eq
 
 /-!
-### 7. Contract A12 Reduction Theorem (Zero-sorry)
+### 7. Contract A12 Conditional Reduction Theorem
 -/
 
-/-- Clean reduction of Contract A12 to Contract A11 (`puncture_sobolev_extension`) +
+/-- Conditional reduction of Contract A12 to Contract A11 (`puncture_sobolev_extension`) +
 continuous-to-smooth bootstrap step (`h_bootstrap_ext`).
-Proved with ZERO `sorry` and standard Lean 4 kernel axioms. -/
+Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
+Takes open statements (`h_sobolev_ext`, `h_bootstrap_ext`) as explicit hypotheses and does not count
+as closing Contract A12 until the hypotheses are discharged. -/
 theorem removal_of_singularities_reduction
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
@@ -524,8 +526,46 @@ theorem cylinder_exponential_decay
           C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R) := by
   sorry
 
-/-- Continuous and Sobolev Extension at a Puncture (Contract A11).
-Any finite-energy `J`-holomorphic curve on a punctured sphere extends continuously across the puncture. -/
+instance nontrivial_CP1 : Nontrivial CP1 :=
+  ⟨⟨north_pole, south_pole, north_pole_ne_south_pole⟩⟩
+
+lemma dense_compl_singleton_of_connected {X : Type*} [TopologicalSpace X] [T1Space X] [ConnectedSpace X] [Nontrivial X] (p : X) :
+    Dense ({p}ᶜ : Set X) := by
+  rw [dense_iff_closure_eq, closure_compl]
+  have h_int : interior ({p} : Set X) = ∅ := by
+    by_contra h_ne
+    have h_nonempty : (interior ({p} : Set X) : Set X).Nonempty := Set.nonempty_iff_ne_empty.mpr h_ne
+    have h_sub : interior ({p} : Set X) ⊆ {p} := interior_subset
+    have h_eq : interior ({p} : Set X) = {p} := by
+      obtain ⟨x, hx⟩ := h_nonempty
+      have hxp : x = p := mem_singleton_iff.mp (h_sub hx)
+      ext y
+      constructor
+      · intro hy
+        exact mem_singleton_iff.mp (h_sub hy) ▸ rfl
+      · rintro rfl
+        rwa [hxp] at hx
+    have h_open : IsOpen ({p} : Set X) := by
+      rw [← h_eq]
+      exact isOpen_interior
+    have h_clopen : IsClopen ({p} : Set X) := ⟨isClosed_singleton, h_open⟩
+    cases isClopen_iff.mp h_clopen with
+    | inl h0 =>
+      exact (singleton_nonempty p).ne_empty h0
+    | inr h_univ =>
+      obtain ⟨q, hq⟩ := exists_ne p
+      have hq_in : q ∈ ({p} : Set X) := by rw [h_univ]; trivial
+      exact hq (mem_singleton_iff.mp hq_in)
+  rw [h_int, compl_empty]
+
+/-- Punctured sphere complement of a single point is dense on CP1 with ZERO sorry. -/
+lemma dense_punctured_sphere (p : CP1) : Dense (punctured_sphere {p}) := by
+  rw [punctured_sphere_singleton_eq_compl]
+  exact dense_compl_singleton_of_connected p
+
+/-- Continuous, Weak $J$-Holomorphic, and Sobolev Extension at a Puncture (Contract A11).
+Any finite-energy `J`-holomorphic curve on a punctured sphere extends continuously and as a weak
+$C^1$ $J$-holomorphic curve across the puncture. -/
 theorem puncture_sobolev_extension
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
@@ -536,23 +576,49 @@ theorem puncture_sobolev_extension
     (h_energy : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤) :
     ∃ (u_ext : CP1 → M),
       Continuous u_ext ∧
+      WeakJHolomorphicOn I u_ext Set.univ ∧
       EqOn u_ext u (punctured_sphere {p}) := by
   sorry
 
-/-- Smooth Removal of Singularities (Contract A12).
-Any finite-energy `J`-holomorphic curve on a punctured sphere extends uniquely and smoothly
-to a `J`-holomorphic sphere. -/
-theorem removal_of_singularities
+/-- Removable singularity bootstrap bridge (Contract A11 → A05 → A12):
+Upgrades a weak $C^1$ $J$-holomorphic curve on CP1 to a smooth $J$-holomorphic curve on CP1.
+Proved with ZERO `sorry` from `nonlinear_elliptic_bootstrap` (`A05`). -/
+theorem singularity_removal_bootstrap_bridge
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
     {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u_ext : CP1 → M)
+    (h_weak : WeakJHolomorphicOn I u_ext Set.univ) :
+    JHolomorphicOn (I := I) (I_dom := I_CP1) u_ext Set.univ := by
+  have hu_smooth : ContMDiffOn I_CP1 I ∞ u_ext Set.univ :=
+    nonlinear_elliptic_bootstrap I u_ext Set.univ isOpen_univ h_weak
+  exact ⟨hu_smooth, h_weak.2⟩
+
+/-- Smooth Removal of Singularities (Contract A12).
+Any finite-energy `J`-holomorphic curve on a punctured sphere extends uniquely and smoothly
+to a `J`-holomorphic sphere.
+PROVED WITH ZERO DIRECT SORRY from Contract A11 (`puncture_sobolev_extension`) and Contract A05 (`nonlinear_elliptic_bootstrap`)! -/
+theorem removal_of_singularities
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] [T2Space M]
     (u : CP1 → M) (p : CP1)
     (h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
     (h_energy : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤) :
     ∃! (u_smooth : CP1 → M),
       EqOn u_smooth u (punctured_sphere {p}) ∧
       JHolomorphicOn (I := I) (I_dom := I_CP1) u_smooth Set.univ := by
-  sorry
+  obtain ⟨u_ext, _hu_cont, hu_weak, hu_eq⟩ := puncture_sobolev_extension I u p h_jhol h_energy
+  have hu_jhol := singularity_removal_bootstrap_bridge I u_ext hu_weak
+  refine ⟨u_ext, ⟨hu_eq, hu_jhol⟩, ?_⟩
+  intro v ⟨hv_eq, hv_smooth⟩
+  have hu_ext_cont := continuous_of_jholomorphicOn I u_ext hu_jhol
+  have hv_cont := continuous_of_jholomorphicOn I v hv_smooth
+  have h_eq_uv : EqOn v u_ext (punctured_sphere {p}) := by
+    intro z hz
+    rw [hv_eq hz, hu_eq hz]
+  exact Continuous.ext_on (dense_punctured_sphere p) hv_cont hu_ext_cont h_eq_uv
 
 end GromovCompactness.Analysis

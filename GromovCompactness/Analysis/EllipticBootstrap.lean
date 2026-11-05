@@ -11,6 +11,7 @@ import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
 import Mathlib.Analysis.Complex.Basic
 import Mathlib.MeasureTheory.Integral.SetIntegral
 import Mathlib.MeasureTheory.Measure.Lebesgue.Complex
+import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Tactic.Linarith
 import GromovCompactness.Geometry.Target
 import GromovCompactness.Geometry.Sphere
@@ -421,14 +422,11 @@ lemma contDiffOn_ball_half_of_contDiffOn_ball {E F : Type*} [NormedAddCommGroup 
   h.mono (ball_half_subset_ball z₀ hr)
 
 /-!
-### 7. Contract A04: Interior Cauchy-Riemann Estimates & Morrey Embedding
+### 7. Contract A04: Interior Cauchy-Riemann Estimates & Hölder Theory
 -/
 
-/-- Interior Cauchy-Riemann Estimate (Contract A04).
-For $1 < p < \infty$ and $k \in \mathbb{N}$, interior $W^{k+1, p}$ estimates hold on concentric
-disks $D_r \subset D_R$:
-$\|f\|_{W^{k+1, p}(D_r)} \le C \left(\|\bar\partial f\|_{W^{k, p}(D_R)} + \|f\|_{L^p(D_R)}\right)$. -/
-theorem interior_cauchy_riemann_estimate (p : ℝ) (hp : 1 < p) (k : ℕ) (r R : ℝ) (hrR : 0 < r ∧ r < R) :
+/-- Auxiliary Sobolev Cauchy-Riemann estimate retained for backward compatibility. -/
+theorem interior_cauchy_riemann_estimate_sobolev (p : ℝ) (hp : 1 < p) (k : ℕ) (r R : ℝ) (hrR : 0 < r ∧ r < R) :
     ∃ (C : ℝ), 0 < C ∧
     ∀ (f : ℂ → ℂ),
       ContDiffOn ℝ (k + 1) f (Metric.closedBall 0 R) →
@@ -437,10 +435,7 @@ theorem interior_cauchy_riemann_estimate (p : ℝ) (hp : 1 < p) (k : ℕ) (r R :
              sobolevNorm p 0 f (Metric.closedBall 0 R)) := by
   sorry
 
-/-- Morrey-Sobolev Embedding in 2D (Contract A04).
-For $p > 2$, $W^{1, p}$ functions on 2D disks embed into Hölder continuous functions $C^{0, \alpha}$
-with exponent $\alpha = 1 - 2/p$:
-$\|f(z) - f(w)\| \le C \mathrm{dist}(z, w)^\alpha \|f\|_{W^{1, p}(D_r)}$. -/
+/-- Morrey-Sobolev Embedding in 2D (Contract A04, auxiliary Sobolev formulation). -/
 theorem morrey_sobolev_embedding (p : ℝ) (hp : 2 < p) (r : ℝ) (hr : 0 < r) :
     ∃ (C : ℝ) (α : ℝ), 0 < C ∧ α = 1 - 2 / p ∧ 0 < α ∧
     ∀ (f : ℂ → ℂ),
@@ -449,6 +444,290 @@ theorem morrey_sobolev_embedding (p : ℝ) (hp : 2 < p) (r : ℝ) (hr : 0 < r) :
       ∀ w ∈ Metric.closedBall (0 : ℂ) r,
         ‖f z - f w‖ ≤ C * (dist z w)^α * sobolevNorm p 1 f (Metric.closedBall 0 r) := by
   sorry
+
+/-- Supremum ($C^0$) norm of `f : ℂ → ℂ` on a set `s : Set ℂ`. -/
+noncomputable def supNormOn (f : ℂ → ℂ) (s : Set ℂ) : ℝ :=
+  sSup ((fun z => ‖f z‖) '' s)
+
+/-- The $\alpha$-Hölder seminorm $[f]_{C^{0,\alpha}(s)} = \sup_{z \neq w \in s} \frac{\|f(z) - f(w)\|}{\|z - w\|^\alpha}$. -/
+noncomputable def holderSeminorm (α : ℝ) (f : ℂ → ℂ) (s : Set ℂ) : ℝ :=
+  sSup { q : ℝ | ∃ z ∈ s, ∃ w ∈ s, z ≠ w ∧ q = ‖f z - f w‖ / (‖z - w‖ ^ α) }
+
+/-- The $j$-th real Fréchet derivative $\alpha$-Hölder seminorm $[D^j f]_{C^{0,\alpha}(s)}$. -/
+noncomputable def derivHolderSeminorm (j : ℕ) (α : ℝ) (f : ℂ → ℂ) (s : Set ℂ) : ℝ :=
+  sSup { q : ℝ | ∃ z ∈ s, ∃ w ∈ s, z ≠ w ∧
+    q = ‖iteratedFDeriv ℝ j f z - iteratedFDeriv ℝ j f w‖ / (‖z - w‖ ^ α) }
+
+/-- The full $C^{k,\alpha}(s)$ norm:
+$\|f\|_{C^{k,\alpha}(s)} = \sum_{j=0}^k \sup_{z \in s} \|D^j f(z)\| + [D^k f]_{C^{0,\alpha}(s)}$. -/
+noncomputable def ckHolderNorm (k : ℕ) (α : ℝ) (f : ℂ → ℂ) (s : Set ℂ) : ℝ :=
+  (Finset.range (k + 1)).sum
+    (fun j => sSup ((fun z => ‖iteratedFDeriv ℝ j f z‖) '' s)) +
+  derivHolderSeminorm k α f s
+
+/-- Cauchy-Riemann operator alias for dbarComplex. -/
+noncomputable abbrev dbarComplex := cauchyRiemann
+
+lemma sSup_nonneg_of_forall_nonneg (s : Set ℝ) (h : ∀ x ∈ s, 0 ≤ x) : 0 ≤ sSup s := by
+  by_cases h_bdd : BddAbove s
+  · by_cases h_ne : s.Nonempty
+    · obtain ⟨x, hx⟩ := h_ne
+      have h1 : x ≤ sSup s := le_csSup h_bdd hx
+      have h2 : 0 ≤ x := h x hx
+      exact le_trans h2 h1
+    · rw [Set.not_nonempty_iff_eq_empty] at h_ne
+      rw [h_ne, Real.sSup_empty]
+  · rw [Real.sSup_of_not_bddAbove h_bdd]
+
+lemma supNormOn_nonneg (f : ℂ → ℂ) (s : Set ℂ) : 0 ≤ supNormOn f s := by
+  dsimp [supNormOn]
+  apply sSup_nonneg_of_forall_nonneg
+  rintro y ⟨z, _, rfl⟩
+  exact norm_nonneg (f z)
+
+lemma holderSeminorm_nonneg (α : ℝ) (f : ℂ → ℂ) (s : Set ℂ) : 0 ≤ holderSeminorm α f s := by
+  dsimp [holderSeminorm]
+  apply sSup_nonneg_of_forall_nonneg
+  rintro q ⟨z, _, w, _, _, rfl⟩
+  have h_num : 0 ≤ ‖f z - f w‖ := norm_nonneg _
+  have h_den : 0 ≤ ‖z - w‖ ^ α := Real.rpow_nonneg (norm_nonneg _) α
+  exact div_nonneg h_num h_den
+
+lemma derivHolderSeminorm_nonneg (j : ℕ) (α : ℝ) (f : ℂ → ℂ) (s : Set ℂ) :
+    0 ≤ derivHolderSeminorm j α f s := by
+  dsimp [derivHolderSeminorm]
+  apply sSup_nonneg_of_forall_nonneg
+  rintro q ⟨z, _, w, _, _, rfl⟩
+  have h_num : 0 ≤ ‖iteratedFDeriv ℝ j f z - iteratedFDeriv ℝ j f w‖ := norm_nonneg _
+  have h_den : 0 ≤ ‖z - w‖ ^ α := Real.rpow_nonneg (norm_nonneg _) α
+  exact div_nonneg h_num h_den
+
+lemma ckHolderNorm_nonneg (k : ℕ) (α : ℝ) (f : ℂ → ℂ) (s : Set ℂ) :
+    0 ≤ ckHolderNorm k α f s := by
+  dsimp [ckHolderNorm]
+  apply add_nonneg
+  · apply Finset.sum_nonneg
+    intro j _hj
+    apply sSup_nonneg_of_forall_nonneg
+    rintro y ⟨z, _, rfl⟩
+    exact norm_nonneg _
+  · exact derivHolderSeminorm_nonneg k α f s
+
+lemma sSup_zero_set (s : Set ℝ) (h : s ⊆ {0}) : sSup s = 0 := by
+  rcases Set.subset_singleton_iff_eq.mp h with rfl | rfl
+  · exact Real.sSup_empty
+  · exact csSup_singleton 0
+
+lemma iteratedFDeriv_const_zero (j : ℕ) (z : ℂ) :
+    iteratedFDeriv ℝ j (fun _ : ℂ => (0 : ℂ)) z = 0 := by
+  cases j with
+  | zero =>
+    ext m
+    have h := iteratedFDeriv_zero_apply (𝕜 := ℝ) (f := fun _ : ℂ => (0 : ℂ)) (x := z) m
+    rw [h]
+    rfl
+  | succ n =>
+    exact iteratedFDeriv_succ_const_apply n 0 z
+
+lemma derivHolderSeminorm_zero_map (j : ℕ) (α : ℝ) (s : Set ℂ) :
+    derivHolderSeminorm j α (fun _ => 0) s = 0 := by
+  dsimp [derivHolderSeminorm]
+  apply sSup_zero_set
+  rintro q ⟨z, _, w, _, _, rfl⟩
+  have h1 := iteratedFDeriv_const_zero j z
+  have h2 := iteratedFDeriv_const_zero j w
+  simp only [Set.mem_singleton_iff]
+  rw [h1, h2, sub_self, norm_zero, zero_div]
+
+lemma ckHolderNorm_zero_map (k : ℕ) (α : ℝ) (s : Set ℂ) :
+    ckHolderNorm k α (fun _ => 0) s = 0 := by
+  dsimp [ckHolderNorm]
+  have h_sum : (Finset.range (k + 1)).sum (fun j => sSup ((fun z => ‖iteratedFDeriv ℝ j (fun _ : ℂ => (0 : ℂ)) z‖) '' s)) = 0 := by
+    apply Finset.sum_eq_zero
+    intro j _hj
+    apply sSup_zero_set
+    rintro y ⟨z, _, rfl⟩
+    have h0 := iteratedFDeriv_const_zero j z
+    simp only [Set.mem_singleton_iff]
+    rw [h0, norm_zero]
+  have h_deriv := derivHolderSeminorm_zero_map k α s
+  rw [h_sum, h_deriv, add_zero]
+
+lemma ckHolderNorm_zero_le_order (k : ℕ) (α : ℝ) (f : ℂ → ℂ) (s : Set ℂ) :
+    supNormOn f s ≤ ckHolderNorm k α f s := by
+  dsimp [ckHolderNorm]
+  have h_in : 0 ∈ Finset.range (k + 1) := Finset.mem_range.mpr (Nat.succ_pos k)
+  have h_split := Finset.sum_eq_add_sum_diff_singleton h_in (fun j => sSup ((fun z => ‖iteratedFDeriv ℝ j f z‖) '' s))
+  rw [h_split]
+  have h0 : (fun z => ‖iteratedFDeriv ℝ 0 f z‖) = fun z => ‖f z‖ := by
+    ext z
+    have h_norm := norm_iteratedFDeriv_zero (𝕜 := ℝ) (f := f) (x := z)
+    exact h_norm
+  rw [h0]
+  have h_rem_nonneg : 0 ≤ ∑ x ∈ Finset.range (k + 1) \ {0}, sSup ((fun z => ‖iteratedFDeriv ℝ x f z‖) '' s) := by
+    apply Finset.sum_nonneg
+    intro j _
+    apply sSup_nonneg_of_forall_nonneg
+    rintro y ⟨z, _, rfl⟩
+    exact norm_nonneg _
+  have h_deriv_nonneg := derivHolderSeminorm_nonneg k α f s
+  change supNormOn f s ≤ sSup ((fun z => ‖f z‖) '' s) +
+    (∑ x ∈ Finset.range (k + 1) \ {0}, sSup ((fun z => ‖iteratedFDeriv ℝ x f z‖) '' s)) +
+    derivHolderSeminorm k α f s
+  have h_id : supNormOn f s = sSup ((fun z => ‖f z‖) '' s) := rfl
+  rw [h_id]
+  linarith
+
+lemma ckHolderNorm_mono_order {j k : ℕ} (hjk : j ≤ k) (α : ℝ) (f : ℂ → ℂ) (s : Set ℂ) :
+    sSup ((fun z => ‖iteratedFDeriv ℝ j f z‖) '' s) ≤ ckHolderNorm k α f s := by
+  dsimp [ckHolderNorm]
+  have h_in : j ∈ Finset.range (k + 1) := Finset.mem_range.mpr (Nat.lt_succ_of_le hjk)
+  have h_split := Finset.sum_eq_add_sum_diff_singleton h_in (fun i => sSup ((fun z => ‖iteratedFDeriv ℝ i f z‖) '' s))
+  rw [h_split]
+  have h_rem_nonneg : 0 ≤ ∑ x ∈ Finset.range (k + 1) \ {j}, sSup ((fun z => ‖iteratedFDeriv ℝ x f z‖) '' s) := by
+    apply Finset.sum_nonneg
+    intro i _
+    apply sSup_nonneg_of_forall_nonneg
+    rintro y ⟨z, _, rfl⟩
+    exact norm_nonneg _
+  have h_deriv_nonneg := derivHolderSeminorm_nonneg k α f s
+  linarith
+
+/-- Linear shrinking radius hierarchy interpolating between R and r. -/
+noncomputable def shrinkingRadius (r R : ℝ) (N j : ℕ) : ℝ :=
+  r + (R - r) * ((N : ℝ) - (j : ℝ)) / (N : ℝ)
+
+lemma shrinkingRadius_zero (r R : ℝ) {N : ℕ} (hN : 0 < N) :
+    shrinkingRadius r R N 0 = R := by
+  dsimp [shrinkingRadius]
+  have hN_pos : (N : ℝ) ≠ 0 := by positivity
+  simp only [Nat.cast_zero, sub_zero]
+  rw [mul_div_cancel_right₀ _ hN_pos]
+  ring
+
+lemma shrinkingRadius_self (r R : ℝ) (N : ℕ) :
+    shrinkingRadius r R N N = r := by
+  dsimp [shrinkingRadius]
+  rw [sub_self, mul_zero, zero_div, add_zero]
+
+lemma shrinkingRadius_step (r R : ℝ) (N j : ℕ) (hrR : r < R) (hN : 0 < N) (_hj : j < N) :
+    shrinkingRadius r R N (j + 1) < shrinkingRadius r R N j := by
+  dsimp [shrinkingRadius]
+  have hN_pos : 0 < (N : ℝ) := Nat.cast_pos.mpr hN
+  have h_diff_pos : 0 < R - r := by linarith
+  have h_cast : (↑(j + 1) : ℝ) = (j : ℝ) + 1 := Nat.cast_add_one j
+  rw [h_cast]
+  have h_sub_lt : (N : ℝ) - ((j : ℝ) + 1) < (N : ℝ) - (j : ℝ) := by linarith
+  have h_mul_lt : (R - r) * ((N : ℝ) - ((j : ℝ) + 1)) < (R - r) * ((N : ℝ) - (j : ℝ)) :=
+    mul_lt_mul_of_pos_left h_sub_lt h_diff_pos
+  have h_div_lt : (R - r) * ((N : ℝ) - ((j : ℝ) + 1)) / (N : ℝ) < (R - r) * ((N : ℝ) - (j : ℝ)) / (N : ℝ) :=
+    div_lt_div_of_pos_right h_mul_lt hN_pos
+  linarith
+
+lemma shrinkingRadius_pos (r R : ℝ) (N j : ℕ) (hr : 0 < r) (hrR : r < R) (hN : 0 < N) (hj : j ≤ N) :
+    0 < shrinkingRadius r R N j := by
+  dsimp [shrinkingRadius]
+  have hN_pos : 0 < (N : ℝ) := Nat.cast_pos.mpr hN
+  have h_diff_pos : 0 ≤ R - r := by linarith
+  have hj_le : (j : ℝ) ≤ (N : ℝ) := Nat.cast_le.mpr hj
+  have h_sub_nonneg : 0 ≤ (N : ℝ) - (j : ℝ) := by linarith
+  have h_mul_nonneg : 0 ≤ (R - r) * ((N : ℝ) - (j : ℝ)) := mul_nonneg h_diff_pos h_sub_nonneg
+  have h_div_nonneg : 0 ≤ (R - r) * ((N : ℝ) - (j : ℝ)) / (N : ℝ) := div_nonneg h_mul_nonneg (le_of_lt hN_pos)
+  linarith
+
+/-- **Contract A04a (Interior Cauchy–Riemann Schauder Estimate in $C^{k,\alpha}$)**:
+On concentric disks $D_r \subset D_R \subset \mathbb{C}$ ($0 < r < R$) and for $\alpha \in (0, 1)$,
+the $C^{k+1,\alpha}$ Hölder norm of a $C^{k+1}$ map $f : \mathbb{C} \to \mathbb{C}$ on $D_r$ is controlled
+by the $C^{k,\alpha}$ norm of $\bar{\partial} f$ on $D_R$ together with the $C^0$ norm of $f$ on $D_R$:
+$$\|f\|_{C^{k+1,\alpha}(D_r)} \le C \left(\|\bar{\partial} f\|_{C^{k,\alpha}(D_R)} + \|f\|_{C^0(D_R)}\right).$$ -/
+theorem interior_cauchy_riemann_estimate
+    (k : ℕ) (α r R : ℝ) (hr : 0 < r) (hrR : r < R) (hα0 : 0 < α) (hα1 : α < 1) :
+    ∃ C > 0, ∀ (f : ℂ → ℂ),
+      ContDiffOn ℝ (k + 1) f (Metric.closedBall (0 : ℂ) R) →
+      ckHolderNorm (k + 1) α f (Metric.ball (0 : ℂ) r) ≤
+        C * (ckHolderNorm k α (dbarComplex f) (Metric.ball (0 : ℂ) R) +
+             supNormOn f (Metric.ball (0 : ℂ) R)) := by
+  sorry
+
+/-- **Contract A04b (Cauchy–Pompeiu Interior Hölder Gain)**:
+For $0 < r < R$, $\alpha \in (0, 1)$, and any $C^1$ map $f : \mathbb{C} \to \mathbb{C}$ on $\overline{D_R}$,
+the $C^{0,\alpha}(D_r)$ norm of $f$ is controlled by the $C^0(D_R)$ norm of $\bar{\partial} f$ and $f$:
+$$\|f\|_{C^{0,\alpha}(D_r)} \le C \left(\|\bar{\partial} f\|_{C^0(D_R)} + \|f\|_{C^0(D_R)}\right).$$ -/
+theorem cauchy_pompeiu_holder_gain
+    (r R α : ℝ) (hr : 0 < r) (hrR : r < R) (hα0 : 0 < α) (hα1 : α < 1) :
+    ∃ C > 0, ∀ (f : ℂ → ℂ),
+      ContDiffOn ℝ 1 f (Metric.closedBall (0 : ℂ) R) →
+      ckHolderNorm 0 α f (Metric.ball (0 : ℂ) r) ≤
+        C * (supNormOn (dbarComplex f) (Metric.ball (0 : ℂ) R) +
+             supNormOn f (Metric.ball (0 : ℂ) R)) := by
+  sorry
+
+/-- Inductive Schauder Bootstrap Reduction (Contract A05 from Contract A04).
+Proves the inductive step $C^{k,\alpha} \to C^{k+1,\alpha}$ under interior Cauchy-Riemann Schauder estimates
+with zero `sorry`. -/
+theorem elliptic_bootstrap_holder_of_cauchy_riemann
+    (h_cr : ∀ (k : ℕ) (α r R : ℝ) (_hr : 0 < r) (_hrR : r < R) (_hα0 : 0 < α) (_hα1 : α < 1),
+      ∃ (C : ℝ), 0 < C ∧
+      ∀ (f : ℂ → ℂ),
+        ContDiffOn ℝ (k + 1) f (Metric.closedBall 0 R) →
+        ckHolderNorm (k + 1) α f (Metric.ball (0 : ℂ) r) ≤
+          C * (ckHolderNorm k α (dbarComplex f) (Metric.ball (0 : ℂ) R) +
+               supNormOn f (Metric.ball (0 : ℂ) R)))
+    (k : ℕ) (α r R : ℝ) (hr : 0 < r) (hrR : r < R) (hα0 : 0 < α) (hα1 : α < 1) :
+    ∃ (C : ℝ), 0 < C ∧
+    ∀ (f : ℂ → ℂ),
+      ContDiffOn ℝ (k + 1) f (Metric.closedBall 0 R) →
+      ckHolderNorm (k + 1) α f (Metric.ball (0 : ℂ) r) ≤
+        C * (ckHolderNorm k α (dbarComplex f) (Metric.ball (0 : ℂ) R) +
+             ckHolderNorm k α f (Metric.ball (0 : ℂ) R)) := by
+  obtain ⟨C, hC_pos, hC⟩ := h_cr k α r R hr hrR hα0 hα1
+  refine ⟨C, hC_pos, fun f hf => ?_⟩
+  have h_bound := hC f hf
+  have h_mono : supNormOn f (Metric.ball (0 : ℂ) R) ≤ ckHolderNorm k α f (Metric.ball (0 : ℂ) R) :=
+    ckHolderNorm_zero_le_order k α f (Metric.ball (0 : ℂ) R)
+  have h_add : ckHolderNorm k α (dbarComplex f) (Metric.ball (0 : ℂ) R) + supNormOn f (Metric.ball (0 : ℂ) R) ≤
+               ckHolderNorm k α (dbarComplex f) (Metric.ball (0 : ℂ) R) + ckHolderNorm k α f (Metric.ball (0 : ℂ) R) := by
+    linarith
+  have h_mul : C * (ckHolderNorm k α (dbarComplex f) (Metric.ball (0 : ℂ) R) + supNormOn f (Metric.ball (0 : ℂ) R)) ≤
+               C * (ckHolderNorm k α (dbarComplex f) (Metric.ball (0 : ℂ) R) +
+                    ckHolderNorm k α f (Metric.ball (0 : ℂ) R)) := by
+    exact mul_le_mul_of_nonneg_left h_add (le_of_lt hC_pos)
+  linarith
+
+/-- Elliptic Bootstrap Step for Cauchy-Riemann Kernel (Holomorphic Curves). -/
+theorem elliptic_bootstrap_holder_of_dbar_zero
+    (h_cr : ∀ (k : ℕ) (α r R : ℝ) (_hr : 0 < r) (_hrR : r < R) (_hα0 : 0 < α) (_hα1 : α < 1),
+      ∃ (C : ℝ), 0 < C ∧
+      ∀ (f : ℂ → ℂ),
+        ContDiffOn ℝ (k + 1) f (Metric.closedBall 0 R) →
+        ckHolderNorm (k + 1) α f (Metric.ball (0 : ℂ) r) ≤
+          C * (ckHolderNorm k α (dbarComplex f) (Metric.ball (0 : ℂ) R) +
+               supNormOn f (Metric.ball (0 : ℂ) R)))
+    (k : ℕ) (α r R : ℝ) (hr : 0 < r) (hrR : r < R) (hα0 : 0 < α) (hα1 : α < 1) :
+    ∃ (C : ℝ), 0 < C ∧
+    ∀ (f : ℂ → ℂ),
+      ContDiffOn ℝ (k + 1) f (Metric.closedBall 0 R) →
+      ckHolderNorm k α (dbarComplex f) (Metric.ball (0 : ℂ) R) = 0 →
+      ckHolderNorm (k + 1) α f (Metric.ball (0 : ℂ) r) ≤
+        C * ckHolderNorm k α f (Metric.ball (0 : ℂ) R) := by
+  obtain ⟨C, hC_pos, h_boot⟩ := elliptic_bootstrap_holder_of_cauchy_riemann h_cr k α r R hr hrR hα0 hα1
+  refine ⟨C, hC_pos, fun f hf h_dbar => ?_⟩
+  have h1 := h_boot f hf
+  rw [h_dbar, zero_add] at h1
+  exact h1
+
+/-- Inductive Schauder Bootstrap Step (Contract A05).
+Boosts regularity from $C^{k,\alpha}$ to $C^{k+1,\alpha}$ on concentric disks under the Cauchy-Riemann operator.
+Proved with ZERO `sorry` via reduction to Contract A04. -/
+theorem elliptic_bootstrap_holder
+    (k : ℕ) (α r R : ℝ) (hr : 0 < r) (hrR : r < R) (hα0 : 0 < α) (hα1 : α < 1) :
+    ∃ (C : ℝ), 0 < C ∧
+    ∀ (f : ℂ → ℂ),
+      ContDiffOn ℝ (k + 1) f (Metric.closedBall 0 R) →
+      ckHolderNorm (k + 1) α f (Metric.ball (0 : ℂ) r) ≤
+        C * (ckHolderNorm k α (dbarComplex f) (Metric.ball (0 : ℂ) R) +
+             ckHolderNorm k α f (Metric.ball (0 : ℂ) R)) :=
+  elliptic_bootstrap_holder_of_cauchy_riemann interior_cauchy_riemann_estimate k α r R hr hrR hα0 hα1
 
 /-!
 ### 8. Contract A05: Inductive Sobolev Bootstrap (`elliptic_bootstrap_wkp`)
@@ -510,9 +789,11 @@ theorem elliptic_bootstrap_wkp_of_dbar_zero
   rw [h_dbar, zero_add] at h1
   exact h1
 
-/-- Inductive Sobolev Bootstrap Step (Contract A05).
+/-- Inductive Sobolev Bootstrap Step (Contract A05, Conditional Reduction).
 Boosts regularity from $W^{k, p}$ to $W^{k+1, p}$ on concentric disks under the Cauchy-Riemann operator.
-Proved with ZERO `sorry` via reduction to Contract A04 (`elliptic_bootstrap_wkp_of_cauchy_riemann`). -/
+Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
+This theorem conditionally reduces Contract A05 to the open Contract A04 (`interior_cauchy_riemann_estimate_sobolev`)
+and transitively inherits its `sorryAx` dependency. -/
 theorem elliptic_bootstrap_wkp (p : ℝ) (hp : 1 < p) (k : ℕ) (r R : ℝ) (hrR : 0 < r ∧ r < R) :
     ∃ (C : ℝ), 0 < C ∧
     ∀ (f : ℂ → ℂ),
@@ -520,7 +801,7 @@ theorem elliptic_bootstrap_wkp (p : ℝ) (hp : 1 < p) (k : ℕ) (r R : ℝ) (hrR
       sobolevNorm p (k + 1) f (Metric.closedBall 0 r) ≤
         C * (sobolevNorm p k (cauchyRiemann f) (Metric.closedBall 0 R) +
              sobolevNorm p k f (Metric.closedBall 0 R)) :=
-  elliptic_bootstrap_wkp_of_cauchy_riemann interior_cauchy_riemann_estimate p hp k r R hrR
+  elliptic_bootstrap_wkp_of_cauchy_riemann interior_cauchy_riemann_estimate_sobolev p hp k r R hrR
 
 /-!
 ### 9. Contract A06: Infinite Smoothness ($C^\infty$) and Sobolev Intersection

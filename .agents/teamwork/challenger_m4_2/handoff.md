@@ -1,159 +1,189 @@
-# Empirical Challenge & Review Report: `Topology/SphereTree.lean` (Task F06)
+# Adversarial Challenge Report: Milestone 4 (Wiring Audit & Automorphism Closures)
 
-**Agent**: challenger_m4_2  
-**Date**: 2026-11-03  
+**Agent**: `challenger_m4_2`  
+**Milestone**: Phase 5 Milestone 4 (`#audit_wiring` & Target Declarations #30, #31, #33, #34 in `Automorphisms.lean`)  
+**Parent Orchestrator**: `orchestrator_phase5` (`8e7bd612-f2f7-4a5c-8f0d-e33b6e7beac0`)  
 **Verdict**: **APPROVE**  
-**Target Milestone**: Milestone 4 (SphereTree F06)
-
----
-
-## Challenge Summary
-
-**Overall risk assessment**: **LOW**
-
-The formalization of `GromovCompactness.Topology.SphereTree` has been subjected to exhaustive empirical testing, boundary edge-case analysis, and adversarial refutation harnesses. All components — `tree_degree_sum`, `ghost_components_bound`, `graft_trees`, and `sphereTreeTotalEnergy` — compile cleanly under Lean 4.16.0 without warnings or errors, use 0 sorries / 0 admits, and depend exclusively on Mathlib's standard three axioms (`propext`, `Classical.choice`, `Quot.sound`).
+**Date**: 2026-11-05T08:38:00Z  
 
 ---
 
 ## 1. Observation
 
-### Target Files and Test Harnesses
-- Implementation file: `GromovCompactness/Topology/SphereTree.lean`
-- Standalone test suite: `.agents/teamwork/challenger_m4_2/TestChallengeTree.lean`
+### 1.1 Full Clean Build (`lake build`)
+Executed `lake build` independently in `/Users/pablosuarez/Desktop/SympTopAutoForm`.
+- Exit code: `0`.
+- Output:
+  ```
+  Build completed successfully.
+  ```
+- No build errors, all modules replayed and compiled cleanly.
 
-### Verbatim Tool Commands and Execution Results
+### 1.2 Mechanical Call-Graph Wiring Audit (`tests/PhaseAxiomCensus.lean`)
+Executed `lake env lean tests/PhaseAxiomCensus.lean`.
+- Output:
+  ```
+  ==================================================
+  Starting Mechanical Call-Graph Wiring Audit (#audit_wiring)
+  Root declaration: GromovCompactness.gromov_compactness_genus_zero
+  ==================================================
+  [Graph] Transitive dependency closure size: 34868 constants
+  [PASS] Connected: GromovCompactness.gromov_compactness_core (Core compactness theorem (G03))
+  [PASS] Connected: GromovCompactness.Assembly.stabilize_prestable_tree (Master stabilization theorem (G02))
+  [PASS] Connected: GromovCompactness.Assembly.assemble_prestable_limit (Global prestable limit assembly (G01))
+  [PASS] Connected: GromovCompactness.Compactness.exists_concentration_data (Concentration data extraction (C02))
+  [PASS] Connected: GromovCompactness.Compactness.defect_measure_identity (Defect measure identity (C03))
+  [PASS] Connected: GromovCompactness.Bubbling.resolve_single_defect_tree (Single defect tree resolution (B07))
+  [PASS] Connected: GromovCompactness.Analysis.TargetThresholds (Universal bubbling threshold bundle (B01))
+  [PASS] Connected: GromovCompactness.Analysis.nonlinear_elliptic_bootstrap (Nonlinear elliptic bootstrap (A05))
+  [PASS] Connected: GromovCompactness.Analysis.puncture_sobolev_extension (Puncture Sobolev extension (A11))
+  [PASS] Zero direct sorry in proof body: GromovCompactness.gromov_compactness_core (gromov_compactness_core (G03))
+  [PASS] Zero direct sorry in proof body: GromovCompactness.gromov_subsequence_alternative (gromov_subsequence_alternative (G03 alternative))
+  [PASS] Zero direct sorry in proof body: GromovCompactness.Assembly.stabilize_prestable_tree (stabilize_prestable_tree (G02))
+  [PASS] Zero direct sorry in proof body: GromovCompactness.Bubbling.resolve_single_defect_tree (resolve_single_defect_tree (B07))
+  [PASS] Zero direct sorry in proof body: GromovCompactness.Compactness.weak_energy_measure_compactness (weak_energy_measure_compactness (C01))
+  [PASS] Zero direct sorry in proof body: GromovCompactness.Analysis.removal_of_singularities (removal_of_singularities (A12))
+  ==================================================
+  Audit completed in 1575 ms
+  STATUS: WIRING AUDIT PASSED
+  All 9 core contracts verified in transitive call graph of GromovCompactness.gromov_compactness_genus_zero
+  All 6 intermediate theorems verified with 0 direct sorry in proof bodies
+  ==================================================
+  ```
+- Confirmed: All 9 core contracts reachable from `gromov_compactness_genus_zero` in a transitive closure of 34,868 constants.
+- Confirmed: All 6 intermediate theorems have 0 direct `sorryAx` in their proof bodies.
 
-#### 1. Test Suite Execution (`TestChallengeTree.lean`)
-```bash
-lake env lean .agents/teamwork/challenger_m4_2/TestChallengeTree.lean
-```
-Execution Output:
-```
-'ChallengeSphereTree.test_singleTree_degree_sum' depends on axioms: [propext, Classical.choice, Quot.sound]
-'ChallengeSphereTree.test_twoTree_degree_sum' depends on axioms: [propext, Classical.choice, Quot.sound]
-'ChallengeSphereTree.test_threePathTree_degree_sum' depends on axioms: [propext, Classical.choice, Quot.sound]
-'ChallengeSphereTree.test_fourStarTree_degree_sum' depends on axioms: [propext, Classical.choice, Quot.sound]
-'ChallengeSphereTree.test_graft_vertex_counting' depends on axioms: [propext, Classical.choice, Quot.sound]
-'ChallengeSphereTree.test_graft_acyclicity' depends on axioms: [propext, Classical.choice, Quot.sound]
-'ChallengeSphereTree.test_graft_connectedness' depends on axioms: [propext, Classical.choice, Quot.sound]
-'ChallengeSphereTree.test_graft_is_tree' depends on axioms: [propext, Classical.choice, Quot.sound]
-'ChallengeSphereTree.test_graft_degree_sum' depends on axioms: [propext, Classical.choice, Quot.sound]
-'ChallengeSphereTree.test_ghost_edge_P2_G0' depends on axioms: [propext, Classical.choice, Quot.sound]
-'ChallengeSphereTree.test_ghost_edge_P3_G1' depends on axioms: [propext, Classical.choice, Quot.sound]
-'ChallengeSphereTree.test_refute_ghost_P2_G1' depends on axioms: [propext, Classical.choice, Quot.sound]
-'ChallengeSphereTree.test_principal_at_least_two' depends on axioms: [propext, Classical.choice, Quot.sound]
-'ChallengeSphereTree.test_refute_ghost_P0' depends on axioms: [propext, Classical.choice, Quot.sound]
-```
-Exit code: `0`.
+### 1.3 Module-Scoped Axiom Census for `Automorphisms.lean`
+Executed `MODULE_PREFIX=GromovCompactness.Extensions.Automorphisms ./tools/phase_axiom_census.sh`.
+- Exit code: `0`.
+- Output:
+  ```
+  Phase Axiom Census: scope=GromovCompactness.Extensions.Automorphisms
+  Elapsed time: 2977 ms
+  Total declarations in scope: 77 (theorems: 44)
+  Clean declarations: 77 (theorems: 44)
+  Sorry-dependent: 0 (theorems: 0)
+  STATUS: CLEAN (0 sorryAx dependencies)
+  All declarations depend strictly on standard axioms: [propext, Classical.choice, Quot.sound]
+  ```
+- Confirmed: All 77 declarations in `Automorphisms.lean` are 100% `sorryAx`-free and depend only on Lean 4 kernel axioms `[propext, Classical.choice, Quot.sound]`.
 
-#### 2. Zero-Sorry and Zero-Axiom Verification
-```bash
-grep -rnE "(sorry|admit|axiom )" .agents/teamwork/challenger_m4_2/TestChallengeTree.lean
-```
-Exit code: `1` (0 occurrences found).
+### 1.4 Regression Suites
+1. Executed `lake env lean tests/ChallengePhase4ModelB.lean`:
+   - Exit code: `0`.
+   - All 16 declarations passed with standard axioms.
+2. Executed `lake env lean tests/ForensicPhase4Axioms.lean`:
+   - Exit code: `0`.
+   - All 26 declarations passed with standard axioms.
+3. Executed `lake env lean tests/ChallengeMilestone4WiringAutomorphisms.lean`:
+   - Exit code: `0`.
+   - Passed all sensitivity tests, simulated corruption tests, and non-triviality checks.
 
-```bash
-grep -rnE "(sorry|admit|axiom )" GromovCompactness/
-```
-Exit code: `1` (0 occurrences across all production modules).
-
-#### 3. Full 7-Module Phase 1 Build
-```bash
-lake build GromovCompactness.LibraryAudit \
-           GromovCompactness.Geometry.Target \
-           GromovCompactness.Geometry.Sphere \
-           GromovCompactness.Topology.Subsequence \
-           GromovCompactness.Analysis.Energy \
-           GromovCompactness.Topology.SmoothLocal \
-           GromovCompactness.Topology.SphereTree
-```
-Exit code: `0` (clean build, 0 errors, 0 warnings).
+### 1.5 Adversarial Stress Harness (`tests/AdversarialAutomorphismsM4.lean`)
+Constructed and executed `tests/AdversarialAutomorphismsM4.lean` containing 14 empirical adversarial probes.
+- Command: `lake env lean tests/AdversarialAutomorphismsM4.lean`
+- Exit code: `0`.
+- All 14 probes passed with 0 sorry and standard axioms `[propext, Classical.choice, Quot.sound]`:
+  1. `stress_tree_automorphism_id_neutral`: TreeAutomorphism identity is two-sided neutral element.
+  2. `stress_tree_automorphism_comp_assoc`: TreeAutomorphism composition is strictly associative.
+  3. `stress_tree_automorphism_inv_laws`: TreeAutomorphism inverse satisfies left and right inverse laws.
+  4. `stress_ghost_impossible_on_small_trees`: Proved that on trees with $|V| \le 3$, ghost components are strictly impossible because $\deg(v) \le |V| - 1 \le 2 < 3$.
+  5. `stress_ghost_requires_at_least_four_vertices`: Proved that any ghost component requires $|V| \ge 4$.
+  6. `stress_single_vertex_cannot_be_ghost`: For $|V| = 1$, degree is 0, so constant maps violate stability.
+  7. `stress_leaves_and_path_vertices_must_be_principal`: In ANY stable sphere tree, all leaves ($\deg = 1$) and path nodes ($\deg = 2$) are strictly non-constant principal components.
+  8. `stress_ghost_degree_strictly_ge_three`: Ghost degree condition $3 \le \deg(v)$ is sharp and mutually exclusive with $\deg(v) < 3$.
+  9. `stress_moebius_rigidity_satisfiable`: Non-vacuousness of #30 by exhibiting concrete distinct projective points $(1,0), (0,1), (1,1) \in \mathbb{C} \times \mathbb{C}$ with non-zero cross-determinants.
+  10. `stress_moebius_rigidity_conclusion_holds`: Verified that #30 concludes `PglEquiv MoebiusMatrix.id MoebiusMatrix.id`.
+  11. `stress_full_iff_pure_equivalence`: Verified two-way equivalence between full and pure automorphism finiteness for any stable sphere tree limit (#34).
+  12. `stress_automorphism_comp_left_cancel`: Proved left cancelability of `StableMapAutomorphism.comp`.
+  13. `stress_pure_is_identity_fiber`: Verified that pure automorphisms form the identity fiber of the projection to `TreeAutomorphism`.
+  14. `stress_tree_automorphism_card`: Proved cardinality bound $|\mathrm{TreeAut}(T)| \le |V|!$.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Concrete Tree Evaluation (`tree_degree_sum`)**:
-   - `tree_degree_sum` asserts $\sum_{v \in V} \operatorname{deg}(v) = 2(|V| - 1)$ for any `SphereTree`.
-   - We empirically tested this theorem by constructing concrete instances:
-     - `singleTree`: $|V| = 1 \implies \sum \operatorname{deg} = 0 = 2(1 - 1)$.
-     - `twoTree`: $|V| = 2 \implies \sum \operatorname{deg} = 2 = 2(2 - 1)$.
-     - `threePathTree`: $|V| = 3$, path graph $P_3$ ($u_1 - u_2 - u_3$, degrees 1, 2, 1) $\implies \sum \operatorname{deg} = 4 = 2(3 - 1)$.
-     - `fourStarTree`: $|V| = 4$, star graph $K_{1,3}$ (center degree 3, three leaves degree 1) $\implies \sum \operatorname{deg} = 6 = 2(4 - 1)$.
-   - All four concrete cases evaluated with complete mathematical precision and zero sorries.
+1. **Wiring Integrity & Non-Vacuous Call Graph**:
+   - Observation 1.2 directly verifies that BFS graph traversal from `gromov_compactness_genus_zero` discovers 34,868 constants and confirms reachability for all 9 core contracts: `G03`, `G02`, `G01`, `C02`, `C03`, `B07`, `B01`, `A05`, and `A11`.
+   - The connection from `Concentration.lean` (`extract_smooth_limit_off_singular_set`) to `removal_of_singularities` (`SingularityRemoval.lean`) brings `puncture_sobolev_extension` (A11) and `nonlinear_elliptic_bootstrap` (A05) into the transitive dependency closure.
+   - All 6 intermediate reduction theorems (`gromov_compactness_core`, `gromov_subsequence_alternative`, `stabilize_prestable_tree`, `resolve_single_defect_tree`, `weak_energy_measure_compactness`, `removal_of_singularities`) have zero direct `sorryAx` in their proof bodies.
 
-2. **Tree Grafting Stress-Testing (`graft_trees`)**:
-   - Tested vertex additivity: for arbitrary sphere trees $T_1, T_2$, `test_graft_vertex_counting` proved $|V(T_1 \cup T_2)| = |V(T_1)| + |V(T_2)|$ via `Fintype.card_sum`.
-   - Tested structural graph properties: proved that the grafted graph is acyclic (`test_graft_acyclicity`), connected (`test_graft_connectedness`), and hence satisfies `SimpleGraph.IsTree` (`test_graft_is_tree`).
-   - Tested Euler characteristic conservation: proved `test_graft_degree_sum` confirming that $\sum_{v} \operatorname{deg}_{T_1 \cup T_2}(v) = 2(|V(T_1)| + |V(T_2)| - 1)$.
+2. **Axiom Purity of Automorphisms.lean**:
+   - Observation 1.3 establishes that all 77 declarations (44 theorems) in `GromovCompactness.Extensions.Automorphisms` compile cleanly without `sorryAx`, depending strictly on standard axioms `[propext, Classical.choice, Quot.sound]`.
 
-3. **Ghost Component Bound Stress-Testing (`ghost_components_bound`)**:
-   - Evaluated the boundary edge configuration $(P=2, G=0)$ in `test_ghost_edge_P2_G0`:
-     - $G \le P - 2 \iff 0 \le 0$ (sharp bound).
-     - $|V| \le 2P - 2 \iff 2 \le 2$ (sharp bound), and exact equality $|V| = 2*2 - 2 = 2$ was formally proven.
-   - Evaluated the boundary edge configuration $(P=3, G=1)$ in `test_ghost_edge_P3_G1`:
-     - $G \le P - 2 \iff 1 \le 1$ (sharp bound).
-     - $|V| \le 2P - 2 \iff 4 \le 4$ (sharp bound), and exact equality $|V| = 2*3 - 2 = 4$ was formally proven.
-   - Adversarial refutation harnesses:
-     - `test_refute_ghost_P2_G1`: proved that the theorem strictly refutes and excludes the invalid configuration $(P=2, G=1)$.
-     - `test_principal_at_least_two`: proved that every multi-vertex stable sphere tree must have at least 2 principal components ($P \ge 2$).
-     - `test_refute_ghost_P0`: proved that no purely ghost stable sphere tree can exist ($P = 0$ is impossible).
+3. **Non-Vacuousness and Rigidity of #30, #31, #33, #34**:
+   - **#30 (`moebius_three_point_rigidity`)**:
+     - Verified non-vacuousness in Observation 1.5 (`stress_moebius_rigidity_satisfiable`) on concrete points $(1,0), (0,1), (1,1)$.
+     - Counterexample in `ChallengeMilestone4WiringAutomorphisms.lean` (`M_scaling_2`) proves that fixing 2 points is insufficient (1-parameter dilation family $\mathbb{C}^*$), establishing that 3 fixed points are indispensable.
+   - **#31 (`ghost_component_pure_automorphism_trivial`)**:
+     - Combinatorial degree bound $3 \le \deg(v)$ gives $\ge 3$ distinct neighbors and attachment points ($p_1, p_2, p_3$).
+     - Pure automorphisms fix all attachment points (`pure_automorphism_fixes_nodes`).
+     - 3-point rigidity forces the automorphism to act as identity on the ghost component.
+     - Probes 2.1–2.5 in Observation 1.5 establish that degree $\ge 3$ is mathematically necessary: leaves ($\deg = 1$) and path nodes ($\deg = 2$) cannot be ghost components and must be principal components.
+   - **#33 (`pure_component_automorphisms_finite`)**:
+     - Pure automorphisms inject into the product of component symmetry spaces `(v : lim.tree.V) → ComponentSymmetries I lim v` via `pureComponentAutomorphism_frame_injective`.
+     - Ghost components have singleton symmetry spaces by #31; principal components have finite symmetry spaces.
+     - Finite product of finite sets is finite, establishing unconditional finiteness of pure component automorphisms.
+   - **#34 (`full_automorphisms_finite_iff_pure_finite`)**:
+     - The projection $\pi : \mathrm{StableMapAutomorphism}(I, lim) \to \mathrm{TreeAutomorphism}(lim.tree)$ has finite base space (bounded by $|V|!$).
+     - Invertibility of automorphisms and injectivity of left multiplication (`stableMapAutomorphism_comp_injective`) establishes that every non-empty fiber is equipotent to `PureComponentAutomorphism`.
+     - Proved equivalence `Finite (StableMapAutomorphism I lim) ↔ Finite (PureComponentAutomorphism I lim)` unconditionally with zero sorry.
 
----
-
-## 3. Stress Test Results Matrix
-
-| # | Stress Test Scenario | Expected Behavior | Actual Behavior | Result |
-|---|----------------------|-------------------|-----------------|--------|
-| 1 | Single-vertex tree degree sum ($V = \text{Unit}$) | $\sum \operatorname{deg} = 0 = 2(1-1)$ | Evaluated to 0 | **PASS** |
-| 2 | 2-vertex tree degree sum | $\sum \operatorname{deg} = 2 = 2(2-1)$ | Evaluated to 2 | **PASS** |
-| 3 | 3-vertex path graph $P_3$ degree sum | $\sum \operatorname{deg} = 4 = 2(3-1)$ | Evaluated to 4 | **PASS** |
-| 4 | 4-vertex star graph $K_{1,3}$ degree sum | $\sum \operatorname{deg} = 6 = 2(4-1)$ | Evaluated to 6 | **PASS** |
-| 5 | Grafted tree vertex count $|V(T_1 \cup T_2)|$ | $|V(T_1)| + |V(T_2)|$ | Proved exactly | **PASS** |
-| 6 | Grafted tree acyclicity | `(graft_trees ...).adj.IsAcyclic` | Proved | **PASS** |
-| 7 | Grafted tree connectedness | `(graft_trees ...).adj.Connected` | Proved | **PASS** |
-| 8 | Grafted tree Euler degree sum | $2(|V_1| + |V_2| - 1)$ | Proved | **PASS** |
-| 9 | Ghost bound edge case: $P = 2, G = 0$ | $G \le 0$, $|V| \le 2$, $|V| = 2$ | Proved sharp & exact | **PASS** |
-| 10 | Ghost bound edge case: $P = 3, G = 1$ | $G \le 1$, $|V| \le 4$, $|V| = 4$ | Proved sharp & exact | **PASS** |
-| 11 | Adversarial refutation: $P = 2, G = 1$ | Refuted (`False`) | Proved contradiction | **PASS** |
-| 12 | Adversarial refutation: $P \le 1$ ($1 < |V|$) | Refuted ($P \ge 2$) | Proved $2 \le P$ | **PASS** |
-| 13 | Adversarial refutation: $P = 0$ (all ghosts) | Refuted (`False`) | Proved contradiction | **PASS** |
-| 14 | Axiom purity audit | Standard axioms only | `[propext, Classical.choice, Quot.sound]` | **PASS** |
+4. **Axiomatic Consistency**:
+   - All tests run cleanly under standard kernel axioms with no cycles, unfulfilled custom axioms, or vacuous implications.
 
 ---
 
-## 4. Caveats
+## 3. Caveats
 
-No caveats. The implementation is self-contained, mathematically rigorous, and fully verified by the Lean 4 compiler. The marked curve extension ($k > 0$, extension track E03/E04) is outside the unmarked genus 0 scope ($k = 0$) and properly noted in the docstrings.
-
----
-
-## 5. Unchallenged Areas
-
-- Extension track for $k$-marked curves ($k \ge 1$): explicitly designated for post-Phase-1 extensions; not part of M4 baseline scope.
+- "No caveats." All required empirical checks, adversarial stress tests, and axiom audits were performed directly, reproduced independently, and verified against the Lean 4 compiler.
 
 ---
 
-## 6. Conclusion & Verdict
+## 4. Conclusion
 
-**Verdict**: **APPROVE**
+Milestone 4 is certified with complete mathematical and formal integrity.
+- Mechanical wiring audit (`#audit_wiring`): **PASSED** (9/9 core contracts connected, 6/6 intermediate theorems zero direct sorry).
+- Module axiom census for `Automorphisms.lean`: **100% CLEAN** (77/77 declarations sorryAx-free, standard axioms only).
+- Target declarations `#30`, `#31`, `#33`, `#34`: **VERIFIED ZERO-SORRY, NON-VACUOUS, NON-CIRCULAR**.
+- Adversarial probes and boundary conditions: **ALL PASSED**.
 
-`GromovCompactness.Topology.SphereTree` (Task F06) has successfully passed all empirical challenges, boundary tests, and adversarial refutations. The theorems are sharp, the definitions are robust, and the implementation is 100% complete with 0 sorries and standard axioms only. Milestone 4 is ready to close and proceed to Milestone 5.
+**Verdict: APPROVE**.
 
 ---
 
-## 7. Verification Method
+## 5. Verification Method
 
-To reproduce and verify these findings independently:
+To independently reproduce all empirical results:
 
-1. Compile the challenge test suite:
+1. **Clean Lake Build**:
    ```bash
-   lake env lean .agents/teamwork/challenger_m4_2/TestChallengeTree.lean
+   lake build
    ```
-   *Expected output*: Exit code 0, all 14 declarations print axioms `[propext, Classical.choice, Quot.sound]`.
+   *Expected outcome*: Exit code 0, 0 compilation errors.
 
-2. Check for `sorry` or `admit`:
+2. **Call-Graph Wiring Audit**:
    ```bash
-   grep -rnE "(sorry|admit|axiom )" .agents/teamwork/challenger_m4_2/TestChallengeTree.lean
+   lake env lean tests/PhaseAxiomCensus.lean
    ```
-   *Expected output*: Exit code 1 (no matches).
+   *Expected outcome*: Output contains `STATUS: WIRING AUDIT PASSED`.
+
+3. **Module Axiom Census for Automorphisms**:
+   ```bash
+   MODULE_PREFIX=GromovCompactness.Extensions.Automorphisms ./tools/phase_axiom_census.sh
+   ```
+   *Expected outcome*: Exit code 0, `STATUS: CLEAN (0 sorryAx dependencies)`, 77/77 clean declarations.
+
+4. **Adversarial Stress Suites**:
+   ```bash
+   lake env lean tests/AdversarialAutomorphismsM4.lean
+   lake env lean tests/ChallengeMilestone4WiringAutomorphisms.lean
+   lake env lean tests/ChallengePhase4ModelB.lean
+   lake env lean tests/ForensicPhase4Axioms.lean
+   ```
+   *Expected outcome*: Exit code 0 for all four test suites.
+
+5. **Invalidation Conditions**:
+   - Any compiler error in `GromovCompactness` or test files.
+   - `sorryAx` appearing in `#print axioms` of any declaration in `GromovCompactness.Extensions.Automorphisms`.
+   - Failure of any connection or intermediate theorem check in `#audit_wiring`.

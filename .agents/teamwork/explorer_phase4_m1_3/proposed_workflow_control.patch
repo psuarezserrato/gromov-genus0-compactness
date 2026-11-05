@@ -1,0 +1,75 @@
+--- a/tools/workflow_control.py
++++ b/tools/workflow_control.py
+@@ -58,6 +58,7 @@ SENTINEL_FILENAME = ".pause_workflow"
+ # Complete 39-contract inventory across the 5 tracks as defined in gromov_compactness.pdf and blueprint
+ ALL_CONTRACT_IDS = [
+     # Track 1: Foundations & Bookkeeping Layer (F00–F06)
+     "F00", "F01", "F02", "F03", "F04", "F05", "F06",
+     # Track 2: Local Analytic Estimates Layer (A01–A12)
+     "A01", "A02", "A03", "A04", "A05", "A06", "A07", "A08", "A09", "A10", "A11", "A12",
+     # Track 3: Concentration Compactness & Bubbling Engine (C01–C03, B01–B07)
+     "C01", "C02", "C03", "B01", "B02", "B03", "B04", "B05", "B06", "B07",
+     # Track 4: Global Assembly & Master Theorems (G01–G05)
+     "G01", "G02", "G03", "G04", "G05",
++    # Track 5: Extensions (E01–E05)
++    "E01", "E02", "E03", "E04", "E05",
+ ]
+ 
+ CONTRACT_FILE_MAPPING = {
+@@ -102,6 +103,11 @@ CONTRACT_FILE_MAPPING = {
+     "G03": "GromovCompactness/Compactness/GenusZero.lean",
+     "G04": "GromovCompactness/Topology/ComponentCount.lean",
+     "G05": "GromovCompactness/Main.lean",
++    "E01": "GromovCompactness/Extensions/VaryingJ.lean",
++    "E02": "GromovCompactness/Extensions/MarkedCurves.lean",
++    "E03": "GromovCompactness/Extensions/Homology.lean",
++    "E04": "GromovCompactness/Extensions/Automorphisms.lean",
++    "E05": "GromovCompactness/Extensions/ModuliSpace.lean",
+ }
+ 
++CONTRACT_FILE_FALLBACKS = {
++    "A01": ["GromovCompactness/Analysis/Monotonicity.lean"],
++    "A04": ["GromovCompactness/Analysis/EllipticBootstrap.lean"],
++    "A05": ["GromovCompactness/Analysis/EllipticBootstrap.lean"],
++    "A06": ["GromovCompactness/Analysis/EllipticBootstrap.lean"],
++    "A09": ["GromovCompactness/Analysis/SingularityRemoval.lean"],
++    "A10": ["GromovCompactness/Analysis/SingularityRemoval.lean"],
++    "A11": ["GromovCompactness/Analysis/SingularityRemoval.lean"],
++    "A12": ["GromovCompactness/Analysis/SingularityRemoval.lean"],
++    "B01": ["GromovCompactness/Analysis/HoferRescaling.lean"],
++    "B02": ["GromovCompactness/Analysis/HoferRescaling.lean"],
++    "E01": ["GromovCompactness/Moduli/VaryingJ.lean"],
++    "E02": ["GromovCompactness/Moduli/MarkedCurves.lean", "GromovCompactness/Compactness/Marked.lean"],
++    "E03": ["GromovCompactness/Topology/Homology.lean", "GromovCompactness/Moduli/Homology.lean"],
++    "E04": ["GromovCompactness/Topology/Automorphisms.lean", "GromovCompactness/Moduli/Automorphisms.lean"],
++    "E05": ["GromovCompactness/Topology/ModuliCompactness.lean", "GromovCompactness/Moduli/ModuliSpace.lean"],
++}
+ 
+@@ -254,8 +260,15 @@ class WorkflowController:
+         for cid in ALL_CONTRACT_IDS:
+             rel_file = CONTRACT_FILE_MAPPING.get(cid)
+             if not rel_file:
+                 continue
+-            full_path = self.root_dir / rel_file
+-            if full_path.is_file():
++            candidates = [rel_file] + CONTRACT_FILE_FALLBACKS.get(cid, [])
++            actual_file = None
++            for cand in candidates:
++                cand_path = self.root_dir / cand
++                if cand_path.is_file():
++                    actual_file = cand
++                    full_path = cand_path
++                    break
++            if actual_file:
+                 try:
+                     size = full_path.stat().st_size
+                     with open(str(full_path), "r", encoding="utf-8") as f:
+                         lines = len(f.readlines())
+                     scanned[cid] = {
+                         "exists": True,
+-                        "path": rel_file,
++                        "path": actual_file,
+                         "lines": lines,
+                         "size_bytes": size,
+                         "status": "SCAFFOLDED_OR_VERIFIED",
+                     }

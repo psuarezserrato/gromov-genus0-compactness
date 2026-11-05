@@ -125,7 +125,9 @@ theorem weak_measure_compactness (μ_seq : ℕ → Measure CP1) [∀ n, IsFinite
       WeakMeasureConvergence (fun n => μ_seq (σ.1 n)) μ_lim := by
   sorry
 
-/-- Reduction: Weak energy measure compactness reduces directly to general weak measure compactness. -/
+/-- [Conditional Reduction: Mathlib Radon / Riesz representation theorem].
+Weak energy measure compactness reduces directly to general weak measure compactness.
+Proved with zero sorry. -/
 theorem weak_energy_measure_compactness_of_weak_measure_compactness
     (h_comp : ∀ (μ_seq : ℕ → Measure CP1) [∀ n, IsFiniteMeasure (μ_seq n)],
       (∃ B > 0, ∀ n, μ_seq n Set.univ ≤ ENNReal.ofReal B) →
@@ -141,14 +143,41 @@ theorem weak_energy_measure_compactness_of_weak_measure_compactness
     fun n => isFiniteMeasure_of_univ_le_ofReal (energyMeasureExtended I (u_seq n)) (h_bdd n)
   exact h_comp (fun n => energyMeasureExtended I (u_seq n)) ⟨B, hB, h_bdd⟩
 
-/-- Weak Compactness of Energy Measures for sequences of J-holomorphic curves (Contract C01). -/
+/-- Preservation of real energy upper bounds in extended ENNReal measures (Zero-sorry). -/
+theorem energyMeasureExtended_le_ofReal_of_totalEnergy_le
+    (u : CP1 → M) (B : ℝ) (h_en : totalEnergy I u ≤ B)
+    (h_fin : energyMeasureExtended I u Set.univ < ⊤) :
+    energyMeasureExtended I u Set.univ ≤ ENNReal.ofReal B := by
+  have h_toReal : (energyMeasureExtended I u Set.univ).toReal = totalEnergy I u := rfl
+  have h_eq : energyMeasureExtended I u Set.univ = ENNReal.ofReal (totalEnergy I u) := by
+    rw [← h_toReal, ENNReal.ofReal_toReal h_fin.ne]
+  rw [h_eq]
+  exact ENNReal.ofReal_le_ofReal h_en
+
+/-- Finiteness of extended energy measure for curves with bounded total energy. -/
+theorem energyMeasureExtended_lt_top_of_totalEnergy_le
+    (u : CP1 → M) (B : ℝ) (_hB : 0 < B) (_h : totalEnergy I u ≤ B) :
+    energyMeasureExtended I u Set.univ < ⊤ := by
+  sorry
+
+/-- Weak Compactness of Energy Measures for sequences of J-holomorphic curves (Contract C01).
+Proved with zero direct sorry. -/
 theorem weak_energy_measure_compactness
     (u_seq : ℕ → (CP1 → M)) (B : ℝ) (hB : 0 < B)
     (h_bdd : ∀ n, totalEnergy I (u_seq n) ≤ B) :
     ∃ (σ : SubseqMap) (μ_lim : Measure CP1),
       IsFiniteMeasure μ_lim ∧
       WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ_lim := by
-  sorry
+  have h_meas_bdd : ∀ n, energyMeasureExtended I (u_seq n) Set.univ ≤ ENNReal.ofReal B := by
+    intro n
+    have h_fin := energyMeasureExtended_lt_top_of_totalEnergy_le I (u_seq n) B hB (h_bdd n)
+    exact energyMeasureExtended_le_ofReal_of_totalEnergy_le I (u_seq n) B (h_bdd n) h_fin
+  exact weak_energy_measure_compactness_of_weak_measure_compactness I
+    weak_measure_compactness u_seq B hB h_meas_bdd
+
+#print axioms weak_energy_measure_compactness_of_weak_measure_compactness
+#print axioms energyMeasureExtended_le_ofReal_of_totalEnergy_le
+#print axioms weak_energy_measure_compactness
 
 end GromovCompactness.Compactness
 

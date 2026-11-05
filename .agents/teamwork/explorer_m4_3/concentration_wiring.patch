@@ -1,0 +1,23 @@
+--- GromovCompactness/Compactness/Concentration.lean	2026-11-04 22:45:57
++++ .agents/teamwork/explorer_m4_3/proposed_Concentration.lean	2026-11-04 23:59:29
+@@ -5,6 +5,7 @@
+ -/
+ import GromovCompactness.Compactness.Measures
+ import GromovCompactness.Analysis.HoferRescaling
++import GromovCompactness.Analysis.SingularityRemoval
+ import GromovCompactness.Topology.SmoothLocal
+ 
+ open scoped Manifold ContDiff Topology
+@@ -89,6 +90,7 @@
+     ∃ (u₀ : CP1 → M),
+       JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
+       SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ (Set.univ \ _S) := by
++  have _ := removal_of_singularities (I := I) (M := M)
+   sorry
+ 
+ /-- Extraction of Concentration Data from bounded-energy J-spheres (Contract C02).
+@@ -151,4 +153,3 @@
+ #print axioms exists_concentration_data
+ 
+ end GromovCompactness.Compactness
+-

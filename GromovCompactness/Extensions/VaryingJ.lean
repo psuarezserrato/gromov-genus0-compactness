@@ -10,6 +10,7 @@ import Mathlib.Topology.MetricSpace.Basic
 import Mathlib.Topology.ContinuousOn
 import Mathlib.Topology.UniformSpace.UniformConvergence
 import Mathlib.Analysis.Calculus.FDeriv.Basic
+import Mathlib.Analysis.Calculus.ContDiff.Basic
 import Mathlib.Analysis.NormedSpace.OperatorNorm.Basic
 import GromovCompactness.Geometry.Target
 import GromovCompactness.Geometry.Sphere
@@ -58,8 +59,8 @@ structure AlmostComplexStructure where
   J : (x : M) → TangentSpace I x →L[ℝ] TangentSpace I x
   /-- Almost-complex property: $J^2 = -\mathrm{id}$. -/
   J_sq : ∀ (x : M) (v : TangentSpace I x), J x (J x v) = -v
-  /-- Smoothness of $J$ as a bundle endomorphism. -/
-  J_smooth : Prop
+  /-- Smoothness of $J$ as a bundle endomorphism: chartwise C^∞ in every chart. -/
+  J_smooth : ∀ (x : M), ContDiffOn ℝ ∞ (J_chart I J x) (extChartAt I x).target
 
 /-- An almost-complex structure $J$ is tamed by the symplectic 2-form $\omega$
 if $\omega(v, J v) > 0$ for all non-zero $v \in TM$. -/
@@ -205,13 +206,17 @@ structure VaryingAlmostComplexStructures where
   /-- Each $J_n$ satisfies $J_n^2 = -\mathrm{id}$. -/
   J_seq_sq : ∀ (n : ℕ) (x : M) (v : TangentSpace I x), J_seq n x (J_seq n x v) = -v
   /-- Each $J_n$ is smooth. -/
-  J_seq_smooth : ∀ (_ : ℕ), Prop
+  J_seq_smooth : ∀ (n : ℕ) (x : M), ContDiffOn ℝ ∞ (J_chart I (J_seq n) x) (extChartAt I x).target
   /-- Each $J_n$ is tamed by the target symplectic form $\omega$. -/
   J_seq_tame : ∀ (n : ℕ) (x : M) (v : TangentSpace I x), v ≠ 0 → 0 < tgt.«ω» x v (J_seq n x v)
   /-- Pointwise convergence $J_n(x) \to J_\infty(x)$ at every point $x \in M$. -/
   c0_conv : ∀ (x : M), Tendsto (fun n => J_seq n x) atTop (𝓝 (tgt.J x))
-  /-- Smooth $C^\infty$ convergence: uniform convergence of all derivatives on the compact manifold $M$. -/
-  c_infty_conv : Prop
+  /-- Smooth $C^\infty$ convergence: uniform convergence of all derivatives on compact subsets of charts. -/
+  c_infty_conv : ∀ (k : ℕ) (x : M) (K : Set E) (_hK_sub : K ⊆ (extChartAt I x).target) (_hK_cpt : IsCompact K),
+    TendstoUniformlyOn
+      (fun n y => iteratedFDeriv ℝ k (J_chart I (J_seq n) x) y)
+      (fun y => iteratedFDeriv ℝ k (J_chart I tgt.J x) y)
+      atTop K
   /-- Uniform bubbling threshold $h > 0$. -/
   uth_h : ℝ
   uth_h_pos : 0 < uth_h

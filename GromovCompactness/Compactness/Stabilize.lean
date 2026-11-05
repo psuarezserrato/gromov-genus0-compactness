@@ -105,16 +105,25 @@ theorem stabilize_prestable_tree_of_stable_root
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) =
         ∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ∧
-      ∃ (frames : (v : u_lim.tree.V) → ℕ → MoebiusFrame),
+      ∃ (σ : Bookkeeping.SubseqMap)
+        (frames : (v : u_lim.tree.V) → ℕ → MoebiusFrame),
         (∀ (v : u_lim.tree.V),
           SmoothLocalConvergesOn I
-            (fun n => (u_seq (pdata.σ.1 n)) ∘ (frames v n).toHomeo)
+            (fun n => (u_seq (σ.1 n)) ∘ (frames v n).toHomeo)
             (u_lim.map v)
-            (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) := by
+            (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
+        (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+            TendstoUniformlyOn
+              (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
+              (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
+        Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
+          (𝓝 (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v))) := by
   let u_lim := stableSphereTreeLimit_of_prestable_of_stable_root I u_seq pdata h_root_stable
-  refine ⟨u_lim, rfl, pdata.frames, ?_⟩
-  intro v
-  exact pdata.smooth_conv v
+  refine ⟨u_lim, rfl, pdata.σ, pdata.frames, ?_, ?_, ?_⟩
+  · intro v; exact pdata.smooth_conv v
+  · intro v w h; exact pdata.frame_collapse v w h
+  · exact pdata.energy_ident
 
 /-- Stabilization of prestable tree limits when the root component is non-constant (Zero-sorry). -/
 theorem stabilize_prestable_tree_of_nonconst_root
@@ -123,13 +132,21 @@ theorem stabilize_prestable_tree_of_nonconst_root
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) =
         ∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ∧
-      ∃ (frames : (v : u_lim.tree.V) → ℕ → MoebiusFrame),
+      ∃ (σ : Bookkeeping.SubseqMap)
+        (frames : (v : u_lim.tree.V) → ℕ → MoebiusFrame),
         (∀ (v : u_lim.tree.V),
           SmoothLocalConvergesOn I
-            (fun n => (u_seq (pdata.σ.1 n)) ∘ (frames v n).toHomeo)
+            (fun n => (u_seq (σ.1 n)) ∘ (frames v n).toHomeo)
             (u_lim.map v)
-            (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) := by
-  have h_root_stable : (∃ c : M, ∀ z, pdata.map pdata.root z = c) → 3 ≤ pdata.tree.adj.degree pdata.root := by
+            (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
+        (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+            TendstoUniformlyOn
+              (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
+              (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
+        Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
+          (𝓝 (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v))) := by
+  have h_root_stable : (∃ c : M, ∀ z : CP1, pdata.map pdata.root z = c) → 3 ≤ pdata.tree.adj.degree pdata.root := by
     intro h_c; exact False.elim (h_nonconst_root h_c)
   exact stabilize_prestable_tree_of_stable_root I u_seq pdata h_root_stable
 
@@ -167,23 +184,91 @@ theorem upgrade_convergence_across_deleted_node
     SmoothLocalConvergesOn I u_seq u_lim Ω := by
   sorry
 
+/-- A constant root in a prestable limit of non-constant curves has degree at least 1. -/
+theorem root_degree_pos_of_const
+    (u_seq : ℕ → (CP1 → M))
+    (pdata : PrestableLimitData I u_seq)
+    (_h_nonconst_input : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
+    (_h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c) :
+    1 ≤ pdata.tree.adj.degree pdata.root := by
+  sorry
+
+/-- Auxiliary induction lemma on tree vertex cardinality. -/
+lemma stabilize_prestable_tree_aux
+    (u_seq : ℕ → (CP1 → M))
+    (h_nonconst_input : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
+    (k : ℕ) :
+    ∀ (pdata : PrestableLimitData I u_seq),
+      Fintype.card pdata.tree.V ≤ k →
+      ∃ (u_lim : StableSphereTreeLimit I (M := M)),
+        (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) =
+          ∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ∧
+        ∃ (σ : Bookkeeping.SubseqMap)
+          (frames : (v : u_lim.tree.V) → ℕ → MoebiusFrame),
+          (∀ (v : u_lim.tree.V),
+            SmoothLocalConvergesOn I
+              (fun n => (u_seq (σ.1 n)) ∘ (frames v n).toHomeo)
+              (u_lim.map v)
+              (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
+          (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
+            ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+              TendstoUniformlyOn
+                (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
+                (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
+          Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
+            (𝓝 (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v))) := by
+  induction k with
+  | zero =>
+    intro pdata h_card
+    have h_pos := Fintype.card_pos (α := pdata.tree.V)
+    omega
+  | succ k ih =>
+    intro pdata h_card
+    by_cases h_nc : ¬ ∃ c : M, ∀ z, pdata.map pdata.root z = c
+    · exact stabilize_prestable_tree_of_nonconst_root I u_seq pdata h_nc
+    · push_neg at h_nc
+      by_cases h_deg3 : 3 ≤ pdata.tree.adj.degree pdata.root
+      · exact stabilize_prestable_tree_of_stable_root I u_seq pdata (fun _ => h_deg3)
+      · by_cases h_deg1 : pdata.tree.adj.degree pdata.root = 1
+        · obtain ⟨pdata', h_card', h_en'⟩ := prune_degree_one_root I u_seq pdata h_deg1 h_nc
+          have h_le : Fintype.card pdata'.tree.V ≤ k := by omega
+          obtain ⟨u_lim, h_en_lim, σ, frames, h_smooth, h_collapse, h_ident⟩ := ih pdata' h_le
+          refine ⟨u_lim, ?_, σ, frames, h_smooth, h_collapse, h_ident⟩
+          rw [h_en_lim, h_en']
+        · by_cases h_deg2 : pdata.tree.adj.degree pdata.root = 2
+          · obtain ⟨pdata', h_card', h_en'⟩ := suppress_degree_two_root I u_seq pdata h_deg2 h_nc
+            have h_le : Fintype.card pdata'.tree.V ≤ k := by omega
+            obtain ⟨u_lim, h_en_lim, σ, frames, h_smooth, h_collapse, h_ident⟩ := ih pdata' h_le
+            refine ⟨u_lim, ?_, σ, frames, h_smooth, h_collapse, h_ident⟩
+            rw [h_en_lim, h_en']
+          · have h_pos := root_degree_pos_of_const I u_seq pdata h_nonconst_input h_nc
+            omega
+
 /-- **Master Stabilization Theorem (Contract G02)**.
 Contracting unstable ghost roots yields a fully stable sphere tree limit preserving all nodal matching,
-energy conservation, and convergence conditions. -/
+energy conservation, and convergence conditions. Proved with zero direct sorry. -/
 theorem stabilize_prestable_tree
     (u_seq : ℕ → (CP1 → M))
     (pdata : PrestableLimitData I u_seq)
-    (_h_nonconst_input : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c) :
+    (h_nonconst_input : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) =
         ∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ∧
-      ∃ (frames : (v : u_lim.tree.V) → ℕ → MoebiusFrame),
+      ∃ (σ : Bookkeeping.SubseqMap)
+        (frames : (v : u_lim.tree.V) → ℕ → MoebiusFrame),
         (∀ (v : u_lim.tree.V),
           SmoothLocalConvergesOn I
-            (fun n => (u_seq (pdata.σ.1 n)) ∘ (frames v n).toHomeo)
+            (fun n => (u_seq (σ.1 n)) ∘ (frames v n).toHomeo)
             (u_lim.map v)
-            (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) := by
-  sorry
+            (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
+        (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+            TendstoUniformlyOn
+              (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
+              (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
+        Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
+          (𝓝 (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v))) :=
+  stabilize_prestable_tree_aux I u_seq h_nonconst_input (Fintype.card pdata.tree.V) pdata le_rfl
 
 #print axioms totalEnergy_root_eq_zero_of_const
 #print axioms sum_energy_erase_root
@@ -192,5 +277,6 @@ theorem stabilize_prestable_tree
 #print axioms stableSphereTreeLimit_of_prestable_of_stable_root
 #print axioms stabilize_prestable_tree_of_stable_root
 #print axioms stabilize_prestable_tree_of_nonconst_root
+#print axioms stabilize_prestable_tree
 
 end GromovCompactness.Assembly

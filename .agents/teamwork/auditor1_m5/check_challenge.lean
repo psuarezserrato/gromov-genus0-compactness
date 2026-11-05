@@ -1,0 +1,2 @@
+import tests.ChallengePhase2ModelA
+#print axioms challenge_query_B02

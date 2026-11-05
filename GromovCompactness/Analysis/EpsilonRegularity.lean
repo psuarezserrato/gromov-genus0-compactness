@@ -75,7 +75,7 @@ theorem epsilon_regularity
       ∀ z ∈ disk_at a (r / 2),
         riemannianEnergyDensity I u z ≤ C_reg * r^(-2 : ℝ) * energyMeasure I u (disk_at a r) := by
   obtain ⟨b, c, hb, hc, h_boch⟩ := bochner_differential_inequality (M := M) I
-  obtain ⟨η, C, hη, hC, h_smv⟩ := scalar_mean_value_inequality b hb
+  obtain ⟨η, C, hη, hC, h_smv⟩ := scalar_mean_value_inequality b hb c hc
   refine ⟨η, C, hη, hC, ?_⟩
   intro u a r hr hu h_en z hz
   sorry

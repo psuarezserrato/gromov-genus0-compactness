@@ -104,7 +104,7 @@ theorem energyMeasureExtended_const
     (c : M) :
     energyMeasureExtended I (fun _ : CP1 => c) = 0 := by
   dsimp [energyMeasureExtended, chartPush]
-  have h_dens : (fun w : ℂ => ENNReal.ofReal (riemannianEnergyDensity I (fun _ => c) (stereo_chart.symm w))) = 0 := by
+  have h_dens : (fun w : ℂ => ENNReal.ofReal (riemannianEnergyDensity I (fun _ => c) (stereo_chart.symm w) * sphericalJacobian w)) = 0 := by
     ext w
     rw [riemannianEnergyDensity_const]
     simp [ENNReal.ofReal_zero]
@@ -174,11 +174,13 @@ lemma energyMeasure_le_totalEnergy
   exact ENNReal.toReal_mono h_fin h_mono
 
 /-!
-### 4. Zero-Sorry Reduction Theorems for Sphere Energy Gap
+### 4. Conditional Reduction Theorems for Sphere Energy Gap
 -/
 
-/-- Reduction theorem: Target monotonicity and image exit together imply the minimal energy gap
-with ZERO `sorry`. -/
+/-- Conditional Reduction theorem: Target monotonicity and image exit together imply the minimal energy gap.
+Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
+Takes open geometric contract hypotheses (`h_mono`, `h_exit`) and does not count as closing
+Contract A07 unconditionally. -/
 theorem sphere_energy_gap_of_monotonicity_and_exit
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
@@ -214,8 +216,11 @@ theorem sphere_energy_gap_of_monotonicity_and_exit
   have h_sub := h_en_le u (u ⁻¹' Metric.ball x r₀)
   linarith
 
-/-- Reduction theorem: Epsilon-regularity / diameter bound and Stokes exactness together
-imply the minimal energy gap with ZERO `sorry`. -/
+/-- Conditional Reduction theorem: Epsilon-regularity / diameter bound and Stokes exactness together
+imply the minimal energy gap.
+Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
+Takes open analytical contract hypotheses (`h_diam`, `h_stokes`) and does not count as closing
+Contract A07 unconditionally. -/
 theorem sphere_energy_gap_of_stokes_and_diameter
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)

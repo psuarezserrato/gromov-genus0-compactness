@@ -51,60 +51,6 @@ from typing import Dict, List, Optional, Tuple, Any
 
 DEFAULT_OLLAMA_HOST = "http://localhost:11434"
 
-# Model fallback cascade for mathematical formalization (local fine-tuned/quantized first)
-MODEL_PRIORITY_CASCADE = [
-    "gemma-lean4:latest",        # Tier 0: Domain-customized Lean 4 Gemma model (~6.6GB VRAM)
-    "gemma-lean4",               # Tier 0 alias
-    "gemma2:9b-instruct-q5_K_M", # Tier 0.5: Local quantized instruct Gemma 2 (~6.6GB VRAM)
-    "gemma2:9b",                 # Tier 1: Primary target, SOTA 10B math/dependent type reasoning (~6.5GB VRAM)
-    "gemma2:27b",                # Tier 2: High-compute tier, deep mathematical reasoning (~17.5GB VRAM)
-    "codegemma:7b",              # Tier 3: Code-specialized Gemma 1 checkpoint (~5.8GB VRAM)
-    "gemma:7b",                  # Tier 4: Base Gemma 1 7B (~5.2GB VRAM)
-    "gemma2:2b",                 # Tier 5: Lightweight Gemma 2 for resource-constrained hardware (~2.2GB VRAM)
-    "codegemma:2b",              # Tier 6: Lightweight CodeGemma 2B (~2.0GB VRAM)
-    "gemma:2b",                  # Tier 7: Base Gemma 1 2B (~1.8GB VRAM)
-]
-
-# Tuned task-specific generation parameters for Lean 4 proving
-TASK_PARAMETER_PROFILES = {
-    "autoformalize": {
-        "temperature": 0.1,
-        "top_p": 0.90,
-        "top_k": 40,
-        "num_predict": 512,
-        "num_ctx": 8192,
-        "repeat_penalty": 1.10,
-        "stop": ["<end_of_turn>", "<eos>", "\n\n--", "\n\ntheorem ", "\n\nlemma "]
-    },
-    "tactic": {
-        "temperature": 0.4,
-        "top_p": 0.95,
-        "top_k": 50,
-        "num_predict": 128,
-        "num_ctx": 8192,
-        "repeat_penalty": 1.05,
-        "stop": ["<end_of_turn>", "<eos>", "\n\n"]
-    },
-    "proof_skeleton": {
-        "temperature": 0.3,
-        "top_p": 0.90,
-        "top_k": 40,
-        "num_predict": 1024,
-        "num_ctx": 8192,
-        "repeat_penalty": 1.10,
-        "stop": ["<end_of_turn>", "<eos>"]
-    },
-    "premise": {
-        "temperature": 0.0,
-        "top_p": 0.85,
-        "top_k": 20,
-        "num_predict": 256,
-        "num_ctx": 8192,
-        "repeat_penalty": 1.15,
-        "stop": ["<end_of_turn>", "<eos>", "\n\n"]
-    }
-}
-
 
 def find_config_file() -> Optional[str]:
     """Locate configuration file from standard locations."""
@@ -141,11 +87,190 @@ def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
                 "version": "/api/version"
             },
             "connect_timeout_seconds": 3.0,
-            "request_timeout_seconds": 60.0
+            "request_timeout_seconds": 60.0,
+            "keep_alive": "30m"
         },
-        "model_fallback_cascade": MODEL_PRIORITY_CASCADE,
-        "parameter_profiles": TASK_PARAMETER_PROFILES
+        "enforce_9b_policy": True,
+        "model_fallback_cascade": [
+            "gemma-lean4:latest",
+            "gemma2:9b-instruct-q5_K_M",
+            "gemma2:9b"
+        ],
+        "parameter_profiles": {
+            "autoformalize": {
+                "temperature": 0.1,
+                "top_p": 0.90,
+                "top_k": 40,
+                "num_predict": 512,
+                "num_ctx": 8192,
+                "repeat_penalty": 1.10,
+                "stop": ["<end_of_turn>", "<eos>", "\n\n--", "\n\ntheorem ", "\n\nlemma "]
+            },
+            "tactic": {
+                "temperature": 0.4,
+                "top_p": 0.95,
+                "top_k": 50,
+                "num_predict": 128,
+                "num_ctx": 8192,
+                "repeat_penalty": 1.05,
+                "stop": ["<end_of_turn>", "<eos>", "\n\n"]
+            },
+            "proof_skeleton": {
+                "temperature": 0.3,
+                "top_p": 0.90,
+                "top_k": 40,
+                "num_predict": 1024,
+                "num_ctx": 8192,
+                "repeat_penalty": 1.10,
+                "stop": ["<end_of_turn>", "<eos>"]
+            },
+            "premise": {
+                "temperature": 0.0,
+                "top_p": 0.85,
+                "top_k": 20,
+                "num_predict": 256,
+                "num_ctx": 8192,
+                "repeat_penalty": 1.15,
+                "stop": ["<end_of_turn>", "<eos>", "\n\n"]
+            }
+        }
     }
+
+
+# Actively loaded configuration
+ACTIVE_CONFIG = load_config()
+
+# 9B Model constraints and whitelist
+ALLOWED_9B_PATTERNS = ["gemma-lean4", "gemma2:9b-instruct-q5_K_M", "gemma2:9b", "gemma4:9b", "gemma4:9B"]
+FORBIDDEN_PATTERNS = ["12b", "12B", "27b", "27B", "70b", "70B"]
+
+# Model fallback cascade for mathematical formalization (strictly 9B)
+MODEL_PRIORITY_CASCADE = ACTIVE_CONFIG.get("model_fallback_cascade", [
+    "gemma-lean4:latest",
+    "gemma2:9b-instruct-q5_K_M",
+    "gemma2:9b"
+])
+
+# Cached verified 9B models confirmed to be installed in Ollama daemon
+_VERIFIED_INSTALLED_9B_MODELS = set()
+
+# Tuned task-specific generation parameters for Lean 4 proving
+TASK_PARAMETER_PROFILES = ACTIVE_CONFIG.get("parameter_profiles", {
+    "autoformalize": {
+        "temperature": 0.1,
+        "top_p": 0.90,
+        "top_k": 40,
+        "num_predict": 512,
+        "num_ctx": 8192,
+        "repeat_penalty": 1.10,
+        "stop": ["<end_of_turn>", "<eos>", "\n\n--", "\n\ntheorem ", "\n\nlemma "]
+    },
+    "tactic": {
+        "temperature": 0.4,
+        "top_p": 0.95,
+        "top_k": 50,
+        "num_predict": 128,
+        "num_ctx": 8192,
+        "repeat_penalty": 1.05,
+        "stop": ["<end_of_turn>", "<eos>", "\n\n"]
+    },
+    "proof_skeleton": {
+        "temperature": 0.3,
+        "top_p": 0.90,
+        "top_k": 40,
+        "num_predict": 1024,
+        "num_ctx": 8192,
+        "repeat_penalty": 1.10,
+        "stop": ["<end_of_turn>", "<eos>"]
+    },
+    "premise": {
+        "temperature": 0.0,
+        "top_p": 0.85,
+        "top_k": 20,
+        "num_predict": 256,
+        "num_ctx": 8192,
+        "repeat_penalty": 1.15,
+        "stop": ["<end_of_turn>", "<eos>", "\n\n"]
+    }
+})
+
+
+def is_allowed_9b_model(model_name: str) -> bool:
+    """Checks if a model tag conforms to the strict 9B local memory policy."""
+    lower = model_name.lower()
+    for f in FORBIDDEN_PATTERNS:
+        if f.lower() in lower:
+            return False
+    for a in ALLOWED_9B_PATTERNS:
+        if a.lower() in lower:
+            return True
+    return False
+
+
+def log_gemma_usage(
+    model: str,
+    prompt: str,
+    task_type: str,
+    elapsed_sec: float,
+    status: str,
+    eval_count: Optional[int] = None,
+    eval_duration: Optional[int] = None,
+    declaration: Optional[str] = None,
+    accepted: Optional[bool] = None,
+    axioms: Optional[List[str]] = None,
+    error: Optional[str] = None
+) -> None:
+    """
+    Logs real proving generation call to .agents/gemma_usage.jsonl.
+    Excludes health checks and endpoint probes.
+    """
+    try:
+        import hashlib
+        from datetime import datetime, timezone
+        repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        log_dir = os.path.join(repo_root, ".agents")
+        os.makedirs(log_dir, exist_ok=True)
+        log_path = os.path.join(log_dir, "gemma_usage.jsonl")
+
+        goal_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:16]
+        now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        eval_dur_ms = round(eval_duration / 1e6, 2) if eval_duration else None
+
+        record = {
+            "timestamp": now_iso,
+            "call_type": "proving",
+            "model": model,
+            "goal_hash": goal_hash,
+            "declaration": declaration or "",
+            "task_type": task_type,
+            "latency_ms": round(elapsed_sec * 1000, 2),
+            "eval_count": eval_count,
+            "eval_duration_ms": eval_dur_ms,
+            "status": status,
+            "accepted": accepted,
+            "axioms": axioms if axioms is not None else [],
+            "error": error
+        }
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record) + "\n")
+    except Exception:
+        pass
+
+
+def retrieve_mathlib_premises(query_text: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    """Retrieve top-k Mathlib and project premises using the local BM25 index."""
+    try:
+        repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        tools_dir = os.path.join(repo_root, "tools")
+        if tools_dir not in sys.path:
+            sys.path.insert(0, tools_dir)
+        import premise_retrieval
+        retriever = premise_retrieval.PremiseRetriever.load()
+        if retriever:
+            return retriever.retrieve(query_text, top_k=top_k)
+    except Exception:
+        pass
+    return []
 
 
 def find_ollama_binary() -> Optional[str]:
@@ -253,29 +378,29 @@ def check_connection(base_url: str = DEFAULT_OLLAMA_HOST,
 
 def check_generate_endpoint(base_url: str = DEFAULT_OLLAMA_HOST, timeout: float = 3.0) -> Tuple[bool, str]:
     """
-    Validates availability of Ollama /api/generate endpoint using an empty or minimal probe.
+    Validates availability of Ollama endpoint using /api/version (eliminates synthetic 404s).
     Returns: (is_available, message)
     """
-    gen_url = f"{base_url.rstrip('/')}/api/generate"
-    # Sending empty body or invalid model to check HTTP response (Ollama returns 400 or 404 for missing fields, not 502/refused)
-    probe_payload = json.dumps({"model": "__probe_check__"}).encode("utf-8")
+    version_url = f"{base_url.rstrip('/')}/api/version"
     req = urllib.request.Request(
-        gen_url,
-        data=probe_payload,
-        headers={"Content-Type": "application/json", "User-Agent": "Lean4AutoForm-GemmaClient/1.0"}
+        version_url,
+        headers={"User-Agent": "Lean4AutoForm-GemmaClient/1.0"}
     )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as response:
-            return True, f"Generate endpoint responded with HTTP {response.status}"
-    except urllib.error.HTTPError as e:
-        # 400 or 404 means the endpoint exists and is processing JSON requests
-        if e.code in (400, 404):
-            return True, f"Generate endpoint active (HTTP {e.code} received for probe request)"
-        return False, f"Generate endpoint returned HTTP error {e.code}"
+            if response.status == 200:
+                body = response.read().decode("utf-8")
+                try:
+                    data = json.loads(body)
+                    v = data.get("version", "unknown")
+                    return True, f"Version endpoint active (Ollama v{v})"
+                except Exception:
+                    return True, "Version endpoint active (HTTP 200)"
+            return False, f"Version endpoint returned HTTP error {response.status}"
     except urllib.error.URLError as e:
-        return False, f"Generate endpoint unreachable: {e.reason}"
+        return False, f"Version endpoint unreachable: {e.reason}"
     except Exception as e:
-        return False, f"Generate endpoint error: {str(e)}"
+        return False, f"Version endpoint error: {str(e)}"
 
 
 def detect_best_model(base_url: str = DEFAULT_OLLAMA_HOST,
@@ -283,7 +408,8 @@ def detect_best_model(base_url: str = DEFAULT_OLLAMA_HOST,
                       tags_data: Optional[Dict[str, Any]] = None,
                       timeout: float = 3.0) -> Tuple[Optional[str], str, List[str]]:
     """
-    Discovers available models and selects the optimal Gemma model via the 7-tier fallback cascade.
+    Discovers available models and selects the optimal 9B Gemma model via cascade.
+    Enforces strict 9B policy: redirects any 12B/27B or disallowed model to 9B.
     Returns: (selected_model, reason, available_models)
     """
     if tags_data is None:
@@ -296,25 +422,77 @@ def detect_best_model(base_url: str = DEFAULT_OLLAMA_HOST,
     if not models:
         return None, "No models found in local Ollama repository. Run 'ollama pull gemma2:9b'.", []
 
-    # 1. User specified preferred tag takes highest precedence
-    if preferred_tag:
-        matched = [m for m in models if m == preferred_tag or m.startswith(f"{preferred_tag}:") or preferred_tag.startswith(m)]
-        if matched:
-            return matched[0], f"Matched explicitly requested model: {matched[0]}", models
+    # Filter to compliant 9B models
+    available_9b = [m for m in models if is_allowed_9b_model(m)]
 
-    # 2. Check 7-tier fallback priority cascade
+    # 1. User specified preferred tag
+    if preferred_tag:
+        # Check if requested model violates 9B policy (e.g. 12B/27B)
+        if not is_allowed_9b_model(preferred_tag):
+            print(f"[WARNING] Model '{preferred_tag}' is disallowed by the strict 9B policy (12B/27B forbidden). Redirecting to optimal 9B model.", file=sys.stderr)
+            preferred_tag = None
+        else:
+            matched = [m for m in models if m == preferred_tag or m.startswith(f"{preferred_tag}:") or preferred_tag.startswith(m)]
+            if matched:
+                return matched[0], f"Matched explicitly requested 9B model: {matched[0]}", models
+            else:
+                print(f"[WARNING] Requested model '{preferred_tag}' is not installed locally. Falling back to 9B cascade.", file=sys.stderr)
+
+    # 2. Check 9B fallback priority cascade
     for candidate in MODEL_PRIORITY_CASCADE:
         matched = [m for m in models if m == candidate or m.startswith(f"{candidate}:") or candidate.startswith(m)]
-        if matched:
-            return matched[0], f"Selected optimal cascade model: {matched[0]}", models
+        if matched and is_allowed_9b_model(matched[0]):
+            return matched[0], f"Selected optimal cascade 9B model: {matched[0]}", models
 
-    # 3. Check for any model containing 'gemma'
-    gemma_models = [m for m in models if "gemma" in m.lower()]
-    if gemma_models:
-        return gemma_models[0], f"Selected available Gemma model: {gemma_models[0]}", models
+    # 3. Check for any available 9B model
+    if available_9b:
+        return available_9b[0], f"Selected available 9B model: {available_9b[0]}", models
 
-    # 4. Fallback to any local model
-    return models[0], f"No Gemma model found; falling back to first available model: {models[0]}", models
+    # 4. If no 9B model found at all
+    return None, "No compliant 9B Gemma model found in local Ollama repository. Run 'ollama pull gemma2:9b'.", models
+
+
+def resolve_model_for_task(base_url: str = DEFAULT_OLLAMA_HOST,
+                          preferred_tag: Optional[str] = None,
+                          dry_run: bool = False,
+                          timeout: float = 3.0) -> Tuple[Optional[str], str]:
+    """
+    Resolves the model to execute for a task under strict 9B policy.
+    Guarantees that no forbidden model (12B/27B/70B) or uninstalled model is selected.
+
+    - If dry_run is True:
+        * If preferred_tag is supplied:
+            - If allowed by 9B policy (is_allowed_9b_model), returns (preferred_tag, reason).
+            - If disallowed, prints warning to sys.stderr and redirects to MODEL_PRIORITY_CASCADE[0].
+        * If preferred_tag is not supplied, returns (MODEL_PRIORITY_CASCADE[0], reason).
+    - If dry_run is False:
+        * Always invokes detect_best_model(base_url, preferred_tag=preferred_tag, timeout=timeout).
+        * If preferred_tag violates 9B policy or is uninstalled, detect_best_model
+          warns and redirects to the installed 9B cascade model.
+        * Returns (selected_model, reason).
+    """
+    if dry_run:
+        if preferred_tag:
+            if not is_allowed_9b_model(preferred_tag):
+                print(
+                    f"[WARNING] Model '{preferred_tag}' is disallowed by the strict 9B policy (12B/27B forbidden). Redirecting to optimal 9B model.",
+                    file=sys.stderr
+                )
+                model = MODEL_PRIORITY_CASCADE[0]
+                reason = f"Redirected disallowed model '{preferred_tag}' to cascade top '{model}' (dry-run)"
+            else:
+                model = preferred_tag
+                reason = f"Using explicitly requested 9B model: {model} (dry-run)"
+        else:
+            model = MODEL_PRIORITY_CASCADE[0]
+            reason = f"Selected default cascade 9B model: {model} (dry-run)"
+        return model, reason
+
+    # Live execution: always query daemon discovery to validate 9B policy and installation
+    selected_model, reason, _ = detect_best_model(base_url, preferred_tag=preferred_tag, timeout=timeout)
+    if selected_model:
+        _VERIFIED_INSTALLED_9B_MODELS.add(selected_model)
+    return selected_model, reason
 
 
 def format_gemma_prompt(system_instructions: str,
@@ -491,11 +669,33 @@ def query_ollama(base_url: str,
                  task_type: str = "autoformalize",
                  options_override: Optional[Dict[str, Any]] = None,
                  timeout: float = 60.0,
-                 dry_run: bool = False) -> Dict[str, Any]:
+                 dry_run: bool = False,
+                 declaration: Optional[str] = None,
+                 record_usage: bool = True) -> Dict[str, Any]:
     """
     Dispatches generation request to Ollama /api/generate endpoint.
-    Handles network timeouts, parsing, and offline dry-run simulation.
+    Handles network timeouts, parsing, offline dry-run simulation, and JSONL usage logging.
     """
+    # Strict 9B policy enforcement and redirection
+    if ACTIVE_CONFIG.get("enforce_9b_policy", True):
+        if not is_allowed_9b_model(model):
+            print(
+                f"[WARNING] Model '{model}' violates strict 9B policy (12B/27B forbidden). Redirecting to optimal 9B model.",
+                file=sys.stderr
+            )
+            if dry_run:
+                model = MODEL_PRIORITY_CASCADE[0]
+            else:
+                detected, _, _ = detect_best_model(base_url, timeout=min(timeout, 3.0))
+                model = detected or MODEL_PRIORITY_CASCADE[0]
+                _VERIFIED_INSTALLED_9B_MODELS.add(model)
+        elif not dry_run and model not in _VERIFIED_INSTALLED_9B_MODELS:
+            # Check if requested allowed model is actually installed to prevent 404
+            detected, _, _ = detect_best_model(base_url, preferred_tag=model, timeout=min(timeout, 3.0))
+            if detected:
+                model = detected
+                _VERIFIED_INSTALLED_9B_MODELS.add(model)
+
     options = TASK_PARAMETER_PROFILES.get(task_type, TASK_PARAMETER_PROFILES["autoformalize"]).copy()
     if options_override:
         options.update(options_override)
@@ -504,12 +704,13 @@ def query_ollama(base_url: str,
         "model": model,
         "prompt": prompt,
         "stream": False,
-        "options": options
+        "options": options,
+        "keep_alive": "30m"
     }
 
     if dry_run:
         mock_text = generate_mock_response(task_type, prompt, model)
-        return {
+        res = {
             "status": "mock",
             "model": model,
             "task_type": task_type,
@@ -518,6 +719,16 @@ def query_ollama(base_url: str,
             "raw_response": mock_text,
             "lean_code": extract_lean_code(mock_text)
         }
+        if record_usage:
+            log_gemma_usage(
+                model=model,
+                prompt=prompt,
+                task_type=task_type,
+                elapsed_sec=0.001,
+                status="mock",
+                declaration=declaration
+            )
+        return res
 
     if not is_ollama_running(base_url, timeout=1.5):
         ensure_ollama_daemon(base_url, autostart=True, timeout=10.0)
@@ -537,7 +748,9 @@ def query_ollama(base_url: str,
             resp_json = json.loads(resp_body)
             elapsed = time.time() - t0
             raw_text = resp_json.get("response", "")
-            return {
+            eval_count = resp_json.get("eval_count")
+            eval_duration = resp_json.get("eval_duration")
+            res = {
                 "status": "success",
                 "model": model,
                 "task_type": task_type,
@@ -545,17 +758,41 @@ def query_ollama(base_url: str,
                 "raw_response": raw_text,
                 "lean_code": extract_lean_code(raw_text),
                 "total_duration": resp_json.get("total_duration"),
-                "eval_count": resp_json.get("eval_count"),
-                "eval_duration": resp_json.get("eval_duration")
+                "eval_count": eval_count,
+                "eval_duration": eval_duration
             }
+            if record_usage:
+                log_gemma_usage(
+                    model=model,
+                    prompt=prompt,
+                    task_type=task_type,
+                    elapsed_sec=elapsed,
+                    status="success",
+                    eval_count=eval_count,
+                    eval_duration=eval_duration,
+                    declaration=declaration
+                )
+            return res
     except Exception as e:
-        return {
+        elapsed = time.time() - t0
+        res = {
             "status": "error",
             "model": model,
             "task_type": task_type,
             "error": str(e),
             "hint": "Ensure Ollama is running ('ollama serve') and model is pulled ('ollama pull " + model + "'). Or pass --dry-run for offline testing."
         }
+        if record_usage:
+            log_gemma_usage(
+                model=model,
+                prompt=prompt,
+                task_type=task_type,
+                elapsed_sec=elapsed,
+                status="error",
+                declaration=declaration,
+                error=str(e)
+            )
+        return res
 
 
 def run_self_test() -> int:
@@ -601,28 +838,57 @@ def run_self_test() -> int:
         print(f"  FAIL: Expected 'gemma-lean4:latest', got '{best_lean4}'")
         failures += 1
 
-    # Test 2: Cascade fallback when primary is missing
-    print("\n[Test 2] Testing fallback cascade when gemma2:9b is absent...")
+    # Test 2: Cascade fallback across 9B models
+    print("\n[Test 2] Testing 9B fallback cascade when gemma-lean4 is absent...")
     mock_tags_fallback = {
         "models": [
             {"name": "qwen2.5-coder:7b"},
-            {"name": "gemma:2b"},
+            {"name": "gemma2:9b-instruct-q5_K_M"},
+            {"name": "gemma2:9b"},
         ]
     }
     best_fb, reason_fb, _ = detect_best_model(tags_data=mock_tags_fallback)
-    if best_fb == "gemma:2b":
+    if best_fb == "gemma2:9b-instruct-q5_K_M":
         print(f"  PASS: Correctly fell back to '{best_fb}' ({reason_fb})")
     else:
-        print(f"  FAIL: Expected 'gemma:2b', got '{best_fb}'")
+        print(f"  FAIL: Expected 'gemma2:9b-instruct-q5_K_M', got '{best_fb}'")
         failures += 1
 
     # Test 3: Explicit preferred tag matching
-    print("\n[Test 3] Testing explicit user model override...")
-    best_exp, _, _ = detect_best_model(preferred_tag="gemma2:2b", tags_data=mock_tags)
-    if best_exp == "gemma2:2b":
+    print("\n[Test 3] Testing explicit user 9B model override...")
+    best_exp, _, _ = detect_best_model(preferred_tag="gemma2:9b", tags_data=mock_tags)
+    if best_exp == "gemma2:9b":
         print(f"  PASS: Correctly respected explicit user tag '{best_exp}'")
     else:
-        print(f"  FAIL: Expected 'gemma2:2b', got '{best_exp}'")
+        print(f"  FAIL: Expected 'gemma2:9b', got '{best_exp}'")
+        failures += 1
+
+    # Test 3a: Disallowed 12B/27B redirection
+    print("\n[Test 3a] Testing strict 9B policy redirecting disallowed models (27b/12b)...")
+    best_redir, reason_redir, _ = detect_best_model(preferred_tag="gemma2:27b", tags_data=mock_tags)
+    if best_redir == "gemma2:9b":
+        print(f"  PASS: Correctly redirected disallowed 27B model to 9B '{best_redir}' ({reason_redir})")
+    else:
+        print(f"  FAIL: Expected redirection to 'gemma2:9b', got '{best_redir}'")
+        failures += 1
+
+    # Test 3b: resolve_model_for_task redirection across disallowed models
+    print("\n[Test 3b] Testing resolve_model_for_task CLI redirection across disallowed models...")
+    for disallowed in ["gemma4:12B", "gemma2:27b", "llama3:70b"]:
+        m_res, r_res = resolve_model_for_task(preferred_tag=disallowed, dry_run=True)
+        if m_res == MODEL_PRIORITY_CASCADE[0]:
+            print(f"  PASS: Correctly redirected '{disallowed}' to '{m_res}'")
+        else:
+            print(f"  FAIL: Expected '{MODEL_PRIORITY_CASCADE[0]}', got '{m_res}' for '{disallowed}'")
+            failures += 1
+
+    # Test 3c: query_ollama pre-dispatch defense-in-depth redirection
+    print("\n[Test 3c] Testing query_ollama pre-dispatch defense-in-depth redirection...")
+    q_res = query_ollama("http://localhost:11434", "gemma4:12B", "Test prompt", dry_run=True)
+    if q_res.get("model") == MODEL_PRIORITY_CASCADE[0]:
+        print(f"  PASS: query_ollama intercepted and redirected disallowed model to '{q_res.get('model')}'")
+    else:
+        print(f"  FAIL: query_ollama dispatched with disallowed model '{q_res.get('model')}'")
         failures += 1
 
     # Test 4: Gemma prompt formatting structure (<start_of_turn>, <end_of_turn>)
@@ -675,7 +941,7 @@ def run_self_test() -> int:
 
     print("\n============================================================")
     if failures == 0:
-        print("ALL 8 SELF-TESTS PASSED SUCCESSFULLY (100% PASS RATE)")
+        print("ALL SELF-TESTS PASSED SUCCESSFULLY (100% PASS RATE)")
         print("============================================================")
         return 0
     else:
@@ -752,17 +1018,18 @@ def cmd_list_models(args) -> int:
 def cmd_query(args) -> int:
     """Subcommand: General prompt query with task-specific parameters."""
     is_json = getattr(args, "json", False)
-    model = args.model
-    if not model and not args.dry_run:
-        model, reason, _ = detect_best_model(args.host, preferred_tag=args.model)
-        if not model:
-            if is_json:
-                print(json.dumps({"status": "error", "error": f"No suitable model found: {reason}"}, indent=2))
-            else:
-                print(f"[ERROR] No suitable model found: {reason}")
-            return 1
-    else:
-        model = model or "gemma2:9b"
+    model, reason = resolve_model_for_task(
+        base_url=args.host,
+        preferred_tag=args.model,
+        dry_run=args.dry_run,
+        timeout=args.timeout
+    )
+    if not model:
+        if is_json:
+            print(json.dumps({"status": "error", "error": f"No suitable model found: {reason}"}, indent=2))
+        else:
+            print(f"[ERROR] No suitable model found: {reason}")
+        return 1
 
     prompt = args.prompt
     if not prompt:
@@ -772,10 +1039,19 @@ def cmd_query(args) -> int:
             print("[ERROR] Argument --prompt is required for query subcommand.")
         return 1
 
+    if getattr(args, "with_premises", False):
+        premises = retrieve_mathlib_premises(prompt, top_k=5)
+        if premises:
+            premise_text = "\n\nRelevant Mathlib Premises:\n" + "\n".join(
+                f"{i+1}. `{p['name']}` : {p.get('type', '')}" for i, p in enumerate(premises)
+            )
+            prompt = prompt + premise_text
+
+    declaration = getattr(args, "declaration", None)
     formatted_prompt = format_gemma_prompt("You are an expert Lean 4 mathematician.", prompt)
     if not is_json:
         print(f"Dispatching query to '{model}' (Task: {args.task}, Host: {args.host})...")
-    res = query_ollama(args.host, model, formatted_prompt, task_type=args.task, dry_run=args.dry_run)
+    res = query_ollama(args.host, model, formatted_prompt, task_type=args.task, timeout=args.timeout, dry_run=args.dry_run, declaration=declaration)
 
     if is_json:
         print(json.dumps(res, indent=2))
@@ -797,17 +1073,18 @@ def cmd_query(args) -> int:
 def cmd_autoformalize(args) -> int:
     """Subcommand: Autoformalize informal mathematical statement into Lean 4."""
     is_json = getattr(args, "json", False)
-    model = args.model
-    if not model and not args.dry_run:
-        model, reason, _ = detect_best_model(args.host, preferred_tag=args.model)
-        if not model:
-            if is_json:
-                print(json.dumps({"status": "error", "error": f"No suitable model detected: {reason}"}, indent=2))
-            else:
-                print(f"[ERROR] No suitable model detected: {reason}")
-            return 1
-    else:
-        model = model or "gemma2:9b"
+    model, reason = resolve_model_for_task(
+        base_url=args.host,
+        preferred_tag=args.model,
+        dry_run=args.dry_run,
+        timeout=args.timeout
+    )
+    if not model:
+        if is_json:
+            print(json.dumps({"status": "error", "error": f"No suitable model detected: {reason}"}, indent=2))
+        else:
+            print(f"[ERROR] No suitable model detected: {reason}")
+        return 1
 
     statement = args.statement
     if not statement:
@@ -817,10 +1094,19 @@ def cmd_autoformalize(args) -> int:
             print("[ERROR] Informal mathematical statement is required.")
         return 1
 
+    if getattr(args, "with_premises", False):
+        premises = retrieve_mathlib_premises(statement, top_k=5)
+        if premises:
+            premise_text = "\n\nRelevant Mathlib Premises:\n" + "\n".join(
+                f"{i+1}. `{p['name']}` : {p.get('type', '')}" for i, p in enumerate(premises)
+            )
+            statement = statement + premise_text
+
+    declaration = getattr(args, "declaration", None)
     prompt = build_autoformalize_prompt(statement)
     if not is_json:
         print(f"Autoformalizing statement using model '{model}'...")
-    res = query_ollama(args.host, model, prompt, task_type="autoformalize", dry_run=args.dry_run)
+    res = query_ollama(args.host, model, prompt, task_type="autoformalize", timeout=args.timeout, dry_run=args.dry_run, declaration=declaration)
 
     if is_json:
         print(json.dumps(res, indent=2))
@@ -840,17 +1126,18 @@ def cmd_autoformalize(args) -> int:
 def cmd_suggest_tactic(args) -> int:
     """Subcommand: Suggest Lean 4 tactic given goal state and compiler error."""
     is_json = getattr(args, "json", False)
-    model = args.model
-    if not model and not args.dry_run:
-        model, reason, _ = detect_best_model(args.host, preferred_tag=args.model)
-        if not model:
-            if is_json:
-                print(json.dumps({"status": "error", "error": f"No suitable model detected: {reason}"}, indent=2))
-            else:
-                print(f"[ERROR] No suitable model detected: {reason}")
-            return 1
-    else:
-        model = model or "gemma2:9b"
+    model, reason = resolve_model_for_task(
+        base_url=args.host,
+        preferred_tag=args.model,
+        dry_run=args.dry_run,
+        timeout=args.timeout
+    )
+    if not model:
+        if is_json:
+            print(json.dumps({"status": "error", "error": f"No suitable model detected: {reason}"}, indent=2))
+        else:
+            print(f"[ERROR] No suitable model detected: {reason}")
+        return 1
 
     if not args.goal or not args.error:
         if is_json:
@@ -859,10 +1146,20 @@ def cmd_suggest_tactic(args) -> int:
             print("[ERROR] Both --goal and --error are required for suggest-tactic.")
         return 1
 
-    prompt = build_tactic_prompt(args.goal, args.error, failed_tactic=args.failed_tactic)
+    goal = args.goal
+    if getattr(args, "with_premises", False):
+        premises = retrieve_mathlib_premises(goal, top_k=5)
+        if premises:
+            premise_text = "\n\nRelevant Mathlib Premises:\n" + "\n".join(
+                f"{i+1}. `{p['name']}` : {p.get('type', '')}" for i, p in enumerate(premises)
+            )
+            goal = goal + premise_text
+
+    declaration = getattr(args, "declaration", None)
+    prompt = build_tactic_prompt(goal, args.error, failed_tactic=args.failed_tactic)
     if not is_json:
         print(f"Generating tactic suggestion using model '{model}'...")
-    res = query_ollama(args.host, model, prompt, task_type="tactic", dry_run=args.dry_run)
+    res = query_ollama(args.host, model, prompt, task_type="tactic", timeout=args.timeout, dry_run=args.dry_run, declaration=declaration)
 
     if is_json:
         print(json.dumps(res, indent=2))
@@ -876,6 +1173,73 @@ def cmd_suggest_tactic(args) -> int:
         else:
             print(f"[ERROR] {res.get('error')}")
             return 1
+    return 0
+
+
+def cmd_ledger_summary(args) -> int:
+    """Subcommand: Summarize real proving calls logged to .agents/gemma_usage.jsonl."""
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    log_path = os.path.join(repo_root, ".agents", "gemma_usage.jsonl")
+    if not os.path.isfile(log_path):
+        print("No usage ledger found at .agents/gemma_usage.jsonl. Real proving queries will appear here.")
+        return 0
+
+    records = []
+    with open(log_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                try:
+                    records.append(json.loads(line))
+                except Exception:
+                    pass
+
+    total = len(records)
+    print("============================================================")
+    print("GEMMA PROVING USAGE LEDGER SUMMARY (.agents/gemma_usage.jsonl)")
+    print("============================================================")
+    print(f"Total Proving Calls Logged: {total}")
+    if total == 0:
+        return 0
+
+    model_counts: Dict[str, int] = {}
+    task_counts: Dict[str, int] = {}
+    latencies: List[float] = []
+    accepted_count = 0
+    closed_decls: List[str] = []
+
+    for r in records:
+        m = r.get("model", "unknown")
+        model_counts[m] = model_counts.get(m, 0) + 1
+        t = r.get("task_type", "unknown")
+        task_counts[t] = task_counts.get(t, 0) + 1
+        lat = r.get("latency_ms")
+        if lat is not None:
+            latencies.append(lat)
+        if r.get("accepted"):
+            accepted_count += 1
+            decl = r.get("declaration")
+            if decl and decl not in closed_decls:
+                closed_decls.append(decl)
+
+    print("\nModel Distribution:")
+    for m, c in sorted(model_counts.items(), key=lambda x: -x[1]):
+        print(f"  - {m}: {c} calls ({c / total * 100:.1f}%)")
+
+    print("\nTask Distribution:")
+    for t, c in sorted(task_counts.items(), key=lambda x: -x[1]):
+        print(f"  - {t}: {c} calls")
+
+    if latencies:
+        latencies.sort()
+        med = latencies[len(latencies) // 2]
+        p95 = latencies[int(len(latencies) * 0.95)]
+        print(f"\nLatency: median = {med:.1f} ms, p95 = {p95:.1f} ms")
+
+    print(f"\nAccepted Proofs: {accepted_count} (Closed Declarations: {len(closed_decls)})")
+    for d in closed_decls:
+        print(f"  * {d}")
+    print("============================================================")
     return 0
 
 
@@ -895,6 +1259,8 @@ def main():
     common_parser.add_argument("--model", default=None, help="Specific model tag (e.g. gemma2:9b)")
     common_parser.add_argument("--dry-run", action="store_true", help="Execute offline dry-run with mock Lean 4 responses")
     common_parser.add_argument("--json", action="store_true", help="Format CLI output as JSON")
+    common_parser.add_argument("--with-premises", action="store_true", help="Inject relevant Mathlib premises retrieved via local BM25 index")
+    common_parser.add_argument("--declaration", default=None, help="Name of Lean 4 declaration being proved (for usage logging)")
 
     parser = argparse.ArgumentParser(
         parents=[common_parser],
@@ -913,6 +1279,10 @@ def main():
     # Subcommand: health
     sub_health = subparsers.add_parser("health", parents=[common_parser], help="Check Ollama service connection and endpoint health")
     sub_health.set_defaults(func=cmd_health)
+
+    # Subcommand: check (alias to health)
+    sub_check = subparsers.add_parser("check", parents=[common_parser], help="Check Ollama service connection and endpoint health (alias for health)")
+    sub_check.set_defaults(func=cmd_health)
 
     # Subcommand: list-models
     sub_list = subparsers.add_parser("list-models", parents=[common_parser], help="List installed Ollama models and optimal Gemma recommendation")
@@ -936,6 +1306,10 @@ def main():
     sub_tactic.add_argument("--error", required=True, help="Lean 4 compiler error message")
     sub_tactic.add_argument("--failed-tactic", default=None, help="Previous failed tactic attempt")
     sub_tactic.set_defaults(func=cmd_suggest_tactic)
+
+    # Subcommand: ledger-summary
+    sub_ledger = subparsers.add_parser("ledger-summary", parents=[common_parser], help="Summarize real proving calls logged to .agents/gemma_usage.jsonl")
+    sub_ledger.set_defaults(func=cmd_ledger_summary)
 
     # Subcommand: test
     sub_test = subparsers.add_parser("test", parents=[common_parser], help="Run comprehensive offline self-test suite")

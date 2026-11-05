@@ -1,0 +1,112 @@
+{
+  "AdversarialAttacksIter2.lean": {
+    "mtime": 1793755854.2993574,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "AdversarialAttacksMilestone2.lean": {
+    "mtime": 1793779301.5869205,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "AdversarialAttacksMilestone5Iter2.lean": {
+    "mtime": 1793797088.448774,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengeB02AdversarialStress.lean": {
+    "mtime": 1793797104.071732,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengeBlueprintLinkage.lean": {
+    "mtime": 1793799549.5840201,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengeMilestone2Challenger2.lean": {
+    "mtime": 1793779242.7151203,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengeMilestone3Bootstrap.lean": {
+    "mtime": 1793783491.2408128,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengeMilestone3Smoothness.lean": {
+    "mtime": 1793783308.099904,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengeMilestone4EnergyGap.lean": {
+    "mtime": 1793787333.348824,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengeMilestone4Singularities.lean": {
+    "mtime": 1793787241.334554,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengeMilestone5Rescaling.lean": {
+    "mtime": 1793794966.5871003,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengeMilestone5Thresholds.lean": {
+    "mtime": 1793795151.7899597,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengePhase2ModelA.lean": {
+    "mtime": 1793796352.4400764,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengePhase3ModelA.lean": {
+    "mtime": 1793806315.326936,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengePhase3ModelB.lean": {
+    "mtime": 1793812704.4967349,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengePhase3ModelBStressEdgeCases.lean": {
+    "mtime": 1793812319.218281,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengePhase3StressCases.lean": {
+    "mtime": 1793806101.2556748,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengePhase4ModelA.lean": {
+    "mtime": 1793818159.3081985,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengePhase4ModelB.lean": {
+    "mtime": 1793823993.3911064,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengePhase4ModelBAdversarial.lean": {
+    "mtime": 1793823977.3421457,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ChallengeSubsequence.lean": {
+    "mtime": 1793723347.748971,
+    "status": "PASS",
+    "returncode": 0
+  },
+  "ForensicPhase4Axioms.lean": {
+    "mtime": 1793823847.1162956,
+    "status": "PASS",
+    "returncode": 0
+  }
+}

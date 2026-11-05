@@ -1,0 +1,88 @@
+--- a/GromovCompactness/Analysis/HoferRescaling.lean
++++ b/GromovCompactness/Analysis/HoferRescaling.lean
+@@ -35,3 +35,5 @@
+-2. `exists_target_thresholds` (Contract B01): Existence of the universal threshold $h > 0$.
++2. `exists_target_thresholds_of_modules` (Contract B01): Zero-sorry reduction theorem
++   proving existence of the universal threshold $h > 0$ from geometric modules A03, A07, and A10.
++   `exists_target_thresholds` (Contract B01): Top-level existence theorem assembling the reduction
++   with upstream geometric results.
+ 3. `CalibratedRescaling` (Contract B02): Moving centers $a_n \to 0$ and radii $\lambda_n \to 0$
+    satisfying the exact calibration identity $E(u_n; D_{\lambda_n}(a_n)) = m_p - h/2$.
+-4. `exists_calibrated_rescaling` (Contract B02): Extraction theorem via the Intermediate Value Theorem.
++4. `exists_calibrated_rescaling_of_ivt` and `exists_calibrated_rescaling` (Contract B02):
++   Extraction theorems via the Radial Intermediate Value Theorem (`RadialEnergyIVT`).
+@@ -556,5 +558,7 @@
+ /-- Existence of calibrated moving centers and radii (Contract B02).
+-Under energy concentration at `0` with defect mass `m_defect`, the Intermediate Value
+-Theorem yields calibrated moving centers and scaling radii. -/
++Under energy concentration at `0` with defect mass `m_defect`, the Intermediate Value
++Theorem (`RadialEnergyIVT`) yields calibrated moving centers and scaling radii.
++This is formulated as a pure zero-`sorry` reduction theorem requiring the radial IVT hypothesis. -/
+ theorem exists_calibrated_rescaling
+     (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+     (hm : thresh.h ≤ m_defect)
+@@ -567,1 +571,1 @@
+-    (h_ivt : RadialEnergyIVT I (M := M) := by sorry) :
++    (h_ivt : RadialEnergyIVT I (M := M)) :
+@@ -592,4 +596,13 @@
+ abbrev CalibratedRescaling := @GromovCompactness.Analysis.CalibratedRescaling
+ 
++/-- Re-export of `RadialEnergyIVT` in namespace `GromovCompactness.Bubbling`. -/
++abbrev RadialEnergyIVT := @GromovCompactness.Analysis.RadialEnergyIVT
++
++/-- Re-export of `exists_target_thresholds_of_modules` in namespace `GromovCompactness.Bubbling`. -/
++abbrev exists_target_thresholds_of_modules := @GromovCompactness.Analysis.exists_target_thresholds_of_modules
++
+ /-- Re-export of `exists_target_thresholds` in namespace `GromovCompactness.Bubbling`. -/
+ abbrev exists_target_thresholds := @GromovCompactness.Analysis.exists_target_thresholds
+ 
++/-- Re-export of `exists_calibrated_rescaling_of_ivt` in namespace `GromovCompactness.Bubbling`. -/
++abbrev exists_calibrated_rescaling_of_ivt := @GromovCompactness.Analysis.exists_calibrated_rescaling_of_ivt
++
+ /-- Re-export of `exists_calibrated_rescaling` in namespace `GromovCompactness.Bubbling`. -/
+--- a/tests/ChallengePhase2ModelA.lean
++++ b/tests/ChallengePhase2ModelA.lean
+@@ -214,2 +214,27 @@
+ #check GromovCompactness.Bubbling.exists_target_thresholds
++#check GromovCompactness.Bubbling.exists_target_thresholds_of_modules
++
++/-- Contract B01 pure zero-sorry reduction theorem (depends only on standard kernel axioms). -/
++theorem challenge_query_B01_reduction
++    (ε_reg C_reg : ℝ) (h_reg_pos : 0 < ε_reg) (h_Creg_pos : 0 < C_reg)
++    (h_reg : ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (_ : 0 < r),
++      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
++      energyMeasure I u (disk_at a r) < ε_reg →
++      ∀ z ∈ disk_at a (r / 2),
++        riemannianEnergyDensity I u z ≤ C_reg * r^(-2 : ℝ) * energyMeasure I u (disk_at a r))
++    (ε_sph : ℝ) (h_sph_pos : 0 < ε_sph)
++    (h_sph : ∀ (u : CP1 → M),
++      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
++      (¬ ∃ c : M, ∀ z, u z = c) →
++      ε_sph ≤ totalEnergy I u)
++    (C_neck a_decay ε_neck : ℝ)
++    (h_Cneck_pos : 0 < C_neck) (h_a_pos : 0 < a_decay) (h_neck_pos : 0 < ε_neck)
++    (h_neck : ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
++      0 < r → 2 * r < R →
++      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
++      energyMeasure I u (annulus_at center r R) < ε_neck →
++      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
++        energyMeasure I u (annulus_at center r₁ r₂) ≤
++          C_neck * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R)) :
++    Nonempty (GromovCompactness.Bubbling.TargetThresholds I M) :=
++  GromovCompactness.Bubbling.exists_target_thresholds_of_modules I ε_reg C_reg h_reg_pos h_Creg_pos h_reg
++    ε_sph h_sph_pos h_sph C_neck a_decay ε_neck h_Cneck_pos h_a_pos h_neck_pos h_neck
+ 
++/-- Contract B01 top-level assembled existence theorem (transitively inherits sorryAx from upstream A03, A07, A10). -/
+ theorem challenge_query_B01 :
+@@ -222,2 +247,3 @@
+ #check GromovCompactness.Bubbling.exists_calibrated_rescaling
++#check GromovCompactness.Bubbling.RadialEnergyIVT
+ 
+@@ -231,3 +257,4 @@
+       0 < R_n ∧ R_n ≤ 1 / ((n : ℝ) + 1) ∧
+-      m_defect - thresh.h / 2 ≤ energyMeasure I (u_seq n) (disk_at a_n R_n)) :
++      m_defect - thresh.h / 2 ≤ energyMeasure I (u_seq n) (disk_at a_n R_n))
++    (h_ivt : RadialEnergyIVT I (M := M)) :
+     Nonempty (GromovCompactness.Bubbling.CalibratedRescaling I u_seq thresh m_defect) :=
+-  GromovCompactness.Bubbling.exists_calibrated_rescaling I u_seq thresh m_defect hm h_jhol h_defect
++  GromovCompactness.Bubbling.exists_calibrated_rescaling I u_seq thresh m_defect hm h_jhol h_defect h_ivt

@@ -102,10 +102,11 @@ class TestHealthChecks(unittest.TestCase):
         self.assertIn("HTTP error 503", msg)
 
     @patch("urllib.request.urlopen")
-    def test_check_generate_endpoint_active_via_http_400(self, mock_urlopen):
-        # Ollama returns 400 or 404 when minimal probe body is sent, indicating endpoint is active
-        mock_http_err = urllib.error.HTTPError("http://localhost:11434/api/generate", 400, "Bad Request", {}, None)
-        mock_urlopen.side_effect = mock_http_err
+    def test_check_generate_endpoint_active_via_version(self, mock_urlopen):
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.read.return_value = json.dumps({"version": "0.4.0"}).encode("utf-8")
+        mock_urlopen.return_value.__enter__.return_value = mock_response
 
         ok, msg = check_generate_endpoint("http://localhost:11434")
         self.assertTrue(ok)
@@ -121,7 +122,7 @@ class TestHealthChecks(unittest.TestCase):
 
 
 class TestModelFallbackCascade(unittest.TestCase):
-    """Verifies the 7-tier model cascade and preference detection."""
+    """Verifies the strict 9B model cascade and preference detection."""
 
     def setUp(self):
         self.mock_full_catalog = {
@@ -137,57 +138,39 @@ class TestModelFallbackCascade(unittest.TestCase):
     def test_primary_tier_selection(self):
         best, reason, catalog = detect_best_model(tags_data=self.mock_full_catalog)
         self.assertEqual(best, "gemma2:9b")
-        self.assertIn("Selected optimal cascade model", reason)
+        self.assertIn("Selected optimal cascade 9B model", reason)
         self.assertEqual(len(catalog), 5)
 
-    def test_fallback_when_tier1_missing(self):
-        catalog_no_9b = {
+    def test_fine_tuned_gemma_lean4_top_priority(self):
+        catalog = {
             "models": [
-                {"name": "qwen2.5-coder:7b"},
-                {"name": "gemma2:2b"},
-                {"name": "gemma:2b"}
+                {"name": "gemma2:9b"},
+                {"name": "gemma-lean4:latest"}
             ]
         }
-        best, reason, _ = detect_best_model(tags_data=catalog_no_9b)
-        self.assertEqual(best, "gemma2:2b")
-        self.assertIn("Selected optimal cascade model", reason)
+        best, reason, _ = detect_best_model(tags_data=catalog)
+        self.assertEqual(best, "gemma-lean4:latest")
+        self.assertIn("Selected optimal cascade 9B model", reason)
 
-    def test_fallback_to_tier7_legacy_2b(self):
-        catalog_only_legacy_2b = {
+    def test_fallback_when_lean4_missing(self):
+        catalog = {
             "models": [
-                {"name": "starcoder2:3b"},
-                {"name": "gemma:2b"}
+                {"name": "gemma2:9b-instruct-q5_K_M"},
+                {"name": "gemma2:9b"}
             ]
         }
-        best, reason, _ = detect_best_model(tags_data=catalog_only_legacy_2b)
-        self.assertEqual(best, "gemma:2b")
+        best, reason, _ = detect_best_model(tags_data=catalog)
+        self.assertEqual(best, "gemma2:9b-instruct-q5_K_M")
 
-    def test_fallback_to_generic_gemma(self):
-        catalog_custom_gemma = {
-            "models": [
-                {"name": "deepseek-coder:6.7b"},
-                {"name": "custom-gemma-math:latest"}
-            ]
-        }
-        best, reason, _ = detect_best_model(tags_data=catalog_custom_gemma)
-        self.assertEqual(best, "custom-gemma-math:latest")
-        self.assertIn("Selected available Gemma model", reason)
-
-    def test_fallback_to_first_local_model(self):
-        catalog_no_gemma = {
-            "models": [
-                {"name": "codellama:7b"},
-                {"name": "mistral:7b"}
-            ]
-        }
-        best, reason, _ = detect_best_model(tags_data=catalog_no_gemma)
-        self.assertEqual(best, "codellama:7b")
-        self.assertIn("No Gemma model found; falling back", reason)
+    def test_disallowed_model_redirection(self):
+        best, reason, _ = detect_best_model(preferred_tag="gemma2:27b", tags_data=self.mock_full_catalog)
+        self.assertEqual(best, "gemma2:9b")
+        self.assertIn("Selected optimal cascade 9B model", reason)
 
     def test_explicit_user_override(self):
-        best, reason, _ = detect_best_model(preferred_tag="gemma2:2b", tags_data=self.mock_full_catalog)
-        self.assertEqual(best, "gemma2:2b")
-        self.assertIn("Matched explicitly requested model", reason)
+        best, reason, _ = detect_best_model(preferred_tag="gemma2:9b", tags_data=self.mock_full_catalog)
+        self.assertEqual(best, "gemma2:9b")
+        self.assertIn("Matched explicitly requested 9B model", reason)
 
     def test_empty_catalog(self):
         empty_catalog = {"models": []}

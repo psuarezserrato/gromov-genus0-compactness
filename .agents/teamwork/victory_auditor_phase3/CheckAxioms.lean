@@ -1,0 +1,6 @@
+import GromovCompactness
+
+#print axioms GromovCompactness.Bubbling.exists_calibrated_rescaling
+#print axioms GromovCompactness.Bubbling.ghost_component_branches
+#print axioms GromovCompactness.Bubbling.energy_rank_strict_decrease
+#print axioms GromovCompactness.Topology.component_count_bounds

@@ -33,13 +33,16 @@ formalization in Lean 4, following `GROMOV_COMPACTNESS_BLUEPRINT.md` §4.11 & §
 and `gromov_compactness.pdf` Theorem 1.
 
 ## Main Result
-- `gromov_compactness_genus_zero`: The complete master theorem combining subsequence convergence,
+- `gromov_compactness_genus_zero`: Master reduction theorem combining subsequence convergence,
   energy conservation, vanishing neck diameters, and universal component bounds.
-- `#print axioms gromov_compactness_genus_zero`: Audits that only standard Lean 4 axioms
-  (`propext`, `Quot.sound`, `Classical.choice`) are present, with no `sorryAx` or artificial axioms.
+  Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
+  This master theorem conditionally reduces genus 0 Gromov compactness to the core contract stack
+  (`gromov_compactness_core` + `component_count_bounds`). It takes open analytical statements
+  transitively and will become unconditionally sorryAx-free upon proof of the leaf contracts.
+- `#print axioms gromov_compactness_genus_zero`: Tracks the transitive axiom dependency closure.
 -/
 
-/-- **Master Theorem: Genus 0 Gromov Compactness in Lean 4 (Theorem 1)**.
+/-- **Master Theorem: Genus 0 Gromov Compactness in Lean 4 (Theorem 1, Conditional Reduction)**.
 Let $M$ be a compact, boundaryless manifold equipped with a smooth closed symplectic form $\omega$
 and a tame almost complex structure $J$. Let $u_n : \mathbb{CP}^1 \to M$ be a sequence of
 non-constant $J$-holomorphic spheres with uniformly bounded energy $E(u_n) \le B < \infty$.
@@ -53,7 +56,12 @@ compactness witness sense, satisfying:
 3. Total energy conservation: $\lim_{n \to \infty} E(u_{\sigma(n)}) = \sum_{v \in V} E(u_v)$.
 4. Vanishing neck image diameters across all edges.
 5. Linear component bounds: $P \cdot h \le B$, and for $|V| > 1$, $G \le P - 2$ and $|V| \le 2P - 2$.
-6. Universal integer vertex bound: $(|V| : \mathbb{Z}) \le \max(1, 2\lfloor B / h \rfloor - 2)$. -/
+6. Universal integer vertex bound: $(|V| : \mathbb{Z}) \le \max(1, 2\lfloor B / h \rfloor - 2)$.
+
+Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
+This theorem reduces the master compactness result to the core compactness theorem `gromov_compactness_core`
+and component bounds `component_count_bounds`. It takes open statements transitively and does not count
+as closing the master theorem unconditionally until the underlying analytical leaf contracts are proved. -/
 theorem gromov_compactness_genus_zero
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)

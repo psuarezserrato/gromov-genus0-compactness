@@ -72,16 +72,17 @@ lemma mvi_branch_zero (r : ℝ) (hr : 0 < r) (e : ℂ → ℝ)
   exact he_eq hz_in_ball
 
 /-- Scalar Mean-Value Inequality (Contract A01).
-Let `b ≥ 0`. There exist `η > 0` and `C > 0` such that for any `r > 0` and any non-negative function
-`e : ℂ → ℝ` of class $C^2$ satisfying `Δ e ≥ -b e²` on `ball 0 r`, if `∫_{ball 0 r} e < η`, then
+Let `b ≥ 0` and `c ≥ 0`. There exist `η > 0` and `C > 0` such that for any `r > 0` and any non-negative function
+`e : ℂ → ℝ` of class $C^2$ satisfying `Δ e ≥ -b e² - c e` on `ball 0 r`, if `∫_{ball 0 r} e < η`, then
 `sup_{closedBall 0 (r/2)} e ≤ C r⁻² ∫_{ball 0 r} e`. -/
-theorem scalar_mean_value_inequality (b : ℝ) (hb : 0 ≤ b) :
+theorem scalar_mean_value_inequality
+    (b : ℝ) (hb : 0 ≤ b) (c : ℝ := 0) (hc : 0 ≤ c := by norm_num) :
     ∃ (η C : ℝ), 0 < η ∧ 0 < C ∧
     ∀ (r : ℝ) (hr : 0 < r) (e : ℂ → ℝ),
       (∀ z, 0 ≤ e z) →
       ContinuousOn e (Metric.closedBall 0 r) →
       ContDiffOn ℝ 2 e (Metric.ball (0 : ℂ) r) →
-      (∀ z ∈ Metric.ball (0 : ℂ) r, -b * (e z)^2 ≤ laplacian2D e z) →
+      (∀ z ∈ Metric.ball (0 : ℂ) r, -b * (e z)^2 - c * (e z) ≤ laplacian2D e z) →
       (∫ w in Metric.ball (0 : ℂ) r, e w) < η →
       (∀ z ∈ Metric.closedBall (0 : ℂ) (r / 2), e z ≤ C * r^(-2 : ℝ) * (∫ w in Metric.ball (0 : ℂ) r, e w)) := by
   use 1, 16

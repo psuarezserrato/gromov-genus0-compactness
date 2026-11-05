@@ -1,0 +1,147 @@
+--- a/GromovCompactness/Main.lean
++++ b/GromovCompactness/Main.lean
+@@ -35,9 +35,12 @@ namespace GromovCompactness
+ ## Main Result
+-- `gromov_compactness_genus_zero`: The complete master theorem combining subsequence convergence,
++- `gromov_compactness_genus_zero`: Master reduction theorem combining subsequence convergence,
+   energy conservation, vanishing neck diameters, and universal component bounds.
+-- `#print axioms gromov_compactness_genus_zero`: Audits that only standard Lean 4 axioms
+-  (`propext`, `Quot.sound`, `Classical.choice`) are present, with no `sorryAx` or artificial axioms.
++  Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
++  This master theorem conditionally reduces genus 0 Gromov compactness to the core contract stack
++  (`gromov_compactness_core` + `component_count_bounds`). It takes open analytical statements
++  transitively and will become unconditionally sorryAx-free upon proof of the leaf contracts.
++- `#print axioms gromov_compactness_genus_zero`: Tracks the transitive axiom dependency closure.
+ -/
+ 
+-/-- **Master Theorem: Genus 0 Gromov Compactness in Lean 4 (Theorem 1)**.
++/-- **Master Theorem: Genus 0 Gromov Compactness in Lean 4 (Theorem 1, Conditional Reduction)**.
+ Let $M$ be a compact, boundaryless manifold equipped with a smooth closed symplectic form $\omega$
+ and a tame almost complex structure $J$. Let $u_n : \mathbb{CP}^1 \to M$ be a sequence of
+ non-constant $J$-holomorphic spheres with uniformly bounded energy $E(u_n) \le B < \infty$.
+@@ -55,3 +58,7 @@
+ 5. Linear component bounds: $P \cdot h \le B$, and for $|V| > 1$, $G \le P - 2$ and $|V| \le 2P - 2$.
+ 6. Universal integer vertex bound: $(|V| : \mathbb{Z}) \le \max(1, 2\lfloor B / h \rfloor - 2)$. -/
++Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
++This theorem reduces the master compactness result to the core compactness theorem `gromov_compactness_core`
++and component bounds `component_count_bounds`. It takes open statements transitively and does not count
++as closing the master theorem unconditionally until the underlying analytical leaf contracts are proved. -/
+ theorem gromov_compactness_genus_zero
+
+--- a/GromovCompactness/Compactness/Measures.lean
++++ b/GromovCompactness/Compactness/Measures.lean
+@@ -128,3 +128,6 @@
+-/-- Reduction: Weak energy measure compactness reduces directly to general weak measure compactness. -/
++/-- Conditional Reduction: Weak energy measure compactness reduces directly to general weak measure compactness.
++Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
++Takes general weak measure compactness `h_comp` as an explicit hypothesis and does not count
++as closing Contract C01 unconditionally. -/
+ theorem weak_energy_measure_compactness_of_weak_measure_compactness
+
+--- a/GromovCompactness/Analysis/EnergyGap.lean
++++ b/GromovCompactness/Analysis/EnergyGap.lean
+@@ -176,8 +176,10 @@
+ /-!
+-### 4. Zero-Sorry Reduction Theorems for Sphere Energy Gap
++### 4. Conditional Reduction Theorems for Sphere Energy Gap
+ -/
+ 
+-/-- Reduction theorem: Target monotonicity and image exit together imply the minimal energy gap
+-with ZERO `sorry`. -/
++/-- Conditional Reduction theorem: Target monotonicity and image exit together imply the minimal energy gap.
++Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
++Takes open geometric contract hypotheses (`h_mono`, `h_exit`) and does not count as closing
++Contract A07 unconditionally. -/
+ theorem sphere_energy_gap_of_monotonicity_and_exit
+@@ -216,4 +218,6 @@
+-/-- Reduction theorem: Epsilon-regularity / diameter bound and Stokes exactness together
+-imply the minimal energy gap with ZERO `sorry`. -/
++/-- Conditional Reduction theorem: Epsilon-regularity / diameter bound and Stokes exactness together
++imply the minimal energy gap.
++Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
++Takes open analytical contract hypotheses (`h_diam`, `h_stokes`) and does not count as closing
++Contract A07 unconditionally. -/
+ theorem sphere_energy_gap_of_stokes_and_diameter
+
+--- a/GromovCompactness/Analysis/SingularityRemoval.lean
++++ b/GromovCompactness/Analysis/SingularityRemoval.lean
+@@ -446,7 +446,10 @@
+ /-!
+-### 7. Contract A12 Reduction Theorem (Zero-sorry)
++### 7. Contract A12 Conditional Reduction Theorem
+ -/
+ 
+-/-- Clean reduction of Contract A12 to Contract A11 (`puncture_sobolev_extension`) +
++/-- Conditional reduction of Contract A12 to Contract A11 (`puncture_sobolev_extension`) +
+ continuous-to-smooth bootstrap step (`h_bootstrap_ext`).
+-Proved with ZERO `sorry` and standard Lean 4 kernel axioms. -/
++Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
++Takes open statements (`h_sobolev_ext`, `h_bootstrap_ext`) as explicit hypotheses and does not count
++as closing Contract A12 until the hypotheses are discharged. -/
+ theorem removal_of_singularities_reduction
+
+--- a/GromovCompactness/Analysis/HoferRescaling.lean
++++ b/GromovCompactness/Analysis/HoferRescaling.lean
+@@ -34,4 +34,4 @@
+-2. `exists_target_thresholds_of_modules` (Contract B01): Zero-sorry reduction theorem
++2. `exists_target_thresholds_of_modules` (Contract B01): Conditional reduction theorem
+ assembling the uniform constants $(\varepsilon_{\mathrm{reg}}, \varepsilon_{\mathrm{sph}}, \dots)$ from geometric modules.
+@@ -334,3 +334,5 @@
+-/-- Zero-sorry reduction theorem: Given the geometric modules A03, A07, and A10,
+-the universal positive bubbling threshold exists constructively. -/
++/-- Conditional reduction theorem: Given the geometric modules A03, A07, and A10,
++the universal positive bubbling threshold exists constructively.
++Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
++Takes open geometric contract hypotheses and does not count as closing Contract B01 unconditionally. -/
+ theorem exists_target_thresholds_of_modules
+@@ -530,3 +532,5 @@
+-/-- Reduction of Contract B02 to Radial Energy IVT:
+-Under RadialEnergyIVT, exists_calibrated_rescaling holds with zero-sorry. -/
++/-- Conditional Reduction of Contract B02 to Radial Energy IVT:
++Under RadialEnergyIVT, exists_calibrated_rescaling holds constructively.
++Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
++Requires the unproved `RadialEnergyIVT` hypothesis. -/
+ theorem exists_calibrated_rescaling_of_ivt
+@@ -560,5 +564,7 @@
+ /-- Existence of calibrated moving centers and radii (Contract B02).
+ Under energy concentration at `0` with defect mass `m_defect`, the Intermediate Value
+ Theorem (`RadialEnergyIVT`) yields calibrated moving centers and scaling radii.
+-This is formulated as a pure zero-`sorry` reduction theorem requiring the radial IVT hypothesis. -/
++Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
++Formulated as a conditional reduction theorem requiring the radial IVT hypothesis; does not count
++as closing Contract B02 unconditionally until the radial IVT is proved. -/
+ theorem exists_calibrated_rescaling
+
+--- a/GromovCompactness/Analysis/EllipticBootstrap.lean
++++ b/GromovCompactness/Analysis/EllipticBootstrap.lean
+@@ -512,5 +512,7 @@
+-/-- Inductive Sobolev Bootstrap Step (Contract A05).
++/-- Inductive Sobolev Bootstrap Step (Contract A05, Conditional Reduction).
+ Boosts regularity from $W^{k, p}$ to $W^{k+1, p}$ on concentric disks under the Cauchy-Riemann operator.
+-Proved with ZERO `sorry` via reduction to Contract A04 (`elliptic_bootstrap_wkp_of_cauchy_riemann`). -/
++Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
++This theorem conditionally reduces Contract A05 to the open Contract A04 (`interior_cauchy_riemann_estimate`)
++and transitively inherits its `sorryAx` dependency. -/
+ theorem elliptic_bootstrap_wkp (p : ℝ) (hp : 1 < p) (k : ℕ) (r R : ℝ) (hrR : 0 < r ∧ r < R) :
+
+--- a/GromovCompactness/Extensions/Homology.lean
++++ b/GromovCompactness/Extensions/Homology.lean
+@@ -42,4 +42,4 @@
+-- `tree_homology_eq_fixed_class`: Limit homology class identity for fixed-class sequences (Zero-sorry reduction).
+-- `fixed_homology_pairing_eq_total_energy`: $\langle [\omega], A \rangle = E(u_{\mathrm{lim}})$ (Zero-sorry reduction).
++- `tree_homology_eq_fixed_class`: Limit homology class identity for fixed-class sequences (Conditional reduction).
++- `fixed_homology_pairing_eq_total_energy`: $\langle [\omega], A \rangle = E(u_{\mathrm{lim}})$ (Conditional reduction).
+@@ -161,4 +161,6 @@
+-/-- **Limit Homology for Fixed Homology Sequences (Zero-sorry)**.
++/-- **Limit Homology for Fixed Homology Sequences (Conditional Reduction)**.
+ If all curves in the sequence represent a fixed homology class $A \in H_2(M; \mathbb{Z})$,
+ then the limit stable sphere tree represents the exact same class $A$:
++Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
++Conditionally reduces fixed homology class preservation to the neck degeneration homology axiom in `SecondHomology`. -/
+ theorem tree_homology_eq_fixed_class
+@@ -177,3 +179,5 @@
+-/-- The symplectic area of a fixed homology class equals the total limit energy (Zero-sorry). -/
++/-- The symplectic area of a fixed homology class equals the total limit energy (Conditional Reduction).
++Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
++Conditionally reduces to the `SecondHomology` interface and `tree_homology_eq_fixed_class`. -/
+ theorem fixed_homology_pairing_eq_total_energy

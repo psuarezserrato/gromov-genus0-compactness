@@ -1,0 +1,27 @@
+--- GromovCompactness/Analysis/Monotonicity.lean	2026-11-03 23:43:22
++++ .agents/teamwork/explorer_m6_remediation/proposed_Monotonicity.lean	2026-11-04 05:57:08
+@@ -109,11 +109,9 @@
+ instance connectedSpace_CP1 : ConnectedSpace CP1 :=
+   Subtype.connectedSpace isConnected_sphere_3
+ 
+-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+-variable {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+-variable {M : Type*} [MetricSpace M] [ChartedSpace H M]
+-variable [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
++variable {M : Type*} [MetricSpace M]
+ 
++
+ lemma continuous_dist_u (u : CP1 → M) (x : M) (h_cont : Continuous u) :
+     Continuous (fun z => dist (u z) x) :=
+   h_cont.dist continuous_const
+@@ -170,6 +168,10 @@
+   obtain ⟨z, hz⟩ := frontier_preimage_ball_nonempty u x r hr hx h_out
+   exact ⟨z, hz, dist_eq_r_of_mem_frontier_preimage_ball u x r h_cont z hz⟩
+ 
++variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
++variable {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
++variable [ChartedSpace H M] [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
++
+ lemma continuous_of_jhol (u : CP1 → M)
+     (h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
+     Continuous u := by

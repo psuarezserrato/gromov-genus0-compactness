@@ -21,14 +21,11 @@
     "OLLAMA_MODELS": "Path to local GGUF model manifests and weights (default: ~/.ollama/models)",
     "OLLAMA_KEEP_ALIVE": "Model in-VRAM residency duration. Recommended '30m' or '-1' for interactive theorem proving."
   },
+  "enforce_9b_policy": true,
   "model_fallback_cascade": [
-    "gemma2:9b",
-    "gemma2:27b",
-    "codegemma:7b",
-    "gemma:7b",
-    "gemma2:2b",
-    "codegemma:2b",
-    "gemma:2b"
+    "gemma-lean4:latest",
+    "gemma2:9b-instruct-q5_K_M",
+    "gemma2:9b"
   ],
   "model_specifications": {
     "gemma2:9b": {

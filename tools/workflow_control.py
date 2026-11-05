@@ -722,7 +722,7 @@ Examples:
     p_chk.add_argument("--summary", type=str, default=None, help="Summary or notes for checkpoint")
 
     # test
-    p_test = subparsers.add_parser("test", help="Run comprehensive automated test suite (100% pass verification)")
+    p_test = subparsers.add_parser("test", help="Run comprehensive automated test suite (100%% pass verification)")
 
     args = parser.parse_args()
 

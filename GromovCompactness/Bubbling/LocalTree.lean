@@ -234,13 +234,56 @@ def local_defect_tree_of_empty_children
     rw [h_empty, Finset.card_empty] at h_card
     omega
 
-/-- Resolution of a Single Defect into a Finite Rooted Bubble Tree (Contract B07).
-By well-founded induction on ⌊m / h⌋ ∈ ℕ, any defect mass m > 0 is resolved into a
-finite rooted bubble tree attached at the base value. -/
-theorem resolve_single_defect_tree
-    (thresh : TargetThresholds I M) (m_defect : ℝ) (_hm : 0 < m_defect) (base_val : M) :
+/-- One-level decomposition extraction for an isolated defect mass m ≥ h. -/
+theorem exists_one_level_decomp
+    (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (_hm : thresh.h ≤ m_defect) (base_val : M) :
+    Nonempty (OneLevelDecomposition I thresh m_defect base_val) := by
+  sorry
+
+/-- Grafting child defect trees onto the one-level bubble curve. -/
+theorem graft_child_defect_trees
+    (thresh : TargetThresholds I M) (m_defect : ℝ) (base_val : M)
+    (decomp : OneLevelDecomposition I thresh m_defect base_val)
+    (_hm : thresh.h ≤ m_defect)
+    (_child_trees : (z : ℂ) → z ∈ decomp.q →
+      LocalDefectTree I thresh (decomp.m_child z) (decomp.v (stereo_chart.symm z))) :
     Nonempty (LocalDefectTree I thresh m_defect base_val) := by
   sorry
+
+/-- Resolution of sub-threshold mass (below the minimal sphere energy h). -/
+theorem local_defect_tree_of_subthreshold
+    (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (_hm_pos : 0 < m_defect) (_hm_lt : m_defect < thresh.h) (base_val : M) :
+    Nonempty (LocalDefectTree I thresh m_defect base_val) := by
+  sorry
+
+/-- Resolution of a Single Defect into a Finite Rooted Bubble Tree (Contract B07).
+Proved with zero direct sorry via energy_rank_induction and B04/B06. -/
+theorem resolve_single_defect_tree
+    (thresh : TargetThresholds I M) (m_defect : ℝ) (hm : 0 < m_defect) (base_val : M) :
+    Nonempty (LocalDefectTree I thresh m_defect base_val) := by
+  revert hm base_val
+  refine energy_rank_induction thresh.h
+    (fun m => 0 < m → ∀ (b : M), Nonempty (LocalDefectTree I thresh m b)) ?_ m_defect
+  intro m ih hm_pos b
+  by_cases h_ge : thresh.h ≤ m
+  · obtain ⟨decomp⟩ := exists_one_level_decomp I thresh m h_ge b
+    by_cases h_q : decomp.q = ∅
+    · exact ⟨local_defect_tree_of_empty_children I thresh m b decomp h_ge h_q⟩
+    · have h_children : ∀ (z : ℂ) (hz : z ∈ decomp.q),
+          Nonempty (LocalDefectTree I thresh (decomp.m_child z) (decomp.v (stereo_chart.symm z))) := by
+        intro z hz
+        have h_rel : energy_rank_rel thresh.h (decomp.m_child z) m :=
+          child_rank_strict_decrease I thresh m b decomp h_ge z hz
+        have h_pos : 0 < decomp.m_child z :=
+          thresh.h_pos.trans_le (decomp.m_child_pos z hz)
+        exact ih (decomp.m_child z) h_rel h_pos (decomp.v (stereo_chart.symm z))
+      let child_trees : (z : ℂ) → z ∈ decomp.q → LocalDefectTree I thresh (decomp.m_child z) (decomp.v (stereo_chart.symm z)) :=
+        fun z hz => Classical.choice (h_children z hz)
+      exact graft_child_defect_trees I thresh m b decomp h_ge child_trees
+  · push_neg at h_ge
+    exact local_defect_tree_of_subthreshold I thresh m hm_pos h_ge b
 
 #print axioms energy_rank_wf
 #print axioms energy_rank_induction
@@ -256,5 +299,6 @@ theorem resolve_single_defect_tree
 #print axioms graft_degree_bridge_right
 #print axioms ghost_child_stability_of_degree_two
 #print axioms local_defect_tree_of_empty_children
+#print axioms resolve_single_defect_tree
 
 end GromovCompactness.Bubbling

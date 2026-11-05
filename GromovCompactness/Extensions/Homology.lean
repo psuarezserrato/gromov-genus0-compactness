@@ -40,8 +40,8 @@ Ivashkovich-Shevchishin (1999, §2.3), McDuff-Salamon (2004, §4.4), and
 - `SecondHomology`: Interface for second integral homology $H_2(M; \mathbb{Z})$.
 - `treeTotalHomologyClass`: Total tree homology class $\sum_{v} [u_v] \in H_2(M; \mathbb{Z})$.
 - `integral_homology_preserved`: Full homology preservation $[u_{\sigma(n)}] = \sum [u_v]$ across neck degeneration.
-- `tree_homology_eq_fixed_class`: Limit homology class identity for fixed-class sequences (Zero-sorry reduction).
-- `fixed_homology_pairing_eq_total_energy`: $\langle [\omega], A \rangle = E(u_{\mathrm{lim}})$ (Zero-sorry reduction).
+- `tree_homology_eq_fixed_class`: Limit homology class identity for fixed-class sequences (Conditional reduction).
+- `fixed_homology_pairing_eq_total_energy`: $\langle [\omega], A \rangle = E(u_{\mathrm{lim}})$ (Conditional reduction).
 -/
 
 /-- The total symplectic area of a stable sphere tree limit is the sum of the
@@ -159,10 +159,12 @@ theorem integral_homology_preserved
   dsimp [treeTotalHomologyClass]
   exact H.cycleClass_neck_degeneration u_seq u_lim wit h_jhol
 
-/-- **Limit Homology for Fixed Homology Sequences (Zero-sorry)**.
+/-- **Limit Homology for Fixed Homology Sequences (Conditional Reduction)**.
 If all curves in the sequence represent a fixed homology class $A \in H_2(M; \mathbb{Z})$,
 then the limit stable sphere tree represents the exact same class $A$:
-$$\sum_{v \in V(T)} [u_{\infty, v}] = A.$$ -/
+$$\sum_{v \in V(T)} [u_{\infty, v}] = A.$$
+Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
+Conditionally reduces fixed homology class preservation to the neck degeneration homology axiom in `SecondHomology`. -/
 theorem tree_homology_eq_fixed_class
     (H : SecondHomology I M)
     (u_seq : ℕ → (CP1 → M)) (u_lim : StableSphereTreeLimit I (M := M))
@@ -175,7 +177,9 @@ theorem tree_homology_eq_fixed_class
   rcases h_ev.exists with ⟨n, hn⟩
   rw [← hn, h_A]
 
-/-- The symplectic area of a fixed homology class equals the total limit energy (Zero-sorry). -/
+/-- The symplectic area of a fixed homology class equals the total limit energy (Conditional Reduction).
+Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
+Conditionally reduces to the `SecondHomology` interface and `tree_homology_eq_fixed_class`. -/
 theorem fixed_homology_pairing_eq_total_energy
     (H : SecondHomology I M)
     (u_seq : ℕ → (CP1 → M)) (u_lim : StableSphereTreeLimit I (M := M))

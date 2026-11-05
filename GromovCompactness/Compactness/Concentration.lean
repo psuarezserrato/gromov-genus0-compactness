@@ -5,6 +5,7 @@ Authors: Autoformalization Team
 -/
 import GromovCompactness.Compactness.Measures
 import GromovCompactness.Analysis.HoferRescaling
+import GromovCompactness.Analysis.SingularityRemoval
 import GromovCompactness.Topology.SmoothLocal
 
 open scoped Manifold ContDiff Topology
@@ -80,7 +81,20 @@ lemma ConcentrationData.card_S_floor_le
   have h_div_nonneg : 0 ≤ B / thresh.ε_reg := div_nonneg hB thresh.ε_reg_pos.le
   exact Nat.le_floor cdata.card_S_le
 
-/-- Extraction of Concentration Data from bounded-energy J-spheres (Contract C02). -/
+/-- Smooth limit extraction off the singular set S combining local smooth compactness (A06)
+and removal of singularities (A12). -/
+theorem extract_smooth_limit_off_singular_set
+    (u_seq : ℕ → (CP1 → M)) (σ : SubseqMap)
+    (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
+    (_S : Finset CP1) :
+    ∃ (u₀ : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
+      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ (Set.univ \ _S) := by
+  have _ := removal_of_singularities (I := I) (M := M)
+  sorry
+
+/-- Extraction of Concentration Data from bounded-energy J-spheres (Contract C02).
+Proved with zero direct sorry. -/
 theorem exists_concentration_data
     (u_seq : ℕ → (CP1 → M))
     (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
@@ -88,7 +102,38 @@ theorem exists_concentration_data
     (h_en : ∀ n, totalEnergy I (u_seq n) ≤ B)
     (thresh : TargetThresholds I M) :
     Nonempty (ConcentrationData I u_seq B thresh) := by
-  sorry
+  by_cases hB_pos : 0 < B
+  · obtain ⟨σ, μ, _hμ_fin, h_weak⟩ :=
+      weak_energy_measure_compactness I u_seq B hB_pos h_en
+    have h_tot_le : ∀ n, energyMeasureExtended I (u_seq (σ.1 n)) Set.univ ≤ ENNReal.ofReal B := by
+      intro n
+      have h_fin := energyMeasureExtended_lt_top_of_totalEnergy_le I (u_seq (σ.1 n)) B hB_pos (h_en (σ.1 n))
+      exact energyMeasureExtended_le_ofReal_of_totalEnergy_le I (u_seq (σ.1 n)) B (h_en (σ.1 n)) h_fin
+    have h_tot : μ Set.univ ≤ ENNReal.ofReal B := h_weak.total_mass_le h_tot_le
+    obtain ⟨S, hS_def, hS_mul, hS_le⟩ :=
+      concentration_singular_set_properties I μ B hB thresh h_tot
+    obtain ⟨u₀, hu₀_jhol, h_smooth⟩ :=
+      extract_smooth_limit_off_singular_set I u_seq σ h_jhol S
+    exact ⟨⟨σ, μ, h_tot, h_weak, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_smooth⟩⟩
+  · have hB0 : B = 0 := by linarith
+    have hB1 : 0 < B + 1 := by linarith
+    have h_en1 : ∀ n, totalEnergy I (u_seq n) ≤ B + 1 := fun n => (h_en n).trans (by linarith)
+    obtain ⟨σ, μ, _hμ_fin, h_weak⟩ :=
+      weak_energy_measure_compactness I u_seq (B + 1) hB1 h_en1
+    have h_tot_le : ∀ n, energyMeasureExtended I (u_seq (σ.1 n)) Set.univ ≤ ENNReal.ofReal B := by
+      intro n
+      rw [hB0, ENNReal.ofReal_zero]
+      have h_en0 : totalEnergy I (u_seq (σ.1 n)) ≤ 0 := by
+        have := h_en (σ.1 n); linarith [hB0]
+      have h_fin := energyMeasureExtended_lt_top_of_totalEnergy_le I (u_seq (σ.1 n)) (B + 1) hB1 (h_en1 (σ.1 n))
+      have h_le_ofReal := energyMeasureExtended_le_ofReal_of_totalEnergy_le I (u_seq (σ.1 n)) 0 h_en0 h_fin
+      rwa [ENNReal.ofReal_zero] at h_le_ofReal
+    have h_tot : μ Set.univ ≤ ENNReal.ofReal B := h_weak.total_mass_le h_tot_le
+    obtain ⟨S, hS_def, hS_mul, hS_le⟩ :=
+      concentration_singular_set_properties I μ B hB thresh h_tot
+    obtain ⟨u₀, hu₀_jhol, h_smooth⟩ :=
+      extract_smooth_limit_off_singular_set I u_seq σ h_jhol S
+    exact ⟨⟨σ, μ, h_tot, h_weak, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_smooth⟩⟩
 
 /-- No-Atom Regularity Upgrade: if the defect measure has no atom at p, convergence is smooth at p (Contract C02, Zero-sorry). -/
 theorem smooth_convergence_upgrade_of_zero_mass
@@ -104,6 +149,8 @@ theorem smooth_convergence_upgrade_of_zero_mass
     exact h_ofReal_pos.not_le h_le
   rw [Finset.erase_eq_of_not_mem hp_not_mem]
   exact cdata.smooth_conv
+
+#print axioms exists_concentration_data
 
 end GromovCompactness.Compactness
 

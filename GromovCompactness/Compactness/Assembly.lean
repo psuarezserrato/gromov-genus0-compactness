@@ -84,20 +84,52 @@ structure PrestableLimitData (u_seq : ℕ → (CP1 → M)) where
     Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
       (𝓝 (∑ v : tree.V, totalEnergy I (map v)))
 
-/-- Telescoping composition of local affine rescalings along rooted paths into global Möbius frames. -/
+/-- Calibrated rescaling data along a rooted sphere tree (Contract G01 / Task P0-7).
+For each child component `w` attached to parent `v`, provides the moving centers `a_{w,n}`
+and scaling factors `λ_{w,n} > 0` with `λ_{w,n} → 0` that calibrate the bubbling transition. -/
+structure TreeRescalingData (tree : SphereTree) (root : tree.V) where
+  /-- Parent map sending each non-root vertex to its unique tree parent closer to the root. -/
+  parent : (w : tree.V) → w ≠ root → tree.V
+  /-- Adjacency between child and parent. -/
+  parent_adj : ∀ (w : tree.V) (hw : w ≠ root), tree.adj.Adj (parent w hw) w
+  /-- Moving centers of the local rescalings in ℂ. -/
+  center : (w : tree.V) → ℕ → ℂ
+  /-- Moving scaling radii of the local rescalings. -/
+  scale : (w : tree.V) → ℕ → ℝ
+  /-- Positive scaling at all stages. -/
+  scale_pos : ∀ (w : tree.V) (n : ℕ), 0 < scale w n
+  /-- Vanishing scales for all bubble components off the root. -/
+  scale_tendsto : ∀ (w : tree.V), w ≠ root →
+    Tendsto (scale w) atTop (𝓝 0)
+  /-- Moving centers converge to the nodal attachment point on the parent sphere. -/
+  center_tendsto : ∀ (w : tree.V) (hw : w ≠ root),
+    Tendsto (fun n => stereo_chart.symm (center w n)) atTop
+      (𝓝 (tree.node_point (parent w hw) w (parent_adj w hw)))
+
 theorem assemble_global_frames
     (tree : SphereTree) (root : tree.V)
-    (_local_centers : (v : tree.V) → ℕ → ℂ)
-    (_local_scales : (v : tree.V) → ℕ → ℝ)
-    (_h_pos_scales : ∀ v n, 0 < _local_scales v n) :
+    (res : TreeRescalingData tree root) :
     ∃ (frames : (v : tree.V) → ℕ → MoebiusFrame),
       (∀ n, frames root n = MoebiusFrame.id) ∧
+      (∀ (w : tree.V) (hw : w ≠ root) (n : ℕ),
+        frames w n = MoebiusFrame.comp (frames (res.parent w hw) n)
+          (affine_scaling (res.center w n) (res.scale w n) (res.scale_pos w n))) ∧
       (∀ (v w : tree.V) (h : tree.adj.Adj v w),
         ∀ K ⊆ punctured_sphere {tree.node_point w v (tree.adj.symm h)}, IsCompact K →
           TendstoUniformlyOn
             (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
             (fun _ => tree.node_point v w h) atTop K) := by
   sorry
+
+/-- Canonical rescaling data for a singleton sphere tree with zero non-root components (Zero-sorry). -/
+def TreeRescalingData.singleton : TreeRescalingData Bubbling.singletonSphereTree () where
+  parent := fun w hw => by cases w; exact False.elim (hw rfl)
+  parent_adj := fun w hw => by cases w; exact False.elim (hw rfl)
+  center := fun _ _ => 0
+  scale := fun _ _ => 1
+  scale_pos := fun _ _ => by norm_num
+  scale_tendsto := fun w hw => by cases w; exact False.elim (hw rfl)
+  center_tendsto := fun w hw => by cases w; exact False.elim (hw rfl)
 
 /-- Identity action of left frame composition (Zero-sorry). -/
 theorem frame_comp_id_left (ϕ : MoebiusFrame) :
@@ -188,15 +220,90 @@ def prestable_limit_singleton
     rw [h_sum]
     exact h_energy
 
-/-- Assembles the base map $u_0$ and all defect trees from Contract B07 into a global prestable limit. -/
-theorem assemble_prestable_limit
-    (_th : Bubbling.TargetThresholds I M)
-    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
-    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (_h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+/-- Construction of a prestable limit for a single non-bubbling curve sequence along a subsequence (Zero-sorry). -/
+def prestable_limit_singleton_subseq
+    (u_seq : ℕ → (CP1 → M)) (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M)
+    (h_jhol : JHolomorphicOn I I_CP1 u_lim Set.univ)
+    (h_conv : SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Set.univ)
+    (h_energy : Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop (𝓝 (totalEnergy I u_lim))) :
+    PrestableLimitData I u_seq where
+  tree := Bubbling.singletonSphereTree
+  root := ()
+  map := fun _ => u_lim
+  is_jhol := fun _ => h_jhol
+  nodal_match := fun _ _ h => False.elim h
+  stable_off_root := fun (v : Unit) h_ne => by
+    cases v; exact False.elim (h_ne rfl)
+  σ := σ
+  frames := fun _ _ => MoebiusFrame.id
+  root_frame_id := fun _ => rfl
+  frame_collapse := fun _ _ h => False.elim h
+  smooth_conv := fun (v : Unit) => by
+    have h_empty : (punctured_sphere { z : CP1 | ∃ (w : Bubbling.singletonSphereTree.V) (h : Bubbling.singletonSphereTree.adj.Adj v w),
+        z = Bubbling.singletonSphereTree.node_point v w h }) = Set.univ := by
+      dsimp [punctured_sphere]
+      have h_none : { z : CP1 | ∃ (w : Bubbling.singletonSphereTree.V) (h : Bubbling.singletonSphereTree.adj.Adj v w),
+          z = Bubbling.singletonSphereTree.node_point v w h } = ∅ := by
+        ext z
+        simp only [mem_setOf_eq, not_exists, mem_empty_iff_false, iff_false]
+        intro w h; exact False.elim h
+      rw [h_none, diff_empty]
+    rw [h_empty]
+    have h_seq : (fun n => (u_seq (σ.1 n)) ∘ ((fun _ _ => MoebiusFrame.id) v n).toHomeo) = fun n => u_seq (σ.1 n) := by
+      ext n x; rfl
+    rw [h_seq]
+    exact h_conv
+  energy_ident := by
+    have h_sum : (∑ v : Bubbling.singletonSphereTree.V, totalEnergy I ((fun _ => u_lim) v)) = totalEnergy I u_lim := by
+      change (∑ _v : Unit, totalEnergy I u_lim) = totalEnergy I u_lim
+      simp
+    rw [h_sum]
+    exact h_energy
+
+/-- Grafting local defect trees at each concentration point p ∈ S onto the base curve u₀. -/
+theorem graft_defect_trees_to_root
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M)
+    (cdata : Compactness.ConcentrationData I u_seq B th)
+    (m_defect : CP1 → ℝ)
+    (_hm_sph : ∀ p ∈ cdata.S, th.ε_sph ≤ m_defect p)
+    (_h_energy : Tendsto (fun n => totalEnergy I (u_seq (cdata.σ.1 n))) atTop
+      (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p)))
+    (_defect_trees : (p : CP1) → p ∈ cdata.S →
+      Bubbling.LocalDefectTree I th (m_defect p) (cdata.u₀ p)) :
     ∃ (pdata : PrestableLimitData I u_seq),
       (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B := by
   sorry
+
+/-- Assembles the base map u₀ and all defect trees from Contract B07 into a global prestable limit (Contract G01).
+Proved with zero direct sorry. -/
+theorem assemble_prestable_limit
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    ∃ (pdata : PrestableLimitData I u_seq),
+      (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B := by
+  have hB : 0 ≤ B := (energy_nonneg I (u_seq 0) Set.univ).trans (h_energy 0)
+  obtain ⟨cdata⟩ := Compactness.exists_concentration_data I u_seq h_jhol B hB h_energy th
+  obtain ⟨m_defect, hm_sph, _hm_zero, _h_decomp, h_tendsto_energy⟩ :=
+    Compactness.defect_measure_identity I u_seq B th cdata
+  by_cases hS : cdata.S = ∅
+  · have h_smooth : SmoothLocalConvergesOn I (fun n => u_seq (cdata.σ.1 n)) cdata.u₀ Set.univ := by
+      have h_sc := cdata.smooth_conv
+      have h_diff : Set.univ \ (cdata.S : Set CP1) = Set.univ := by simp [hS]
+      rwa [h_diff] at h_sc
+    have h_en_lim : Tendsto (fun n => totalEnergy I (u_seq (cdata.σ.1 n))) atTop (𝓝 (totalEnergy I cdata.u₀)) := by
+      have h_sum_zero : (∑ p ∈ cdata.S, m_defect p) = 0 := by simp [hS]
+      rw [h_sum_zero, add_zero] at h_tendsto_energy
+      exact h_tendsto_energy
+    let pdata := prestable_limit_singleton_subseq I u_seq cdata.σ cdata.u₀ cdata.u₀_jhol h_smooth h_en_lim
+    refine ⟨pdata, ?_⟩
+    exact prestable_limit_energy_bound I u_seq B pdata h_energy
+  · let defect_trees : (p : CP1) → p ∈ cdata.S → Bubbling.LocalDefectTree I th (m_defect p) (cdata.u₀ p) :=
+      fun p hp =>
+        have h_pos : 0 < m_defect p := th.ε_sph_pos.trans_le (hm_sph p hp)
+        Classical.choice (Bubbling.resolve_single_defect_tree I th (m_defect p) h_pos (cdata.u₀ p))
+    exact graft_defect_trees_to_root I u_seq B th cdata m_defect hm_sph h_tendsto_energy defect_trees
 
 #print axioms frame_comp_id_left
 #print axioms frame_comp_id_right
@@ -205,5 +312,8 @@ theorem assemble_prestable_limit
 #print axioms transition_collapse_reduction
 #print axioms prestable_limit_energy_bound
 #print axioms prestable_limit_singleton
+#print axioms TreeRescalingData.singleton
+#print axioms prestable_limit_singleton_subseq
+#print axioms assemble_prestable_limit
 
 end GromovCompactness.Assembly

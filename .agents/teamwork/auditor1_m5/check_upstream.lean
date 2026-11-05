@@ -1,0 +1,7 @@
+import GromovCompactness.Analysis.EpsilonRegularity
+import GromovCompactness.Analysis.EnergyGap
+import GromovCompactness.Analysis.SingularityRemoval
+
+#print axioms GromovCompactness.Analysis.epsilon_regularity
+#print axioms GromovCompactness.Analysis.sphere_energy_gap
+#print axioms GromovCompactness.Analysis.cylinder_exponential_decay

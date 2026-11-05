@@ -32,8 +32,8 @@ This module formalizes:
 1. `TargetThresholds` (Contract B01): Universal positive bubbling threshold constant
    $0 < h \le \min(\frac{1}{2}\varepsilon_{\mathrm{reg}}, \, \varepsilon_{\mathrm{sph}}, \, \frac{1}{2}\varepsilon_{\mathrm{neck}})$,
    packaged into an immutable structure.
-2. `exists_target_thresholds_of_modules` (Contract B01): Zero-sorry reduction theorem
-   proving existence of the universal threshold $h > 0$ from geometric modules A03, A07, and A10.
+2. `exists_target_thresholds_of_modules` (Contract B01): Conditional reduction theorem
+   assembling the uniform constants $(\varepsilon_{\mathrm{reg}}, \varepsilon_{\mathrm{sph}}, \dots)$ from geometric modules.
    `exists_target_thresholds` (Contract B01): Top-level existence theorem assembling the reduction
    with upstream geometric results.
 3. `CalibratedRescaling` (Contract B02): Moving centers $a_n \to 0$ and radii $\lambda_n \to 0$
@@ -331,8 +331,10 @@ noncomputable def make_target_thresholds
    ε_neck, hε_neck, C_neck, hC_neck, a_decay, ha_decay, h_neck,
    h, h_pos, h_le_reg, h_le_sph, h_le_neck⟩
 
-/-- Zero-sorry reduction theorem: Given the geometric modules A03, A07, and A10,
-the universal positive bubbling threshold exists constructively. -/
+/-- Conditional reduction theorem: Given the geometric modules A03, A07, and A10,
+the universal positive bubbling threshold exists constructively.
+Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
+Takes open geometric contract hypotheses and does not count as closing Contract B01 unconditionally. -/
 theorem exists_target_thresholds_of_modules
     (ε_reg C_reg : ℝ) (h_reg_pos : 0 < ε_reg) (h_Creg_pos : 0 < C_reg)
     (h_reg : ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (_ : 0 < r),
@@ -528,8 +530,10 @@ def RadialEnergyIVT : Prop :=
     c ≤ energyMeasure I u (disk_at a R) →
     ∃ r : ℝ, 0 < r ∧ r ≤ R ∧ energyMeasure I u (disk_at a r) = c
 
-/-- Reduction of Contract B02 to Radial Energy IVT:
-Under RadialEnergyIVT, exists_calibrated_rescaling holds with zero-sorry. -/
+/-- Conditional Reduction of Contract B02 to Radial Energy IVT:
+Under RadialEnergyIVT, exists_calibrated_rescaling holds constructively.
+Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
+Requires the unproved `RadialEnergyIVT` hypothesis. -/
 theorem exists_calibrated_rescaling_of_ivt
     (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
     (_hm : thresh.h ≤ m_defect)
@@ -560,7 +564,9 @@ theorem exists_calibrated_rescaling_of_ivt
 /-- Existence of calibrated moving centers and radii (Contract B02).
 Under energy concentration at `0` with defect mass `m_defect`, the Intermediate Value
 Theorem (`RadialEnergyIVT`) yields calibrated moving centers and scaling radii.
-This is formulated as a pure zero-`sorry` reduction theorem requiring the radial IVT hypothesis. -/
+Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
+Formulated as a conditional reduction theorem requiring the radial IVT hypothesis; does not count
+as closing Contract B02 unconditionally until the radial IVT is proved. -/
 theorem exists_calibrated_rescaling
     (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
     (hm : thresh.h ≤ m_defect)

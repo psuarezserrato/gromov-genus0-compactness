@@ -106,6 +106,86 @@ lemma fderiv_eq_zero_of_global_min {E : Type*} [NormedAddCommGroup E] [NormedSpa
     exact h_nonneg y
   exact h_min.fderiv_eq_zero
 
+/-- By definition, `laplacian2D` is the sum of the two diagonal entries of the second
+iterated Fréchet derivative on `ℂ`. -/
+lemma laplacian2D_eq_trace_iteratedFDeriv (e : ℂ → ℝ) (z : ℂ) :
+    laplacian2D e z =
+      (iteratedFDeriv ℝ 2 e z) ![1, 1] + (iteratedFDeriv ℝ 2 e z) ![Complex.I, Complex.I] :=
+  rfl
+
+/-- If `e : ℂ → ℝ` is $C^2$, then `laplacian2D e` is continuous on `ℂ`. -/
+lemma laplacian2D_continuous_of_contDiff
+    (e : ℂ → ℝ) (h : ContDiff ℝ 2 e) :
+    Continuous (laplacian2D e) := by
+  have h2 : Continuous (iteratedFDeriv ℝ 2 e) :=
+    h.continuous_iteratedFDeriv (by norm_num)
+  have h_eval1 : Continuous (fun z => (iteratedFDeriv ℝ 2 e z) ![1, 1]) :=
+    (ContinuousMultilinearMap.apply ℝ (fun _ : Fin 2 => ℂ) ℝ ![1, 1]).continuous.comp h2
+  have h_evalI : Continuous (fun z => (iteratedFDeriv ℝ 2 e z) ![Complex.I, Complex.I]) :=
+    (ContinuousMultilinearMap.apply ℝ (fun _ : Fin 2 => ℂ) ℝ ![Complex.I, Complex.I]).continuous.comp h2
+  exact h_eval1.add h_evalI
+
+/-- If `e : ℂ → ℝ` is $C^2$ on an open set `s`, then `laplacian2D e` is continuous on `s`. -/
+lemma laplacian2D_continuousOn_of_contDiffOn
+    (e : ℂ → ℝ) (s : Set ℂ) (hs : IsOpen s) (h : ContDiffOn ℝ 2 e s) :
+    ContinuousOn (laplacian2D e) s := by
+  have h2_within : ContinuousOn (iteratedFDerivWithin ℝ 2 e s) s :=
+    h.continuousOn_iteratedFDerivWithin (by norm_num) hs.uniqueDiffOn
+  have h2 : ContinuousOn (iteratedFDeriv ℝ 2 e) s := by
+    refine h2_within.congr ?_
+    intro z hz
+    exact (iteratedFDerivWithin_of_isOpen 2 hs hz).symm
+  have h_eval1 : ContinuousOn (fun z => (iteratedFDeriv ℝ 2 e z) ![1, 1]) s :=
+    (ContinuousMultilinearMap.apply ℝ (fun _ : Fin 2 => ℂ) ℝ ![1, 1]).continuous.comp_continuousOn h2
+  have h_evalI : ContinuousOn (fun z => (iteratedFDeriv ℝ 2 e z) ![Complex.I, Complex.I]) s :=
+    (ContinuousMultilinearMap.apply ℝ (fun _ : Fin 2 => ℂ) ℝ ![Complex.I, Complex.I]).continuous.comp_continuousOn h2
+  exact h_eval1.add h_evalI
+
+/-- Smoothness of the chart energy density: for any $J$-holomorphic map `u : CP1 → M`,
+the stereographic chart energy density `w ↦ riemannianEnergyDensity I u (stereo_chart.symm w)`
+is smooth ($C^\infty$) on `ℂ`. -/
+lemma contDiff_energy_density_chart
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
+    ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) := by
+  sorry
+
+/-- Bochner–Weitzenböck decomposition and uniform target curvature bound:
+On any compact tame symplectic manifold `(M, ω, J)`, there exist target-dependent constants
+`b, c ≥ 0` such that for every $J$-holomorphic map `u : CP1 → M` and `w ∈ ℂ`, the Laplacian of
+the chart energy density decomposes into a non-negative covariant Hessian norm squared `hessNorm^2`
+plus a curvature/torsion contraction `curvTerm` satisfying `|curvTerm| ≤ b * e(w)^2 + c * e(w)`. -/
+theorem bochner_curvature_term_bound
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] :
+    ∃ (b c : ℝ), 0 ≤ b ∧ 0 ≤ c ∧
+      ∀ (u : CP1 → M),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        ∀ (w : ℂ),
+          ∃ (hessNorm : ℝ) (curvTerm : ℝ),
+            laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+              hessNorm ^ 2 + curvTerm ∧
+            |curvTerm| ≤
+              b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
+              c * (riemannianEnergyDensity I u (stereo_chart.symm w)) := by
+  sorry
+
+/-- Pointwise Bochner differential inequality from the Weitzenböck decomposition
+`Δe = hessNorm² + curvTerm` and the two-sided curvature bound `|curvTerm| ≤ b e² + c e`. -/
+lemma bochner_inequality_pointwise_of_decomposition
+    {e_w lap_w hessNorm curvTerm b c : ℝ}
+    (h_weitz : lap_w = hessNorm ^ 2 + curvTerm)
+    (h_curv : |curvTerm| ≤ b * e_w ^ 2 + c * e_w) :
+    -b * e_w ^ 2 - c * e_w ≤ lap_w := by
+  have h_sq : 0 ≤ hessNorm ^ 2 := sq_nonneg hessNorm
+  have h_lower : -(b * e_w ^ 2 + c * e_w) ≤ curvTerm := neg_le_of_abs_le h_curv
+  linarith
+
 /-- Bochner Energy-Density Differential Inequality (Contract A02).
 On any compact tame symplectic manifold `(M, ω, J)`, there exist uniform non-negative constants
 `b, c ≥ 0` such that the Riemannian Dirichlet energy density `e = 1/2 |du|²` of every
@@ -123,17 +203,10 @@ theorem bochner_differential_inequality
         -b * (riemannianEnergyDensity I u (stereo_chart.symm w))^2 -
           c * (riemannianEnergyDensity I u (stereo_chart.symm w)) ≤
         laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w := by
-  use 1, 0
-  refine ⟨by norm_num, by norm_num, ?_⟩
+  rcases bochner_curvature_term_bound (M := M) I with ⟨b, c, hb, hc, h_decomp⟩
+  refine ⟨b, c, hb, hc, ?_⟩
   intro u hu w
-  let e := fun z => riemannianEnergyDensity I u (stereo_chart.symm z)
-  have he_nonneg : 0 ≤ e w := riemannianEnergyDensity_nonneg I u (stereo_chart.symm w)
-  have h_lhs : -1 * (e w)^2 - 0 * (e w) ≤ 0 := by
-    have : 0 ≤ (e w)^2 := sq_nonneg (e w)
-    linarith
-  by_cases h_diff : DifferentiableAt ℝ (iteratedFDeriv ℝ 1 e) w
-  · sorry
-  · rw [laplacian2D_zero_of_not_diff e w h_diff]
-    linarith
+  rcases h_decomp u hu w with ⟨hessNorm, curvTerm, h_weitz, h_curv⟩
+  exact bochner_inequality_pointwise_of_decomposition h_weitz h_curv
 
 end GromovCompactness.Analysis

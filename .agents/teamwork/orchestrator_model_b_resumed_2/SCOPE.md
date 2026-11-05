@@ -29,7 +29,7 @@ Phase 1 formalizes the foundational layer for Gromov Compactness in Lean 4:
 | M2 | Subsequence Proofs (F05) | Eliminate all `sorry` in `Topology/Subsequence.lean` via machine-checked proofs using standard Mathlib order and topology tools | M1 | DONE |
 | M3 | Target & Sphere Proofs (F01, F02) | Target.lean verified zero-sorry. Sphere.lean remediation: genuine stereographic projective definitions for affine_scaling, inversion, rotation, disk_at, and authentic 3-point transitivity theorem | M1 | DONE |
 | M4 | Energy, SmoothLocal & SphereTree (F03, F04, F06) | Eliminate `sorry` in `Analysis/Energy.lean`, `Topology/SmoothLocal.lean`, and `Topology/SphereTree.lean` | M2, M3 | DONE |
-| M5 | Comprehensive Audit & Gate Check | Independent Reviewers, Challengers, and Forensic Auditor verify 0 sorry, compile with Lake, check axioms, create checkpoint and Git commit | M4 | IN_PROGRESS |
+| M5 | Comprehensive Audit & Gate Check | Independent Reviewers, Challengers, and Forensic Auditor verify 0 sorry, compile with Lake, check axioms, create checkpoint and Git commit | M4 | DONE |
 
 ## Interface Contracts
 ### Subsequence ↔ SmoothLocal & Compactness

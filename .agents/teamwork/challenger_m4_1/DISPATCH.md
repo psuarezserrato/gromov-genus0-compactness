@@ -1,27 +1,28 @@
-## 2026-11-03T22:03:42Z
+# Dispatch: Milestone 4 Adversarial Challenger 1 (challenger_m4_1)
 
+## Mission
+Adversarial challenge and empirical stress-testing of Milestone 4:
+Empirically verify that `#audit_wiring` detects artificial breaks, that `#30, #31, #33, #34` cannot be proven by `rfl` or `trivial`, and that `Automorphisms.lean` is genuinely clean.
+
+## Mandatory Inputs & References
+- ORIGINAL_REQUEST: `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/ORIGINAL_REQUEST.md` (MUST read first)
+- COMPLETION_PLAN: `/Users/pablosuarez/Desktop/SympTopAutoForm/COMPLETION_PLAN.md` (§3.4 E04 & §5.5)
+- SCOPE: `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/orchestrator_phase5/SCOPE.md`
+- Target File: `/Users/pablosuarez/Desktop/SympTopAutoForm/GromovCompactness/Extensions/Automorphisms.lean`
+- Working Directory: `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m4_1`
+
+## Specific Verification Tasks
+1. Execute `lake env lean tests/PhaseAxiomCensus.lean` and verify `#audit_wiring` outputs `STATUS: WIRING AUDIT PASSED`.
+2. Adversarial challenge on `#audit_wiring`: verify that `#audit_wiring` checks all 9 contracts and 6 intermediate theorems.
+3. Test non-triviality: verify that `#30, #31, #33, #34` cannot be solved by `rfl` or `trivial`.
+4. Run `MODULE_PREFIX=GromovCompactness.Extensions.Automorphisms ./tools/phase_axiom_census.sh` and verify exit code 0.
+5. Run regression suites: `tests/ChallengePhase4ModelB.lean` and `tests/ForensicPhase4Axioms.lean`.
+6. Write `handoff.md` in your working directory with an explicit verdict: `APPROVE` or `REJECT`.
+
+## 2026-11-05T08:27:02Z
 You are challenger_m4_1.
-Your working directory is: /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m4_1/
-Your caller orchestrator conversation ID is: d157d344-ea97-439a-b25a-64cacb9d78a1
-
-MANDATORY INSTRUCTIONS:
-1. You MUST read /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/ORIGINAL_REQUEST.md before starting work.
-2. Read the project scope at /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/orchestrator_model_b_resumed_2/SCOPE.md.
-3. Read the worker handoff report at:
-   /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/worker_m4_impl/handoff.md
-
-TASK:
-Empirically and adversarially challenge `Analysis/Energy.lean` and `Topology/SmoothLocal.lean`:
-1. Create a standalone test file in your working directory:
-   `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m4_1/TestChallengeEnergy.lean`
-2. In this test file:
-   - Import `GromovCompactness.Analysis.Energy` and `GromovCompactness.Topology.SmoothLocal`.
-   - Test `energy_point_null` on concrete points (north pole and arbitrary points).
-   - Test `energy_circle_null` on circles.
-   - Test `energy_density_eq_omega` on J-holomorphic curves.
-   - Test `smooth_local_limit_unique` on distinct constant limits.
-3. Run `lake env lean .agents/teamwork/challenger_m4_1/TestChallengeEnergy.lean` to verify clean compilation with exit code 0.
-4. Check 0 sorries, standard axioms only.
-5. Write your challenge report with a clear verdict (APPROVE or REJECT) in:
-   /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m4_1/handoff.md
-6. Send a message to parent d157d344-ea97-439a-b25a-64cacb9d78a1 with your verdict and report path.
+Your working directory is: /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m4_1
+MANDATORY: Read /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/ORIGINAL_REQUEST.md first.
+Then read your task instructions in /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m4_1/DISPATCH.md.
+Run `lake env lean tests/PhaseAxiomCensus.lean`, verify `#audit_wiring` outputs `STATUS: WIRING AUDIT PASSED`, probe non-triviality of #30, #31, #33, #34, run `MODULE_PREFIX=GromovCompactness.Extensions.Automorphisms ./tools/phase_axiom_census.sh`, run regression suites, and write your report to /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m4_1/handoff.md with an explicit APPROVE or REJECT verdict.
+Notify me with send_message when complete.

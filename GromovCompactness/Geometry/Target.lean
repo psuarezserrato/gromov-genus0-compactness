@@ -38,6 +38,15 @@ variable {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M
 noncomputable instance (x : M) : NormedAddCommGroup (TangentSpace I x) := inferInstanceAs (NormedAddCommGroup E)
 noncomputable instance (x : M) : NormedSpace ℝ (TangentSpace I x) := inferInstanceAs (NormedSpace ℝ E)
 
+/-- Coordinate representation of an almost complex structure `J` in the extended chart at `x`. -/
+def J_chart (J : (x : M) → TangentSpace I x →L[ℝ] TangentSpace I x) (x : M) (y : E) : E →L[ℝ] E :=
+  J ((extChartAt I x).symm y)
+
+/-- Coordinate representation of a 2-form `ω` in the extended chart at `x`. -/
+def ω_chart («ω» : (x : M) → TangentSpace I x →L[ℝ] TangentSpace I x →L[ℝ] ℝ) (x : M) (y : E) :
+    E →L[ℝ] E →L[ℝ] ℝ :=
+  «ω» ((extChartAt I x).symm y)
+
 /-- A compact, boundaryless, finite-dimensional smooth manifold equipped with a closed
 non-degenerate two-form `ω` and an `ω`-tamed smooth almost complex structure `J`. -/
 class ClosedTameTarget (I : ModelWithCorners ℝ E H) (M : Type*)
@@ -47,16 +56,22 @@ class ClosedTameTarget (I : ModelWithCorners ℝ E H) (M : Type*)
   «ω» : (x : M) → TangentSpace I x →L[ℝ] TangentSpace I x →L[ℝ] ℝ
   /-- Skew-symmetry of the two-form: `ω(v, w) = -ω(w, v)`. -/
   ω_skew : ∀ (x : M) (v w : TangentSpace I x), «ω» x v w = - «ω» x w v
-  /-- Closedness of the two-form: `dω = 0`. -/
-  ω_closed : Prop
+  /-- Smoothness of the symplectic 2-form `ω`: chartwise C^∞ in every chart. -/
+  ω_smooth : ∀ (x : M), ContDiffOn ℝ ∞ (ω_chart I «ω» x) (extChartAt I x).target
+  /-- Closedness of the two-form: `dω = 0`.
+  In every chart, the exterior derivative (cyclic sum of directional Fréchet derivatives)
+  vanishes at every point `y ∈ chart.target`. -/
+  ω_closed : ∀ (x : M) (y : E) (_ : y ∈ (extChartAt I x).target) (v₁ v₂ v₃ : E),
+    let dω_y := fderiv ℝ (ω_chart I «ω» x) y
+    dω_y v₁ v₂ v₃ + dω_y v₂ v₃ v₁ + dω_y v₃ v₁ v₂ = 0
   /-- Non-degeneracy of the two-form: `(∀ w, ω(v, w) = 0) → v = 0`. -/
   ω_nondegenerate : ∀ (x : M) (v : TangentSpace I x), (∀ w, «ω» x v w = 0) → v = 0
   /-- The almost complex structure `J : TM → TM`. -/
   J : (x : M) → TangentSpace I x →L[ℝ] TangentSpace I x
   /-- Almost complex condition: `J² = -id`. -/
   J_sq : ∀ (x : M) (v : TangentSpace I x), J x (J x v) = -v
-  /-- Smoothness of the almost complex bundle endomorphism `J`. -/
-  J_smooth : Prop
+  /-- Smoothness of the almost complex bundle endomorphism `J`: chartwise C^∞ in every chart. -/
+  J_smooth : ∀ (x : M), ContDiffOn ℝ ∞ (J_chart I J x) (extChartAt I x).target
   /-- Tameness condition: `ω(v, J v) > 0` for all non-zero `v`. -/
   tame : ∀ (x : M) (v : TangentSpace I x), v ≠ 0 → 0 < «ω» x v (J x v)
 
@@ -104,6 +119,11 @@ variable {«Σ» : Type*} [TopologicalSpace «Σ»] [ChartedSpace H_dom «Σ»] 
 noncomputable instance (z : «Σ») : NormedAddCommGroup (TangentSpace I_dom z) := inferInstanceAs (NormedAddCommGroup E_dom)
 noncomputable instance (z : «Σ») : NormedSpace ℝ (TangentSpace I_dom z) := inferInstanceAs (NormedSpace ℝ E_dom)
 
+/-- Coordinate representation of a complex structure `j` on a Riemann surface in the extended chart at `z`. -/
+def j_chart (j : (z : «Σ») → TangentSpace I_dom z →L[ℝ] TangentSpace I_dom z) (z : «Σ») (w : E_dom) :
+    E_dom →L[ℝ] E_dom :=
+  j ((extChartAt I_dom z).symm w)
+
 /-- A Riemann surface domain structure with complex structure `j`. -/
 class RiemannDomain (E_dom : Type*) [NormedAddCommGroup E_dom] [NormedSpace ℝ E_dom]
     (H_dom : Type*) [TopologicalSpace H_dom] (I_dom : ModelWithCorners ℝ E_dom H_dom)
@@ -111,7 +131,7 @@ class RiemannDomain (E_dom : Type*) [NormedAddCommGroup E_dom] [NormedSpace ℝ 
   j : (z : «Σ») → TangentSpace I_dom z →L[ℝ] TangentSpace I_dom z
   j_sq : ∀ (z : «Σ») (v : TangentSpace I_dom z), j z (j z v) = -v
   /-- Smoothness of the complex structure `j`. -/
-  j_smooth : Prop
+  j_smooth : ∀ (z : «Σ»), ContDiffOn ℝ ∞ (j_chart I_dom j z) (extChartAt I_dom z).target
 
 /-- The Cauchy-Riemann operator $\bar\partial_J u := \frac{1}{2} (du + J \circ du \circ j)$. -/
 noncomputable def cauchyRiemannOp [tgt : ClosedTameTarget I M] [dom : RiemannDomain E_dom H_dom I_dom «Σ»]

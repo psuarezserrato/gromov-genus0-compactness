@@ -1,0 +1,45 @@
+--- a/tests/ChallengeMilestone3Phase5.lean
++++ b/tests/ChallengeMilestone3Phase5.lean
+@@ -89,19 +89,30 @@
+ -- PROBE 2: PDE Differential Inequality & Mean Value Inequality (P0-4, P0-5)
+ --------------------------------------------------------------------------------
+ 
+-/-- Test 2.1: scalar_mean_value_inequality default parameter alignment (c : ℝ := 0). -/
+-theorem test_scalar_mean_value_inequality_default_args :
+-    True := by
+-  trivial
+-
+-/-- Test 2.2: Bochner differential inequality produces real subharmonic bound. -/
++/-- Test 2.1: scalar_mean_value_inequality default parameter alignment (c : ℝ := 0).
++Invokes Contract A01 with trailing default arguments (c : ℝ := 0) and (hc : 0 ≤ c := by norm_num). -/
++theorem test_scalar_mean_value_inequality_default_args (b : ℝ) (hb : 0 ≤ b) :
++    ∃ (η C : ℝ), 0 < η ∧ 0 < C ∧
++    ∀ (r : ℝ) (hr : 0 < r) (e : ℂ → ℝ),
++      (∀ z, 0 ≤ e z) →
++      ContinuousOn e (Metric.closedBall 0 r) →
++      ContDiffOn ℝ 2 e (Metric.ball (0 : ℂ) r) →
++      (∀ z ∈ Metric.ball (0 : ℂ) r, -b * (e z)^2 - 0 * (e z) ≤ laplacian2D e z) →
++      (∫ w in Metric.ball (0 : ℂ) r, e w) < η →
++      (∀ z ∈ Metric.closedBall (0 : ℂ) (r / 2), e z ≤ C * r^(-2 : ℝ) * (∫ w in Metric.ball (0 : ℂ) r, e w)) :=
++  scalar_mean_value_inequality b hb
++
++/-- Test 2.2: Bochner differential inequality produces real subharmonic bound.
++Invokes Contract A02 on the manifold M with model I, ensuring existence of uniform constants b, c ≥ 0. -/
+ theorem test_bochner_differential_inequality_signature :
+-    ∃ (b : ℝ) (_hb : 0 ≤ b) (c : ℝ) (_hc : 0 ≤ c),
+-      ∀ (u : ℂ → M) (z : ℂ),
+-        True := by
+-  refine ⟨1, by norm_num, 0, by norm_num, ?_⟩
+-  intro u z
+-  trivial
++    ∃ (b c : ℝ), 0 ≤ b ∧ 0 ≤ c ∧
++    ∀ (u : CP1 → M),
++      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
++      ∀ (w : ℂ),
++        -b * (riemannianEnergyDensity I u (stereo_chart.symm w))^2 -
++          c * (riemannianEnergyDensity I u (stereo_chart.symm w)) ≤
++        laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w :=
++  bochner_differential_inequality (M := M) I
+ 
+ --------------------------------------------------------------------------------
+ -- PROBE 3: Call-Graph Wiring Components 1–4 (P0-11)

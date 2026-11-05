@@ -1,0 +1,50 @@
+--- a/GromovCompactness/Compactness/Assembly.lean
++++ b/GromovCompactness/Compactness/Assembly.lean
+@@ -87,14 +87,46 @@ structure PrestableLimitData (u_seq : ℕ → (CP1 → M)) where
++
++/-- Calibrated rescaling data along a rooted sphere tree (Contract G01 / Task P0-7).
++For each child component `w` attached to parent `v`, provides the moving centers `a_{w,n}`
++and scaling factors `λ_{w,n} > 0` with `λ_{w,n} → 0` that calibrate the bubbling transition. -/
++structure TreeRescalingData (tree : SphereTree) (root : tree.V) where
++  /-- Parent map sending each non-root vertex to its unique tree parent closer to the root. -/
++  parent : (w : tree.V) → w ≠ root → tree.V
++  /-- Adjacency between child and parent. -/
++  parent_adj : ∀ (w : tree.V) (hw : w ≠ root), tree.adj.Adj (parent w hw) w
++  /-- Moving centers of the local rescalings in ℂ. -/
++  center : (w : tree.V) → ℕ → ℂ
++  /-- Moving scaling radii of the local rescalings. -/
++  scale : (w : tree.V) → ℕ → ℝ
++  /-- Positive scaling at all stages. -/
++  scale_pos : ∀ (w : tree.V) (n : ℕ), 0 < scale w n
++  /-- Vanishing scales for all bubble components off the root. -/
++  scale_tendsto : ∀ (w : tree.V), w ≠ root →
++    Tendsto (scale w) atTop (𝓝 0)
++  /-- Moving centers converge to the nodal attachment point on the parent sphere. -/
++  center_tendsto : ∀ (w : tree.V) (hw : w ≠ root),
++    Tendsto (fun n => stereo_chart.symm (center w n)) atTop
++      (𝓝 (tree.node_point (parent w hw) w (parent_adj w hw)))
++
++theorem assemble_global_frames
++    (tree : SphereTree) (root : tree.V)
++    (res : TreeRescalingData tree root) :
+     ∃ (frames : (v : tree.V) → ℕ → MoebiusFrame),
+       (∀ n, frames root n = MoebiusFrame.id) ∧
++      (∀ (w : tree.V) (hw : w ≠ root) (n : ℕ),
++        frames w n = MoebiusFrame.comp (frames (res.parent w hw) n)
++          (affine_scaling (res.center w n) (res.scale w n) (res.scale_pos w n))) ∧
+       (∀ (v w : tree.V) (h : tree.adj.Adj v w),
+         ∀ K ⊆ punctured_sphere {tree.node_point w v (tree.adj.symm h)}, IsCompact K →
+           TendstoUniformlyOn
+             (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
+             (fun _ => tree.node_point v w h) atTop K) := by
+   sorry
++
++/-- Canonical rescaling data for a singleton sphere tree with zero non-root components (Zero-sorry). -/
++def TreeRescalingData.singleton : TreeRescalingData Bubbling.singletonSphereTree () where
++  parent := fun w hw => by cases w; exact False.elim (hw rfl)
++  parent_adj := fun w hw => by cases w; exact False.elim (hw rfl)
++  center := fun _ _ => 0
++  scale := fun _ _ => 1
++  scale_pos := fun _ _ => by norm_num
++  scale_tendsto := fun w hw => by cases w; exact False.elim (hw rfl)
++  center_tendsto := fun w hw => by cases w; exact False.elim (hw rfl)

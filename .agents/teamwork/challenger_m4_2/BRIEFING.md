@@ -1,56 +1,57 @@
-# BRIEFING — 2026-11-03T22:12:30Z
+# BRIEFING — 2026-11-05T08:37:00Z
 
 ## Mission
-Empirically and adversarially challenge `GromovCompactness.Topology.SphereTree` by testing tree degree sum, ghost component bounds, and tree grafting.
+Adversarial challenge and empirical verification of Milestone 4 (Call-graph wiring `#audit_wiring` & Extensions.Automorphisms declarations #30, #31, #33, #34, group actions, ghost degree conditions, and finiteness).
 
 ## 🔒 My Identity
-- Archetype: empirical challenger
+- Archetype: empirical_challenger
 - Roles: critic, specialist
 - Working directory: /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m4_2
-- Original parent: d157d344-ea97-439a-b25a-64cacb9d78a1
-- Milestone: M4
+- Original parent: 8e7bd612-f2f7-4a5c-8f0d-e33b6e7beac0
+- Milestone: Milestone 4
 - Instance: 2 of 2
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Write tests in working directory, never trust worker claims without verification
-- Must execute verification code empirically
-- Standard Lean axioms only, 0 sorries
+- Run all builds, tests, scripts independently; do not trust worker claims
+- Must reproduce any bug empirically
+- Layout compliance: .agents/teamwork/ holds only metadata
 
 ## Current Parent
-- Conversation ID: d157d344-ea97-439a-b25a-64cacb9d78a1
-- Updated: 2026-11-03T22:03:50Z
+- Conversation ID: 8e7bd612-f2f7-4a5c-8f0d-e33b6e7beac0
+- Updated: 2026-11-05T08:29:21Z
 
 ## Review Scope
-- **Files to review**: `GromovCompactness/Topology/SphereTree.lean`
-- **Interface contracts**: `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/orchestrator_model_b_resumed_2/SCOPE.md`
-- **Review criteria**: correctness, 0 sorries, standard axioms, empirical stress-testing of `tree_degree_sum`, `ghost_components_bound`, `graft_trees`
+- **Files to review**: GromovCompactness/Extensions/Automorphisms.lean, GromovCompactness/Compactness/Concentration.lean, tests/PhaseAxiomCensus.lean, tests/ChallengePhase4ModelB.lean, tests/ForensicPhase4Axioms.lean, tests/AdversarialAutomorphismsM4.lean
+- **Interface contracts**: /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/ORIGINAL_REQUEST.md
+- **Review criteria**: correctness, sorryAx-free, standard axioms, non-vacuous, non-circular, edge cases, group actions, ghost degree conditions
+
+## Key Decisions Made
+- Executed `lake build` independently: clean exit code 0.
+- Executed `lake env lean tests/PhaseAxiomCensus.lean`: verified `STATUS: WIRING AUDIT PASSED` (all 9 core contracts transitively connected in 34,868 constants, 6 intermediate theorems verified with 0 direct sorry).
+- Executed `MODULE_PREFIX=GromovCompactness.Extensions.Automorphisms ./tools/phase_axiom_census.sh`: verified all 77 declarations (44 theorems) are 100% sorryAx-free with standard axioms `[propext, Classical.choice, Quot.sound]`.
+- Executed regression suites `tests/ChallengePhase4ModelB.lean` and `tests/ForensicPhase4Axioms.lean`: both passed with exit code 0.
+- Designed, authored, and executed custom stress test suite `tests/AdversarialAutomorphismsM4.lean`: 14 empirical adversarial probes all passed cleanly with 0 sorry and standard axioms.
+- Executed `tests/ChallengeMilestone4WiringAutomorphisms.lean`: verified wiring sensitivity and non-triviality.
+- Verdict: APPROVE Milestone 4 unconditionally.
+
+## Artifact Index
+- /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m4_2/BRIEFING.md — Situational awareness
+- /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m4_2/progress.md — Liveness heartbeat
+- /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m4_2/handoff.md — Final challenge report
+- /Users/pablosuarez/Desktop/SympTopAutoForm/tests/AdversarialAutomorphismsM4.lean — 14 adversarial stress probes
 
 ## Attack Surface
 - **Hypotheses tested**:
-  1. Does `tree_degree_sum` hold on concrete tree structures ($|V|=1$, $|V|=2$, 3-vertex path $P_3$, 4-vertex star $K_{1,3}$)? PASS.
-  2. Does `graft_trees` strictly satisfy vertex additivity $|V(T_1 \cup T_2)| = |V(T_1)| + |V(T_2)|$? PASS.
-  3. Does `graft_trees` maintain tree acyclicity, connectedness, and `IsTree`? PASS.
-  4. Is `ghost_components_bound` sharp and exact on edge configurations ($P=2, G=0$ and $P=3, G=1$)? PASS.
-  5. Does `ghost_components_bound` correctly rule out impossible configurations (e.g., $P=2, G=1$, $P=0$, $P=1$)? PASS.
-- **Vulnerabilities found**: None. The mathematical formulation and Lean 4 implementation in `SphereTree.lean` are robust, genuine, and completely free of circularity or axioms beyond `[propext, Classical.choice, Quot.sound]`.
-- **Untested angles**: Marked points extension ($k > 0$, extension track E03/E04) which is explicitly scoped for later phases.
+  - TreeAutomorphism group actions: identity neutral laws, associativity, inverse laws (`stress_tree_automorphism_id_neutral`, `stress_tree_automorphism_comp_assoc`, `stress_tree_automorphism_inv_laws`).
+  - Ghost degree sharpness ($3 \le \deg(v)$ vs $\deg(v) < 3$): proved that on trees with $|V| \le 3$, ghost components are impossible; ghost components require $|V| \ge 4$; single-vertex trees cannot be ghost; all leaves ($\deg = 1$) and path nodes ($\deg = 2$) are strictly principal components (`stress_ghost_impossible_on_small_trees`, `stress_ghost_requires_at_least_four_vertices`, `stress_single_vertex_cannot_be_ghost`, `stress_leaves_and_path_vertices_must_be_principal`, `stress_ghost_degree_strictly_ge_three`).
+  - Non-vacuousness of #30: constructed concrete distinct projective points and verified non-degeneracy (`stress_moebius_rigidity_satisfiable`, `stress_moebius_rigidity_conclusion_holds`).
+  - Non-circularity and unconditional equivalence of #34: proved full ↔ pure equivalence for all stable sphere tree limits (`stress_full_iff_pure_equivalence`).
+  - Left cancelability of stable map automorphism composition: proved injectivity of left action (`stress_automorphism_comp_left_cancel`).
+  - Fiber structure: verified pure component automorphisms form the identity fiber (`stress_pure_is_identity_fiber`).
+  - Permutation group upper bound: verified $|\mathrm{TreeAut}(T)| \le |V|!$ (`stress_tree_automorphism_card`).
+- **Vulnerabilities found**: 0 vulnerabilities or bugs found. Implementation and proofs are rock-solid, fully sorry-free, and strictly adhere to standard axioms.
+- **Untested angles**: Marked curve automorphisms with $k > 0$ marked points (deferred to marked curve extensions E02 / Phase 8).
 
 ## Loaded Skills
-- None specified in dispatch
-
-## Key Decisions Made
-- Constructed concrete sphere trees `singleTree`, `twoTree`, `threePathTree`, `fourStarTree` with genuine distinct nodal attachments using `north_pole`, `south_pole`, and `east_pole`.
-- Formally verified `tree_degree_sum` on all concrete instances.
-- Formally proved vertex counting, acyclicity, connectedness, and Euler degree sum for arbitrary grafted trees.
-- Proved sharpness of `ghost_components_bound` at $P=2, G=0$ and $P=3, G=1$.
-- Adversarially refuted invalid configurations $P=2, G=1$ and pure ghost configurations $P=0$.
-- Verified 0 sorries and standard axioms on `TestChallengeTree.lean`.
-- Verdict: APPROVE.
-
-## Artifact Index
-- `DISPATCH.md` — record of orchestrator dispatch
-- `BRIEFING.md` — working memory and situational awareness
-- `progress.md` — liveness heartbeat
-- `TestChallengeTree.lean` — empirical test suite and adversarial harnesses
-- `handoff.md` — final challenge report and verdict
+- None requested in dispatch

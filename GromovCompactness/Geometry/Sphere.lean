@@ -75,7 +75,9 @@ noncomputable instance : RiemannDomain (EuclideanSpace ℝ (Fin 2)) (EuclideanSp
   j_sq := by
     intro _ v
     exact J_CP1_sq v
-  j_smooth := True
+  j_smooth := by
+    intro _
+    exact contDiffOn_const
 
 noncomputable instance : MeasurableSpace CP1 := borel CP1
 instance : BorelSpace CP1 := ⟨rfl⟩

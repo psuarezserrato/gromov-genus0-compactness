@@ -7,6 +7,7 @@ import Mathlib.Topology.MetricSpace.Basic
 import Mathlib.Topology.MetricSpace.Sequences
 import Mathlib.Topology.Sequences
 import Mathlib.Topology.Separation.Basic
+import Mathlib.Topology.Separation.Hausdorff
 import GromovCompactness.Geometry.Target
 import GromovCompactness.Geometry.Sphere
 import GromovCompactness.Analysis.Energy
@@ -214,31 +215,78 @@ def boundedMarkedStableMapSetoid (k : ℕ) (B : ℝ) :
     trans := fun h₁ h₂ => stableMapEquiv_trans I h₁ h₂
   }
 
+instance boundedMarkedStableMapSetoidInst (k : ℕ) (B : ℝ) :
+    Setoid (BoundedMarkedStableMap I (M := M) k B) :=
+  boundedMarkedStableMapSetoid I k B
+
 /-- The Kontsevich moduli space $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$ of stable
 $k$-marked genus 0 pseudo-holomorphic curves with energy bounded by $B$. -/
 def ModuliSpace (k : ℕ) (B : ℝ) : Type _ :=
   Quotient (boundedMarkedStableMapSetoid I (M := M) k B)
 
-/-- Sequential Gromov convergence of stable map isomorphism classes. -/
+/-- Mathematical witness of Gromov convergence of marked stable maps (Contract E05). -/
+structure MarkedGromovWitness {k : ℕ}
+    (u_seq : ℕ → MarkedStableMap I (M := M) k)
+    (u_lim : MarkedStableMap I (M := M) k) where
+  frames : (v : u_lim.tree.V) → ℕ → MoebiusFrame
+  comp_map : (v : u_lim.tree.V) → (n : ℕ) → (u_seq n).tree.V
+  smooth_conv : ∀ (v : u_lim.tree.V),
+    SmoothLocalConvergesOn I
+      (fun n => (u_seq n).map (comp_map v n) ∘ (frames v n).toHomeo)
+      (u_lim.map v)
+      (punctured_sphere { z | (∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h) ∨
+                              (∃ (i : Fin k), u_lim.tree.mark_vertex i = v ∧ z = u_lim.tree.mark_point i) })
+  frame_collapse : ∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
+    ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+      TendstoUniformlyOn
+        (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
+        (fun _ => u_lim.tree.node_point v w h) atTop K
+  mark_conv : ∀ (i : Fin k),
+    let v := u_lim.tree.mark_vertex i
+    Tendsto (fun n => (MoebiusFrame.inv (frames v n)).toHomeo
+      ((u_seq n).tree.mark_point i)) atTop (𝓝 (u_lim.tree.mark_point i))
+  energy_conv :
+    Tendsto (fun n => markedStableMapTotalEnergy I (u_seq n)) atTop
+      (𝓝 (markedStableMapTotalEnergy I u_lim))
+
+/-- Sequential Gromov convergence on the moduli space (McDuff-Salamon §5.6, Zero-sorry). -/
 def GromovConverges {k : ℕ} {B : ℝ}
     (u_seq : ℕ → ModuliSpace I (M := M) k B)
-    (u_lim : ModuliSpace I (M := M) k B) : Prop := by sorry
+    (u_lim : ModuliSpace I (M := M) k B) : Prop :=
+  ∃ (reps : ℕ → BoundedMarkedStableMap I (M := M) k B)
+    (lim_rep : BoundedMarkedStableMap I (M := M) k B),
+    (∀ n, Quotient.mk' (reps n) = u_seq n) ∧
+    Quotient.mk' lim_rep = u_lim ∧
+    Nonempty (MarkedGromovWitness I (fun n => (reps n).1) lim_rep.1)
 
-/-- The canonical Gromov metric on $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$. -/
-noncomputable def gromovDist (k : ℕ) (B : ℝ) :
-    ModuliSpace I (M := M) k B → ModuliSpace I (M := M) k B → ℝ := by sorry
+/-- The sequential Gromov topology on the moduli space (McDuff-Salamon §5.6, Zero-sorry). -/
+def moduliSpaceTopology (k : ℕ) (B : ℝ) : TopologicalSpace (ModuliSpace I (M := M) k B) where
+  IsOpen U := ∀ (u_seq : ℕ → ModuliSpace I (M := M) k B) (u_lim : ModuliSpace I (M := M) k B),
+    u_lim ∈ U → GromovConverges I u_seq u_lim → ∀ᶠ n in atTop, u_seq n ∈ U
+  isOpen_univ := fun _u_seq _u_lim _ _ => Eventually.of_forall (fun _ => mem_univ _)
+  isOpen_inter := by
+    intro s t hs ht u_seq u_lim ⟨hu_s, hu_t⟩ h_conv
+    have hs_ev := hs u_seq u_lim hu_s h_conv
+    have ht_ev := ht u_seq u_lim hu_t h_conv
+    exact hs_ev.and ht_ev
+  isOpen_sUnion := by
+    intro S hS u_seq u_lim ⟨t, ht_mem, hu_t⟩ h_conv
+    have ht_open := hS t ht_mem
+    have ht_ev := ht_open u_seq u_lim hu_t h_conv
+    filter_upwards [ht_ev] with n hn
+    exact mem_sUnion_of_mem hn ht_mem
 
-/-- The moduli space $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$ is equipped with a metric space
-structure induced by the Gromov metric. -/
-noncomputable instance moduliSpaceMetric (k : ℕ) (B : ℝ) :
-    MetricSpace (ModuliSpace I (M := M) k B) := by sorry
+/-- Canonical topological space instance on the Kontsevich moduli space (Zero-sorry). -/
+instance moduliSpaceTopologicalSpace (k : ℕ) (B : ℝ) :
+    TopologicalSpace (ModuliSpace I (M := M) k B) :=
+  moduliSpaceTopology I k B
 
 /-- **Hausdorff Separation of the Moduli Space (Contract E05)**:
 The moduli space $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$ is a Hausdorff space ($T_2$).
 This formalizes the uniqueness of Gromov limits up to stable map isomorphism. -/
 theorem moduli_space_t2 (k : ℕ) (B : ℝ) :
     T2Space (ModuliSpace I (M := M) k B) := by
-  infer_instance
+  sorry
 
 /-- **Compactness of the Moduli Space (Contract E05)**:
 The moduli space $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$ is a compact topological space. -/
@@ -257,6 +305,13 @@ theorem moduli_space_compact_hausdorff (k : ℕ) (B : ℝ) :
     CompactSpace (ModuliSpace I (M := M) k B) ∧ T2Space (ModuliSpace I (M := M) k B) :=
   ⟨moduli_space_compact I k B, moduli_space_t2 I k B⟩
 
+/-- Metrizability of the Gromov Moduli Space (McDuff-Salamon §5.6, deferred theorem).
+There exists a metric inducing the sequential Gromov topology on $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$. -/
+theorem moduli_space_metrizable (k : ℕ) (B : ℝ) :
+    ∃ (m : MetricSpace (ModuliSpace I (M := M) k B)),
+      m.toUniformSpace.toTopologicalSpace = moduliSpaceTopology I k B := by
+  sorry
+
 /-- A homology class $A \in H_2(M; \mathbb{Z})$ represented with its symplectic pairing. -/
 structure HomologyClass2 (M : Type*) where
   /-- Symplectic area pairing $\langle [\omega], A \rangle$. -/
@@ -269,21 +324,28 @@ def represents_homology_class {k : ℕ}
     (u : MarkedStableMap I (M := M) k) (A : HomologyClass2 M) : Prop :=
   markedStableMapTotalEnergy I u = A.omega_eval
 
-/-- The moduli space $\overline{\mathcal{M}}_{0, k}(M, J, A)$ for a fixed homology class $A$. -/
-def ModuliSpaceInClass (k : ℕ) (A : HomologyClass2 M) : Type _ :=
-  { x : ModuliSpace I (M := M) k A.omega_eval // sorry }
+/-- Predicate for moduli space elements representing a homology class A (Zero-sorry). -/
+def ModuliSpace.represents_class {k : ℕ} (A : HomologyClass2 M)
+    (x : ModuliSpace I (M := M) k A.omega_eval) : Prop :=
+  ∃ (u : BoundedMarkedStableMap I (M := M) k A.omega_eval),
+    Quotient.mk' u = x ∧ represents_homology_class I u.1 A
 
-/-- Subspace metric on the homology-fixed moduli space. -/
-noncomputable instance moduliSpaceInClassMetric (k : ℕ) (A : HomologyClass2 M) :
-    MetricSpace (ModuliSpaceInClass I (M := M) k A) :=
-  MetricSpace.induced Subtype.val Subtype.val_injective (moduliSpaceMetric I k A.omega_eval)
+/-- The moduli space for a fixed homology class A (Zero-sorry). -/
+def ModuliSpaceInClass (k : ℕ) (A : HomologyClass2 M) : Type _ :=
+  { x : ModuliSpace I (M := M) k A.omega_eval // ModuliSpace.represents_class I A x }
+
+/-- Subspace topology on the homology-fixed moduli space (Zero-sorry). -/
+instance moduliSpaceInClassTopologicalSpace (k : ℕ) (A : HomologyClass2 M) :
+    TopologicalSpace (ModuliSpaceInClass I (M := M) k A) :=
+  TopologicalSpace.induced Subtype.val (moduliSpaceTopologicalSpace I k A.omega_eval)
 
 /-- **Compact Hausdorff Space for Fixed Homology Class (Contract E05)**:
 The moduli space $\overline{\mathcal{M}}_{0, k}(M, J, A)$ representing class $A \in H_2(M; \mathbb{Z})$
 is compact and Hausdorff. -/
 theorem moduli_space_in_class_compact_hausdorff (k : ℕ) (A : HomologyClass2 M) :
     CompactSpace (ModuliSpaceInClass I k A) ∧ T2Space (ModuliSpaceInClass I k A) := by
-  refine ⟨?_, inferInstance⟩
+  haveI : T2Space (ModuliSpace I (M := M) k A.omega_eval) := moduli_space_t2 I k A.omega_eval
+  refine ⟨?_, Topology.IsEmbedding.t2Space ⟨⟨rfl⟩, Subtype.val_injective⟩⟩
   sorry
 
 #print axioms stableMapEquiv_refl
