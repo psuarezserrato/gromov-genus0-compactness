@@ -257,11 +257,12 @@ theorem probe_gromov_compactness_core_wiring
 preserving total energy and all 5 convergence fields with zero direct sorry. -/
 theorem probe_stabilize_prestable_tree_wiring
     (u_seq : ℕ → (CP1 → M)) (pdata : PrestableLimitData I u_seq)
-    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c) :
+    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) =
         ∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) := by
-  obtain ⟨u_lim, h_en, _⟩ := stabilize_prestable_tree I u_seq pdata h_nonconst
+  obtain ⟨u_lim, h_en, _⟩ := stabilize_prestable_tree I u_seq pdata h_nonconst h_jhol
   exact ⟨u_lim, h_en⟩
 
 /-- Probe 3.3: G01 -> C02 & B07: assemble_prestable_limit branches on S = ∅

@@ -71,7 +71,7 @@ All 11 Phase 5 tasks (`P0-1` through `P0-11`) have been completed, audited, and 
 
 ---
 
-## 3. Inventory & Live Status of the 45 Open Declarations (36 remaining to prove `sorryAx`-free [all 36 wired with 0 direct `sorry`, `#1` `c = 0` & `c ≤ 4(c+1)e(z₀)` & `laplacian_lb_sixteen` & `laplacian_nonneg` & `large_radius` & `solid_ball_mv` branches 100% `sorryAx`-free, `radialEnergyIVT_of_jhol` & `exists_calibrated_rescaling_of_jhol` 100% `sorryAx`-free, `moebius_three_point_rigidity_onePoint` & threshold-free `[DiscreteTopology M]` + `all_jhol_const` compactness/defect/assembly/stabilize/genus-zero/varying-J/marked-curves/moduli theorems 100% `sorryAx`-free, 3,400 clean declarations / 2,799 clean theorems, 41 `sorryAx`-dependent declarations, 30 direct `sorry` leaves]; est. wall-time left: not reliably estimable — the leaves are the core analysis (Riesz–Markov/Prokhorov, Schauder/Calderón–Zygmund, removal of singularities, smooth Arzelà–Ascoli, bubbling), several absent from Mathlib v4.16; plan for weeks, not hours)
+## 3. Inventory & Live Status of the 45 Open Declarations (36 remaining to prove `sorryAx`-free [all 36 wired with 0 direct `sorry`, `#1` `c = 0` & `c ≤ 4(c+1)e(z₀)` & `laplacian_lb_sixteen` & `laplacian_nonneg` & `large_radius` & `solid_ball_mv` branches 100% `sorryAx`-free, `radialEnergyIVT_of_jhol` & `exists_calibrated_rescaling_of_jhol` 100% `sorryAx`-free, `moebius_three_point_rigidity_onePoint` & threshold-free `[DiscreteTopology M]` + `all_jhol_const` compactness/defect/assembly/stabilize/genus-zero/varying-J/marked-curves/moduli theorems 100% `sorryAx`-free, 3,400 clean declarations / 2,799 clean theorems, 41 `sorryAx`-dependent declarations, 29 direct `sorry` leaves after repairs 1–2]; est. wall-time left: not reliably estimable — the leaves are the core analysis (Riesz–Markov/Prokhorov, Schauder/Calderón–Zygmund, removal of singularities, smooth Arzelà–Ascoli, bubbling), several absent from Mathlib v4.16; plan for weeks, not hours)
 
 Status legend:
 - **✅ Closed (`sorryAx`-free)**: Unconditionally proved (or defined without `sorry`), depending only on `[propext, Classical.choice, Quot.sound]`.
@@ -167,10 +167,11 @@ Structural causes: **S1** arbitrary `[MetricSpace M]` not tied to `ClosedTameTar
 | ModuliSpace:768 (`#39`) | SUSP / not derivable (Hausdorff, second countability) |
 | MarkedCurves:1718, :1731 (`#36`) | SUSP — constant sequences with `k < 3` have no stable limit |
 | Measures:226 (`#14`) | PROV, moderate — Prokhorov on compact `CP1`; gap is full Riesz–Markov (see §3.6) |
-| Concentration:666 (`#16`) | SUSP — no energy bound / J-hol |
+| Concentration:666 (`#16`) | **REPAIRED (reformulated)** — `extract_smooth_limit_off_singular_set_aux` now takes `h_jhol`, the weak limit `μ`, `S` = atoms of mass ≥ `ε_reg`, and returns an extra subsequence `τ`; still an open analytic leaf (ε-regularity + Arzelà–Ascoli), now a true statement |
 | Assembly:1135 (`#24`) | SUSP — `P.map` not linked to `u_seq` |
 | Defect:505 (`#17`) | SUSP — needs energy quantisation; Defect:506 PROV moderate (S4) |
-| Stabilize:613 (`#27`), :2179 (`#28`) | SUSP — arbitrary `v_seq`; non-J-hol branch + S6 |
+| Stabilize:613 (`#27`) | SUSP — arbitrary `v_seq` |
+| Stabilize:2179 (`#28`) | **REPAIRED (leaf removed)** — `stabilize_prestable_tree` now takes `h_jhol` (its only library caller already had it); 4 test call sites updated |
 | OneLevel:517 (`#20`), LocalTree:316 (`#21`) | SUSP — no sequence; `T²` counterexample |
 | Neck:236 (`#19`) | SUSP — no J-hol/finiteness; S1, S6 |
 

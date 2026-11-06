@@ -648,22 +648,22 @@ theorem extract_smooth_limit_off_singular_set
   · exact extract_smooth_limit_off_singular_set_of_empty_S I u_seq σ h_jhol S hS u₀ h_conv
   · exact extract_smooth_limit_off_singular_set_of_punctured_jhol I u_seq σ S u₀ hu₀_jhol h_conv_punct
 
+/-- **Smooth limit off the singular set (ε-regularity + Arzelà–Ascoli).** If `u_seq ∘ σ` converges weakly in
+energy measure to `μ`, and `S` is the set of atoms of `μ` of mass `≥ ε_reg`, then a further subsequence converges
+smoothly on compacts of `CP1 \ S` to a `J`-holomorphic sphere. The extra subsequence `τ` is genuinely needed
+(limits of subsequences need not agree), and the hypotheses tie `S` to `μ` and `μ` to the sequence.
+*Open analytic leaf* (needs ε-regularity, derivative bounds from the bootstrap, and Arzelà–Ascoli). -/
 private theorem extract_smooth_limit_off_singular_set_aux
-    (u_seq : ℕ → (CP1 → M)) (σ : SubseqMap)
+    (u_seq : ℕ → (CP1 → M))
     (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
-    (S : Finset CP1) :
-    ∃ (u₀ : CP1 → M),
+    (thresh : TargetThresholds I M)
+    (σ : SubseqMap) (μ : Measure CP1) [IsFiniteMeasure μ] (S : Finset CP1)
+    (h_weak : WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ)
+    (hS_def : ∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p}) :
+    ∃ (τ : SubseqMap) (u₀ : CP1 → M),
       JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
-      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ (Set.univ \ S) := by
-  by_cases h_cases : (∃ c : M, ∀ n z, u_seq (σ.1 n) z = c) ∨
-      (∃ N₀ : ℕ, ∃ c : M, ∀ n ≥ N₀, ∀ z, u_seq (σ.1 n) z = c) ∨
-      (∃ (u₀ : CP1 → M), SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ Set.univ) ∨
-      (S = ∅ ∧ ∃ (u₀ : CP1 → M), SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ (Set.univ \ S)) ∨
-      (∃ (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
-        SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ (Set.univ \ S))
-  · exact extract_smooth_limit_off_singular_set I u_seq σ h_jhol S h_cases
-  · have _ := removal_of_singularities (I := I) (M := M)
-    sorry
+      SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) := by
+  sorry
 
 /-- Zero-sorry conditional reduction of `exists_concentration_data` from weak energy measure compactness (`h_weak_comp`),
 extended energy finiteness (`h_fin`), and smooth limit extraction (`h_extract`) (`0 sorryAx`). -/
@@ -678,9 +678,11 @@ theorem exists_concentration_data_of_smooth_limit
         IsFiniteMeasure μ ∧
         WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ)
     (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
-    (h_extract : ∀ (σ : SubseqMap) (S : Finset CP1),
-      ∃ (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
-        SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ (Set.univ \ S)) :
+    (h_extract : ∀ (σ : SubseqMap) (μ : Measure CP1) (S : Finset CP1), IsFiniteMeasure μ →
+      WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ →
+      (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p}) →
+      ∃ (τ : SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
+        SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S)) :
     Nonempty (ConcentrationData I u_seq B thresh) := by
   by_cases hB_pos : 0 < B
   · obtain ⟨σ, μ, _hμ_fin, h_weak⟩ := h_weak_comp B hB_pos h_en
@@ -689,8 +691,8 @@ theorem exists_concentration_data_of_smooth_limit
     have h_tot : μ Set.univ ≤ ENNReal.ofReal B := h_weak.total_mass_le h_tot_le
     obtain ⟨S, hS_def, hS_mul, hS_le⟩ :=
       concentration_singular_set_properties I μ B hB thresh h_tot
-    obtain ⟨u₀, hu₀_jhol, h_smooth⟩ := h_extract σ S
-    exact ⟨⟨σ, μ, h_tot, h_weak, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_smooth⟩⟩
+    obtain ⟨τ, u₀, hu₀_jhol, h_smooth⟩ := h_extract σ μ S _hμ_fin h_weak hS_def
+    exact ⟨⟨σ.comp τ, μ, h_tot, h_weak.comp_subseq τ, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_smooth⟩⟩
   · have hB0 : B = 0 := by linarith
     have hB1 : 0 < B + 1 := by linarith
     have h_en1 : ∀ n, totalEnergy I (u_seq n) ≤ B + 1 := fun n => (h_en n).trans (by linarith)
@@ -705,8 +707,8 @@ theorem exists_concentration_data_of_smooth_limit
     have h_tot : μ Set.univ ≤ ENNReal.ofReal B := h_weak.total_mass_le h_tot_le
     obtain ⟨S, hS_def, hS_mul, hS_le⟩ :=
       concentration_singular_set_properties I μ B hB thresh h_tot
-    obtain ⟨u₀, hu₀_jhol, h_smooth⟩ := h_extract σ S
-    exact ⟨⟨σ, μ, h_tot, h_weak, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_smooth⟩⟩
+    obtain ⟨τ, u₀, hu₀_jhol, h_smooth⟩ := h_extract σ μ S _hμ_fin h_weak hS_def
+    exact ⟨⟨σ.comp τ, μ, h_tot, h_weak.comp_subseq τ, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_smooth⟩⟩
 
 /-- Unconditional construction of `ConcentrationData` when `u_seq` admits a subsequence of constant maps
 `u_seq (σ.1 n) = fun _ => c` (`0 sorryAx`). -/
@@ -1432,7 +1434,9 @@ theorem exists_concentration_data
   · exact exists_concentration_data_of_smooth_limit I u_seq h_jhol B hB h_en thresh
       (fun B' hB' h_en' => weak_energy_measure_compactness I u_seq B' hB' h_en' h_fin)
       h_fin
-      (fun σ S => extract_smooth_limit_off_singular_set_aux I u_seq σ h_jhol S)
+      (fun σ μ S hμ h_weak hS => by
+        haveI := hμ
+        exact extract_smooth_limit_off_singular_set_aux I u_seq h_jhol thresh σ μ S h_weak hS)
 
 /-- No-Atom Regularity Upgrade: if the defect measure has no atom at p, convergence is smooth at p (Contract C02, Zero-sorry). -/
 theorem smooth_convergence_upgrade_of_zero_mass

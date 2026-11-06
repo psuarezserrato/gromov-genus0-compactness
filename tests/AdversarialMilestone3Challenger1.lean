@@ -230,7 +230,8 @@ theorem test_gromov_subsequence_alternative_invocation
 /-- Test 4.3: Invocation of Master Stabilization Theorem (Contract G02). -/
 theorem test_stabilize_prestable_tree_invocation
     (u_seq : ℕ → (CP1 → M)) (pdata : PrestableLimitData I u_seq)
-    (h_nc : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c) :
+    (h_nc : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) =
         ∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ∧
@@ -248,7 +249,7 @@ theorem test_stabilize_prestable_tree_invocation
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
         Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
           (𝓝 (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v))) :=
-  stabilize_prestable_tree I u_seq pdata h_nc
+  stabilize_prestable_tree I u_seq pdata h_nc h_jhol
 
 /-- Test 4.4: Invocation of Prestable Limit Assembly (Contract G01). -/
 theorem test_assemble_prestable_limit_invocation

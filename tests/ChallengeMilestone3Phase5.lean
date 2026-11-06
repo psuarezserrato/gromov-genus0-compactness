@@ -267,7 +267,8 @@ CONDITIONAL STATUS: Transitively depends on `sorryAx` via unstable root pruning 
 (`prune_degree_one_root`, `suppress_degree_two_root`). -/
 theorem test_stabilize_prestable_tree_composite
     (u_seq : ℕ → (CP1 → M)) (pdata : PrestableLimitData I u_seq)
-    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c) :
+    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) =
         ∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ∧
@@ -285,7 +286,7 @@ theorem test_stabilize_prestable_tree_composite
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
         Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
           (𝓝 (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v))) :=
-  stabilize_prestable_tree I u_seq pdata h_nonconst
+  stabilize_prestable_tree I u_seq pdata h_nonconst h_jhol
 
 /-- Test B.3.2: Prestable limit global assembly (Contract G01).
 Proved with ZERO direct sorry in `assemble_prestable_limit`.

@@ -2165,19 +2165,11 @@ theorem not_tendsto_zero_totalEnergy_of_nonconst
 private theorem not_tendsto_zero_totalEnergy_of_nonconst_aux
     (u_seq : ℕ → (CP1 → M))
     (σ : Bookkeeping.SubseqMap)
-    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c) :
-    ¬ Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop (𝓝 0) := by
-  by_cases h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ
-  · exact not_tendsto_zero_totalEnergy_of_nonconst I u_seq σ h_nonconst
-      (Or.inr ⟨Analysis.sphere_energy_gap (M := M) I, h_jhol⟩)
-  · by_cases h_pos : ∃ N₀ : ℕ, ∃ ε : ℝ, 0 < ε ∧ ∀ n ≥ N₀, ε ≤ totalEnergy I (u_seq (σ.1 n))
-    · exact not_tendsto_zero_totalEnergy_of_nonconst I u_seq σ h_nonconst (Or.inl h_pos)
-    · obtain ⟨ε_sph, hε_pos, _h_sph⟩ := Analysis.sphere_energy_gap (M := M) I
-      have h_ge : ∀ n, ε_sph ≤ totalEnergy I (u_seq (σ.1 n)) := by
-        intro n
-        have _ := h_nonconst (σ.1 n)
-        sorry
-      exact not_tendsto_zero_of_forall_ge_pos hε_pos h_ge
+    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ) :
+    ¬ Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop (𝓝 0) :=
+  not_tendsto_zero_totalEnergy_of_nonconst I u_seq σ h_nonconst
+    (Or.inr ⟨Analysis.sphere_energy_gap (M := M) I, h_jhol⟩)
 
 /-- A constant root in a prestable limit with a positive lower energy bound `ε > 0` on the subsequence
 has degree at least 1 (`0 sorryAx`). -/
@@ -2783,7 +2775,8 @@ energy conservation, and convergence conditions. Proved with zero direct sorry. 
 theorem stabilize_prestable_tree
     (u_seq : ℕ → (CP1 → M))
     (pdata : PrestableLimitData I u_seq)
-    (h_nonconst_input : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c) :
+    (h_nonconst_input : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) =
         ∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ∧
@@ -2802,7 +2795,7 @@ theorem stabilize_prestable_tree
         Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
           (𝓝 (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v))) :=
   stabilize_prestable_tree_aux I u_seq (prune_degree_one_root I u_seq)
-    (fun σ => not_tendsto_zero_totalEnergy_of_nonconst_aux I u_seq σ h_nonconst_input)
+    (fun σ => not_tendsto_zero_totalEnergy_of_nonconst_aux I u_seq σ h_nonconst_input h_jhol)
     (Fintype.card pdata.tree.V) pdata le_rfl
 
 /-- Master Stabilization Theorem given non-vanishing subsequence energy and singleton convergence upgrade (`0 sorryAx`). -/

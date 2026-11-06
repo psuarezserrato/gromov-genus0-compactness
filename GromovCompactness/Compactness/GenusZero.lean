@@ -874,7 +874,7 @@ theorem gromov_compactness_core
     · exact gromov_compactness_core_of_lt_eps_sph I th u_seq B h_nonconst h_jhol h_energy h_lt
     · obtain ⟨pdata, _h_en_le⟩ := assemble_prestable_limit I th u_seq B h_jhol h_energy h_fin
       exact gromov_compactness_core_of_assemble_and_stabilize I u_seq pdata
-        (stabilize_prestable_tree I u_seq pdata h_nonconst)
+        (stabilize_prestable_tree I u_seq pdata h_nonconst h_jhol)
 
 /-- Zero-sorry conditional reduction of `gromov_subsequence_alternative` from `gromov_compactness_core` (`0 sorryAx`). -/
 theorem gromov_subsequence_alternative_of_core
