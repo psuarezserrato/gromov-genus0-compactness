@@ -39,11 +39,11 @@ noncomputable instance (x : M) : NormedAddCommGroup (TangentSpace I x) := inferI
 noncomputable instance (x : M) : NormedSpace ℝ (TangentSpace I x) := inferInstanceAs (NormedSpace ℝ E)
 
 /-- Coordinate representation of an almost complex structure `J` in the extended chart at `x`. -/
-def J_chart (J : (x : M) → TangentSpace I x →L[ℝ] TangentSpace I x) (x : M) (y : E) : E →L[ℝ] E :=
+noncomputable def J_chart (J : (x : M) → TangentSpace I x →L[ℝ] TangentSpace I x) (x : M) (y : E) : E →L[ℝ] E :=
   J ((extChartAt I x).symm y)
 
 /-- Coordinate representation of a 2-form `ω` in the extended chart at `x`. -/
-def ω_chart («ω» : (x : M) → TangentSpace I x →L[ℝ] TangentSpace I x →L[ℝ] ℝ) (x : M) (y : E) :
+noncomputable def ω_chart («ω» : (x : M) → TangentSpace I x →L[ℝ] TangentSpace I x →L[ℝ] ℝ) (x : M) (y : E) :
     E →L[ℝ] E →L[ℝ] ℝ :=
   «ω» ((extChartAt I x).symm y)
 
@@ -120,7 +120,7 @@ noncomputable instance (z : «Σ») : NormedAddCommGroup (TangentSpace I_dom z) 
 noncomputable instance (z : «Σ») : NormedSpace ℝ (TangentSpace I_dom z) := inferInstanceAs (NormedSpace ℝ E_dom)
 
 /-- Coordinate representation of a complex structure `j` on a Riemann surface in the extended chart at `z`. -/
-def j_chart (j : (z : «Σ») → TangentSpace I_dom z →L[ℝ] TangentSpace I_dom z) (z : «Σ») (w : E_dom) :
+noncomputable def j_chart (j : (z : «Σ») → TangentSpace I_dom z →L[ℝ] TangentSpace I_dom z) (z : «Σ») (w : E_dom) :
     E_dom →L[ℝ] E_dom :=
   j ((extChartAt I_dom z).symm w)
 

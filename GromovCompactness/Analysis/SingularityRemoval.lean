@@ -6,7 +6,7 @@ Authors: Autoformalization Team
 import Mathlib.Analysis.SpecialFunctions.Exp
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.MeasureTheory.Integral.IntervalIntegral
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.Topology.Separation.Hausdorff
 import GromovCompactness.Geometry.Target
 import GromovCompactness.Geometry.Sphere

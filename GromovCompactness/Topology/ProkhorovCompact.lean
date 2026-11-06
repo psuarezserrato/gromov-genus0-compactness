@@ -1,9 +1,9 @@
 import GromovCompactness.Topology.RieszMeasure
-import Mathlib.MeasureTheory.Integral.SetIntegral
+import Mathlib.MeasureTheory.Integral.Bochner.Set
 import Mathlib.MeasureTheory.Measure.FiniteMeasure
 import Mathlib.Topology.ContinuousMap.Compact
 import Mathlib.Topology.ContinuousMap.SecondCountableSpace
-import Mathlib.Analysis.NormedSpace.OperatorNorm.Basic
+import Mathlib.Analysis.Normed.Operator.Basic
 import Mathlib.Topology.MetricSpace.PiNat
 import Mathlib.Topology.Compactness.Compact
 import Mathlib.Topology.Metrizable.Basic
@@ -113,7 +113,7 @@ theorem prokhorov_seq_compact [MeasurableSpace X] [BorelSpace X]
         exact integral_add (hint n f) (hint n g)
       map_smul' := fun c f => by
         simp only [ContinuousMap.smul_apply, smul_eq_mul, RingHom.id_apply]
-        exact integral_mul_left c _ }
+        exact integral_const_mul c _ }
   have hmass : ∀ n, (μ n Set.univ).toReal ≤ (B : ℝ) := fun n => by
     have := ENNReal.toReal_mono ENNReal.coe_ne_top (hB n)
     simpa using this
@@ -139,12 +139,12 @@ theorem prokhorov_seq_compact [MeasurableSpace X] [BorelSpace X]
   · have h1 : Λ 1 ≤ (B : ℝ) := by
       refine le_of_tendsto' (hΛlim 1) (fun n => ?_)
       show ∫ x, (1 : C(X, ℝ)) x ∂(μ (φ n)) ≤ B
-      simpa using hmass (φ n)
+      simpa [Measure.real] using hmass (φ n)
     have h2 : (ν Set.univ).toReal ≤ (B : ℝ) := by
       have := hνΛ 1
-      simpa [← this] using h1
+      simpa [← this, Measure.real] using h1
     rw [← ENNReal.toReal_le_toReal (measure_ne_top ν _) ENNReal.coe_ne_top]
-    simpa using h2
+    simpa [Measure.real] using h2
   · rw [hνΛ f]
     exact hΛlim f
 

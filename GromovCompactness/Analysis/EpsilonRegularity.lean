@@ -6,7 +6,7 @@ Authors: Autoformalization Team
 import Mathlib.Analysis.Hofer
 import Mathlib.Analysis.Complex.Basic
 import Mathlib.MeasureTheory.Measure.Lebesgue.Complex
-import Mathlib.MeasureTheory.Integral.SetIntegral
+import Mathlib.MeasureTheory.Integral.Bochner.Set
 import GromovCompactness.Geometry.Target
 import GromovCompactness.Geometry.Sphere
 import GromovCompactness.Analysis.Energy

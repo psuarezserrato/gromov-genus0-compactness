@@ -12,12 +12,12 @@ import Mathlib.Analysis.Calculus.FDeriv.Linear
 import Mathlib.Data.Fin.VecNotation
 import Mathlib.Analysis.Complex.Basic
 import Mathlib.Analysis.SpecialFunctions.PolarCoord
-import Mathlib.Analysis.SpecialFunctions.Integrals
+import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.MeasureTheory.Measure.Lebesgue.Complex
-import Mathlib.MeasureTheory.Integral.SetIntegral
+import Mathlib.MeasureTheory.Integral.Bochner.Set
 import Mathlib.MeasureTheory.Integral.Prod
 import Mathlib.MeasureTheory.Measure.OpenPos
-import Mathlib.Analysis.NormedSpace.Connected
+import Mathlib.Analysis.Normed.Module.Connected
 import Mathlib.LinearAlgebra.Dimension.Finrank
 import Mathlib.Topology.Connected.Clopen
 import GromovCompactness.Geometry.Target

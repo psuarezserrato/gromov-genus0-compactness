@@ -11,7 +11,7 @@ import Mathlib.Topology.ContinuousOn
 import Mathlib.Topology.UniformSpace.UniformConvergence
 import Mathlib.Analysis.Calculus.FDeriv.Basic
 import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.Analysis.NormedSpace.OperatorNorm.Basic
+import Mathlib.Analysis.Normed.Operator.Basic
 import GromovCompactness.Geometry.Target
 import GromovCompactness.Geometry.Sphere
 import GromovCompactness.Analysis.Energy

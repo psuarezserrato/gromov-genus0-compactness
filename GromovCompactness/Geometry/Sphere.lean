@@ -9,7 +9,7 @@ import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 import Mathlib.Geometry.Manifold.ContMDiff.Basic
 import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 import Mathlib.Analysis.SpecialFunctions.Complex.Log
-import Mathlib.Topology.Compactification.OnePoint
+import Mathlib.Topology.Compactification.OnePoint.Basic
 import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 import GromovCompactness.Geometry.Target
 
@@ -42,7 +42,7 @@ its conformal structure, and its biholomorphic automorphism group $\operatorname
 abbrev CP1 := Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1
 
 /-- Model with corners for the 2-dimensional sphere over $\mathbb{R}^2$. -/
-abbrev I_CP1 : ModelWithCorners ℝ (EuclideanSpace ℝ (Fin 2)) (EuclideanSpace ℝ (Fin 2)) := 𝓡 2
+noncomputable abbrev I_CP1 : ModelWithCorners ℝ (EuclideanSpace ℝ (Fin 2)) (EuclideanSpace ℝ (Fin 2)) := 𝓡 2
 
 instance : IsManifold I_CP1 ∞ CP1 := inferInstance
 
@@ -97,7 +97,7 @@ def south_pole : CP1 :=
     simp [Fin.sum_univ_three]⟩
 
 /-- The canonical stereographic chart from $\mathbb{CP}^1 \setminus \{\infty\}$ to $\mathbb{C}$. -/
-noncomputable def stereo_chart : PartialHomeomorph CP1 ℂ :=
+noncomputable def stereo_chart : OpenPartialHomeomorph CP1 ℂ :=
   (stereographic' 2 north_pole).transHomeomorph c_equiv_e2.symm.toHomeomorph
 
 theorem stereo_chart_source : stereo_chart.source = {north_pole}ᶜ := by
@@ -126,7 +126,7 @@ def punctured_sphere (S : Set CP1) : Set CP1 :=
 
 lemma disk_at_mono (a : ℂ) {r₁ r₂ : ℝ} (h : r₁ ≤ r₂) : disk_at a r₁ ⊆ disk_at a r₂ := by
   dsimp [disk_at]
-  exact image_subset _ (Metric.ball_subset_ball h)
+  exact Set.image_mono (Metric.ball_subset_ball h)
 
 lemma north_pole_not_mem_disk_at (a : ℂ) (r : ℝ) : north_pole ∉ disk_at a r := by
   intro h
@@ -134,7 +134,7 @@ lemma north_pole_not_mem_disk_at (a : ℂ) (r : ℝ) : north_pole ∉ disk_at a 
   have h_source := stereo_chart.map_target (show w ∈ stereo_chart.target by simp [stereo_chart])
   rw [hw_eq] at h_source
   dsimp [stereo_chart] at h_source
-  simp only [PartialHomeomorph.transHomeomorph_source, stereographic'_source] at h_source
+  simp only [OpenPartialHomeomorph.transHomeomorph_source, stereographic'_source] at h_source
   exact h_source rfl
 
 lemma north_pole_not_mem_annulus_at (a : ℂ) (r R : ℝ) : north_pole ∉ annulus_at a r R := by
@@ -143,7 +143,7 @@ lemma north_pole_not_mem_annulus_at (a : ℂ) (r R : ℝ) : north_pole ∉ annul
   have h_source := stereo_chart.map_target (show w ∈ stereo_chart.target by simp [stereo_chart])
   rw [hw_eq] at h_source
   dsimp [stereo_chart] at h_source
-  simp only [PartialHomeomorph.transHomeomorph_source, stereographic'_source] at h_source
+  simp only [OpenPartialHomeomorph.transHomeomorph_source, stereographic'_source] at h_source
   exact h_source rfl
 
 lemma is_open_disk_at (a : ℂ) (r : ℝ) : IsOpen (disk_at a r) := by
@@ -169,7 +169,7 @@ lemma center_mem_disk_at (a : ℂ) {r : ℝ} (hr : 0 < r) : stereo_chart.symm a 
 
 lemma annulus_subset_disk (a : ℂ) (r R : ℝ) : annulus_at a r R ⊆ disk_at a R := by
   dsimp [annulus_at, disk_at]
-  apply image_subset
+  apply Set.image_mono
   intro z hz
   exact hz.2
 
@@ -847,7 +847,7 @@ theorem cp1_D_val_ne_zero (l : ℝ) (hl : 0 < l) (z : CP1) : D_val l (z.1 2) ≠
 
 /-- Coordinate projections on CP1 are continuous. -/
 lemma continuous_cp1_coord (i : Fin 3) : Continuous (fun (z : CP1) => z.1 i) :=
-  (continuous_apply i).comp continuous_subtype_val
+  (EuclideanSpace.proj (𝕜 := ℝ) i).continuous.comp continuous_subtype_val
 
 /-- Dilation vector mapping on $\mathbb{R}^3$. -/
 noncomputable def dil_fun (l : ℝ) (v : EuclideanSpace ℝ (Fin 3)) : EuclideanSpace ℝ (Fin 3) :=
@@ -980,6 +980,7 @@ theorem dil_fun_norm (l : ℝ) (v : EuclideanSpace ℝ (Fin 3)) (hv : ‖v‖ = 
 theorem continuous_dil_fun_on_cp1 (l : ℝ) (hl : 0 < l) :
     Continuous (fun (z : CP1) => dil_fun l z.1) := by
   dsimp [dil_fun]
+  refine (PiLp.continuous_toLp 2 (fun _ : Fin 3 => ℝ)).comp ?_
   apply continuous_pi
   intro i
   fin_cases i

@@ -1,6 +1,6 @@
 import Mathlib.MeasureTheory.Measure.Portmanteau
 import Mathlib.MeasureTheory.Measure.FiniteMeasure
-import Mathlib.MeasureTheory.Integral.SetIntegral
+import Mathlib.MeasureTheory.Integral.Bochner.Set
 import Mathlib.Topology.ContinuousMap.Compact
 
 /-!
@@ -61,7 +61,7 @@ theorem tendsto_measure_of_null_frontier_finite [MeasurableSpace X] [BorelSpace 
     simpa [ENNReal.toReal_add (measure_ne_top ν K) ENNReal.ofReal_ne_top,
       ENNReal.toReal_ofReal hε.le] using h1
   have hmass : Tendsto (fun n => (μ n Set.univ).toReal) atTop (𝓝 (ν Set.univ).toReal) := by
-    simpa using h 1
+    simpa [Measure.real] using h 1
   have hsplit : ∀ (m : Measure X) [IsFiniteMeasure m] (s : Set X), MeasurableSet s →
       (m s).toReal + (m sᶜ).toReal = (m Set.univ).toReal := fun m _ s hs => by
     rw [← ENNReal.toReal_add (measure_ne_top m s) (measure_ne_top m sᶜ),

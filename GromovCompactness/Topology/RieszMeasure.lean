@@ -1,4 +1,5 @@
-import GromovCompactness.Vendor.RieszMarkovKakutani
+import Mathlib.MeasureTheory.Integral.RieszMarkovKakutani.Real
+import Mathlib.Topology.ContinuousMap.CompactlySupported
 
 open MeasureTheory Filter Topology
 open scoped NNReal ENNReal CompactlySupported
@@ -20,13 +21,21 @@ theorem exists_measure_of_posLinear [MeasurableSpace X] [BorelSpace X]
       map_smul' := fun c g => by
         rw [RingHom.id_apply, ← map_smul]; rfl }
   have hΛ' : ∀ g : C_c(X, ℝ), 0 ≤ g → 0 ≤ Λ' g := fun g hg => hΛ g.toContinuousMap hg
-  refine ⟨RealRMK.rieszMeasure hΛ', ?_, fun f => ?_⟩
+  let Λ' : C_c(X, ℝ) →ₚ[ℝ] ℝ :=
+    PositiveLinearMap.mk₀
+      { toFun := fun g => Λ g.toContinuousMap
+        map_add' := fun g h => by
+          rw [← map_add]; rfl
+        map_smul' := fun c g => by
+          rw [RingHom.id_apply, ← map_smul]; rfl }
+      (fun g hg => hΛ g.toContinuousMap hg)
+  refine ⟨RealRMK.rieszMeasure Λ', ?_, fun f => ?_⟩
   · refine ⟨?_⟩
-    have h := RealRMK.rieszMeasure_le_of_eq_one hΛ' (f := toC 1) (fun x => zero_le_one)
+    have h := RealRMK.rieszMeasure_le_of_eq_one Λ' (f := toC 1) (fun x => zero_le_one)
       (isCompact_univ : IsCompact (Set.univ : Set X)) (fun x _ => rfl)
     exact lt_of_le_of_lt h ENNReal.ofReal_lt_top
-  · have := RealRMK.integral_rieszMeasure hΛ' (toC f)
-    simpa [Λ', toC] using this
+  · have := RealRMK.integral_rieszMeasure Λ' (toC f)
+    exact this
 
 end GromovCompactness.Topology.RMK
 
