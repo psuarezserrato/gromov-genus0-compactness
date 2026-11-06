@@ -144,6 +144,42 @@ Status legend:
 | 44 | `jholomorphic_limit_of_varying_J` | `Extensions/VaryingJ.lean` | E01 | **✅ Closed (`sorryAx`-free)** | Proved unconditionally with `0 sorryAx` in `Extensions/VaryingJ.lean` (along with `VaryingAlmostComplexStructures.subseq` and `jholomorphic_limit_of_varying_J_subseq`, both `0 sorryAx`) via compact range `insert y_lim (Set.range y_seq)`, `varying_J.c_infty_conv 0`, operator norm `squeeze_zero_norm`, and `le_of_tendsto_of_tendsto`. Depends only on `[propext, Classical.choice, Quot.sound]`. |
 | 45 | `gromov_compactness_varying_J` | `Extensions/VaryingJ.lean` | E01 | **🔗 Wired (0 direct `sorry`)** | **Proved with zero direct `sorry`** via `gromov_compactness_varying_J_of_limit` (`0 sorryAx`), `gromov_compactness_varying_J_of_smooth_conv` (`0 sorryAx`), `gromov_compactness_varying_J_of_subseq_smooth_conv` (`0 sorryAx`), `gromov_compactness_varying_J_of_eq_target_J` (`0 sorryAx`), `gromov_compactness_varying_J_of_le_gap` (`0 sorryAx`), `gromov_compactness_varying_J_of_compactnessWitness` (`0 sorryAx`), `gromov_compactness_varying_J_of_subsingleton` (`0 sorryAx`), `gromov_compactness_varying_J_of_discrete` (`0 sorryAx`), `gromov_compactness_varying_J_of_all_jholWithJ_const` (`0 sorryAx`), `gromov_compactness_varying_J_of_eventually_all_jholWithJ_const` (`0 sorryAx`), `gromov_compactness_varying_J_of_subseq_nonconst_of_all_jholWithJ_const` (`0 sorryAx`), `gromov_compactness_varying_J_of_eq_target_J_at_of_all_jhol_const` (`0 sorryAx`), `gromov_compactness_varying_J_of_lt_hbar` (`0 sorryAx`), `gromov_compactness_varying_J_of_lt_h` (`0 sorryAx`), `gromov_compactness_varying_J_of_nonpos_B` (`0 sorryAx`), `gromov_compactness_varying_J_of_exists_lt_hbar` (`0 sorryAx`), `gromov_compactness_varying_J_of_exists_lt_h` (`0 sorryAx`), `gromov_compactness_varying_J_of_exists_nonpos_energy` (`0 sorryAx`), `gromov_compactness_varying_J_of_eventually_lt_hbar` (`0 sorryAx`), `gromov_compactness_varying_J_of_eventually_lt_h` (`0 sorryAx`), `gromov_compactness_varying_J_of_eventually_nonpos_energy` (`0 sorryAx`), `gromov_compactness_varying_J_of_single_nonconst` (`0 sorryAx`), `varying_J_component_count_bounds` (`0 sorryAx`), `totalEnergy_eq_pullbackOmegaMeasure_of_jhol` (`0 sorryAx`), `principal_component_energy_ge_of_eq_target_J` (`0 sorryAx`), `const_of_jholWithJ_of_lt_hbar` (`0 sorryAx`), `eq_const_north_pole_of_jholWithJ_of_lt_hbar` (`0 sorryAx`), `pullbackOmegaMeasure_eq_zero_of_discrete` (`0 sorryAx`), `riemannianEnergyDensityWithJ_eq_zero_of_discrete` (`0 sorryAx`), `eq_const_north_pole_of_jholWithJ_univ_of_discrete` (`0 sorryAx`), `UniformTargetThresholds.of_discrete` (`0 sorryAx`), `VaryingAlmostComplexStructures.const_of_discrete` (`0 sorryAx`), `eq_const_north_pole_of_jholWithJ_of_discrete` (`0 sorryAx`), `extract_varying_J_stable_limit_of_discrete` (`0 sorryAx`), `extract_varying_J_stable_limit_of_all_jholWithJ_const` (`0 sorryAx`), `extract_varying_J_stable_limit_of_eventually_all_jholWithJ_const` (`0 sorryAx`), `extract_varying_J_stable_limit_of_subseq_nonconst_of_all_jholWithJ_const` (`0 sorryAx`), `extract_varying_J_stable_limit_of_eq_target_J_at_of_all_jhol_const` (`0 sorryAx`), `StableSphereTreeLimit.isEmpty_of_all_jhol_const_varying` (`0 sorryAx`), `not_exists_stableSphereTreeLimit_of_all_jhol_const` (`0 sorryAx`), `StableSphereTreeLimit.exists_principal_component` (`0 sorryAx`), `StableSphereTreeLimit.h_le_totalEnergy_of_principal_gap` (`0 sorryAx`), `StableSphereTreeLimit.totalEnergy_pos_of_principal_gap` (`0 sorryAx`), `StableSphereTreeLimit.isEmpty_of_principal_gap_of_lt_h` (`0 sorryAx`), `StableSphereTreeLimit.isEmpty_of_principal_gap_of_nonpos` (`0 sorryAx`), `extract_varying_J_stable_limit_of_exists_lt_hbar` (`0 sorryAx`), `extract_varying_J_stable_limit_of_exists_lt_h` (`0 sorryAx`), `extract_varying_J_stable_limit_of_exists_nonpos_energy` (`0 sorryAx`), `extract_varying_J_stable_limit_of_eventually_lt_hbar` (`0 sorryAx`), `extract_varying_J_stable_limit_of_eventually_lt_h` (`0 sorryAx`), `extract_varying_J_stable_limit_of_eventually_nonpos_energy` (`0 sorryAx`), `extract_varying_J_stable_limit_of_lt_hbar` (`0 sorryAx`), `extract_varying_J_stable_limit_of_eq_target_J` (`0 sorryAx`), `extract_varying_J_stable_limit_of_single_nonconst` (`0 sorryAx`), `extract_varying_J_stable_limit_of_smooth_conv` (`0 sorryAx`), `extract_varying_J_stable_limit_of_subseq_smooth_conv` (`0 sorryAx`), `principal_component_energy_ge_of_le_gap` (`0 sorryAx`), `extract_varying_J_stable_limit_of_le_gap` (`0 sorryAx`), and `extract_varying_J_stable_limit_of_compactnessWitness` (`0 sorryAx`). |
 
+### 3.5 Leaf audit of the 30 direct `sorry` (6 Nov 2026) — statement-repair phase required
+
+> [!WARNING]
+> Read-only audit (subagent; counterexamples are **hand arguments, not Lean-checked**). Every `sorry` sits in the final `else` of a `by_cases` inside an `_aux` theorem, i.e. it is the full analytic content of its theorem. **21 of 30 are suspect as stated; 9 are provable as stated (4 of those very hard/massive).** The "Wired (0 direct `sorry`)" status in §3.1–3.4 is therefore syntactic only: many wirings rest on `_aux` leaves that probably cannot be filled without a statement repair, each of which needs reviewer sign-off (§0 item 5). Detailed table: artifact `leaf_audit.md`.
+
+Structural causes: **S1** arbitrary `[MetricSpace M]` not tied to `ClosedTameTarget.metric` (Monotonicity, EnergyGap, SingularityRemoval); **S2** target-dependent `C_neck`/`a_decay`/`ε_neck` hard-coded to `1`; **S3** `sphericalJacobian` weight breaks `∫ e dw ≤ E(disk_at a r)` for large `|a|`; **S4** `ω_chart`/`J_chart` use the frame of `chartAt` with only chartwise smoothness, so density continuity and the fixed-chart bootstrap are not derivable; **S5** `sSup` junk value in Hölder norms; **S6** `totalEnergy = toReal` hides infinite energy (resolved for #15/#16/#22/#24/#29/#36/#45 by `h_fin`; still open in Stabilize:2179, Neck:236); **S7** `SmoothLocalConvergesOn` is effectively locally uniform convergence.
+
+| Leaf | Class |
+|---|---|
+| Bochner:352 (`#2`) | SUSP — `b=c=0` committed early |
+| Monotonicity:1749 (`#1`), :2308 (`#8`) | SUSP — linear `c·e` term; S1 |
+| EpsilonRegularity:421 (`#3`) | SUSP — S3, S4 |
+| SingularityRemoval:834 (`#10`), :1135 (`#11`) | SUSP — S1; S2 |
+| SingularityRemoval:1540 (`#12`/`#13`) | PROV, very hard (S4) |
+| EllipticBootstrap:527, :3556, :3560 (`#4`) | SUSP — CZ constant grows with `p`; C¹ gives no Hölder control of `∂̄f`; S5 |
+| EllipticBootstrap:683 (`#4`) | PROV (2D Morrey; constant unverified) |
+| EllipticBootstrap:2987 (`#5`) | PROV, hard (Cauchy–Pompeiu) |
+| EllipticBootstrap:4144 (`#6`), :4402 (`#7`) | PROV, very hard (S4) |
+| EnergyGap:576 (`#9`) | SUSP — `r₀ > diam M` |
+| VaryingJ:829 (`#45`), ModuliSpace:1148 (`#41`) | PROV, massive |
+| ModuliSpace:768 (`#39`) | SUSP / not derivable (Hausdorff, second countability) |
+| MarkedCurves:1718, :1731 (`#36`) | SUSP — constant sequences with `k < 3` have no stable limit |
+| Measures:226 (`#14`) | PROV, moderate — Prokhorov on compact `CP1`; gap is full Riesz–Markov (see §3.6) |
+| Concentration:666 (`#16`) | SUSP — no energy bound / J-hol |
+| Assembly:1135 (`#24`) | SUSP — `P.map` not linked to `u_seq` |
+| Defect:505 (`#17`) | SUSP — needs energy quantisation; Defect:506 PROV moderate (S4) |
+| Stabilize:613 (`#27`), :2179 (`#28`) | SUSP — arbitrary `v_seq`; non-J-hol branch + S6 |
+| OneLevel:517 (`#20`), LocalTree:316 (`#21`) | SUSP — no sequence; `T²` counterexample |
+| Neck:236 (`#19`) | SUSP — no J-hol/finiteness; S1, S6 |
+
+Next steps: (1) Prokhorov leaf Measures:226 via backported Riesz–Markov (independent of the repairs); (2) statement-repair phase grouped by theme — sequence leaves need J-hol/energy/finiteness hypotheses; link the metric to `ClosedTameTarget.metric`; target-dependent thresholds; fix the chart-frame convention in `Target.lean`/`Energy.lean`; each repair needs sign-off.
+
+### 3.6 Riesz–Markov / Prokhorov availability
+
+Mathlib v4.16.0 (`a6276f4c6097675b1cf5ebd49b1146b735f38c02`) has only `rieszContent` (content half). Mathlib `master` has `RieszMarkovKakutani/{Basic,Real}.lean` (`RealRMK.integral_rieszMeasure`) and `Measure/Prokhorov.lean`; these use the `module`/`public import` system and newer dependencies. Plan: backport the minimal closure into `GromovCompactness/Vendor/` (no Mathlib upgrade). Hand-off instructions: artifact `riesz_markov_handoff.md`.
+
 ---
 
 ## 4. Execution Order and Critical Path
