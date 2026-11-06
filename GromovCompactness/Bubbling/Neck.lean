@@ -39,7 +39,7 @@ lemma dist_le_diam_of_mem_image (u : CP1 → M) (s : Set CP1) {z w : CP1} (hz : 
 lemma annulus_at_subset_disk_at (a : ℂ) (r₁ r₂ : ℝ) :
     annulus_at a r₁ r₂ ⊆ disk_at a r₂ := by
   dsimp [annulus_at, disk_at]
-  apply image_subset
+  apply Set.image_mono
   intro z hz
   simp only [mem_setOf_eq] at hz
   simp only [mem_ball]
@@ -99,19 +99,8 @@ theorem neck_annular_energy_and_diam_of_eventually_zero
 
 /-- The energy measure of any subset under a constant map `fun _ => c` is zero (`0 sorryAx`). -/
 theorem energyMeasure_const_eq_zero (c : M) (s : Set CP1) :
-    energyMeasure I (fun _ : CP1 => c) s = 0 := by
-  dsimp [energyMeasure, energyMeasureExtended, chartPush]
-  have h_dens : (fun w : ℂ => ENNReal.ofReal
-      (riemannianEnergyDensity I (fun _ => c) (stereo_chart.symm w) * sphericalJacobian w)) = 0 := by
-    ext w
-    have hd : riemannianEnergyDensity I (fun _ => c) (stereo_chart.symm w) = 0 := by
-      dsimp [riemannianEnergyDensity, ClosedTameTarget.metric]
-      rw [mfderiv_const]
-      simp
-    rw [hd]
-    simp [ENNReal.ofReal_zero]
-  rw [h_dens]
-  simp [MeasureTheory.withDensity_zero]
+    energyMeasure I (fun _ : CP1 => c) s = 0 :=
+  energyMeasure_const I c s
 
 /-- Asymptotic neck energy and diameter decay when the sequence is eventually constant (`0 sorryAx`). -/
 theorem neck_annular_energy_and_diam_of_eventually_const

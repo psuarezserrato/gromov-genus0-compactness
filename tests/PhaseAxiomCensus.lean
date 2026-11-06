@@ -173,7 +173,7 @@ elab "#phase_axiom_census" : command => do
   let envVar ← IO.getEnv "MODULE_PREFIX"
   let envVar2 ← IO.getEnv "PHASE_MODULE"
   let rawPrefix := (envVar.orElse fun () => envVar2).getD "GromovCompactness"
-  let prefixStr := rawPrefix.trim
+  let prefixStr := rawPrefix.trimAscii.toString
   if prefixStr.isEmpty then
     logInfo m!"=================================================="
     logInfo m!"STATUS: ERROR (empty module prefix)"

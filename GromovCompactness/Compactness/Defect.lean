@@ -42,7 +42,7 @@ lemma dirac_sum_singleton_mem (S : Finset CP1) (m : CP1 → ℝ) (p : CP1) (hp :
     (∑ x ∈ S, (ENNReal.ofReal (m x) • Measure.dirac x)) {p} = ENNReal.ofReal (m p) := by
   rw [Measure.finset_sum_apply]
   have h_split : S = insert p (S.erase p) := (Finset.insert_erase hp).symm
-  rw [h_split, Finset.sum_insert (Finset.not_mem_erase p S)]
+  rw [h_split, Finset.sum_insert (Finset.notMem_erase p S)]
   have h_dirac_self : (ENNReal.ofReal (m p) • Measure.dirac p) {p} = ENNReal.ofReal (m p) := by
     rw [Measure.smul_apply, dirac_apply_singleton_self, smul_eq_mul, mul_one]
   have h_dirac_rest : ∑ x ∈ S.erase p, (ENNReal.ofReal (m x) • Measure.dirac x) {p} = 0 := by
@@ -130,7 +130,7 @@ lemma dirac_sum_isolating_set (S : Finset CP1) (m : CP1 → ℝ) (A : Set CP1) (
     (∑ x ∈ S, (ENNReal.ofReal (m x) • Measure.dirac x)) A = ENNReal.ofReal (m p) := by
   rw [Measure.finset_sum_apply]
   have h_split : S = insert p (S.erase p) := (Finset.insert_erase hp).symm
-  rw [h_split, Finset.sum_insert (Finset.not_mem_erase p S)]
+  rw [h_split, Finset.sum_insert (Finset.notMem_erase p S)]
   have hp_in_A : p ∈ A := by
     have hp_mem : p ∈ ({p} : Set CP1) := Set.mem_singleton p
     rw [← h_isol] at hp_mem
@@ -300,11 +300,11 @@ theorem singular_set_eq_empty_of_mu_eq_energyMeasureExtended
     (h_eq : cdata.μ = energyMeasureExtended I cdata.u₀) :
     cdata.S = ∅ := by
   ext p
-  simp only [Finset.not_mem_empty, iff_false]
+  simp only [Finset.notMem_empty, iff_false]
   intro hp
   have h_le : ENNReal.ofReal thresh.ε_reg ≤ cdata.μ {p} := (cdata.S_def p).mp hp
   rw [h_eq, energyMeasureExtended_singleton_eq_zero I cdata.u₀ p] at h_le
-  exact (ENNReal.ofReal_pos.mpr thresh.ε_reg_pos).not_le h_le
+  exact (ENNReal.ofReal_pos.mpr thresh.ε_reg_pos).not_ge h_le
 
 /-- When `S = ∅` and `μ = energyMeasureExtended I u₀`, the defect measure decomposition holds with zero sorry. -/
 theorem defect_measure_decomposition_of_empty_S
@@ -319,7 +319,7 @@ theorem defect_measure_decomposition_of_empty_S
   refine ⟨fun _ => 0, ?_, fun _ _ => rfl, ?_⟩
   · intro p hp
     rw [hS] at hp
-    exact False.elim (Finset.not_mem_empty p hp)
+    exact False.elim (Finset.notMem_empty p hp)
   · rw [hS, Finset.sum_empty, add_zero]
     exact h_eq
 
@@ -338,15 +338,8 @@ theorem defect_measure_decomposition_of_mu_eq_energyMeasureExtended
 
 /-- The extended energy measure of any constant map `fun _ => c` on `CP1` is the zero measure (`0 sorryAx`). -/
 theorem energyMeasureExtended_const_eq_zero (c : M) :
-    energyMeasureExtended I (fun _ : CP1 => c) = 0 := by
-  dsimp [energyMeasureExtended, chartPush]
-  have h_dens : (fun w : ℂ => ENNReal.ofReal
-      (riemannianEnergyDensity I (fun _ => c) (stereo_chart.symm w) * sphericalJacobian w)) = 0 := by
-    ext w
-    dsimp [riemannianEnergyDensity, ClosedTameTarget.metric]
-    simp only [mfderiv_const]
-    simp
-  rw [h_dens, MeasureTheory.withDensity_zero, Measure.map_zero]
+    energyMeasureExtended I (fun _ : CP1 => c) = 0 :=
+  energyMeasureExtended_const I c
 
 /-- When `cdata.μ = 0` and `cdata.u₀` is a constant map, the defect measure decomposition holds
 with `m = 0` (`0 sorryAx`). -/
@@ -375,7 +368,7 @@ theorem defect_measure_decomposition_of_nonpos_B_and_const_u0
       (∀ p ∉ cdata.S, m p = 0) ∧
       cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • Measure.dirac p) := by
   have h_univ_zero : cdata.μ Set.univ = 0 := by
-    refine le_antisymm ?_ (zero_le _)
+    refine le_antisymm ?_ zero_le'
     calc cdata.μ Set.univ ≤ ENNReal.ofReal B := cdata.μ_total_le
       _ = 0 := ENNReal.ofReal_of_nonpos hB
   have hμ : cdata.μ = 0 := Measure.measure_univ_eq_zero.mp h_univ_zero
@@ -836,7 +829,7 @@ theorem isolating_disk_defect_limit_of_discrete [DiscreteTopology M]
   exfalso
   have hS : cdata.S = ∅ := cdata.S_eq_empty_of_discrete I u_seq h_jhol B thresh
   rw [hS] at hp
-  exact Finset.not_mem_empty p hp
+  exact Finset.notMem_empty p hp
 
 /-- Unconditional defect measure decomposition on `[Subsingleton M]` targets for arbitrary `B : ℝ` (`0 sorryAx`). -/
 theorem defect_measure_decomposition_of_subsingleton [Subsingleton M]
@@ -879,7 +872,7 @@ theorem isolating_disk_defect_limit_of_subsingleton [Subsingleton M]
   exfalso
   have hS : cdata.S = ∅ := cdata.S_eq_empty_of_subsingleton I u_seq B thresh
   rw [hS] at hp
-  exact Finset.not_mem_empty p hp
+  exact Finset.notMem_empty p hp
 
 /-- Unconditional defect measure decomposition when each term `u_seq (cdata.σ.1 n)` and `cdata.u₀`
 is a constant map (`0 sorryAx`). -/
@@ -988,7 +981,7 @@ lemma frontier_disk_at_subset_circle_at (a : ℂ) (r : ℝ) :
   have h_closed_cb : IsClosed (stereo_chart.symm '' Metric.closedBall a r) :=
     ((isCompact_closedBall a r).image stereo_chart_symm_continuous).isClosed
   have h_sub_cb : disk_at a r ⊆ stereo_chart.symm '' Metric.closedBall a r :=
-    Set.image_subset _ Metric.ball_subset_closedBall
+    Set.image_mono Metric.ball_subset_closedBall
   have h_clos_sub : closure (disk_at a r) ⊆ stereo_chart.symm '' Metric.closedBall a r :=
     closure_minimal h_sub_cb h_closed_cb
   intro z hz
@@ -1135,7 +1128,7 @@ theorem isolating_disk_defect_limit_of_lt_eps_reg
   exfalso
   have hS : cdata.S = ∅ := cdata.S_eq_empty_of_lt_eps_reg I u_seq B thresh h_lt
   rw [hS] at hp
-  exact Finset.not_mem_empty p hp
+  exact Finset.notMem_empty p hp
 
 /-- Unconditional isolating disk energy convergence when `B < 2 * thresh.h` (`0 sorryAx`). -/
 theorem isolating_disk_defect_limit_of_lt_two_mul_h
@@ -1197,7 +1190,7 @@ theorem isolating_disk_defect_limit_of_mu_eq_zero
   exfalso
   have hS : cdata.S = ∅ := cdata.S_eq_empty_of_mu_eq_zero I u_seq B thresh hμ
   rw [hS] at hp
-  exact Finset.not_mem_empty p hp
+  exact Finset.notMem_empty p hp
 
 /-- Unconditional isolating disk energy convergence when `B < thresh.ε_sph` and `u_seq` consists of
 `J`-holomorphic spheres with `totalEnergy ≤ B` (`0 sorryAx`, since `cdata.S = ∅`). -/
@@ -1302,7 +1295,7 @@ theorem isolating_disk_defect_limit_of_S_eq_empty
         (nhds (m_p + energyMeasure I cdata.u₀ (disk_at a r))) := by
   exfalso
   rw [hS] at hp
-  exact Finset.not_mem_empty p hp
+  exact Finset.notMem_empty p hp
 
 /-- Unconditional isolating disk energy convergence when the subsequence extended energy measures
 eventually vanish (`0 sorryAx`, since `cdata.S = ∅`). -/

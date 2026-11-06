@@ -100,7 +100,7 @@ theorem child_mass_le_parent_sub_h
     rcases h_ex_ne with ⟨w, hw, hwz⟩
     have hw_mem_erase : w ∈ decomp.q.erase z := Finset.mem_erase.mpr ⟨hwz, hw⟩
     have h_decomp_erase : decomp.q = insert z (decomp.q.erase z) := (Finset.insert_erase hz).symm
-    have hz_not_erase : z ∉ decomp.q.erase z := Finset.not_mem_erase z decomp.q
+    have hz_not_erase : z ∉ decomp.q.erase z := Finset.notMem_erase z decomp.q
     have h_sum_split : (∑ x ∈ decomp.q, decomp.m_child x) =
         decomp.m_child z + ∑ x ∈ decomp.q.erase z, decomp.m_child x := by
       nth_rw 1 [h_decomp_erase]

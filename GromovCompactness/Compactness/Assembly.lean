@@ -55,7 +55,7 @@ structure PrestableLimitData (u_seq : ℕ → (CP1 → M)) where
   /-- Nodal matching condition: across every edge $v \sim w$, the curve images coincide at the node:
   $$u_v(z_{vw}) = u_w(z_{wv}).$$ -/
   nodal_match : ∀ (v w : tree.V) (h : tree.adj.Adj v w),
-    map v (tree.node_point v w h) = map w (tree.node_point w v (tree.adj.symm h))
+    map v (tree.node_point v w h) = map w (tree.node_point w v (tree.adj.adj_symm h))
   /-- Ghost stability off the root: every constant bubble component has degree $\ge 3$
   by Contract B05 (Ghost Branching). -/
   stable_off_root : ∀ (v : tree.V), v ≠ root → (∃ c : M, ∀ z : CP1, map v z = c) →
@@ -70,7 +70,7 @@ structure PrestableLimitData (u_seq : ℕ → (CP1 → M)) where
   /-- Frame transition collapse (PDF §2.3 condition 2): for adjacent components $v \sim w$,
   $$\phi_{v, n}^{-1} \circ \phi_{w, n} \longrightarrow z_{vw} \quad \text{locally uniformly on } \mathbb{CP}^1 \setminus \{z_{wv}\}.$$ -/
   frame_collapse : ∀ (v w : tree.V) (h : tree.adj.Adj v w),
-    ∀ K ⊆ punctured_sphere {tree.node_point w v (tree.adj.symm h)}, IsCompact K →
+    ∀ K ⊆ punctured_sphere {tree.node_point w v (tree.adj.adj_symm h)}, IsCompact K →
       TendstoUniformlyOn
         (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
         (fun _ => tree.node_point v w h) atTop K
@@ -116,13 +116,13 @@ structure TreeRescalingData (tree : SphereTree) (root : tree.V) where
       (𝓝 (tree.node_point (parent w hw) w (parent_adj w hw)))
   /-- Local forward collapse of child affine rescalings onto the parent nodal point away from the child attachment point. -/
   parent_collapse : ∀ (w : tree.V) (hw : w ≠ root) (h : tree.adj.Adj (parent w hw) w),
-    ∀ K ⊆ punctured_sphere {tree.node_point w (parent w hw) (tree.adj.symm h)}, IsCompact K →
+    ∀ K ⊆ punctured_sphere {tree.node_point w (parent w hw) (tree.adj.adj_symm h)}, IsCompact K →
       TendstoUniformlyOn
         (fun n => (affine_scaling (center w n) (scale w n) (scale_pos w n)).toHomeo)
         (fun _ => tree.node_point (parent w hw) w h) atTop K
   /-- Local inverse collapse of child affine rescalings onto the child attachment point away from the parent nodal point. -/
   child_collapse : ∀ (v : tree.V) (hv : v ≠ root) (h : tree.adj.Adj v (parent v hv)),
-    ∀ K ⊆ punctured_sphere {tree.node_point (parent v hv) v (tree.adj.symm h)}, IsCompact K →
+    ∀ K ⊆ punctured_sphere {tree.node_point (parent v hv) v (tree.adj.adj_symm h)}, IsCompact K →
       TendstoUniformlyOn
         (fun n => (MoebiusFrame.inv (affine_scaling (center v n) (scale v n) (scale_pos v n))).toHomeo)
         (fun _ => tree.node_point v (parent v hv) h) atTop K
@@ -239,7 +239,7 @@ theorem assemble_global_frames
         frames w n = MoebiusFrame.comp (frames (res.parent w hw) n)
           (affine_scaling (res.center w n) (res.scale w n) (res.scale_pos w n))) ∧
       (∀ (v w : tree.V) (h : tree.adj.Adj v w),
-        ∀ K ⊆ punctured_sphere {tree.node_point w v (tree.adj.symm h)}, IsCompact K →
+        ∀ K ⊆ punctured_sphere {tree.node_point w v (tree.adj.adj_symm h)}, IsCompact K →
           TendstoUniformlyOn
             (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
             (fun _ => tree.node_point v w h) atTop K) := by
@@ -389,7 +389,7 @@ structure PartialRootGraftedTree
   map : (v : tree.V) → (CP1 → M)
   is_jhol : ∀ (v : tree.V), JHolomorphicOn I I_CP1 (map v) Set.univ
   nodal_match : ∀ (v w : tree.V) (h : tree.adj.Adj v w),
-    map v (tree.node_point v w h) = map w (tree.node_point w v (tree.adj.symm h))
+    map v (tree.node_point v w h) = map w (tree.node_point w v (tree.adj.adj_symm h))
   root_map : map root = cdata.u₀
   root_nodal_points : ∀ (w : tree.V) (h : tree.adj.Adj root w),
     tree.node_point root w h ∈ s
@@ -412,10 +412,9 @@ noncomputable def partialRootGraftedTree_empty
   root_map := rfl
   root_nodal_points _ h := False.elim h
   energy_sum := by
-    have h_univ : (Finset.univ : Finset Bubbling.singletonSphereTree.V) = {()} := by
-      ext x; rcases x; simp
-    change (∑ v ∈ Finset.univ, totalEnergy I cdata.u₀) = totalEnergy I cdata.u₀ + ∑ p ∈ (∅ : Finset CP1), m_defect p
-    rw [h_univ, Finset.sum_singleton, Finset.sum_empty, add_zero]
+    have h_sum : (∑ _v : Bubbling.singletonSphereTree.V, totalEnergy I cdata.u₀) = totalEnergy I cdata.u₀ :=
+      Fintype.sum_unique (fun _ : Unit => totalEnergy I cdata.u₀)
+    rw [h_sum, Finset.sum_empty, add_zero]
   stable_off_root v hv := by
     rcases v
     exact False.elim (hv rfl)
@@ -576,10 +575,10 @@ theorem PartialRootGraftedTree.degree_root_eq_zero_of_empty
     P.tree.adj.degree P.root = 0 := by
   subst hs
   unfold SimpleGraph.degree
-  rw [Finset.card_eq_zero, Finset.eq_empty_iff_forall_not_mem]
+  rw [Finset.card_eq_zero, Finset.eq_empty_iff_forall_notMem]
   intro w hw
   have h_adj : P.tree.adj.Adj P.root w := (P.tree.adj.mem_neighborFinset P.root w).mp hw
-  exact Finset.not_mem_empty _ (P.root_nodal_points w h_adj)
+  exact Finset.notMem_empty _ (P.root_nodal_points w h_adj)
 
 /-- When `s = ∅`, every vertex of `P.tree` equals `P.root` (`0 sorryAx`). -/
 theorem PartialRootGraftedTree.eq_root_of_empty
@@ -589,7 +588,7 @@ theorem PartialRootGraftedTree.eq_root_of_empty
     (P : PartialRootGraftedTree I u_seq B th cdata m_defect s)
     (hs : s = ∅) (w : P.tree.V) :
     w = P.root :=
-  eq_root_of_degree_zero_of_connected P.tree.adj P.tree.is_tree.isConnected P.root
+  eq_root_of_degree_zero_of_connected P.tree.adj P.tree.is_tree.connected P.root
     (P.degree_root_eq_zero_of_empty I hs) w
 
 /-- Canonical rescaling data for any sphere tree whose vertices are all equal to `root` (`0 sorryAx`). -/

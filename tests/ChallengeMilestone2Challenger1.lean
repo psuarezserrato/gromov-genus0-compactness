@@ -6,7 +6,7 @@ Authors: Autoformalization Team (Challenger 1 Milestone 2 Iteration 2)
 import GromovCompactness
 import GromovCompactness.Analysis.EnergyGap
 import Mathlib.Analysis.Calculus.FDeriv.Linear
-import Mathlib.Analysis.NormedSpace.OperatorNorm.Basic
+import Mathlib.Analysis.Normed.Operator.Basic
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.Topology.UniformSpace.UniformConvergence
 

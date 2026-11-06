@@ -294,8 +294,6 @@ theorem mul_integral_translated_density_le_energyMeasure
   have h_jac : (2 / (1 + (‖a‖ + r) ^ 2)) ^ 2 ≤ sphericalJacobian w := by
     dsimp [sphericalJacobian]
     have h_nonneg1 : 0 ≤ 2 / (1 + (‖a‖ + r) ^ 2) := by positivity
-    have hw_abs : Complex.abs w ≤ Complex.abs a + r := by
-      simpa only [Complex.norm_def] using hw_norm
     gcongr
   have h_nonneg : 0 ≤ riemannianEnergyDensity I u (stereo_chart.symm w) :=
     riemannianEnergyDensity_nonneg I u _
@@ -651,7 +649,8 @@ theorem epsilon_regularity_of_discrete
   have h_open : IsOpen (u ⁻¹' ({u w} : Set M)) := (isOpen_discrete ({u w} : Set M)).preimage h_cont
   have h_ev : u =ᶠ[nhds w] (fun _ : CP1 => u w) :=
     Filter.eventuallyEq_iff_exists_mem.mpr ⟨u ⁻¹' ({u w} : Set M), h_open.mem_nhds rfl, fun _ h => h⟩
-  rw [h_ev.mfderiv_eq, mfderiv_const]
+  rw [h_ev.mfderiv_eq]
+  exact mfderiv_const
 
 /-- Pointwise Epsilon-Regularity on discrete targets `[DiscreteTopology M]` for any continuous map
 `u : CP1 → M` (`0 sorryAx`). -/
@@ -668,7 +667,8 @@ theorem epsilon_regularity_of_continuous_of_discrete
   have h_open : IsOpen (u ⁻¹' ({u w} : Set M)) := (isOpen_discrete ({u w} : Set M)).preimage hu
   have h_ev : u =ᶠ[nhds w] (fun _ : CP1 => u w) :=
     Filter.eventuallyEq_iff_exists_mem.mpr ⟨u ⁻¹' ({u w} : Set M), h_open.mem_nhds rfl, fun _ h => h⟩
-  rw [h_ev.mfderiv_eq, mfderiv_const]
+  rw [h_ev.mfderiv_eq]
+  exact mfderiv_const
 
 /-- Global Epsilon-Regularity when the 4-branch hypothesis of `integral_translated_density_le_energyMeasure`
 holds for every `J`-holomorphic sphere (`0 sorryAx`). -/

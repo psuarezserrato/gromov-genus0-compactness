@@ -265,7 +265,6 @@ lemma exists_neck_energy_threshold (d₀ C_cyl : ℝ) (hd₀ : 0 < d₀) (hC : 0
     C_cyl * (d₀ / (4 * C_cyl)) = d₀ / 4 := by
       have : C_cyl ≠ 0 := hC.ne'
       field_simp
-      ring
     _ < d₀ / 2 := by linarith
 
 /-- Pointwise localization from uniform diameter bound:
@@ -519,7 +518,7 @@ theorem ball_subset_closure_punctured_ball (r : ℝ) (hr : 0 < r) :
     have h_mem : ball (0 : ℂ) r ∈ nhdsWithin (0 : ℂ) ({0}ᶜ : Set ℂ) :=
       mem_nhdsWithin_of_mem_nhds (ball_mem_nhds 0 hr)
     rw [nhdsWithin_inter_of_mem h_mem]
-    exact NormedField.punctured_nhds_neBot 0
+    exact inferInstance
   · exact subset_closure ⟨hz, hz0⟩
 
 /-- Continuous extension equality on the Euclidean disk:
@@ -982,11 +981,8 @@ theorem satisfiesCylinderEnergyDecay_const
     have h_dens : (fun w : ℂ => ENNReal.ofReal
         (riemannianEnergyDensity I (fun _ => c) (stereo_chart.symm w) * sphericalJacobian w)) = 0 := by
       ext w
-      have hd : riemannianEnergyDensity I (fun _ => c) (stereo_chart.symm w) = 0 := by
-        dsimp [riemannianEnergyDensity]
-        simp only [mfderiv_const]
-        dsimp [ClosedTameTarget.metric]
-        simp
+      have hd : riemannianEnergyDensity I (fun _ => c) (stereo_chart.symm w) = 0 :=
+        energy_density_const_map I c (stereo_chart.symm w)
       rw [hd]
       simp [ENNReal.ofReal_zero]
     rw [h_dens]
@@ -1377,7 +1373,7 @@ theorem continuous_of_weakJHolomorphicOn_univ
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
     (u : CP1 → M) (h_weak : WeakJHolomorphicOn I u Set.univ) :
     Continuous u :=
-  continuous_iff_continuousOn_univ.mpr h_weak.1.continuousOn
+  continuousOn_univ.mp h_weak.1.continuousOn
 
 /-- Any globally weak `C¹` `J`-holomorphic map on `CP1` unconditionally satisfies
 `SatisfiesPunctureSobolevExtension` at every puncture `p` with zero `sorry`. -/

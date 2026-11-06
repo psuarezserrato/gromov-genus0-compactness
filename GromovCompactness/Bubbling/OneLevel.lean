@@ -210,7 +210,7 @@ noncomputable def OneLevelDecomposition.of_leaf_bubble
   v_jhol := hv_jhol
   q := ∅
   m_child := fun _ => 0
-  m_child_pos := by intro z hz; exact False.elim (Finset.not_mem_empty z hz)
+  m_child_pos := by intro z hz; exact False.elim (Finset.notMem_empty z hz)
   m_child_zero := by intro _ _; rfl
   mass_sum := by simpa using hv_tot
   node_match := hv_node
@@ -895,7 +895,7 @@ theorem exists_one_level_decomposition_of_jhol_of_discrete [DiscreteTopology M]
     (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ) :
     Nonempty (OneLevelDecomposition I thresh m_defect base_val) :=
   exists_one_level_decomposition_of_exists_continuous_of_discrete I u_seq thresh m_defect hm res base_val h_match
-    0 (continuous_iff_continuousOn_univ.mpr (h_jhol 0).1.continuousOn)
+    0 (continuousOn_univ.mp (h_jhol 0).1.continuousOn)
 
 /-- Unconditional `exists_one_level_decomposition` when some `J`-holomorphic term `u_seq n₀`
 has total energy strictly below `thresh.ε_sph` (`0 sorryAx`). -/

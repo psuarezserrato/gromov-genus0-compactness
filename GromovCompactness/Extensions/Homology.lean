@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Autoformalization Team
 -/
 import Mathlib.Topology.Homotopy.Basic
+import Mathlib.Topology.EMetricSpace.Diam
 import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
 import Mathlib.Order.Filter.Basic
 import GromovCompactness.Geometry.Target
@@ -144,7 +145,7 @@ structure NeckDegenerationData (u_seq : ℕ → (CP1 → M)) (u_lim : StableSphe
     Tendsto (fun n => energyMeasure I (u_seq n) (neck_cyl v w h n)) atTop (𝓝 0)
   /-- The target metric diameter of the neck image shrinks to 0. -/
   neck_diam_vanishes : ∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-    Tendsto (fun n => EMetric.diam (u_seq n '' (neck_cyl v w h n))) atTop (𝓝 0)
+    Tendsto (fun n => Metric.ediam (u_seq n '' (neck_cyl v w h n))) atTop (𝓝 0)
 
 /-- **Preservation of Integral Homology Classes Under Neck Degeneration (Task E03 / E01)**.
 For any sequence of $J$-holomorphic curves Gromov-converging to a stable sphere tree limit,

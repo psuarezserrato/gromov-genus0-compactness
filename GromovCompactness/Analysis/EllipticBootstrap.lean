@@ -115,7 +115,7 @@ theorem cauchyRiemann_add (f g : ℂ → ℂ) (z : ℂ)
     cauchyRiemann (f + g) z = cauchyRiemann f z + cauchyRiemann g z := by
   dsimp [cauchyRiemann]
   change (1 / 2 : ℂ) * (fderiv ℝ (fun y => f y + g y) z 1 + Complex.I * fderiv ℝ (fun y => f y + g y) z Complex.I) = _
-  rw [fderiv_add hf hg]
+  rw [fderiv_fun_add hf hg]
   simp only [ContinuousLinearMap.add_apply]
   ring
 
@@ -125,7 +125,7 @@ theorem cauchyRiemann_sub (f g : ℂ → ℂ) (z : ℂ)
     cauchyRiemann (f - g) z = cauchyRiemann f z - cauchyRiemann g z := by
   dsimp [cauchyRiemann]
   change (1 / 2 : ℂ) * (fderiv ℝ (fun y => f y - g y) z 1 + Complex.I * fderiv ℝ (fun y => f y - g y) z Complex.I) = _
-  rw [fderiv_sub hf hg]
+  rw [fderiv_fun_sub hf hg]
   simp only [ContinuousLinearMap.sub_apply]
   ring
 
@@ -135,7 +135,7 @@ theorem cauchyRiemann_smul (c : ℝ) (f : ℂ → ℂ) (z : ℂ)
     cauchyRiemann (c • f) z = (c : ℂ) * cauchyRiemann f z := by
   dsimp [cauchyRiemann]
   change (1 / 2 : ℂ) * (fderiv ℝ (fun y => c • f y) z 1 + Complex.I * fderiv ℝ (fun y => c • f y) z Complex.I) = _
-  rw [fderiv_const_smul hf c]
+  rw [fderiv_fun_const_smul hf c]
   simp only [ContinuousLinearMap.smul_apply, Complex.real_smul]
   ring
 
@@ -145,7 +145,7 @@ theorem cauchyRiemann_mul (g f : ℂ → ℂ) (z : ℂ)
     (hg : DifferentiableAt ℝ g z) (hf : DifferentiableAt ℝ f z) :
     cauchyRiemann (fun w => g w * f w) z = g z * cauchyRiemann f z + f z * cauchyRiemann g z := by
   dsimp [cauchyRiemann]
-  rw [fderiv_mul hg hf]
+  rw [fderiv_fun_mul hg hf]
   simp only [ContinuousLinearMap.add_apply, ContinuousLinearMap.smul_apply, smul_eq_mul]
   ring
 
@@ -241,7 +241,6 @@ theorem sobolevSeminorm_zero_eq (p : ℝ) (f : ℂ → ℂ) (s : Set ℂ) :
     sobolevSeminorm p 0 f s = (∫ z in s, ‖f z‖ ^ p) ^ (1 / p) := by
   dsimp [sobolevSeminorm]
   simp only [norm_iteratedFDeriv_zero]
-  rfl
 
 /-- Order zero Sobolev norm coincides with the order zero seminorm ($L^p$ norm). -/
 theorem sobolevNorm_zero (p : ℝ) (f : ℂ → ℂ) (s : Set ℂ) :
@@ -357,11 +356,11 @@ lemma constant_map_sobolev_seminorm_mono (p : ℝ) (hp : 0 < p) (r R : ℝ) (hrR
     simp [norm_iteratedFDeriv_zero]
   rw [h_norm]
   have hfi : IntegrableOn (fun _ : ℂ => ‖c‖ ^ p) (closedBall (0 : ℂ) R) volume :=
-    integrableOn_const.2 (Or.inr measure_closedBall_lt_top)
+    integrableOn_const measure_closedBall_lt_top.ne enorm_ne_top
   have hf : 0 ≤ᵐ[volume.restrict (closedBall (0 : ℂ) R)] (fun _ : ℂ => ‖c‖ ^ p) :=
     Filter.Eventually.of_forall (fun _ => Real.rpow_nonneg (norm_nonneg c) p)
   have hst : closedBall (0 : ℂ) r ≤ᵐ[volume] closedBall (0 : ℂ) R :=
-    HasSubset.Subset.eventuallyLE (closedBall_subset_closedBall hrR)
+    Filter.Eventually.of_forall (fun w hw => closedBall_subset_closedBall hrR hw)
   have h_int_le := setIntegral_mono_set hfi hf hst
   have h_int_nonneg : 0 ≤ ∫ z in closedBall (0 : ℂ) r, ‖c‖ ^ p := by
     apply setIntegral_nonneg measurableSet_closedBall
@@ -806,7 +805,7 @@ lemma ckHolderNorm_zero_le_order (k : ℕ) (α : ℝ) (f : ℂ → ℂ) (s : Set
     supNormOn f s ≤ ckHolderNorm k α f s := by
   dsimp [ckHolderNorm]
   have h_in : 0 ∈ Finset.range (k + 1) := Finset.mem_range.mpr (Nat.succ_pos k)
-  have h_split := Finset.sum_eq_add_sum_diff_singleton h_in (fun j => sSup ((fun z => ‖iteratedFDeriv ℝ j f z‖) '' s))
+  have h_split := Finset.sum_eq_add_sum_sdiff_singleton_of_mem h_in (fun j => sSup ((fun z => ‖iteratedFDeriv ℝ j f z‖) '' s))
   rw [h_split]
   have h0 : (fun z => ‖iteratedFDeriv ℝ 0 f z‖) = fun z => ‖f z‖ := by
     ext z
@@ -831,7 +830,7 @@ lemma ckHolderNorm_mono_order {j k : ℕ} (hjk : j ≤ k) (α : ℝ) (f : ℂ �
     sSup ((fun z => ‖iteratedFDeriv ℝ j f z‖) '' s) ≤ ckHolderNorm k α f s := by
   dsimp [ckHolderNorm]
   have h_in : j ∈ Finset.range (k + 1) := Finset.mem_range.mpr (Nat.lt_succ_of_le hjk)
-  have h_split := Finset.sum_eq_add_sum_diff_singleton h_in (fun i => sSup ((fun z => ‖iteratedFDeriv ℝ i f z‖) '' s))
+  have h_split := Finset.sum_eq_add_sum_sdiff_singleton_of_mem h_in (fun i => sSup ((fun z => ‖iteratedFDeriv ℝ i f z‖) '' s))
   rw [h_split]
   have h_rem_nonneg : 0 ≤ ∑ x ∈ Finset.range (k + 1) \ {j}, sSup ((fun z => ‖iteratedFDeriv ℝ x f z‖) '' s) := by
     apply Finset.sum_nonneg
@@ -945,6 +944,7 @@ theorem cauchy_kernel_diff_bound
     nlinarith
   have hdiff : (ζ - z)⁻¹ - (ζ - w)⁻¹ = (z - w) / ((ζ - z) * (ζ - w)) := by
     field_simp
+    ring
   rw [hdiff, norm_div, norm_mul]
   exact div_le_div_of_nonneg_left (norm_nonneg _) (pow_pos hRmr_pos 2) hden
 
@@ -960,7 +960,6 @@ theorem polar_cauchy_pompeiu_kernel_identity
   set c := starRingEnd ℂ (ζ - z)
   have hc : c ≠ 0 := (map_ne_zero_iff (starRingEnd ℂ) (RingHom.injective _)).mpr hζz
   field_simp [hζz, hc]
-  ring
 
 theorem cauchy_deriv_kernel_diff_bound
     {r R : ℝ} (hr : 0 < r) (hrR : r < R)
@@ -1068,7 +1067,6 @@ theorem polar_radial_angular_cauchyRiemann_identity
     rw [h1, (fderiv ℝ f ζ).map_smul, Complex.real_smul]
   rw [h_smul]
   field_simp [hρ_ne]
-  ring
 
 theorem boundary_circleIntegral_holder_est
     {r R α M : ℝ} (hr : 0 < r) (hrR : r < R) (hα0 : 0 < α) (hα1 : α < 1) (hM : 0 ≤ M)
@@ -1145,14 +1143,14 @@ theorem boundary_circleIntegral_deriv_holder_est
     intro ζ hζ h0
     have hζR : ‖ζ‖ = R := by simpa [Metric.mem_sphere, dist_eq_norm] using hζ
     have h1 : ‖ζ‖ - ‖z‖ ≤ ‖ζ - z‖ := norm_sub_norm_le ζ z
-    have h2 : ζ - z = 0 := pow_eq_zero h0
+    have h2 : ζ - z = 0 := eq_zero_of_pow_eq_zero h0
     have h3 : ‖ζ - z‖ = 0 := by simp [h2]
     linarith
   have h_ne_w : ∀ ζ ∈ Metric.sphere (0 : ℂ) R, (ζ - w) ^ 2 ≠ 0 := by
     intro ζ hζ h0
     have hζR : ‖ζ‖ = R := by simpa [Metric.mem_sphere, dist_eq_norm] using hζ
     have h1 : ‖ζ‖ - ‖w‖ ≤ ‖ζ - w‖ := norm_sub_norm_le ζ w
-    have h2 : ζ - w = 0 := pow_eq_zero h0
+    have h2 : ζ - w = 0 := eq_zero_of_pow_eq_zero h0
     have h3 : ‖ζ - w‖ = 0 := by simp [h2]
     linarith
   have h_int_z : CircleIntegrable (fun ζ => ((ζ - z) ^ 2)⁻¹ * f ζ) 0 R := by
@@ -1202,7 +1200,7 @@ theorem polar_radial_hasDerivAt
   set eθ : ℂ := Complex.exp (Complex.I * (θ : ℂ))
   have h_inner : HasDerivAt (fun r : ℝ => z + (r : ℂ) * eθ) eθ ρ := by
     have h1 : HasDerivAt (fun r : ℝ => (r : ℂ)) 1 ρ := by
-      simpa using Complex.ofRealCLM.hasDerivAt (x := ρ)
+      exact Complex.ofRealCLM.hasDerivAt (x := ρ)
     have h2 : HasDerivAt (fun r : ℝ => (r : ℂ) * eθ) (1 * eθ) ρ := h1.mul_const eθ
     rw [one_mul] at h2
     simpa using h2.const_add z
@@ -1217,12 +1215,12 @@ theorem polar_angular_hasDerivAt
   have h_exp : HasDerivAt (fun t : ℝ => Complex.exp (Complex.I * (t : ℂ)))
       (Complex.I * Complex.exp (Complex.I * (θ : ℂ))) θ := by
     have h1 : HasDerivAt (fun t : ℝ => (t : ℂ)) 1 θ := by
-      simpa using Complex.ofRealCLM.hasDerivAt (x := θ)
+      exact Complex.ofRealCLM.hasDerivAt (x := θ)
     have h2 : HasDerivAt (fun t : ℝ => Complex.I * (t : ℂ)) (Complex.I * 1) θ :=
       h1.const_mul Complex.I
     rw [mul_one] at h2
     have h3 := (Complex.hasDerivAt_exp (Complex.I * (θ : ℂ))).comp θ h2
-    simpa [mul_comm] using h3
+    exact h3.congr_deriv (by rw [mul_comm])
   have h_inner : HasDerivAt (fun t : ℝ => z + (ρ : ℂ) * Complex.exp (Complex.I * (t : ℂ)))
       (Complex.I * ((ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))) θ := by
     have h4 := h_exp.const_mul (ρ : ℂ)
@@ -1412,7 +1410,6 @@ theorem polar_pompeiu_disk_integral_bound
         mul_le_mul_of_nonneg_left h_ang_est (inv_nonneg.mpr hpi_pos.le)
     _ = 2 * R * M := by
         field_simp [hpi_ne]
-        ring
 
 theorem polar_radial_angular_ftc_eq_sub
     {f : ℂ → ℂ} {z : ℂ} {R : ℝ}
@@ -1705,13 +1702,13 @@ theorem polar_far_zone_integrand_bound
   have hρ_nonneg : 0 ≤ ρ := hρpos.le
   let ζ := z + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
   have hρ_norm : ‖(ρ : ℂ)‖ = ρ := by
-    rw [Complex.norm_def, Complex.abs_of_nonneg hρ_nonneg]
+    rw [Complex.norm_of_nonneg hρ_nonneg]
   have hnorm_ζz : ‖ζ - z‖ = ρ := by
     have h_eq : ζ - z = (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) := by
       dsimp [ζ]; ring
     rw [h_eq, norm_mul, hρ_norm]
     have hexp : ‖Complex.exp (Complex.I * (θ : ℂ))‖ = 1 := by
-      rw [mul_comm, Complex.norm_def, Complex.abs_exp_ofReal_mul_I]
+      rw [mul_comm, Complex.norm_exp_ofReal_mul_I]
     rw [hexp, mul_one]
   have hζz : (2 * δ : ℝ) ≤ ‖ζ - z‖ := by
     rw [hnorm_ζz]; exact hρ
@@ -1728,7 +1725,6 @@ theorem polar_far_zone_integrand_bound
     have h_simp : ρ * (2 * M * ‖z - w‖ / ρ ^ 2) = 2 * M * ‖z - w‖ / ρ := by
       have hρ_ne : ρ ≠ 0 := hρpos.ne'
       field_simp [hρ_ne]
-      ring
     rwa [h_simp] at hmul
   have hnum : 2 * M * ‖z - w‖ / ρ ≤ 2 * M * (δ / ρ) := by
     have : 2 * M * ‖z - w‖ / ρ = (2 * M / ρ) * ‖z - w‖ := by ring
@@ -1839,7 +1835,7 @@ theorem cauchy_pompeiu_pointwise_holder_bound_of_parts
   have h_pi_pos : 0 < Real.pi := Real.pi_pos
   have h_pi_ne : Real.pi ≠ 0 := h_pi_pos.ne'
   have h_pi_norm : ‖((Real.pi : ℂ)⁻¹)‖ = Real.pi⁻¹ := by
-    rw [norm_inv, Complex.norm_def, Complex.abs_of_nonneg h_pi_pos.le]
+    rw [norm_inv, Complex.norm_of_nonneg h_pi_pos.le]
   have h_sum := pompeiu_near_plus_far_holder_bound h_near h_far
   have h_pomp : ‖((Real.pi : ℂ)⁻¹) * (I_near + I_far)‖ ≤
       (4 * M * ((2 * r) ^ (1 - α) + A ^ (1 - α) / (1 - α))) * ‖z - w‖ ^ α := by
@@ -1909,11 +1905,9 @@ theorem clm_opNorm_le_norm_one_add_norm_I
     conv_lhs => rw [← complex_real_smul_decomp v]
     rw [map_add, L.map_smul, L.map_smul]
   have hre : |v.re| ≤ ‖v‖ := by
-    rw [Complex.norm_def]
-    exact Complex.abs_re_le_abs v
+    exact Complex.abs_re_le_norm v
   have him : |v.im| ≤ ‖v‖ := by
-    rw [Complex.norm_def]
-    exact Complex.abs_im_le_abs v
+    exact Complex.abs_im_le_norm v
   calc ‖L v‖
       = ‖v.re • L 1 + v.im • L Complex.I‖ := by rw [hv]
     _ ≤ ‖v.re • L 1‖ + ‖v.im • L Complex.I‖ := norm_add_le _ _
@@ -2041,7 +2035,6 @@ theorem curryFin1_iteratedFDeriv_one (f : ℂ → ℂ) (z : ℂ) :
     continuousMultilinearCurryFin1 ℝ ℂ ℂ (iteratedFDeriv ℝ 1 f z) = fderiv ℝ f z := by
   ext v
   simp [iteratedFDeriv_one_apply]
-  rfl
 
 theorem norm_iteratedFDeriv_one_eq_norm_fderiv (f : ℂ → ℂ) (z : ℂ) :
     ‖iteratedFDeriv ℝ 1 f z‖ = ‖fderiv ℝ f z‖ := by
@@ -2238,11 +2231,8 @@ theorem polar_far_zone_double_integral_bound
              g (z + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) /
               ((z + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) - w)))‖ ≤
       ∫ ρ in (2 * δ)..A, (4 * Real.pi * M * δ ^ α) * ρ ^ (-α) := by
-    rw [← _root_.abs_of_nonneg h_nonneg]
-    apply intervalIntegral.norm_integral_le_of_norm_le _ h_int
-    rw [ae_restrict_iff' measurableSet_uIoc]
+    apply intervalIntegral.norm_integral_le_of_norm_le hA _ h_int
     filter_upwards with ρ hρ
-    rw [Set.uIoc_of_le hA] at hρ
     exact polar_far_zone_angular_slice_bound hM hδ hρ.1.le hα0 hα1 hzw (hg ρ hρ)
   exact le_trans h_le (polar_far_zone_subinterval_integral_le hM hδ.le (by linarith) hA hα0 hα1)
 
@@ -2477,9 +2467,9 @@ theorem interior_cauchy_riemann_estimate_of_induction
       ckHolderNorm (k + 1) α f (Metric.ball (0 : ℂ) r) ≤
         C * (ckHolderNorm k α (dbarComplex f) (Metric.ball (0 : ℂ) R) +
              supNormOn f (Metric.ball (0 : ℂ) R)) := by
-  induction' k with k ih generalizing α r R
-  · exact h_base α r R hr hrR hα0 hα1
-  · exact h_step k ih α r R hr hrR hα0 hα1
+  induction k generalizing α r R with
+  | zero => exact h_base α r R hr hrR hα0 hα1
+  | succ k ih => exact h_step k ih α r R hr hrR hα0 hα1
 
 /-- Explicit Cauchy–Pompeiu interior Hölder gain constant on concentric disks $0 < r < R$. -/
 noncomputable def cauchyPompeiuConstant (r R α : ℝ) : ℝ :=
@@ -2522,22 +2512,26 @@ noncomputable def schauderConstant : ℕ → ℝ → ℝ → ℝ → ℝ
 
 theorem schauderConstant_pos (k : ℕ) {α r R : ℝ} (hr : 0 < r) (hrR : r < R) (hα0 : 0 < α) (hα1 : α < 1) :
     0 < schauderConstant k α r R := by
-  induction' k with k ih generalizing r R
-  · dsimp [schauderConstant]
+  induction k generalizing r R with
+  | zero =>
+    dsimp [schauderConstant]
     have hcp := cauchyPompeiuConstant_pos hr hrR hα0 hα1
     positivity
-  · dsimp [schauderConstant]
+  | succ k ih =>
+    dsimp [schauderConstant]
     have hmid := radius_shrinkage_mid r R ⟨hr, hrR⟩
     have h_ih := ih hr hmid.2.1
     positivity
 
 theorem one_le_schauderConstant (k : ℕ) {α r R : ℝ} (hr : 0 < r) (hrR : r < R) (hα0 : 0 < α) (hα1 : α < 1) :
     1 ≤ schauderConstant k α r R := by
-  induction' k with k ih generalizing r R
-  · dsimp [schauderConstant]
+  induction k generalizing r R with
+  | zero =>
+    dsimp [schauderConstant]
     have hcp := cauchyPompeiuConstant_pos hr hrR hα0 hα1
     linarith
-  · dsimp [schauderConstant]
+  | succ k ih =>
+    dsimp [schauderConstant]
     have hmid := radius_shrinkage_mid r R ⟨hr, hrR⟩
     have h_ih := ih hr hmid.2.1
     linarith
@@ -2600,9 +2594,10 @@ theorem derivHolderSeminorm_const (j : ℕ) (α : ℝ) (c : ℂ) (s : Set ℂ) :
 
 theorem ckHolderNorm_const (k : ℕ) (α : ℝ) (c : ℂ) (s : Set ℂ) :
     ckHolderNorm k α (fun _ => c) s = supNormOn (fun _ => c) s := by
-  induction' k with k ih
-  · rw [ckHolderNorm_zero_eq, holderSeminorm_const, add_zero]
-  · have h_le := ckHolderNorm_succ_le_ckHolderNorm_add_top k α (fun _ => c) s
+  induction k with
+  | zero => rw [ckHolderNorm_zero_eq, holderSeminorm_const, add_zero]
+  | succ k ih =>
+    have h_le := ckHolderNorm_succ_le_ckHolderNorm_add_top k α (fun _ => c) s
       (derivHolderSeminorm_nonneg k α (fun _ => c) s)
     have h_sup_zero : sSup ((fun z => ‖iteratedFDeriv ℝ (k + 1) (fun _ : ℂ => c) z‖) '' s) = 0 := by
       apply sSup_zero_set
@@ -2636,12 +2631,12 @@ theorem satisfiesCauchyRiemannSchauder_const
       change ‖cauchyRiemann (fun _ => c) z - cauchyRiemann (fun _ => c) w‖ / ‖z - w‖ ^ α ≤ 0
       rw [cauchyRiemann_const c z, cauchyRiemann_const c w, sub_self, norm_zero, zero_div]
     · intro z _hz
-      have hf0 : fderiv ℝ (fun _ : ℂ => c) z 1 = 0 := by rw [fderiv_const]; rfl
+      have hf0 : fderiv ℝ (fun _ : ℂ => c) z 1 = 0 := by rw [fderiv_const_apply]; rfl
       rw [hf0, norm_zero]
       positivity
     · intro z _hz w _hw
-      have hf1 : fderiv ℝ (fun _ : ℂ => c) z 1 = 0 := by rw [fderiv_const]; rfl
-      have hf2 : fderiv ℝ (fun _ : ℂ => c) w 1 = 0 := by rw [fderiv_const]; rfl
+      have hf1 : fderiv ℝ (fun _ : ℂ => c) z 1 = 0 := by rw [fderiv_const_apply]; rfl
+      have hf2 : fderiv ℝ (fun _ : ℂ => c) w 1 = 0 := by rw [fderiv_const_apply]; rfl
       rw [hf1, hf2, sub_self, norm_zero]
       have hd : 0 ≤ ‖z - w‖ ^ α := Real.rpow_nonneg (norm_nonneg _) α
       positivity
@@ -2667,30 +2662,30 @@ theorem satisfiesCauchyRiemannSchauder_const
     · intro z _hz
       rw [h_iter_zero]
       have hf0 : fderiv ℝ (fun _ : ℂ => (0 : ContinuousMultilinearMap ℝ (fun _ : Fin (k + 1) => ℂ) ℂ)) z 1 = 0 := by
-        rw [fderiv_const]; rfl
+        rw [fderiv_const_apply]; rfl
       rw [hf0, norm_zero]
       positivity
     · intro z _hz
       rw [h_iter_zero]
       have hf0 : fderiv ℝ (fun _ : ℂ => (0 : ContinuousMultilinearMap ℝ (fun _ : Fin (k + 1) => ℂ) ℂ)) z Complex.I = 0 := by
-        rw [fderiv_const]; rfl
+        rw [fderiv_const_apply]; rfl
       rw [hf0, norm_zero]
       positivity
     · intro z _hz w _hw
       rw [h_iter_zero]
       have hf1 : fderiv ℝ (fun _ : ℂ => (0 : ContinuousMultilinearMap ℝ (fun _ : Fin (k + 1) => ℂ) ℂ)) z 1 = 0 := by
-        rw [fderiv_const]; rfl
+        rw [fderiv_const_apply]; rfl
       have hf2 : fderiv ℝ (fun _ : ℂ => (0 : ContinuousMultilinearMap ℝ (fun _ : Fin (k + 1) => ℂ) ℂ)) w 1 = 0 := by
-        rw [fderiv_const]; rfl
+        rw [fderiv_const_apply]; rfl
       rw [hf1, hf2, sub_self, norm_zero]
       have hd : 0 ≤ ‖z - w‖ ^ α := Real.rpow_nonneg (norm_nonneg _) α
       positivity
     · intro z _hz w _hw
       rw [h_iter_zero]
       have hf1 : fderiv ℝ (fun _ : ℂ => (0 : ContinuousMultilinearMap ℝ (fun _ : Fin (k + 1) => ℂ) ℂ)) z Complex.I = 0 := by
-        rw [fderiv_const]; rfl
+        rw [fderiv_const_apply]; rfl
       have hf2 : fderiv ℝ (fun _ : ℂ => (0 : ContinuousMultilinearMap ℝ (fun _ : Fin (k + 1) => ℂ) ℂ)) w Complex.I = 0 := by
-        rw [fderiv_const]; rfl
+        rw [fderiv_const_apply]; rfl
       rw [hf1, hf2, sub_self, norm_zero]
       have hd : 0 ≤ ‖z - w‖ ^ α := Real.rpow_nonneg (norm_nonneg _) α
       positivity
@@ -3074,7 +3069,7 @@ theorem differentiableAt_of_contDiffOn_closedBall
     {ζ : ℂ} (hζ : ζ ∈ Metric.ball (0 : ℂ) R) :
     DifferentiableAt ℝ g ζ :=
   (hg.contDiffAt (Filter.mem_of_superset (Metric.isOpen_ball.mem_nhds hζ)
-    Metric.ball_subset_closedBall)).differentiableAt le_rfl
+    Metric.ball_subset_closedBall)).differentiableAt one_ne_zero
 
 /-- Mean value Lipschitz bound on `ball 0 R` for $C^1$ maps on `closedBall 0 R` (Zero-sorry). -/
 theorem norm_sub_le_sSup_fderiv_of_contDiffOn_closedBall
@@ -3718,7 +3713,7 @@ theorem elliptic_bootstrap_wkp_of_cauchy_riemann
   refine ⟨C, hC_pos, fun f hf => ?_⟩
   have h_bound := hC f hf
   have h_mono : sobolevNorm p 0 f (Metric.closedBall 0 R) ≤ sobolevNorm p k f (Metric.closedBall 0 R) :=
-    sobolevNorm_zero_le_order p k f (Metric.closedBall 0 R) Metric.isClosed_ball.measurableSet
+    sobolevNorm_zero_le_order p k f (Metric.closedBall 0 R) Metric.isClosed_closedBall.measurableSet
   have h_add : sobolevNorm p k (cauchyRiemann f) (Metric.closedBall 0 R) + sobolevNorm p 0 f (Metric.closedBall 0 R) ≤
                sobolevNorm p k (cauchyRiemann f) (Metric.closedBall 0 R) + sobolevNorm p k f (Metric.closedBall 0 R) := by
     linarith
@@ -3765,7 +3760,7 @@ theorem elliptic_bootstrap_wkp_of_certificate (p : ℝ) (hp : 1 < p) (k : ℕ) (
   refine ⟨C, hC_pos, fun f hf h_cz => ?_⟩
   have h_bound := hC f hf h_cz
   have h_mono : sobolevNorm p 0 f (Metric.closedBall 0 R) ≤ sobolevNorm p k f (Metric.closedBall 0 R) :=
-    sobolevNorm_zero_le_order p k f (Metric.closedBall 0 R) Metric.isClosed_ball.measurableSet
+    sobolevNorm_zero_le_order p k f (Metric.closedBall 0 R) Metric.isClosed_closedBall.measurableSet
   have h_add : sobolevNorm p k (cauchyRiemann f) (Metric.closedBall 0 R) + sobolevNorm p 0 f (Metric.closedBall 0 R) ≤
                sobolevNorm p k (cauchyRiemann f) (Metric.closedBall 0 R) + sobolevNorm p k f (Metric.closedBall 0 R) := by
     linarith
@@ -4559,7 +4554,7 @@ theorem local_smooth_compactness_univ_of_discrete
       SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Set.univ ∧
       JHolomorphicOn (I := I) (I_dom := I_CP1) u_lim Set.univ :=
   local_smooth_compactness_of_continuous_of_discrete I u_seq Set.univ isOpen_univ h_jhol h_grad_bdd
-    (fun n => continuous_iff_continuousOn_univ.mpr (h_jhol n).1.continuousOn)
+    (fun n => continuousOn_univ.mp (h_jhol n).1.continuousOn)
 
 /-- Zero-sorry local smooth compactness when `u_seq` admits a subsequence of constant maps (`0 sorryAx`). -/
 theorem local_smooth_compactness_of_const_subseq

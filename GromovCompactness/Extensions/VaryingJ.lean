@@ -360,7 +360,7 @@ theorem jholomorphic_limit_of_varying_J
   have h_diff := h_cpt.2.1 z hz_mem
   have h_J := h_cpt.2.2.2 z hz_mem v
   have h_eval : Continuous (fun (L : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) => L (dom.j z v)) :=
-    (ContinuousLinearMap.apply ℝ E (dom.j z v)).continuous
+    (ContinuousLinearMap.apply ℝ E (show EuclideanSpace ℝ (Fin 2) from dom.j z v)).continuous
   have lim1 : Tendsto (fun n => mfderiv I_CP1 I (u_seq n) z (dom.j z v)) atTop
       (nhds (mfderiv I_CP1 I u_lim z (dom.j z v))) :=
     h_eval.tendsto (mfderiv I_CP1 I u_lim z) |>.comp h_diff
@@ -370,10 +370,10 @@ theorem jholomorphic_limit_of_varying_J
   let x_seq : ℕ → M := fun n => if u_seq n z ∈ (extChartAt I x).source then u_seq n z else x
   have hx_src : ∀ n, x_seq n ∈ (extChartAt I x).source := by
     intro n
-    dsimp [x_seq]
-    split_ifs with h
-    · exact h
-    · exact mem_extChartAt_source x
+    change (if u_seq n z ∈ (extChartAt I x).source then u_seq n z else x) ∈ (extChartAt I x).source
+    by_cases h : u_seq n z ∈ (extChartAt I x).source
+    · rw [if_pos h]; exact h
+    · rw [if_neg h]; exact mem_extChartAt_source x
   have hx_ev : x_seq =ᶠ[atTop] (fun n => u_seq n z) := by
     filter_upwards [h_ev_src] with n hn
     exact if_pos hn
@@ -409,8 +409,10 @@ theorem jholomorphic_limit_of_varying_J
          iteratedFDeriv ℝ 0 (J_chart I tgt.J x) (y_seq n)).le_opNorm ![]
     simp only [Fin.prod_univ_zero, mul_one] at h_le
     exact lt_of_le_of_lt h_le h_dist
-  have h_diff_J_u : Tendsto (fun n => varying_J.J_seq n (u_seq n z) - tgt.J (u_seq n z))
-      atTop (𝓝 (0 : E →L[ℝ] E)) := by
+  let L_diff : ℕ → (E →L[ℝ] E) := fun n => varying_J.J_seq n (u_seq n z) - tgt.J (u_seq n z)
+  let w_seq : ℕ → E := fun n => mfderiv I_CP1 I (u_seq n) z v
+  let w_lim : E := mfderiv I_CP1 I u_lim z v
+  have h_diff_J_u : Tendsto L_diff atTop (𝓝 (0 : E →L[ℝ] E)) := by
     refine h_diff_J_zero.congr' ?_
     filter_upwards [h_ev_src] with n hn
     have hx_eq : x_seq n = u_seq n z := if_pos hn
@@ -418,27 +420,33 @@ theorem jholomorphic_limit_of_varying_J
       change (extChartAt I x).symm (extChartAt I x (x_seq n)) = u_seq n z
       rw [hx_eq]
       exact (extChartAt I x).left_inv hn
-    unfold J_chart
+    change J_chart I (varying_J.J_seq n) x (y_seq n) - J_chart I tgt.J x (y_seq n) = L_diff n
+    unfold J_chart L_diff
     rw [hy_inv]
-  have h_eval_v : Tendsto (fun n => mfderiv I_CP1 I (u_seq n) z v) atTop (𝓝 (mfderiv I_CP1 I u_lim z v)) :=
-    ((ContinuousLinearMap.apply ℝ E v).continuous.tendsto (mfderiv I_CP1 I u_lim z)).comp h_diff
-  have h_clm_diff : Tendsto (fun n => (varying_J.J_seq n (u_seq n z) - tgt.J (u_seq n z)) (mfderiv I_CP1 I (u_seq n) z v))
-      atTop (𝓝 (0 : E)) := by
-    refine squeeze_zero_norm (fun n => (varying_J.J_seq n (u_seq n z) - tgt.J (u_seq n z)).le_opNorm (mfderiv I_CP1 I (u_seq n) z v)) ?_
+    rfl
+  have h_eval_v : Tendsto w_seq atTop (𝓝 w_lim) :=
+    ((ContinuousLinearMap.apply ℝ E (show EuclideanSpace ℝ (Fin 2) from v)).continuous.tendsto (mfderiv I_CP1 I u_lim z)).comp h_diff
+  have h_clm_diff : Tendsto (fun n => L_diff n (w_seq n)) atTop (𝓝 (0 : E)) := by
+    refine squeeze_zero_norm (fun n => (L_diff n).le_opNorm (w_seq n)) ?_
     simpa using h_diff_J_u.norm.mul h_eval_v.norm
-  have lim2 : Tendsto (fun n => varying_J.J_seq n (u_seq n z) (mfderiv I_CP1 I (u_seq n) z v))
-      atTop (𝓝 (tgt.J (u_lim z) (mfderiv I_CP1 I u_lim z v))) := by
-    have h_add := h_clm_diff.add h_J
-    rw [zero_add] at h_add
+  let j_lim : E := tgt.J (u_lim z) w_lim
+  have h_J_E : Tendsto (fun n => ((tgt.J (u_seq n z) : E →L[ℝ] E) (w_seq n) : E))
+      atTop (𝓝 j_lim) := h_J
+  have lim2 : Tendsto (fun n => ((varying_J.J_seq n (u_seq n z) : E →L[ℝ] E) (w_seq n) : E))
+      atTop (𝓝 j_lim) := by
+    have h_add := h_clm_diff.add h_J_E
+    rw [zero_add j_lim] at h_add
     refine h_add.congr (fun n => ?_)
-    simp [ContinuousLinearMap.sub_apply]
+    dsimp [L_diff]
+    exact sub_add_cancel ((varying_J.J_seq n (u_seq n z) : E →L[ℝ] E) (w_seq n))
+      ((tgt.J (u_seq n z) : E →L[ℝ] E) (w_seq n))
   have h_seq_eq :
       (fun n => mfderiv I_CP1 I (u_seq n) z (dom.j z v)) =
       (fun n => varying_J.J_seq n (u_seq n z) (mfderiv I_CP1 I (u_seq n) z v)) := by
     ext n
     exact (h_jhol n).2 z hz v
   rw [h_seq_eq] at lim1
-  exact tendsto_nhds_unique lim1 lim2
+  exact @tendsto_nhds_unique _ _ _ (inferInstanceAs (T2Space E)) _ _ _ _ _ lim1 lim2
 
 /-- Component count bounds for a stable sphere tree limit extracted from a varying-$J$ sequence (Zero-sorry). -/
 theorem varying_J_component_count_bounds
@@ -1044,8 +1052,12 @@ theorem pullbackOmegaMeasure_eq_zero_of_discrete [DiscreteTopology M]
   have h_dens : (fun w : ℂ => ENNReal.ofReal (symplecticAreaDensity I u (stereo_chart.symm w) * sphericalJacobian w)) = 0 := by
     ext w
     dsimp [symplecticAreaDensity]
-    rw [h_mf (stereo_chart.symm w)]
-    simp [ENNReal.ofReal_zero]
+    have h1 : mfderiv I_CP1 I u (stereo_chart.symm w) e1 = 0 := by
+      rw [h_mf (stereo_chart.symm w)]; rfl
+    have h2 : mfderiv I_CP1 I u (stereo_chart.symm w) e2 = 0 := by
+      rw [h_mf (stereo_chart.symm w)]; rfl
+    rw [h1, h2]
+    simp
   dsimp [pullbackOmegaMeasure, pullbackOmegaMeasureExtended, chartPush]
   rw [h_dens]
   simp [MeasureTheory.withDensity_zero]
@@ -1058,7 +1070,9 @@ theorem riemannianEnergyDensityWithJ_eq_zero_of_discrete [DiscreteTopology M]
     riemannianEnergyDensityWithJ I «ω» J u z = 0 := by
   have h_mf := GromovCompactness.Analysis.mfderiv_eq_zero_of_discrete I u hu z
   dsimp [riemannianEnergyDensityWithJ, symmetrizedMetric]
-  rw [h_mf]
+  have h1 : mfderiv I_CP1 I u z e1 = 0 := by rw [h_mf]; rfl
+  have h2 : mfderiv I_CP1 I u z e2 = 0 := by rw [h_mf]; rfl
+  rw [h1, h2]
   simp
 
 /-- On a `[DiscreteTopology M]` target, any `J`-holomorphic sphere (with respect to any `J`)

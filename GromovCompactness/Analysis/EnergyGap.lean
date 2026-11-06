@@ -89,11 +89,8 @@ theorem riemannianEnergyDensity_const
     {M : Type*} [MetricSpace M] [ChartedSpace H M]
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
     (c : M) (z : CP1) :
-    riemannianEnergyDensity I (fun _ => c) z = 0 := by
-  dsimp [riemannianEnergyDensity]
-  simp only [mfderiv_const]
-  dsimp [ClosedTameTarget.metric]
-  simp
+    riemannianEnergyDensity I (fun _ => c) z = 0 :=
+  energy_density_const_map I c z
 
 /-- The extended energy measure of a constant map is the zero measure. -/
 theorem energyMeasureExtended_const
@@ -154,7 +151,9 @@ theorem riemannianEnergyDensity_eq_zero_of_mfderiv_eq_zero
     (u : CP1 → M) (z : CP1) (h : mfderiv I_CP1 I u z = 0) :
     riemannianEnergyDensity I u z = 0 := by
   dsimp [riemannianEnergyDensity]
-  rw [h]
+  have h1 : mfderiv I_CP1 I u z e1 = 0 := by rw [h]; rfl
+  have h2 : mfderiv I_CP1 I u z e2 = 0 := by rw [h]; rfl
+  rw [h1, h2]
   dsimp [ClosedTameTarget.metric]
   simp
 
@@ -214,7 +213,8 @@ theorem mfderiv_eq_zero_of_discrete
     (u : CP1 → M) (hu : ContMDiffOn I_CP1 I ∞ u Set.univ) (z : CP1) :
     mfderiv I_CP1 I u z = 0 := by
   have h_cont : Continuous u := (contMDiffOn_univ.mp hu).continuous
-  rw [(eventuallyEq_const_of_discrete u h_cont z).mfderiv_eq, mfderiv_const]
+  rw [(eventuallyEq_const_of_discrete u h_cont z).mfderiv_eq]
+  exact mfderiv_const
 
 /-- Any smooth map on `CP1` into a `[DiscreteTopology M]` target has zero extended energy measure (`0 sorryAx`). -/
 theorem energyMeasureExtended_eq_zero_of_discrete

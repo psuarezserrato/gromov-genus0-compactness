@@ -54,7 +54,6 @@ theorem sum_energy_erase_root
   have h_zero := totalEnergy_root_eq_zero_of_const I u_seq pdata h_const
   have h_add := Finset.sum_erase_add (Finset.univ : Finset pdata.tree.V)
     (fun v => totalEnergy I (pdata.map v)) (Finset.mem_univ pdata.root)
-  dsimp at h_add
   rw [h_zero, add_zero] at h_add
   exact h_add
 
@@ -223,7 +222,7 @@ theorem stabilize_prestable_tree_of_stable_root
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -250,7 +249,7 @@ theorem stabilize_prestable_tree_of_nonconst_root
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -264,8 +263,8 @@ theorem stabilize_prestable_tree_of_nonconst_root
 def prunedSimpleGraph (tree : SphereTree) (root : tree.V) :
     SimpleGraph { v : tree.V // v ≠ root } where
   Adj u v := tree.adj.Adj u.1 v.1
-  symm _ _ h := tree.adj.symm h
-  loopless u h := tree.adj.loopless u.1 h
+  symm := ⟨fun _ _ h => tree.adj.adj_symm h⟩
+  loopless := ⟨fun _ h => tree.adj.irrefl h⟩
 
 noncomputable instance instDecidableRelPrunedSimpleGraph (tree : SphereTree) (root : tree.V) :
     DecidableRel (prunedSimpleGraph tree root).Adj :=
@@ -281,7 +280,7 @@ def prunedSimpleGraphHom (tree : SphereTree) (root : tree.V) :
 theorem prunedSimpleGraph_isAcyclic (tree : SphereTree) (root : tree.V) :
     (prunedSimpleGraph tree root).IsAcyclic := by
   intro u c hc
-  exact tree.is_tree.IsAcyclic (c.map (prunedSimpleGraphHom tree root))
+  exact tree.is_tree.isAcyclic (c.map (prunedSimpleGraphHom tree root))
     (hc.map Subtype.val_injective)
 
 /-- Retraction mapping `root` to its unique neighbor `w₀` and fixing all `x ≠ root` (Zero-sorry). -/
@@ -310,7 +309,7 @@ lemma deg1Retract_reachable_of_adj (tree : SphereTree) (root : tree.V)
     subst hyw
     exact SimpleGraph.Reachable.refl _
   · subst hy
-    have hxw : x = w₀ := hw₀_uniq x (tree.adj.symm h)
+    have hxw : x = w₀ := hw₀_uniq x (tree.adj.adj_symm h)
     subst hxw
     exact SimpleGraph.Reachable.refl _
   · exact SimpleGraph.Adj.reachable h
@@ -335,7 +334,7 @@ theorem prunedSimpleGraph_connected (tree : SphereTree) (root : tree.V)
   haveI : Nonempty { v : tree.V // v ≠ root } := ⟨⟨w₀, hw₀_ne⟩⟩
   refine SimpleGraph.Connected.mk ?_
   intro u v
-  obtain ⟨p⟩ := tree.is_tree.isConnected u.1 v.1
+  obtain ⟨p⟩ := tree.is_tree.connected u.1 v.1
   have h_reach := deg1Retract_reachable_of_walk tree root w₀ hw₀_ne hw₀_uniq p
   rwa [deg1Retract_eq_self tree root w₀ hw₀_ne u,
        deg1Retract_eq_self tree root w₀ hw₀_ne v] at h_reach
@@ -371,7 +370,7 @@ theorem prunedSimpleGraph_degree_eq_of_ne (tree : SphereTree) (root : tree.V)
     { toFun := fun u => ⟨u.1.1, u.2⟩
       invFun := fun y =>
         ⟨⟨y.1, fun h_eq => by
-          have h_adj : tree.adj.Adj y.1 v.1 := tree.adj.symm y.2
+          have h_adj : tree.adj.Adj y.1 v.1 := tree.adj.adj_symm y.2
           rw [h_eq] at h_adj
           exact hv (hw₀_uniq v.1 h_adj)⟩, y.2⟩
       left_inv := fun u => by ext; rfl
@@ -393,7 +392,7 @@ theorem pruned_nodal_set_eq_of_ne (tree : SphereTree) (root : tree.V)
     have hy_ne : y ≠ root := by
       intro h_eq
       rw [h_eq] at hy
-      exact hv (hw₀_uniq v.1 (tree.adj.symm hy))
+      exact hv (hw₀_uniq v.1 (tree.adj.adj_symm hy))
     exact ⟨⟨y, hy_ne⟩, hy, rfl⟩
 
 theorem isOpen_punctured_sphere_pruned (tree : SphereTree) (root : tree.V)
@@ -422,13 +421,13 @@ theorem isOpen_punctured_sphere_pruned (tree : SphereTree) (root : tree.V)
 theorem deleted_node_mem_punctured_sphere_pruned (tree : SphereTree) (root : tree.V)
     (w₀ : { v : tree.V // v ≠ root })
     (hw₀_adj : tree.adj.Adj root w₀.1) :
-    tree.node_point w₀.1 root (tree.adj.symm hw₀_adj) ∈
+    tree.node_point w₀.1 root (tree.adj.adj_symm hw₀_adj) ∈
     punctured_sphere { z | ∃ (w : { v : tree.V // v ≠ root })
       (h : (prunedSimpleGraph tree root).Adj w₀ w),
       z = tree.node_point w₀.1 w.1 h } := by
   simp only [punctured_sphere, mem_diff, mem_univ, mem_setOf_eq, true_and, not_exists]
   intro w h heq
-  exact tree.node_distinct w₀.1 root w.1 (tree.adj.symm hw₀_adj) h w.2.symm heq
+  exact tree.node_distinct w₀.1 root w.1 (tree.adj.adj_symm hw₀_adj) h w.2.symm heq
 
 theorem punctured_sphere_root_neighbor_eq_diff (tree : SphereTree) (root : tree.V)
     (w₀ : { v : tree.V // v ≠ root })
@@ -437,7 +436,7 @@ theorem punctured_sphere_root_neighbor_eq_diff (tree : SphereTree) (root : tree.
     (punctured_sphere { z | ∃ (w : { v : tree.V // v ≠ root })
       (h : (prunedSimpleGraph tree root).Adj w₀ w),
       z = tree.node_point w₀.1 w.1 h }) \
-    {tree.node_point w₀.1 root (tree.adj.symm hw₀_adj)} := by
+    {tree.node_point w₀.1 root (tree.adj.adj_symm hw₀_adj)} := by
   ext z
   simp only [punctured_sphere, mem_diff, mem_univ, mem_setOf_eq, mem_singleton_iff, true_and]
   constructor
@@ -446,7 +445,7 @@ theorem punctured_sphere_root_neighbor_eq_diff (tree : SphereTree) (root : tree.
     · rintro ⟨w, hw, rfl⟩
       exact h_not ⟨w.1, hw, rfl⟩
     · rintro rfl
-      exact h_not ⟨root, tree.adj.symm hw₀_adj, rfl⟩
+      exact h_not ⟨root, tree.adj.adj_symm hw₀_adj, rfl⟩
   · rintro ⟨h_not_w, h_ne_root⟩ ⟨y, hy, rfl⟩
     by_cases hy_ne : y ≠ root
     · exact h_not_w ⟨⟨y, hy_ne⟩, hy, rfl⟩
@@ -624,11 +623,11 @@ theorem upgrade_convergence_across_deleted_node_of_upgrade
     (_h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_cases : Ω = ∅ ∨
       (∃ c : M, (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo) = (fun _ => fun _ => c) ∧
         pdata.map w₀ = (fun _ => c)) ∨
@@ -638,14 +637,14 @@ theorem upgrade_convergence_across_deleted_node_of_upgrade
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
         (pdata.map w₀)
-        {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}) :
+        {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}) :
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀) Ω :=
   smooth_local_upgrade_at_zero_defect_point I
     (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
     (pdata.map w₀) (pdata.is_jhol w₀) Ω
-    (pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj))
+    (pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj))
     h_open hp h_conv_punct h_cases
 
 /-- Smooth convergence upgrade across a deleted node when singleton convergence holds at the node (`0 sorryAx`). -/
@@ -658,15 +657,15 @@ theorem upgrade_convergence_across_deleted_node_of_singleton_conv
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_pt : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}) :
+      {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}) :
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀) Ω :=
@@ -683,11 +682,11 @@ theorem upgrade_convergence_across_deleted_node_of_eventually_const
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (N₀ : ℕ) (c : M)
     (h_ev : ∀ n ≥ N₀, ∀ z, ((u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo) z = c)
     (h_map_eq : pdata.map w₀ = fun _ => c) :
@@ -707,11 +706,11 @@ theorem upgrade_convergence_across_deleted_node_of_subsingleton [Subsingleton M]
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)})) :
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)})) :
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀) Ω := by
@@ -752,11 +751,11 @@ theorem upgrade_convergence_across_deleted_node_of_continuous_of_discrete [Discr
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_cont : ∀ n, Continuous (u_seq (pdata.σ.1 n))) :
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
@@ -790,18 +789,18 @@ theorem upgrade_convergence_across_deleted_node_of_jhol_of_discrete [DiscreteTop
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ) :
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀) Ω :=
   upgrade_convergence_across_deleted_node_of_continuous_of_discrete I u_seq pdata w₀ hw₀_adj
     h_deg1 h_const Ω h_open hp h_conv_punct
-    (fun n => continuous_iff_continuousOn_univ.mpr (h_jhol (pdata.σ.1 n)).1.continuousOn)
+    (fun n => continuousOn_univ.mp (h_jhol (pdata.σ.1 n)).1.continuousOn)
 
 /-- Smooth convergence upgrade across a deleted node when all non-root components of `pdata`
 are constant (`0 sorryAx`, since `pdata.root` cannot have any neighbors). -/
@@ -814,11 +813,11 @@ theorem upgrade_convergence_across_deleted_node_of_all_off_root_const
     (_h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (_h_open : IsOpen Ω)
-    (_hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (_hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (_h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_off : ∀ v : pdata.tree.V, v ≠ pdata.root → ∃ c : M, ∀ z, pdata.map v z = c) :
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
@@ -838,11 +837,11 @@ theorem upgrade_convergence_across_deleted_node_of_sum_lt_eps_sph
     (_h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (_h_open : IsOpen Ω)
-    (_hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (_hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (_h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_lt : (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) < th.ε_sph) :
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
@@ -865,11 +864,11 @@ theorem upgrade_convergence_across_deleted_node_of_B_lt_eps_sph
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_lt : B < th.ε_sph) :
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
@@ -892,11 +891,11 @@ theorem upgrade_convergence_across_deleted_node_of_B_lt_h
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_lt : B < th.h) :
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
@@ -917,11 +916,11 @@ theorem upgrade_convergence_across_deleted_node_of_nonpos_B
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (hB : B ≤ 0) :
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
@@ -941,18 +940,18 @@ theorem upgrade_convergence_across_deleted_node
     (_h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)})) :
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)})) :
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀) Ω :=
   smooth_local_upgrade_at_zero_defect_point_aux I
     (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
     (pdata.map w₀) (pdata.is_jhol w₀) Ω
-    (pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj))
+    (pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj))
     h_open hp h_conv_punct
 
 /-- Frame and convergence transfer onto the pruned sphere tree when a degree-1
@@ -966,12 +965,12 @@ theorem pruned_tree_frames_and_conv_of_singleton_conv
     (h_pt : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames root'.1 n).toHomeo)
       (pdata.map root'.1)
-      {pdata.tree.node_point root'.1 pdata.root (pdata.tree.adj.symm hw₀_adj)}) :
+      {pdata.tree.node_point root'.1 pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}) :
     ∃ (frames' : (v : { v : pdata.tree.V // v ≠ pdata.root }) → ℕ → MoebiusFrame),
       (∃ ϕ_root : ℕ → MoebiusFrame, ∀ n, frames' root' n = ϕ_root n) ∧
       (∀ (v w : { v : pdata.tree.V // v ≠ pdata.root })
          (h : (prunedSimpleGraph pdata.tree pdata.root).Adj v w),
-        ∀ K ⊆ punctured_sphere {pdata.tree.node_point w.1 v.1 (pdata.tree.adj.symm h)}, IsCompact K →
+        ∀ K ⊆ punctured_sphere {pdata.tree.node_point w.1 v.1 (pdata.tree.adj.adj_symm h)}, IsCompact K →
           TendstoUniformlyOn
             (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames' v n)) (frames' w n)).toHomeo)
             (fun _ => pdata.tree.node_point v.1 w.1 h) atTop K) ∧
@@ -1008,7 +1007,7 @@ theorem prune_degree_one_root_of_singleton_conv
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
         (pdata.map w₀)
-        {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}) :
+        {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}) :
     ∃ (pdata' : PrestableLimitData I u_seq),
       Fintype.card pdata'.tree.V + 1 = Fintype.card pdata.tree.V ∧
       (∑ v : pdata'.tree.V, totalEnergy I (pdata'.map v)) =
@@ -1074,7 +1073,7 @@ theorem pruned_tree_frames_and_conv
       (∃ ϕ_root : ℕ → MoebiusFrame, ∀ n, frames' root' n = ϕ_root n) ∧
       (∀ (v w : { v : pdata.tree.V // v ≠ pdata.root })
          (h : (prunedSimpleGraph pdata.tree pdata.root).Adj v w),
-        ∀ K ⊆ punctured_sphere {pdata.tree.node_point w.1 v.1 (pdata.tree.adj.symm h)}, IsCompact K →
+        ∀ K ⊆ punctured_sphere {pdata.tree.node_point w.1 v.1 (pdata.tree.adj.adj_symm h)}, IsCompact K →
           TendstoUniformlyOn
             (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames' v n)) (frames' w n)).toHomeo)
             (fun _ => pdata.tree.node_point v.1 w.1 h) atTop K) ∧
@@ -1113,7 +1112,7 @@ theorem prune_degree_one_root_of_upgrade
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
         (pdata.map w₀)
-        {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}) :
+        {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}) :
     ∃ (pdata' : PrestableLimitData I u_seq),
       Fintype.card pdata'.tree.V + 1 = Fintype.card pdata.tree.V ∧
       (∑ v : pdata'.tree.V, totalEnergy I (pdata'.map v)) =
@@ -1275,7 +1274,7 @@ theorem prune_degree_one_root_of_jhol_of_discrete [DiscreteTopology M]
       (∑ v : pdata'.tree.V, totalEnergy I (pdata'.map v)) =
         (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) :=
   prune_degree_one_root_of_continuous_of_discrete I u_seq pdata h_deg1 h_const
-    (fun n => continuous_iff_continuousOn_univ.mpr (h_jhol (pdata.σ.1 n)).1.continuousOn)
+    (fun n => continuousOn_univ.mp (h_jhol (pdata.σ.1 n)).1.continuousOn)
 
 /-- Pruning operation when all non-root components of `pdata` are constant (`0 sorryAx`, since
 `pdata.tree.adj.degree pdata.root = 0` contradicts `h_deg1`). -/
@@ -1445,7 +1444,7 @@ theorem not_adj_of_common_neighbor_in_tree (tree : SphereTree) (root w₁ w₂ :
     · exact SimpleGraph.Walk.IsPath.cons (by simp) (by simp [h₁₂.ne])
     · simp [hadj₁.ne, hadj₂.ne]
   have heq : (⟨p₁, hp₁⟩ : tree.adj.Path root w₂) = ⟨p₂, hp₂⟩ :=
-    tree.is_tree.IsAcyclic.path_unique _ _
+    tree.is_tree.isAcyclic.path_unique _ _
   have hlen : p₁.length = p₂.length := congrArg (fun q : tree.adj.Path root w₂ => q.1.length) heq
   dsimp [p₁, p₂] at hlen
   omega
@@ -1455,12 +1454,12 @@ and adding a bridge edge between its two neighbors `w₁` and `w₂` (Zero-sorry
 def suppressedSimpleGraph (tree : SphereTree) (root w₁ w₂ : tree.V) :
     SimpleGraph { v : tree.V // v ≠ root } where
   Adj u v := u ≠ v ∧ (tree.adj.Adj u.1 v.1 ∨ (u.1 = w₁ ∧ v.1 = w₂) ∨ (u.1 = w₂ ∧ v.1 = w₁))
-  symm _ _ h := ⟨h.1.symm, by
+  symm := ⟨fun _ _ h => ⟨h.1.symm, by
     rcases h.2 with hadj | ⟨h1, h2⟩ | ⟨h2, h1⟩
-    · exact Or.inl (tree.adj.symm hadj)
+    · exact Or.inl (tree.adj.adj_symm hadj)
     · exact Or.inr (Or.inr ⟨h2, h1⟩)
-    · exact Or.inr (Or.inl ⟨h1, h2⟩)⟩
-  loopless _ h := h.1 rfl
+    · exact Or.inr (Or.inl ⟨h1, h2⟩)⟩⟩
+  loopless := ⟨fun _ h => h.1 rfl⟩
 
 noncomputable instance instDecidableRelSuppressedSimpleGraph
     (tree : SphereTree) (root w₁ w₂ : tree.V) :
@@ -1482,7 +1481,7 @@ lemma deg2Retract_reachable_of_adj (tree : SphereTree) (root w₁ w₂ : tree.V)
     · exact SimpleGraph.Reachable.refl _
     · exact SimpleGraph.Adj.reachable ⟨fun heq => hne (congrArg Subtype.val heq), Or.inr (Or.inl ⟨rfl, rfl⟩)⟩
   · subst hy
-    rcases h_uniq₂ x (tree.adj.symm h) with rfl | rfl
+    rcases h_uniq₂ x (tree.adj.adj_symm h) with rfl | rfl
     · exact SimpleGraph.Reachable.refl _
     · exact SimpleGraph.Adj.reachable ⟨fun heq => hne (congrArg Subtype.val heq).symm, Or.inr (Or.inr ⟨rfl, rfl⟩)⟩
   · exact SimpleGraph.Adj.reachable ⟨fun heq => h.ne (congrArg Subtype.val heq), Or.inl h⟩
@@ -1507,7 +1506,7 @@ theorem suppressedSimpleGraph_connected (tree : SphereTree) (root w₁ w₂ : tr
   haveI : Nonempty { v : tree.V // v ≠ root } := ⟨⟨w₁, hw₁_ne⟩⟩
   refine SimpleGraph.Connected.mk ?_
   intro u v
-  obtain ⟨p⟩ := tree.is_tree.isConnected u.1 v.1
+  obtain ⟨p⟩ := tree.is_tree.connected u.1 v.1
   have h_reach := deg2Retract_reachable_of_walk tree root w₁ w₂ hne hw₁_ne h_uniq₂ p
   rwa [deg1Retract_eq_self tree root w₁ hw₁_ne u,
        deg1Retract_eq_self tree root w₁ hw₁_ne v] at h_reach
@@ -1524,13 +1523,13 @@ lemma not_reachable_in_pruned_of_common_neighbors
   let path₁ : tree.adj.Path w₁.1 w₂.1 := p_map.toPath
   have h_ne12 : w₁.1 ≠ w₂.1 := fun h => hne (Subtype.ext h)
   let w_root : tree.adj.Walk w₁.1 w₂.1 :=
-    SimpleGraph.Walk.cons (tree.adj.symm hadj₁) (SimpleGraph.Walk.cons hadj₂ SimpleGraph.Walk.nil)
+    SimpleGraph.Walk.cons (tree.adj.adj_symm hadj₁) (SimpleGraph.Walk.cons hadj₂ SimpleGraph.Walk.nil)
   have hw_root : w_root.IsPath := by
     refine SimpleGraph.Walk.IsPath.cons ?_ ?_
     · exact SimpleGraph.Walk.IsPath.cons (by simp) (by simp [hadj₂.ne])
     · simp [hadj₁.ne', h_ne12]
   let path₂ : tree.adj.Path w₁.1 w₂.1 := ⟨w_root, hw_root⟩
-  have h_eq : path₁ = path₂ := tree.is_tree.IsAcyclic.path_unique path₁ path₂
+  have h_eq : path₁ = path₂ := tree.is_tree.isAcyclic.path_unique path₁ path₂
   have h_mem : root ∈ path₁.1.support := by
     rw [h_eq]
     dsimp [path₂, w_root]
@@ -1566,7 +1565,7 @@ lemma inCompW1_step (tree : SphereTree) (root : tree.V)
       have h_iff : (prunedSimpleGraph tree root).Reachable w₁ x ↔
           (prunedSimpleGraph tree root).Reachable w₁ y :=
         ⟨fun hr => hr.trans (SimpleGraph.Adj.reachable hadj),
-         fun hr => hr.trans (SimpleGraph.Adj.reachable (tree.adj.symm hadj))⟩
+         fun hr => hr.trans (SimpleGraph.Adj.reachable (tree.adj.adj_symm hadj))⟩
       have h_eq_bool : inCompW1 tree root w₁ x = inCompW1 tree root w₁ y := by
         dsimp [inCompW1]
         simp [h_iff]
@@ -1628,7 +1627,7 @@ lemma suppressed_cycle_not_mem_bridge (tree : SphereTree) (root : tree.V)
   have h_count : p.edges.count s(w₁, w₂) = 0 := by
     have h_mod : (p.edges.count s(w₁, w₂) : ZMod 2) = 0 := h_parity
     have h_dvd : 2 ∣ p.edges.count s(w₁, w₂) :=
-      (ZMod.natCast_zmod_eq_zero_iff_dvd _ 2).mp h_mod
+      (ZMod.natCast_eq_zero_iff _ 2).mp h_mod
     obtain ⟨k, hk⟩ := h_dvd
     omega
   exact List.count_eq_zero.mp h_count
@@ -1690,7 +1689,7 @@ theorem suppressedSimpleGraph_isAcyclic (tree : SphereTree) (root w₁ w₂ : tr
   have h_map := walkOfSuppressedNoBridge_map tree root w₁' w₂' c h_not_bridge
   have h_inj : Function.Injective (prunedToSuppressedHom tree root w₁ w₂) := fun _ _ h => h
   have h_cyc : c₀.IsCycle := by
-    have h_iff := SimpleGraph.Walk.map_isCycle_iff_of_injective
+    have h_iff := SimpleGraph.Walk.isCycle_map_iff_of_injective
       (f := prunedToSuppressedHom tree root w₁ w₂) h_inj (p := c₀)
     rw [h_map] at h_iff
     exact h_iff.mp hc
@@ -1719,8 +1718,8 @@ lemma origNeighbor_adj (tree : SphereTree) (root w₁ w₂ : tree.V)
   · exact hadj
   · rcases h.2 with h_old | ⟨hv, _⟩ | ⟨hv, _⟩
     · exact False.elim (hadj h_old)
-    · rw [hv]; exact tree.adj.symm hadj₁
-    · rw [hv]; exact tree.adj.symm hadj₂
+    · rw [hv]; exact tree.adj.adj_symm hadj₁
+    · rw [hv]; exact tree.adj.adj_symm hadj₂
 
 lemma origNeighbor_injective (tree : SphereTree) (root w₁ w₂ : tree.V)
     (v u₁ u₂ : { v : tree.V // v ≠ root })
@@ -1767,7 +1766,7 @@ lemma origNeighbor_surjective (tree : SphereTree) (root w₁ w₂ : tree.V)
   · push_neg at hy_ne
     have hy_root : tree.adj.Adj root v.1 := by
       rw [hy_ne] at hy
-      exact tree.adj.symm hy
+      exact tree.adj.adj_symm hy
     rcases h_uniq₂ v.1 hy_root with hv1 | hv2
     · refine ⟨⟨w₂, hadj₂.ne'⟩,
         ⟨fun hveq => hne (hv1.symm.trans (congrArg Subtype.val hveq)),
@@ -1817,10 +1816,10 @@ theorem suppressedNodalMatch
     (h : (suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).Adj v w) :
     pdata.map v.1 (suppressedNodePoint pdata.tree pdata.root w₁ w₂ hadj₁ hadj₂ v w h) =
     pdata.map w.1 (suppressedNodePoint pdata.tree pdata.root w₁ w₂ hadj₁ hadj₂ w v
-      ((suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).symm h)) := by
+      ((suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).adj_symm h)) := by
   dsimp [suppressedNodePoint]
   by_cases hadj : pdata.tree.adj.Adj v.1 w.1
-  · have hadj_symm : pdata.tree.adj.Adj w.1 v.1 := pdata.tree.adj.symm hadj
+  · have hadj_symm : pdata.tree.adj.Adj w.1 v.1 := pdata.tree.adj.adj_symm hadj
     have ho1 : origNeighbor pdata.tree pdata.root v w = w.1 := if_pos hadj
     have ho2 : origNeighbor pdata.tree pdata.root w v = v.1 := if_pos hadj_symm
     have h1 : pdata.tree.node_point v.1 (origNeighbor pdata.tree pdata.root v w)
@@ -1829,19 +1828,19 @@ theorem suppressedNodalMatch
       congr 1
     have h2 : pdata.tree.node_point w.1 (origNeighbor pdata.tree pdata.root w v)
         (origNeighbor_adj pdata.tree pdata.root w₁ w₂ hadj₁ hadj₂ w v
-          ((suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).symm h)) =
+          ((suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).adj_symm h)) =
         pdata.tree.node_point w.1 v.1 hadj_symm := by
       congr 1
     rw [h1, h2]
     exact pdata.nodal_match v.1 w.1 hadj
-  · have hadj_symm : ¬ pdata.tree.adj.Adj w.1 v.1 := fun hs => hadj (pdata.tree.adj.symm hs)
+  · have hadj_symm : ¬ pdata.tree.adj.Adj w.1 v.1 := fun hs => hadj (pdata.tree.adj.adj_symm hs)
     have ho1 : origNeighbor pdata.tree pdata.root v w = pdata.root := if_neg hadj
     have ho2 : origNeighbor pdata.tree pdata.root w v = pdata.root := if_neg hadj_symm
     have hm1 := pdata.nodal_match v.1 (origNeighbor pdata.tree pdata.root v w)
       (origNeighbor_adj pdata.tree pdata.root w₁ w₂ hadj₁ hadj₂ v w h)
     have hm2 := pdata.nodal_match w.1 (origNeighbor pdata.tree pdata.root w v)
       (origNeighbor_adj pdata.tree pdata.root w₁ w₂ hadj₁ hadj₂ w v
-        ((suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).symm h))
+        ((suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).adj_symm h))
     rw [hm1, hm2]
     rcases h_const with ⟨c, hc⟩
     have hc_fn : ∀ (y : pdata.tree.V) (hy : y = pdata.root) (z : CP1), pdata.map y z = c := by
@@ -1903,7 +1902,7 @@ lemma tendstoUniformlyOn_comp_of_tendsto_const
   have hr : 0 < r := half_pos h_pos
   let K₁ : Set CP1 := Metric.closedBall p₂ r
   have hK₁_compact : IsCompact K₁ :=
-    IsCompact.of_isClosed_subset isCompact_univ isClosed_ball (subset_univ _)
+    IsCompact.of_isClosed_subset isCompact_univ isClosed_closedBall (subset_univ _)
   have hK₁_sub : K₁ ⊆ punctured_sphere {p₁} := by
     intro y hy
     simp only [punctured_sphere, mem_diff, mem_univ, mem_singleton_iff, true_and]
@@ -1938,14 +1937,14 @@ theorem suppressed_frame_collapse
     (v w : { v : pdata.tree.V // v ≠ pdata.root })
     (h : (suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).Adj v w)
     (K : Set CP1)
-    (hK_sub : K ⊆ punctured_sphere {suppressedNodePoint pdata.tree pdata.root w₁ w₂ hadj₁ hadj₂ w v
-      ((suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).symm h)})
+    (hK_sub : K ⊆ punctured_sphere
+      {suppressedNodePoint pdata.tree pdata.root w₁ w₂ hadj₁ hadj₂ w v ((suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).adj_symm h)})
     (hK_comp : IsCompact K) :
     TendstoUniformlyOn
       (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (pdata.frames v.1 n)) (pdata.frames w.1 n)).toHomeo)
       (fun _ => suppressedNodePoint pdata.tree pdata.root w₁ w₂ hadj₁ hadj₂ v w h) atTop K := by
   by_cases hadj : pdata.tree.adj.Adj v.1 w.1
-  · have hadj_symm : pdata.tree.adj.Adj w.1 v.1 := pdata.tree.adj.symm hadj
+  · have hadj_symm : pdata.tree.adj.Adj w.1 v.1 := pdata.tree.adj.adj_symm hadj
     have ho1 : origNeighbor pdata.tree pdata.root v w = w.1 := if_pos hadj
     have ho2 : origNeighbor pdata.tree pdata.root w v = v.1 := if_pos hadj_symm
     have h1 : suppressedNodePoint pdata.tree pdata.root w₁ w₂ hadj₁ hadj₂ v w h =
@@ -1953,36 +1952,36 @@ theorem suppressed_frame_collapse
       dsimp [suppressedNodePoint]
       congr 1
     have h2 : suppressedNodePoint pdata.tree pdata.root w₁ w₂ hadj₁ hadj₂ w v
-        ((suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).symm h) =
+        ((suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).adj_symm h) =
         pdata.tree.node_point w.1 v.1 hadj_symm := by
       dsimp [suppressedNodePoint]
       congr 1
     rw [h1]
     rw [h2] at hK_sub
     exact pdata.frame_collapse v.1 w.1 hadj K hK_sub hK_comp
-  · have hadj_symm : ¬ pdata.tree.adj.Adj w.1 v.1 := fun hs => hadj (pdata.tree.adj.symm hs)
+  · have hadj_symm : ¬ pdata.tree.adj.Adj w.1 v.1 := fun hs => hadj (pdata.tree.adj.adj_symm hs)
     have ho1 : origNeighbor pdata.tree pdata.root v w = pdata.root := if_neg hadj
     have ho2 : origNeighbor pdata.tree pdata.root w v = pdata.root := if_neg hadj_symm
     let hv_orig := origNeighbor_adj pdata.tree pdata.root w₁ w₂ hadj₁ hadj₂ v w h
     let hw_orig := origNeighbor_adj pdata.tree pdata.root w₁ w₂ hadj₁ hadj₂ w v
-      ((suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).symm h)
+      ((suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).adj_symm h)
     have hv_ne_w : v.1 ≠ w.1 := fun heq => h.1 (Subtype.ext heq)
     have hp_ne : pdata.tree.node_point (origNeighbor pdata.tree pdata.root v w) v.1
-        (pdata.tree.adj.symm hv_orig) ≠
+        (pdata.tree.adj.adj_symm hv_orig) ≠
       pdata.tree.node_point (origNeighbor pdata.tree pdata.root w v) w.1
-        (pdata.tree.adj.symm hw_orig) := by
+        (pdata.tree.adj.adj_symm hw_orig) := by
       have h_fn : ∀ (r₁ r₂ : pdata.tree.V) (hr₁ : r₁ = pdata.root) (hr₂ : r₂ = pdata.root)
           (ha₁ : pdata.tree.adj.Adj v.1 r₁) (ha₂ : pdata.tree.adj.Adj w.1 r₂),
-          pdata.tree.node_point r₁ v.1 (pdata.tree.adj.symm ha₁) ≠
-          pdata.tree.node_point r₂ w.1 (pdata.tree.adj.symm ha₂) := by
+          pdata.tree.node_point r₁ v.1 (pdata.tree.adj.adj_symm ha₁) ≠
+          pdata.tree.node_point r₂ w.1 (pdata.tree.adj.adj_symm ha₂) := by
         intro r₁ r₂ hr₁ hr₂ ha₁ ha₂
         cases hr₁; cases hr₂
         exact pdata.tree.node_distinct pdata.root v.1 w.1
-          (pdata.tree.adj.symm ha₁) (pdata.tree.adj.symm ha₂) hv_ne_w
+          (pdata.tree.adj.adj_symm ha₁) (pdata.tree.adj.adj_symm ha₂) hv_ne_w
       exact h_fn _ _ ho1 ho2 hv_orig hw_orig
     have hf_col := pdata.frame_collapse v.1 (origNeighbor pdata.tree pdata.root v w) hv_orig
     have hg_col := pdata.frame_collapse (origNeighbor pdata.tree pdata.root w v) w.1
-      (pdata.tree.adj.symm hw_orig) K hK_sub hK_comp
+      (pdata.tree.adj.adj_symm hw_orig) K hK_sub hK_comp
     have h_comp_eq : (fun n (x : CP1) =>
         (MoebiusFrame.comp (MoebiusFrame.inv (pdata.frames v.1 n)) (pdata.frames w.1 n)).toHomeo x) =
       (fun n (x : CP1) =>
@@ -2020,13 +2019,13 @@ theorem suppressed_tree_and_conv
         u₁ ≠ u₂ → node_point' v u₁ h₁ ≠ node_point' v u₂ h₂)
       (frames' : (v : {v : pdata.tree.V // v ≠ pdata.root}) → ℕ → MoebiusFrame),
       (∀ (v w : {v : pdata.tree.V // v ≠ pdata.root}) (h : adj'.Adj v w),
-        pdata.map v.1 (node_point' v w h) = pdata.map w.1 (node_point' w v (adj'.symm h))) ∧
+        pdata.map v.1 (node_point' v w h) = pdata.map w.1 (node_point' w v (adj'.adj_symm h))) ∧
       (∀ (v : {v : pdata.tree.V // v ≠ pdata.root}), v ≠ root' →
         (∃ c : M, ∀ z : CP1, pdata.map v.1 z = c) →
           3 ≤ adj'.degree v) ∧
       (∃ ϕ_root : ℕ → MoebiusFrame, ∀ n, frames' root' n = ϕ_root n) ∧
       (∀ (v w : {v : pdata.tree.V // v ≠ pdata.root}) (h : adj'.Adj v w),
-        ∀ K ⊆ punctured_sphere {node_point' w v (adj'.symm h)}, IsCompact K →
+        ∀ K ⊆ punctured_sphere {node_point' w v (adj'.adj_symm h)}, IsCompact K →
           TendstoUniformlyOn
             (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames' v n)) (frames' w n)).toHomeo)
             (fun _ => node_point' v w h) atTop K) ∧
@@ -2183,7 +2182,7 @@ theorem root_degree_pos_of_const_of_energy_lb
   by_contra h_not_pos
   have h_deg0 : pdata.tree.adj.degree pdata.root = 0 := by omega
   have h_all_eq : ∀ v : pdata.tree.V, v = pdata.root :=
-    eq_root_of_degree_zero_of_connected pdata.tree.adj pdata.tree.is_tree.isConnected pdata.root h_deg0
+    eq_root_of_degree_zero_of_connected pdata.tree.adj pdata.tree.is_tree.connected pdata.root h_deg0
   have h_sum_eq : (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) = totalEnergy I (pdata.map pdata.root) :=
     sum_univ_eq_single_root_of_all_eq pdata.root (fun v => totalEnergy I (pdata.map v)) h_all_eq
   have h_zero : totalEnergy I (pdata.map pdata.root) = 0 :=
@@ -2225,7 +2224,7 @@ theorem root_degree_pos_of_const
   by_contra h_not_pos
   have h_deg0 : pdata.tree.adj.degree pdata.root = 0 := by omega
   have h_all_eq : ∀ v : pdata.tree.V, v = pdata.root :=
-    eq_root_of_degree_zero_of_connected pdata.tree.adj pdata.tree.is_tree.isConnected pdata.root h_deg0
+    eq_root_of_degree_zero_of_connected pdata.tree.adj pdata.tree.is_tree.connected pdata.root h_deg0
   have h_sum_eq : (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) = totalEnergy I (pdata.map pdata.root) :=
     sum_univ_eq_single_root_of_all_eq pdata.root (fun v => totalEnergy I (pdata.map v)) h_all_eq
   have h_zero : totalEnergy I (pdata.map pdata.root) = 0 :=
@@ -2266,7 +2265,7 @@ theorem root_degree_pos_of_const_of_exists_nonconst
   by_contra h_not_pos
   have h_deg0 : pdata.tree.adj.degree pdata.root = 0 := by omega
   have h_all_eq : ∀ v : pdata.tree.V, v = pdata.root :=
-    eq_root_of_degree_zero_of_connected pdata.tree.adj pdata.tree.is_tree.isConnected pdata.root h_deg0
+    eq_root_of_degree_zero_of_connected pdata.tree.adj pdata.tree.is_tree.connected pdata.root h_deg0
   rcases h_ex with ⟨v, hv_nc⟩
   rw [h_all_eq v] at hv_nc
   exact hv_nc h_const
@@ -2281,7 +2280,7 @@ lemma stabilize_prestable_tree_aux_of_energy_lb_and_upgrade
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
         (pdata.map w₀)
-        {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)})
+        {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)})
     (k : ℕ) :
     ∀ (pdata : PrestableLimitData I u_seq),
       Fintype.card pdata.tree.V ≤ k →
@@ -2296,7 +2295,7 @@ lemma stabilize_prestable_tree_aux_of_energy_lb_and_upgrade
               (u_lim.map v)
               (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
           (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-            ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+            ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
               TendstoUniformlyOn
                 (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
                 (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2342,7 +2341,7 @@ theorem stabilize_prestable_tree_of_energy_lb_and_upgrade
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata'.σ.1 n)) ∘ (pdata'.frames w₀ n).toHomeo)
         (pdata'.map w₀)
-        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.symm hw₀_adj)}) :
+        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.adj_symm hw₀_adj)}) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) =
         ∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ∧
@@ -2354,7 +2353,7 @@ theorem stabilize_prestable_tree_of_energy_lb_and_upgrade
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2371,7 +2370,7 @@ lemma stabilize_prestable_tree_aux_of_energy_sum_ne_zero_and_upgrade
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
         (pdata.map w₀)
-        {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)})
+        {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)})
     (k : ℕ) :
     ∀ (pdata : PrestableLimitData I u_seq),
       (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≠ 0 →
@@ -2387,7 +2386,7 @@ lemma stabilize_prestable_tree_aux_of_energy_sum_ne_zero_and_upgrade
               (u_lim.map v)
               (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
           (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-            ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+            ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
               TendstoUniformlyOn
                 (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
                 (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2437,7 +2436,7 @@ theorem stabilize_prestable_tree_of_energy_sum_ne_zero_and_upgrade
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata'.σ.1 n)) ∘ (pdata'.frames w₀ n).toHomeo)
         (pdata'.map w₀)
-        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.symm hw₀_adj)}) :
+        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.adj_symm hw₀_adj)}) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) =
         ∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ∧
@@ -2449,7 +2448,7 @@ theorem stabilize_prestable_tree_of_energy_sum_ne_zero_and_upgrade
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2485,7 +2484,7 @@ lemma stabilize_prestable_tree_aux
               (u_lim.map v)
               (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
           (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-            ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+            ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
               TendstoUniformlyOn
                 (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
                 (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2534,7 +2533,7 @@ theorem stabilize_prestable_tree_of_subsingleton [Subsingleton M]
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2560,7 +2559,7 @@ theorem stabilize_prestable_tree_of_exists_continuous_of_discrete [DiscreteTopol
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2586,14 +2585,14 @@ theorem stabilize_prestable_tree_of_jhol_of_discrete [DiscreteTopology M]
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
         Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
           (𝓝 (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v))) :=
   stabilize_prestable_tree_of_exists_continuous_of_discrete I u_seq pdata h_nonconst_input
-    0 (continuous_iff_continuousOn_univ.mpr (h_jhol 0).1.continuousOn)
+    0 (continuousOn_univ.mp (h_jhol 0).1.continuousOn)
 
 /-- Master Stabilization Theorem when some input map `u_seq n` has energy `< th.ε_sph` (`0 sorryAx`). -/
 theorem stabilize_prestable_tree_of_exists_lt_eps_sph
@@ -2614,7 +2613,7 @@ theorem stabilize_prestable_tree_of_exists_lt_eps_sph
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2643,7 +2642,7 @@ theorem stabilize_prestable_tree_of_exists_lt_h
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2672,7 +2671,7 @@ theorem stabilize_prestable_tree_of_exists_nonpos_energy
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2702,7 +2701,7 @@ theorem stabilize_prestable_tree_of_B_lt_eps_sph
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2731,7 +2730,7 @@ theorem stabilize_prestable_tree_of_B_lt_h
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2760,7 +2759,7 @@ theorem stabilize_prestable_tree_of_nonpos_B
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2788,7 +2787,7 @@ theorem stabilize_prestable_tree
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2809,7 +2808,7 @@ theorem stabilize_prestable_tree_of_not_tendsto_zero_and_upgrade
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata'.σ.1 n)) ∘ (pdata'.frames w₀ n).toHomeo)
         (pdata'.map w₀)
-        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.symm hw₀_adj)}) :
+        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.adj_symm hw₀_adj)}) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) =
         ∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ∧
@@ -2821,7 +2820,7 @@ theorem stabilize_prestable_tree_of_not_tendsto_zero_and_upgrade
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2848,7 +2847,7 @@ theorem stabilize_prestable_tree_of_jhol_gap_and_upgrade
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata'.σ.1 n)) ∘ (pdata'.frames w₀ n).toHomeo)
         (pdata'.map w₀)
-        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.symm hw₀_adj)}) :
+        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.adj_symm hw₀_adj)}) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) =
         ∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ∧
@@ -2860,7 +2859,7 @@ theorem stabilize_prestable_tree_of_jhol_gap_and_upgrade
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2908,7 +2907,7 @@ theorem stabilize_prestable_tree_of_thresholds_and_upgrade
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata'.σ.1 n)) ∘ (pdata'.frames w₀ n).toHomeo)
         (pdata'.map w₀)
-        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.symm hw₀_adj)}) :
+        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.adj_symm hw₀_adj)}) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) =
         ∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ∧
@@ -2920,7 +2919,7 @@ theorem stabilize_prestable_tree_of_thresholds_and_upgrade
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2948,7 +2947,7 @@ theorem stabilize_prestable_tree_of_eventually_lt_eps_sph
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -2976,7 +2975,7 @@ theorem stabilize_prestable_tree_of_eventually_lt_h
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -3004,7 +3003,7 @@ theorem stabilize_prestable_tree_of_eventually_nonpos_energy
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -3063,11 +3062,11 @@ theorem upgrade_convergence_across_deleted_node_of_sum_lt_h
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_lt : (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) < th.h) :
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
@@ -3086,11 +3085,11 @@ theorem upgrade_convergence_across_deleted_node_of_sum_nonpos
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_le : (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ 0) :
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
@@ -3178,7 +3177,7 @@ theorem smooth_local_upgrade_at_zero_defect_point_of_jhol_of_discrete [DiscreteT
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (v_seq n) Set.univ) :
     SmoothLocalConvergesOn I v_seq v_lim Ω :=
   smooth_local_upgrade_at_zero_defect_point_of_continuous_of_discrete I v_seq v_lim hv_jhol Ω p
-    h_open hp h_conv_punct (fun n => continuous_iff_continuousOn_univ.mpr (h_jhol n).1.continuousOn)
+    h_open hp h_conv_punct (fun n => continuousOn_univ.mp (h_jhol n).1.continuousOn)
 
 /-- Any prestable limit data preserves an eventual energy bound `B` along `pdata.σ` (`0 sorryAx`). -/
 theorem prestable_limit_energy_bound_of_eventually
@@ -3261,7 +3260,7 @@ theorem stabilize_prestable_tree_of_subseq_nonconst_of_exists_lt_eps_sph
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -3292,7 +3291,7 @@ theorem stabilize_prestable_tree_of_subseq_nonconst_of_exists_lt_h
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -3323,7 +3322,7 @@ theorem stabilize_prestable_tree_of_subseq_nonconst_of_exists_nonpos_energy
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -3345,11 +3344,11 @@ theorem upgrade_convergence_across_deleted_node_of_eventually_lt_eps_sph
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_jhol : ∀ᶠ n in atTop, JHolomorphicOn I I_CP1 (u_seq (pdata.σ.1 n)) Set.univ)
     (h_ev : ∀ᶠ n in atTop, totalEnergy I (u_seq (pdata.σ.1 n)) < th.ε_sph) :
     SmoothLocalConvergesOn I
@@ -3371,11 +3370,11 @@ theorem upgrade_convergence_across_deleted_node_of_eventually_lt_h
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_jhol : ∀ᶠ n in atTop, JHolomorphicOn I I_CP1 (u_seq (pdata.σ.1 n)) Set.univ)
     (h_ev : ∀ᶠ n in atTop, totalEnergy I (u_seq (pdata.σ.1 n)) < th.h) :
     SmoothLocalConvergesOn I
@@ -3397,11 +3396,11 @@ theorem upgrade_convergence_across_deleted_node_of_eventually_nonpos_energy
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_ev : ∀ᶠ n in atTop, totalEnergy I (u_seq (pdata.σ.1 n)) ≤ 0) :
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
@@ -3498,11 +3497,11 @@ theorem upgrade_convergence_across_deleted_node_of_all_jhol_const
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_jhol : ∀ᶠ n in atTop, JHolomorphicOn I I_CP1 (u_seq (pdata.σ.1 n)) Set.univ)
     (h_all_const : ∀ u : CP1 → M, JHolomorphicOn I I_CP1 u Set.univ → u = fun _ => u north_pole) :
     SmoothLocalConvergesOn I
@@ -3547,7 +3546,7 @@ theorem stabilize_prestable_tree_of_all_jhol_const
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -3574,7 +3573,7 @@ theorem stabilize_prestable_tree_of_exists_jhol_of_all_jhol_const
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -3650,7 +3649,7 @@ theorem stabilize_prestable_tree_of_eventually_jhol_of_all_jhol_const
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -3690,11 +3689,11 @@ theorem upgrade_convergence_across_deleted_node_of_eventually_all_jhol_const
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
-    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj) ∈ Ω)
+    (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
     (h_conv_punct : SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀)
-      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.symm hw₀_adj)}))
+      (Ω \ {pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj)}))
     (h_jhol : ∀ᶠ n in atTop, JHolomorphicOn I I_CP1 (u_seq (pdata.σ.1 n)) Set.univ)
     (h_ev_const : ∀ᶠ n in atTop, JHolomorphicOn I I_CP1 (u_seq (pdata.σ.1 n)) Set.univ →
       u_seq (pdata.σ.1 n) = fun _ => u_seq (pdata.σ.1 n) north_pole) :
@@ -3726,7 +3725,7 @@ theorem stabilize_prestable_tree_of_all_jhol_eq_north_pole
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧

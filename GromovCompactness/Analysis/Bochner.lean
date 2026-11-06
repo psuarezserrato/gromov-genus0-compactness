@@ -509,7 +509,13 @@ theorem chart_density_eq_zero_of_mfderiv_eq_zero
     (fun z : ℂ => riemannianEnergyDensity I u (stereo_chart.symm z)) = fun _ => 0 := by
   ext z
   dsimp [riemannianEnergyDensity]
-  rw [h (stereo_chart.symm z)]
+  have h1 : mfderiv I_CP1 I u (stereo_chart.symm z) e1 = 0 := by
+    rw [h (stereo_chart.symm z)]
+    rfl
+  have h2 : mfderiv I_CP1 I u (stereo_chart.symm z) e2 = 0 := by
+    rw [h (stereo_chart.symm z)]
+    rfl
+  rw [h1, h2]
   dsimp [ClosedTameTarget.metric]
   simp
 
@@ -570,7 +576,8 @@ theorem bochner_curvature_term_bound_of_discrete
   have h_open : IsOpen (u ⁻¹' ({u z} : Set M)) := (isOpen_discrete ({u z} : Set M)).preimage h_cont
   have h_ev : u =ᶠ[nhds z] (fun _ : CP1 => u z) :=
     Filter.eventuallyEq_iff_exists_mem.mpr ⟨u ⁻¹' ({u z} : Set M), h_open.mem_nhds rfl, fun _ hw => hw⟩
-  rw [h_ev.mfderiv_eq, mfderiv_const]
+  rw [h_ev.mfderiv_eq]
+  exact mfderiv_const
 
 /-- Unconditional Bochner differential inequality on discrete targets `[DiscreteTopology M]` (`0 sorryAx`). -/
 theorem bochner_differential_inequality_of_discrete
@@ -606,7 +613,8 @@ theorem bochner_curvature_decomposition_of_continuous_of_discrete
   have h_open : IsOpen (u ⁻¹' ({u z} : Set M)) := (isOpen_discrete ({u z} : Set M)).preimage hu
   have h_ev : u =ᶠ[nhds z] (fun _ : CP1 => u z) :=
     Filter.eventuallyEq_iff_exists_mem.mpr ⟨u ⁻¹' ({u z} : Set M), h_open.mem_nhds rfl, fun _ hw => hw⟩
-  rw [h_ev.mfderiv_eq, mfderiv_const]
+  rw [h_ev.mfderiv_eq]
+  exact mfderiv_const
 
 /-- Pointwise Bochner differential inequality on discrete targets `[DiscreteTopology M]` for any
 continuous map `u : CP1 → M` (`0 sorryAx`). -/

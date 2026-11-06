@@ -136,7 +136,8 @@ lemma tendsto_measure_closedBall_inv_succ (μ : Measure X) [IsFiniteMeasure μ] 
     · intro h
       have h_zero : dist y x = 0 := by
         apply le_antisymm _ dist_nonneg
-        have h_lim := tendsto_one_div_add_atTop_nhds_zero_nat
+        have h_lim : Tendsto (fun n : ℕ => 1 / ((n : ℝ) + 1)) atTop (𝓝 0) :=
+          tendsto_one_div_add_atTop_nhds_zero_nat
         exact ge_of_tendsto h_lim (Filter.Eventually.of_forall h)
       exact dist_eq_zero.mp h_zero
     · rintro rfl n
@@ -371,8 +372,7 @@ theorem exists_target_thresholds_of_subsingleton
     have hc : u = fun _ => u north_pole := funext (fun w => h_sub.elim (u w) (u north_pole))
     have hd0 : riemannianEnergyDensity I u z = 0 := by
       rw [hc]
-      dsimp [riemannianEnergyDensity, ClosedTameTarget.metric]
-      simp [mfderiv_const]
+      exact energy_density_const_map I (u north_pole) z
     have h_en_nonneg : 0 ≤ energyMeasure I u (disk_at a r) := energy_nonneg I u (disk_at a r)
     have hr_pos : 0 ≤ 1 * r ^ (-2 : ℝ) := by positivity
     rw [hd0]
@@ -385,14 +385,7 @@ theorem exists_target_thresholds_of_subsingleton
     have h_en0 : ∀ s, energyMeasure I u s = 0 := by
       intro s
       rw [hc]
-      dsimp [energyMeasure, energyMeasureExtended, chartPush]
-      have h_dens : (fun w : ℂ => ENNReal.ofReal
-          (riemannianEnergyDensity I (fun _ => u north_pole) (stereo_chart.symm w) * sphericalJacobian w)) = 0 := by
-        ext w
-        dsimp [riemannianEnergyDensity, ClosedTameTarget.metric]
-        simp [mfderiv_const]
-      rw [h_dens, MeasureTheory.withDensity_zero, Measure.map_zero, Measure.coe_zero, Pi.zero_apply]
-      rfl
+      exact energyMeasure_const I (u north_pole) s
     rw [h_en0, h_en0, mul_zero]
 
 /-- On a discrete target `[DiscreteTopology M]`, `TargetThresholds I M` exists unconditionally with `0 sorryAx`. -/
@@ -634,7 +627,8 @@ lemma iInter_ball_add_inv_succ (a : ℂ) (r₀ : ℝ) :
   constructor
   · intro h
     have h_le : ∀ n : ℕ, dist w a - r₀ ≤ 1 / ((n : ℝ) + 1) := fun n => by linarith [h n]
-    have h_lim := tendsto_one_div_add_atTop_nhds_zero_nat
+    have h_lim : Tendsto (fun n : ℕ => 1 / ((n : ℝ) + 1)) atTop (𝓝 0) :=
+      tendsto_one_div_add_atTop_nhds_zero_nat
     have h_nonpos : dist w a - r₀ ≤ 0 := ge_of_tendsto h_lim (Filter.Eventually.of_forall h_le)
     linarith
   · intro hw n
@@ -780,7 +774,7 @@ theorem continuousOn_energyMeasure_disk_at_Icc_of_ne_top
     have h_zero : ν (Metric.sphere a r) = 0 := by
       apply withDensity_absolutelyContinuous
       exact Measure.addHaar_sphere volume a r
-    exact le_antisymm (le_trans (Measure.restrict_apply_le _ _) (le_of_eq h_zero)) (zero_le _)
+    exact le_antisymm (le_trans (Measure.restrict_apply_le _ _) (le_of_eq h_zero)) zero_le'
   have h_cont_F : Continuous (fun r : ℝ => (ν_R (Metric.ball a r)).toReal) :=
     continuous_measure_ball_toReal ν_R a h_sphere
   refine h_cont_F.continuousOn.congr (fun r hr => ?_)

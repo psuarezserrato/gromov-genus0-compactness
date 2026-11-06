@@ -91,7 +91,7 @@ structure MarkedStableMap (k : ℕ) where
   /-- Nodal matching condition: across every incident edge $v \sim w$,
   $$u_v(z_{vw}) = u_w(z_{wv}).$$ -/
   nodal_match : ∀ (v w : tree.V) (h : tree.adj.Adj v w),
-    map v (tree.node_point v w h) = map w (tree.node_point w v (tree.adj.symm h))
+    map v (tree.node_point v w h) = map w (tree.node_point w v (tree.adj.adj_symm h))
   /-- Deligne-Mumford / Kontsevich stability condition: any constant component
   ('ghost bubble') carries at least 3 special points (nodes + marked points):
   $$\operatorname{special\_deg}(v) = \operatorname{deg}_{\mathrm{nodal}}(v) + k_v \ge 3.$$ -/
@@ -288,7 +288,7 @@ structure MarkedGromovWitness {k : ℕ}
       (punctured_sphere { z | (∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h) ∨
                               (∃ (i : Fin k), u_lim.tree.mark_vertex i = v ∧ z = u_lim.tree.mark_point i) })
   frame_collapse : ∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-    ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+    ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
       TendstoUniformlyOn
         (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
         (fun _ => u_lim.tree.node_point v w h) atTop K

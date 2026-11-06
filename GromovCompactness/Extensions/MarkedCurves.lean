@@ -81,7 +81,7 @@ structure MarkedStableTreeLimit (k : ℕ) where
   /-- Nodal matching condition across every edge $v \sim w$:
   $$u_v(z_{vw}) = u_w(z_{wv}).$$ -/
   nodal_match : ∀ (v w : tree.V) (h : tree.adj.Adj v w),
-    map v (tree.node_point v w h) = map w (tree.node_point w v (tree.adj.symm h))
+    map v (tree.node_point v w h) = map w (tree.node_point w v (tree.adj.adj_symm h))
   /-- Component assignment for each marked point. -/
   mark_vertex : Fin k → tree.V
   /-- Coordinate on the assigned component for each marked point. -/
@@ -170,7 +170,7 @@ theorem marked_ghost_components_bound {k : ℕ}
     ext v
     simp [is_principal_component_marked, s_prin]
   have h_sum_cards : s_ghost.card + s_prin.card = Fintype.card u_lim.tree.V := by
-    rw [h_prin_eq, Finset.filter_card_add_filter_neg_card_eq_card, Finset.card_univ]
+    rw [h_prin_eq, Finset.card_filter_add_card_filter_not, Finset.card_univ]
   have h_V_eq : Fintype.card u_lim.tree.V = G + P := by
     omega
   have h_split := Finset.sum_filter_add_sum_filter_not (s := (Finset.univ : Finset u_lim.tree.V))
@@ -260,7 +260,7 @@ theorem marked_component_count_bounds {k : ℕ}
         ext v
         simp [is_principal_component_marked, s_prin]
       have h_sum_cards : s_ghost.card + s_prin.card = Fintype.card u_lim.tree.V := by
-        rw [h_prin_eq, Finset.filter_card_add_filter_neg_card_eq_card, Finset.card_univ]
+        rw [h_prin_eq, Finset.card_filter_add_card_filter_not, Finset.card_univ]
       have h_V_eq : Fintype.card u_lim.tree.V = G + P := by
         omega
       have h_P_le_div : (P : ℝ) ≤ B / th.h := by
@@ -296,7 +296,7 @@ structure MarkedCompactnessWitness {k : ℕ}
       (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })
   /-- Transition collapse across adjacent components. -/
   frame_collapse : ∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-    ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+    ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
       TendstoUniformlyOn
         (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
         (fun _ => u_lim.tree.node_point v w h) atTop K
@@ -333,7 +333,7 @@ def MarkedStableTreeLimit.of_markedSphere {k : ℕ}
       Fintype.card_congr (Equiv.subtypeUnivEquiv (fun _ => Subsingleton.elim () v))
     rw [Fintype.card_fin] at h_eq
     refine le_trans hk (le_trans ?_ (Nat.le_add_left _ _))
-    convert le_of_eq h_eq.symm
+    exact le_of_eq h_eq.symm
 
 /-- Total energy of `MarkedStableTreeLimit.of_markedSphere` equals `totalEnergy I u₀.map` (`0 sorryAx`). -/
 theorem markedTreeTotalEnergy_of_markedSphere {k : ℕ}

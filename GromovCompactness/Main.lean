@@ -135,7 +135,7 @@ theorem gromov_compactness_genus_zero_of_prestable_energy_sum_ne_zero_and_upgrad
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata'.σ.1 n)) ∘ (pdata'.frames w₀ n).toHomeo)
         (pdata'.map w₀)
-        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.symm hw₀_adj)}) :
+        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.adj_symm hw₀_adj)}) :
     ∃ (u_stable : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_stable) ∧
       let P := Fintype.card { v : u_stable.tree.V // is_principal_component I u_stable v }
@@ -164,7 +164,7 @@ theorem gromov_compactness_genus_zero_of_prestable_jhol_gap_and_upgrade
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata'.σ.1 n)) ∘ (pdata'.frames w₀ n).toHomeo)
         (pdata'.map w₀)
-        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.symm hw₀_adj)}) :
+        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.adj_symm hw₀_adj)}) :
     ∃ (u_stable : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_stable) ∧
       let P := Fintype.card { v : u_stable.tree.V // is_principal_component I u_stable v }

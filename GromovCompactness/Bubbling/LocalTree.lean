@@ -80,12 +80,12 @@ lemma singletonSphereTree_degree (u : singletonSphereTree.V) :
     singletonSphereTree.adj.degree u = 0 := by
   have : singletonSphereTree.adj.neighborSet u = ∅ := by
     ext v
-    simp [singletonSphereTree]
+    exact iff_of_false (fun h => h) (Set.notMem_empty v)
   rw [SimpleGraph.degree, SimpleGraph.neighborFinset, Finset.card_eq_zero, Set.toFinset_eq_empty, this]
 
 /-- Cardinality of the singleton sphere tree is 1 (Zero-sorry). -/
-lemma singletonSphereTree_card : Fintype.card singletonSphereTree.V = 1 := by
-  dsimp [singletonSphereTree]
+lemma singletonSphereTree_card : Fintype.card singletonSphereTree.V = 1 :=
+  Fintype.card_unit
 
 /-- Vertex count additivity under tree grafting (Contract B07, Zero-sorry). -/
 lemma graft_trees_card (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ : T₂.V)
@@ -158,7 +158,7 @@ lemma graft_degree_bridge_left (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ : 
       rw [SimpleGraph.mem_neighborFinset] at hw ⊢
       exact hw
   have h_card := Finset.card_le_card h_sub
-  rw [Finset.card_insert_of_not_mem h_not_mem, Finset.card_map] at h_card
+  rw [Finset.card_insert_of_notMem h_not_mem, Finset.card_map] at h_card
   exact h_card
 
 /-- Degree increase at the right grafting node: exactly adds the bridge edge (Zero-sorry). -/
@@ -172,7 +172,7 @@ lemma graft_degree_bridge_right (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ :
     rcases h_in with ⟨w, _, hw⟩
     contradiction
   have h_bridge : (graftAdj T₁ T₂ v₁ v₂).Adj (Sum.inr v₂) (Sum.inl v₁) :=
-    (graftAdj T₁ T₂ v₁ v₂).symm (graftAdj_bridge T₁ T₂ v₁ v₂)
+    (graftAdj T₁ T₂ v₁ v₂).adj_symm (graftAdj_bridge T₁ T₂ v₁ v₂)
   have h_sub : insert (Sum.inl v₁) s_old ⊆ (graftAdj T₁ T₂ v₁ v₂).neighborFinset (Sum.inr v₂) := by
     rw [Finset.insert_subset_iff]
     constructor
@@ -184,7 +184,7 @@ lemma graft_degree_bridge_right (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ :
       rw [SimpleGraph.mem_neighborFinset] at hw ⊢
       exact hw
   have h_card := Finset.card_le_card h_sub
-  rw [Finset.card_insert_of_not_mem h_not_mem, Finset.card_map] at h_card
+  rw [Finset.card_insert_of_notMem h_not_mem, Finset.card_map] at h_card
   exact h_card
 
 /-- Upgrading of child root stability: a root of degree ≥ 2 in a child tree acquires
@@ -206,7 +206,7 @@ structure LocalDefectTree (thresh : TargetThresholds I M) (m_defect : ℝ) (base
   map : (v : tree.V) → (CP1 → M)
   is_jhol : ∀ (v : tree.V), JHolomorphicOn (I := I) (I_dom := I_CP1) (map v) Set.univ
   nodal_match : ∀ (v w : tree.V) (h : tree.adj.Adj v w),
-    map v (tree.node_point v w h) = map w (tree.node_point w v (tree.adj.symm h))
+    map v (tree.node_point v w h) = map w (tree.node_point w v (tree.adj.adj_symm h))
   root_attach : map root north_pole = base_val
   root_north_pole_free : ∀ (w : tree.V) (h : tree.adj.Adj root w),
     tree.node_point root w h ≠ north_pole
@@ -229,10 +229,9 @@ def local_defect_tree_of_empty_children
   root_attach := decomp.node_match
   root_north_pole_free _ h := False.elim h
   energy_sum _ := by
-    have h_univ : (Finset.univ : Finset singletonSphereTree.V) = {()} := by
-      ext x; rcases x; simp
-    change (∑ v ∈ Finset.univ, totalEnergy I decomp.v) = m_defect
-    rw [h_univ, Finset.sum_singleton]
+    have h_sum : (∑ _v : singletonSphereTree.V, totalEnergy I decomp.v) = totalEnergy I decomp.v :=
+      Fintype.sum_unique (fun _ : Unit => totalEnergy I decomp.v)
+    rw [h_sum]
     have h_ms := decomp.mass_sum
     rw [h_empty, Finset.sum_empty, add_zero] at h_ms
     exact h_ms.symm
@@ -326,7 +325,7 @@ structure PartialGraftedTree
   map : (v : tree.V) → (CP1 → M)
   is_jhol : ∀ (v : tree.V), JHolomorphicOn (I := I) (I_dom := I_CP1) (map v) Set.univ
   nodal_match : ∀ (v w : tree.V) (h : tree.adj.Adj v w),
-    map v (tree.node_point v w h) = map w (tree.node_point w v (tree.adj.symm h))
+    map v (tree.node_point v w h) = map w (tree.node_point w v (tree.adj.adj_symm h))
   root_map : map root = decomp.v
   root_nodal_points : ∀ (w : tree.V) (h : tree.adj.Adj root w),
     ∃ z ∈ s, tree.node_point root w h = stereo_chart.symm z
@@ -350,10 +349,9 @@ noncomputable def partialGraftedTree_empty
   root_nodal_points _ h := False.elim h
   root_degree_ge := by simp
   energy_sum := by
-    have h_univ : (Finset.univ : Finset singletonSphereTree.V) = {()} := by
-      ext x; rcases x; simp
-    change (∑ v ∈ Finset.univ, totalEnergy I decomp.v) = totalEnergy I decomp.v + ∑ z ∈ (∅ : Finset ℂ), decomp.m_child z
-    rw [h_univ, Finset.sum_singleton, Finset.sum_empty, add_zero]
+    have h_sum : (∑ _v : singletonSphereTree.V, totalEnergy I decomp.v) = totalEnergy I decomp.v :=
+      Fintype.sum_unique (fun _ : Unit => totalEnergy I decomp.v)
+    rw [h_sum, Finset.sum_empty, add_zero]
   stable_off_root v hv := by
     rcases v
     exact False.elim (hv rfl)
@@ -405,7 +403,7 @@ noncomputable def partialGraftedTree_insert
         exact ⟨z, Finset.mem_insert_of_mem hz_s, hz_eq⟩
       · exact ⟨z₀, Finset.mem_insert_self z₀ s, rfl⟩
     root_degree_ge := by
-      rw [Finset.card_insert_of_not_mem hz₀_not_s]
+      rw [Finset.card_insert_of_notMem hz₀_not_s]
       have h_le1 : s.card + 1 ≤ P.tree.adj.degree P.root + 1 := Nat.add_le_add_right P.root_degree_ge 1
       have h_le2 := graft_degree_bridge_left P.tree C.tree P.root C.root
       exact h_le1.trans h_le2
@@ -810,7 +808,7 @@ theorem resolve_single_defect_tree_of_calibrated_of_jhol_of_discrete [DiscreteTo
     (base_val : M) (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ) :
     Nonempty (LocalDefectTree I thresh m_defect base_val) :=
   resolve_single_defect_tree_of_calibrated_of_exists_continuous_of_discrete I u_seq thresh m_defect hm res base_val
-    0 (continuous_iff_continuousOn_univ.mpr (h_jhol 0).1.continuousOn)
+    0 (continuousOn_univ.mp (h_jhol 0).1.continuousOn)
 
 /-- Unconditional resolution of a single defect into a `LocalDefectTree` when `u_seq` admits a
 `CalibratedRescaling` at `m_defect` and some `J`-holomorphic term `u_seq n₀` has total energy

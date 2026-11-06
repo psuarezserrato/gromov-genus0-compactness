@@ -5,7 +5,7 @@ Authors: Autoformalization Team (Challenger Milestone 2 Phase 5)
 -/
 import GromovCompactness
 import Mathlib.Analysis.Calculus.FDeriv.Linear
-import Mathlib.Analysis.NormedSpace.OperatorNorm.Basic
+import Mathlib.Analysis.Normed.Operator.Basic
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.Topology.UniformSpace.UniformConvergence
 

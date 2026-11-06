@@ -58,7 +58,7 @@ structure CompactnessWitness
   /-- Frame transition collapse (PDF §2.3 condition 2): for adjacent components $v \sim w$,
   $$\phi_{v, n}^{-1} \circ \phi_{w, n} \longrightarrow z_{vw} \quad \text{locally uniformly on } \mathbb{CP}^1 \setminus \{z_{wv}\}.$$ -/
   frame_collapse : ∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-    ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+    ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
       TendstoUniformlyOn
         (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
         (fun _ => u_lim.tree.node_point v w h) atTop K
@@ -133,7 +133,7 @@ theorem gromov_compactness_core_of_assemble_and_stabilize
             (u_lim.map v)
             (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w), z = u_lim.tree.node_point v w h })) ∧
         (∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
-          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.symm h)}, IsCompact K →
+          ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
             TendstoUniformlyOn
               (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
@@ -155,7 +155,7 @@ theorem gromov_compactness_core_of_prestable_energy_sum_ne_zero_and_upgrade
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata'.σ.1 n)) ∘ (pdata'.frames w₀ n).toHomeo)
         (pdata'.map w₀)
-        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.symm hw₀_adj)}) :
+        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.adj_symm hw₀_adj)}) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) :=
   gromov_compactness_core_of_assemble_and_stabilize I u_seq pdata
@@ -173,7 +173,7 @@ theorem gromov_compactness_core_of_energy_lb_and_upgrade
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata'.σ.1 n)) ∘ (pdata'.frames w₀ n).toHomeo)
         (pdata'.map w₀)
-        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.symm hw₀_adj)}) :
+        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.adj_symm hw₀_adj)}) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) :=
   gromov_compactness_core_of_assemble_and_stabilize I u_seq pdata
@@ -195,7 +195,7 @@ theorem gromov_compactness_core_of_prestable_jhol_gap_and_upgrade
       SmoothLocalConvergesOn I
         (fun n => (u_seq (pdata'.σ.1 n)) ∘ (pdata'.frames w₀ n).toHomeo)
         (pdata'.map w₀)
-        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.symm hw₀_adj)}) :
+        {pdata'.tree.node_point w₀ pdata'.root (pdata'.tree.adj.adj_symm hw₀_adj)}) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) :=
   gromov_compactness_core_of_assemble_and_stabilize I u_seq pdata
@@ -307,7 +307,7 @@ theorem gromov_subsequence_alternative_of_frequently_const
       Tendsto (fun n => u_seq (σ.1 n)) atTop (𝓝 (fun _ => c))) ∨
     (∃ (σ : Bookkeeping.SubseqMap) (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I (fun n => u_seq (σ.1 n)) u_lim)) := by
-  obtain ⟨φ, hφ_mono, hφ_P⟩ := extraction_of_frequently_atTop' h_freq
+  obtain ⟨φ, hφ_mono, hφ_P⟩ := extraction_of_frequently_atTop (Filter.frequently_atTop'.mpr h_freq)
   let σ_const : Bookkeeping.SubseqMap := ⟨φ, hφ_mono⟩
   let c_seq : ℕ → M := fun n => u_seq (σ_const.1 n) north_pole
   have h_c_univ : ∀ n, c_seq n ∈ (Set.univ : Set M) := fun _ => Set.mem_univ _
@@ -895,7 +895,7 @@ theorem gromov_subsequence_alternative_of_core
     (∃ (σ : Bookkeeping.SubseqMap) (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I (fun n => u_seq (σ.1 n)) u_lim)) := by
   by_cases h_freq : ∀ N, ∃ n > N, ∃ c : M, ∀ z, u_seq n z = c
-  · obtain ⟨φ, hφ_mono, hφ_P⟩ := extraction_of_frequently_atTop' h_freq
+  · obtain ⟨φ, hφ_mono, hφ_P⟩ := extraction_of_frequently_atTop (Filter.frequently_atTop'.mpr h_freq)
     let σ_const : Bookkeeping.SubseqMap := ⟨φ, hφ_mono⟩
     let c_seq : ℕ → M := fun n => u_seq (σ_const.1 n) north_pole
     have h_c_univ : ∀ n, c_seq n ∈ (Set.univ : Set M) := fun _ => Set.mem_univ _

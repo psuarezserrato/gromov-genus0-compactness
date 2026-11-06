@@ -247,7 +247,7 @@ theorem ConcentrationData.S_eq_empty_of_mu_eq_zero
     (hμ : cdata.μ = 0) :
     cdata.S = ∅ := by
   ext p
-  simp only [Finset.not_mem_empty, iff_false]
+  simp only [Finset.notMem_empty, iff_false]
   intro hp
   have h_ge := (cdata.S_def p).mp hp
   rw [hμ] at h_ge
@@ -1116,7 +1116,7 @@ theorem ConcentrationData.mu_eq_zero_of_nonpos_B
     (hB : B ≤ 0) :
     cdata.μ = 0 := by
   have h_univ_zero : cdata.μ Set.univ = 0 := by
-    refine le_antisymm ?_ (zero_le _)
+    refine le_antisymm ?_ zero_le'
     calc cdata.μ Set.univ ≤ ENNReal.ofReal B := cdata.μ_total_le
       _ = 0 := ENNReal.ofReal_of_nonpos hB
   exact Measure.measure_univ_eq_zero.mp h_univ_zero
@@ -1383,8 +1383,8 @@ theorem smooth_convergence_upgrade_of_lt_eps_reg
     SmoothLocalConvergesOn I (fun n => u_seq (cdata.σ.1 n)) cdata.u₀ (Set.univ \ (cdata.S.erase p)) := by
   have hp_not_mem : p ∉ cdata.S := by
     intro h_mem
-    exact hp.not_le ((cdata.S_def p).mp h_mem)
-  rw [Finset.erase_eq_of_not_mem hp_not_mem]
+    exact hp.not_ge ((cdata.S_def p).mp h_mem)
+  rw [Finset.erase_eq_of_notMem hp_not_mem]
   exact cdata.smooth_conv
 
 /-- Whenever every globally `J`-holomorphic sphere equals its `north_pole` value, `cdata.μ = 0` (`0 sorryAx`). -/
@@ -1449,8 +1449,8 @@ theorem smooth_convergence_upgrade_of_zero_mass
     have h_le := (cdata.S_def p).mp h_mem
     rw [hp] at h_le
     have h_ofReal_pos : 0 < ENNReal.ofReal thresh.ε_reg := ENNReal.ofReal_pos.mpr thresh.ε_reg_pos
-    exact h_ofReal_pos.not_le h_le
-  rw [Finset.erase_eq_of_not_mem hp_not_mem]
+    exact h_ofReal_pos.not_ge h_le
+  rw [Finset.erase_eq_of_notMem hp_not_mem]
   exact cdata.smooth_conv
 
 #print axioms exists_concentration_data
