@@ -8,6 +8,8 @@ import GromovCompactness.Geometry.Target
 import GromovCompactness.Geometry.Sphere
 import GromovCompactness.Analysis.Energy
 import GromovCompactness.Topology.Subsequence
+import GromovCompactness.Topology.ProkhorovCompact
+import GromovCompactness.Topology.PortmanteauFinite
 
 open scoped Manifold ContDiff Topology
 open Metric Set MeasureTheory Filter GromovCompactness GromovCompactness.Bookkeeping
@@ -213,17 +215,40 @@ theorem prokhorov_weak_compactness_of_cases
   · exact prokhorov_weak_compactness_of_const_subseq μ_seq h_const
   · exact prokhorov_weak_compactness_of_subseq_conv_bdd μ_seq h_bdd σ μ_lim h_w
 
+/-- Direct proof of weak compactness of uniformly bounded finite measures on `CP1` (a compact metric
+space), from the sequential Prokhorov theorem `prokhorov_seq_compact` (diagonal argument over a
+dense sequence of `C(CP1, ℝ)` plus the vendored Riesz–Markov theorem) and the finite-measure
+Portmanteau lemmas (`0 sorryAx`). -/
+theorem prokhorov_weak_compactness_direct (μ_seq : ℕ → Measure CP1) [∀ n, IsFiniteMeasure (μ_seq n)]
+    (h_bdd : ∃ B > 0, ∀ n, μ_seq n Set.univ ≤ ENNReal.ofReal B) :
+    ∃ (σ : SubseqMap) (μ_lim : Measure CP1),
+      IsFiniteMeasure μ_lim ∧
+      WeakMeasureConvergence (fun n => μ_seq (σ.1 n)) μ_lim := by
+  obtain ⟨B, _hB, hB⟩ := h_bdd
+  obtain ⟨φ, hφ, ν, hν, _hνB, hconv⟩ :=
+    GromovCompactness.Topology.RMK.prokhorov_seq_compact (X := CP1) μ_seq B.toNNReal
+      (fun n => by simpa [ENNReal.ofReal] using hB n)
+  have hconv' : ∀ f : C(CP1, ℝ),
+      Tendsto (fun n => ∫ x, f x ∂(μ_seq (φ n))) atTop (nhds (∫ x, f x ∂ν)) := hconv
+  refine ⟨⟨φ, hφ⟩, ν, hν, ?_, ?_, ?_, ?_⟩
+  · intro f hf
+    exact hconv' ⟨f, hf⟩
+  · intro K hK
+    exact GromovCompactness.Topology.RMK.limsup_closed_le_of_tendsto_integral
+      (fun n => μ_seq (φ n)) ν hconv' K hK
+  · intro A hA
+    exact GromovCompactness.Topology.RMK.tendsto_measure_of_null_frontier_finite
+      (fun n => μ_seq (φ n)) ν hconv' A hA
+  · exact GromovCompactness.Topology.RMK.tendsto_measure_of_null_frontier_finite
+      (fun n => μ_seq (φ n)) ν hconv' Set.univ (by simp)
+
 /-- Prokhorov / Riesz sequential compactness of uniformly bounded finite Borel measures on `CP1`. -/
 private theorem prokhorov_weak_compactness_cp1 (μ_seq : ℕ → Measure CP1) [∀ n, IsFiniteMeasure (μ_seq n)]
     (h_bdd : ∃ B > 0, ∀ n, μ_seq n Set.univ ≤ ENNReal.ofReal B) :
     ∃ (σ : SubseqMap) (μ_lim : Measure CP1),
       IsFiniteMeasure μ_lim ∧
       WeakMeasureConvergence (fun n => μ_seq (σ.1 n)) μ_lim := by
-  by_cases h_cases : (∃ (N₀ : ℕ) (μ_lim : Measure CP1), ∀ n ≥ N₀, μ_seq n = μ_lim) ∨
-      (∃ (σ : SubseqMap) (μ_lim : Measure CP1), IsFiniteMeasure μ_lim ∧ ∀ n, μ_seq (σ.1 n) = μ_lim) ∨
-      (∃ (σ : SubseqMap) (μ_lim : Measure CP1), WeakMeasureConvergence (fun n => μ_seq (σ.1 n)) μ_lim)
-  · exact prokhorov_weak_compactness_of_cases μ_seq h_bdd h_cases
-  · sorry
+  exact prokhorov_weak_compactness_direct μ_seq h_bdd
 
 /-- Weak Compactness of Energy Measures on CP1 (Contract C01).
 Any sequence of finite nonnegative Borel measures on CP1 with uniformly bounded total mass
