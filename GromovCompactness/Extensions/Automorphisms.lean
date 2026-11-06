@@ -201,6 +201,26 @@ theorem ghost_component_pure_automorphism_trivial_of_rigidity
     (aut.1.frame v).toHomeo = Homeomorph.refl CP1 :=
   ghost_component_pure_automorphism_trivial I lim v h_ghost aut h_rigidity
 
+theorem ghost_component_pure_automorphism_trivial_of_three_fixed_nodes
+    {X V : Type*} [TopologicalSpace X] [DecidableEq V]
+    (ϕ : X ≃ₜ X)
+    (N : Finset V) (h_card : 3 ≤ N.card)
+    (node_pt : V → X)
+    (h_inj : ∀ u ∈ N, ∀ w ∈ N, node_pt u = node_pt w → u = w)
+    (h_fix : ∀ w ∈ N, ϕ (node_pt w) = node_pt w)
+    (h_rigidity : ∀ z₁ z₂ z₃ : X,
+      z₁ ≠ z₂ → z₂ ≠ z₃ → z₁ ≠ z₃ →
+      ϕ z₁ = z₁ → ϕ z₂ = z₂ → ϕ z₃ = z₃ →
+      ϕ = Homeomorph.refl X) :
+    ϕ = Homeomorph.refl X := by
+  obtain ⟨u, v, w, hu, hv, hw, huv, huw, hvw⟩ :=
+    Finset.two_lt_card_iff.mp (by omega : 2 < N.card)
+  have hnuv : node_pt u ≠ node_pt v := fun h => huv (h_inj u hu v hv h)
+  have hnvw : node_pt v ≠ node_pt w := fun h => hvw (h_inj v hv w hw h)
+  have hnuw : node_pt u ≠ node_pt w := fun h => huw (h_inj u hu w hw h)
+  exact h_rigidity (node_pt u) (node_pt v) (node_pt w) hnuv hnvw hnuw
+    (h_fix u hu) (h_fix v hv) (h_fix w hw)
+
 /-- On any non-constant component, the group of Möbius symmetries preserving the map is finite
 (Reduction theorem, conditional on the simple curve factorization / non-constant J-holomorphic sphere structure). -/
 theorem nonconstant_component_automorphism_finite
@@ -523,6 +543,247 @@ theorem stability_iff_finite_automorphisms
     (∀ v, (∃ c : M, ∀ z, lim.map v z = c) → 3 ≤ lim.tree.adj.degree v) ↔
       Finite (StableMapAutomorphism I lim) :=
   h_equiv
+
+theorem stability_iff_finite_automorphisms_of_directions
+    {V Aut PureAut : Type*}
+    (is_const : V → Prop)
+    (deg : V → ℕ)
+    (h_full_iff_pure : Finite Aut ↔ Finite PureAut)
+    (h_pure_of_stable : (∀ v : V, is_const v → 3 ≤ deg v) → Finite PureAut)
+    (h_stable_of_pure : Finite PureAut → (∀ v : V, is_const v → 3 ≤ deg v)) :
+    (∀ v : V, is_const v → 3 ≤ deg v) ↔ Finite Aut := by
+  exact Iff.trans ⟨h_pure_of_stable, h_stable_of_pure⟩ h_full_iff_pure.symm
+
+/-- For any `StableSphereTreeLimit`, the stability equivalence holds whenever `PureComponentAutomorphism`
+is finite (`0 sorryAx`, since `lim.stable` provides the stability condition and
+`full_automorphisms_finite_iff_pure_finite` reduces full finiteness to pure finiteness). -/
+theorem stability_iff_finite_automorphisms_of_pure_finite
+    (lim : StableSphereTreeLimit I (M := M))
+    (h_pure : Finite (PureComponentAutomorphism I lim)) :
+    (∀ v, (∃ c : M, ∀ z, lim.map v z = c) → 3 ≤ lim.tree.adj.degree v) ↔
+      Finite (StableMapAutomorphism I lim) :=
+  ⟨fun _ => (full_automorphisms_finite_iff_pure_finite I lim).mpr h_pure,
+   fun _ => lim.stable⟩
+
+/-- For any `StableSphereTreeLimit`, the stability equivalence holds from componentwise symmetry
+finiteness without requiring an external equivalence hypothesis `h_equiv` (`0 sorryAx`). -/
+theorem stability_iff_finite_automorphisms_of_component_finiteness
+    (lim : StableSphereTreeLimit I (M := M))
+    (h_ghost_triv : ∀ (v : lim.tree.V) (_h_ghost : is_ghost_component I lim v)
+      (aut : PureComponentAutomorphism I lim), (aut.1.frame v).toHomeo = Homeomorph.refl CP1)
+    (h_ghost_fin : ∀ (v : lim.tree.V), is_ghost_component I lim v →
+      Finite { ϕ : MoebiusFrame // ϕ.toHomeo = Homeomorph.refl CP1 })
+    (h_prin_fin : ∀ (v : lim.tree.V), is_principal_component I lim v →
+      Finite { ϕ : MoebiusFrame // ∀ z, lim.map v (ϕ.toHomeo z) = lim.map v z }) :
+    (∀ v, (∃ c : M, ∀ z, lim.map v z = c) → 3 ≤ lim.tree.adj.degree v) ↔
+      Finite (StableMapAutomorphism I lim) :=
+  stability_iff_finite_automorphisms_of_pure_finite I lim
+    (pure_component_automorphisms_finite I lim h_ghost_triv h_ghost_fin h_prin_fin)
+
+/-- **3-Point Möbius Rigidity on `OnePoint ℂ` (`0 sorryAx`)**:
+Any Möbius matrix `M_mat` whose projective action `M_mat.eval` on `OnePoint ℂ` fixes
+three distinct points `p₁, p₂, p₃ : OnePoint ℂ` is projectively equivalent to `MoebiusMatrix.id`. -/
+theorem moebius_three_point_rigidity_onePoint (M_mat : MoebiusMatrix) (p₁ p₂ p₃ : OnePoint ℂ)
+    (h12 : p₁ ≠ p₂) (h13 : p₁ ≠ p₃) (h23 : p₂ ≠ p₃)
+    (hfix1 : M_mat.eval p₁ = p₁)
+    (hfix2 : M_mat.eval p₂ = p₂)
+    (hfix3 : M_mat.eval p₃ = p₃) :
+    PglEquiv M_mat MoebiusMatrix.id := by
+  have hp1 : ProjEquiv (M_mat.act (onePointToProj p₁)) (onePointToProj p₁) := by
+    have h := projEquiv_act_onePointToProj_eval M_mat p₁
+    rwa [hfix1] at h
+  have hp2 : ProjEquiv (M_mat.act (onePointToProj p₂)) (onePointToProj p₂) := by
+    have h := projEquiv_act_onePointToProj_eval M_mat p₂
+    rwa [hfix2] at h
+  have hp3 : ProjEquiv (M_mat.act (onePointToProj p₃)) (onePointToProj p₃) := by
+    have h := projEquiv_act_onePointToProj_eval M_mat p₃
+    rwa [hfix3] at h
+  exact moebius_three_point_rigidity M_mat
+    (onePointToProj p₁) (onePointToProj p₂) (onePointToProj p₃)
+    (not_projEquiv_onePointToProj h12)
+    (not_projEquiv_onePointToProj h13)
+    (not_projEquiv_onePointToProj h23)
+    hp1 hp2 hp3
+
+/-- **3-Point Möbius Evaluation Rigidity on `OnePoint ℂ` (`0 sorryAx`)**:
+Any Möbius matrix `M_mat` whose evaluation `M_mat.eval` fixes three distinct points
+`p₁, p₂, p₃ : OnePoint ℂ` acts as the identity on all of `OnePoint ℂ`. -/
+theorem moebius_three_point_rigidity_eval_eq_id (M_mat : MoebiusMatrix) (p₁ p₂ p₃ : OnePoint ℂ)
+    (h12 : p₁ ≠ p₂) (h13 : p₁ ≠ p₃) (h23 : p₂ ≠ p₃)
+    (hfix1 : M_mat.eval p₁ = p₁)
+    (hfix2 : M_mat.eval p₂ = p₂)
+    (hfix3 : M_mat.eval p₃ = p₃)
+    (p : OnePoint ℂ) :
+    M_mat.eval p = p :=
+  PglEquiv.eval_eq_of_id
+    (moebius_three_point_rigidity_onePoint M_mat p₁ p₂ p₃ h12 h13 h23 hfix1 hfix2 hfix3) p
+
+/-- Entrywise characterization of 3-point Möbius rigidity (`0 sorryAx`). -/
+theorem moebius_three_point_rigidity_entries (M_mat : MoebiusMatrix) (v₁ v₂ v₃ : ℂ × ℂ)
+    (h12 : ¬ ProjEquiv v₁ v₂) (h13 : ¬ ProjEquiv v₁ v₃) (h23 : ¬ ProjEquiv v₂ v₃)
+    (hfix1 : ProjEquiv (M_mat.act v₁) v₁)
+    (hfix2 : ProjEquiv (M_mat.act v₂) v₂)
+    (hfix3 : ProjEquiv (M_mat.act v₃) v₃) :
+    M_mat.b = 0 ∧ M_mat.c = 0 ∧ M_mat.a = M_mat.d :=
+  (pglEquiv_id_iff M_mat).mp
+    (moebius_three_point_rigidity M_mat v₁ v₂ v₃ h12 h13 h23 hfix1 hfix2 hfix3)
+
+/-- On a `Subsingleton` target manifold `M`, every component of a stable sphere tree limit
+is a ghost component (`0 sorryAx`). -/
+theorem is_ghost_component_of_subsingleton [Subsingleton M]
+    (lim : StableSphereTreeLimit I (M := M)) (v : lim.tree.V) :
+    is_ghost_component I lim v :=
+  ⟨lim.map v north_pole, fun z => Subsingleton.elim _ _⟩
+
+/-- On a `Subsingleton` target manifold `M`, no component of a stable sphere tree limit
+is a principal component (`0 sorryAx`). -/
+theorem not_is_principal_component_of_subsingleton [Subsingleton M]
+    (lim : StableSphereTreeLimit I (M := M)) (v : lim.tree.V) :
+    ¬ is_principal_component I lim v :=
+  fun hp => hp (is_ghost_component_of_subsingleton I lim v)
+
+/-- On a `Subsingleton` target manifold `M`, `nonconstant_component_automorphism_finite`
+holds unconditionally (`0 sorryAx`) because no component is principal. -/
+theorem nonconstant_component_automorphism_finite_of_subsingleton [Subsingleton M]
+    (lim : StableSphereTreeLimit I (M := M))
+    (v : lim.tree.V)
+    (h_prin : is_principal_component I lim v) :
+    Finite { ϕ : MoebiusFrame // ∀ z, lim.map v (ϕ.toHomeo z) = lim.map v z } :=
+  False.elim (not_is_principal_component_of_subsingleton I lim v h_prin)
+
+/-- On a `Subsingleton` target manifold `M`, pure componentwise automorphisms are finite
+whenever ghost component automorphisms are trivial and the identity-homeomorphism fiber
+of `MoebiusFrame` is finite (`0 sorryAx`). -/
+theorem pure_component_automorphisms_finite_of_subsingleton [Subsingleton M]
+    (lim : StableSphereTreeLimit I (M := M))
+    (h_ghost_triv : ∀ (v : lim.tree.V) (_h_ghost : is_ghost_component I lim v)
+      (aut : PureComponentAutomorphism I lim), (aut.1.frame v).toHomeo = Homeomorph.refl CP1)
+    (h_ghost_fin : Finite { ϕ : MoebiusFrame // ϕ.toHomeo = Homeomorph.refl CP1 }) :
+    Finite (PureComponentAutomorphism I lim) :=
+  pure_component_automorphisms_finite I lim h_ghost_triv
+    (fun _ _ => h_ghost_fin)
+    (fun v hp => False.elim (not_is_principal_component_of_subsingleton I lim v hp))
+
+/-- On a `Subsingleton` target manifold `M`, the stability-finiteness equivalence holds
+whenever ghost component automorphisms are trivial and the identity-homeomorphism fiber
+of `MoebiusFrame` is finite (`0 sorryAx`). -/
+theorem stability_iff_finite_automorphisms_of_subsingleton [Subsingleton M]
+    (lim : StableSphereTreeLimit I (M := M))
+    (h_ghost_triv : ∀ (v : lim.tree.V) (_h_ghost : is_ghost_component I lim v)
+      (aut : PureComponentAutomorphism I lim), (aut.1.frame v).toHomeo = Homeomorph.refl CP1)
+    (h_ghost_fin : Finite { ϕ : MoebiusFrame // ϕ.toHomeo = Homeomorph.refl CP1 }) :
+    (∀ v, (∃ c : M, ∀ z, lim.map v z = c) → 3 ≤ lim.tree.adj.degree v) ↔
+      Finite (StableMapAutomorphism I lim) :=
+  stability_iff_finite_automorphisms_of_pure_finite I lim
+    (pure_component_automorphisms_finite_of_subsingleton I lim h_ghost_triv h_ghost_fin)
+
+/-- On a discrete target manifold `[DiscreteTopology M]`, every component of a stable sphere tree limit
+is a ghost component (`0 sorryAx`). -/
+theorem is_ghost_component_of_discrete [DiscreteTopology M]
+    (lim : StableSphereTreeLimit I (M := M)) (v : lim.tree.V) :
+    is_ghost_component I lim v :=
+  ⟨lim.map v north_pole, Analysis.eq_const_north_pole_of_jhol_univ_of_discrete I (lim.map v) (lim.is_jhol v)⟩
+
+/-- On a discrete target manifold `[DiscreteTopology M]`, no component of a stable sphere tree limit
+is a principal component (`0 sorryAx`). -/
+theorem not_is_principal_component_of_discrete [DiscreteTopology M]
+    (lim : StableSphereTreeLimit I (M := M)) (v : lim.tree.V) :
+    ¬ is_principal_component I lim v :=
+  fun hp => hp (is_ghost_component_of_discrete I lim v)
+
+/-- On a discrete target manifold `[DiscreteTopology M]`, `nonconstant_component_automorphism_finite`
+holds unconditionally (`0 sorryAx`) because no component is principal. -/
+theorem nonconstant_component_automorphism_finite_of_discrete [DiscreteTopology M]
+    (lim : StableSphereTreeLimit I (M := M))
+    (v : lim.tree.V)
+    (h_prin : is_principal_component I lim v) :
+    Finite { ϕ : MoebiusFrame // ∀ z, lim.map v (ϕ.toHomeo z) = lim.map v z } :=
+  False.elim (not_is_principal_component_of_discrete I lim v h_prin)
+
+/-- On a discrete target manifold `[DiscreteTopology M]`, pure componentwise automorphisms are finite
+whenever ghost component automorphisms are trivial and the identity-homeomorphism fiber
+of `MoebiusFrame` is finite (`0 sorryAx`). -/
+theorem pure_component_automorphisms_finite_of_discrete [DiscreteTopology M]
+    (lim : StableSphereTreeLimit I (M := M))
+    (h_ghost_triv : ∀ (v : lim.tree.V) (_h_ghost : is_ghost_component I lim v)
+      (aut : PureComponentAutomorphism I lim), (aut.1.frame v).toHomeo = Homeomorph.refl CP1)
+    (h_ghost_fin : Finite { ϕ : MoebiusFrame // ϕ.toHomeo = Homeomorph.refl CP1 }) :
+    Finite (PureComponentAutomorphism I lim) :=
+  pure_component_automorphisms_finite I lim h_ghost_triv
+    (fun _ _ => h_ghost_fin)
+    (fun v hp => False.elim (not_is_principal_component_of_discrete I lim v hp))
+
+/-- On a discrete target manifold `[DiscreteTopology M]`, the stability-finiteness equivalence holds
+whenever ghost component automorphisms are trivial and the identity-homeomorphism fiber
+of `MoebiusFrame` is finite (`0 sorryAx`). -/
+theorem stability_iff_finite_automorphisms_of_discrete [DiscreteTopology M]
+    (lim : StableSphereTreeLimit I (M := M))
+    (h_ghost_triv : ∀ (v : lim.tree.V) (_h_ghost : is_ghost_component I lim v)
+      (aut : PureComponentAutomorphism I lim), (aut.1.frame v).toHomeo = Homeomorph.refl CP1)
+    (h_ghost_fin : Finite { ϕ : MoebiusFrame // ϕ.toHomeo = Homeomorph.refl CP1 }) :
+    (∀ v, (∃ c : M, ∀ z, lim.map v z = c) → 3 ≤ lim.tree.adj.degree v) ↔
+      Finite (StableMapAutomorphism I lim) :=
+  stability_iff_finite_automorphisms_of_pure_finite I lim
+    (pure_component_automorphisms_finite_of_discrete I lim h_ghost_triv h_ghost_fin)
+
+/-- Whenever every `J`-holomorphic sphere in `(M, J)` is constant, every component of a stable
+sphere tree limit is a ghost component (`0 sorryAx`). -/
+theorem is_ghost_component_of_all_jhol_const
+    (h_all_const : ∀ u : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      u = fun _ => u north_pole)
+    (lim : StableSphereTreeLimit I (M := M)) (v : lim.tree.V) :
+    is_ghost_component I lim v :=
+  ⟨lim.map v north_pole, fun z => congr_fun (h_all_const (lim.map v) (lim.is_jhol v)) z⟩
+
+/-- Whenever every `J`-holomorphic sphere in `(M, J)` is constant, no component of a stable
+sphere tree limit is a principal component (`0 sorryAx`). -/
+theorem not_is_principal_component_of_all_jhol_const
+    (h_all_const : ∀ u : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      u = fun _ => u north_pole)
+    (lim : StableSphereTreeLimit I (M := M)) (v : lim.tree.V) :
+    ¬ is_principal_component I lim v :=
+  fun hp => hp (is_ghost_component_of_all_jhol_const I h_all_const lim v)
+
+/-- Whenever every `J`-holomorphic sphere in `(M, J)` is constant,
+`nonconstant_component_automorphism_finite` holds unconditionally (`0 sorryAx`). -/
+theorem nonconstant_component_automorphism_finite_of_all_jhol_const
+    (h_all_const : ∀ u : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      u = fun _ => u north_pole)
+    (lim : StableSphereTreeLimit I (M := M))
+    (v : lim.tree.V)
+    (h_prin : is_principal_component I lim v) :
+    Finite { ϕ : MoebiusFrame // ∀ z, lim.map v (ϕ.toHomeo z) = lim.map v z } :=
+  False.elim (not_is_principal_component_of_all_jhol_const I h_all_const lim v h_prin)
+
+/-- Whenever every `J`-holomorphic sphere in `(M, J)` is constant, pure componentwise
+automorphisms are finite once ghost component automorphisms are trivial and the
+identity-homeomorphism fiber of `MoebiusFrame` is finite (`0 sorryAx`). -/
+theorem pure_component_automorphisms_finite_of_all_jhol_const
+    (h_all_const : ∀ u : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      u = fun _ => u north_pole)
+    (lim : StableSphereTreeLimit I (M := M))
+    (h_ghost_triv : ∀ (v : lim.tree.V) (_h_ghost : is_ghost_component I lim v)
+      (aut : PureComponentAutomorphism I lim), (aut.1.frame v).toHomeo = Homeomorph.refl CP1)
+    (h_ghost_fin : Finite { ϕ : MoebiusFrame // ϕ.toHomeo = Homeomorph.refl CP1 }) :
+    Finite (PureComponentAutomorphism I lim) :=
+  pure_component_automorphisms_finite I lim h_ghost_triv
+    (fun _ _ => h_ghost_fin)
+    (fun v hp => False.elim (not_is_principal_component_of_all_jhol_const I h_all_const lim v hp))
+
+/-- Whenever every `J`-holomorphic sphere in `(M, J)` is constant, the stability-finiteness
+equivalence holds once ghost component automorphisms are trivial and the identity-homeomorphism
+fiber of `MoebiusFrame` is finite (`0 sorryAx`). -/
+theorem stability_iff_finite_automorphisms_of_all_jhol_const
+    (h_all_const : ∀ u : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      u = fun _ => u north_pole)
+    (lim : StableSphereTreeLimit I (M := M))
+    (h_ghost_triv : ∀ (v : lim.tree.V) (_h_ghost : is_ghost_component I lim v)
+      (aut : PureComponentAutomorphism I lim), (aut.1.frame v).toHomeo = Homeomorph.refl CP1)
+    (h_ghost_fin : Finite { ϕ : MoebiusFrame // ϕ.toHomeo = Homeomorph.refl CP1 }) :
+    (∀ v, (∃ c : M, ∀ z, lim.map v z = c) → 3 ≤ lim.tree.adj.degree v) ↔
+      Finite (StableMapAutomorphism I lim) :=
+  stability_iff_finite_automorphisms_of_pure_finite I lim
+    (pure_component_automorphisms_finite_of_all_jhol_const I h_all_const lim h_ghost_triv h_ghost_fin)
 
 #print axioms instFintypeTreeAutomorphism
 #print axioms StableMapAutomorphism.id

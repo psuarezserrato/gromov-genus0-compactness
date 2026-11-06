@@ -360,15 +360,99 @@ theorem exists_target_thresholds_of_modules
   ⟨make_target_thresholds I ε_reg C_reg h_reg_pos h_Creg_pos h_reg
      ε_sph h_sph_pos h_sph C_neck a_decay ε_neck h_Cneck_pos h_a_pos h_neck_pos h_neck⟩
 
-/-- Existence of target thresholds on any compact tame target manifold (Contract B01). -/
-theorem exists_target_thresholds :
+/-- When `M` is a subsingleton, every map `CP1 → M` is constant with zero energy density and
+`TargetThresholds I M` exists unconditionally with `0 sorryAx`. -/
+theorem exists_target_thresholds_of_subsingleton
+    (h_sub : Subsingleton M) :
     Nonempty (TargetThresholds I M) := by
-  obtain ⟨ε_reg, C_reg, hε_reg, hC_reg, h_reg⟩ := epsilon_regularity (M := M) I
-  obtain ⟨ε_sph, hε_sph, h_sph⟩ := sphere_energy_gap (M := M) I
+  refine exists_target_thresholds_of_modules I 1 1 zero_lt_one zero_lt_one ?_
+    1 zero_lt_one ?_ 1 1 1 zero_lt_one zero_lt_one zero_lt_one ?_
+  · intro u a r hr _ _ z _
+    have hc : u = fun _ => u north_pole := funext (fun w => h_sub.elim (u w) (u north_pole))
+    have hd0 : riemannianEnergyDensity I u z = 0 := by
+      rw [hc]
+      dsimp [riemannianEnergyDensity, ClosedTameTarget.metric]
+      simp [mfderiv_const]
+    have h_en_nonneg : 0 ≤ energyMeasure I u (disk_at a r) := energy_nonneg I u (disk_at a r)
+    have hr_pos : 0 ≤ 1 * r ^ (-2 : ℝ) := by positivity
+    rw [hd0]
+    exact mul_nonneg hr_pos h_en_nonneg
+  · intro u _ h_nonconst
+    exfalso
+    exact h_nonconst ⟨u north_pole, fun z => h_sub.elim (u z) (u north_pole)⟩
+  · intro u center r R _ _ _ _ r₁ r₂ _ _ _
+    have hc : u = fun _ => u north_pole := funext (fun w => h_sub.elim (u w) (u north_pole))
+    have h_en0 : ∀ s, energyMeasure I u s = 0 := by
+      intro s
+      rw [hc]
+      dsimp [energyMeasure, energyMeasureExtended, chartPush]
+      have h_dens : (fun w : ℂ => ENNReal.ofReal
+          (riemannianEnergyDensity I (fun _ => u north_pole) (stereo_chart.symm w) * sphericalJacobian w)) = 0 := by
+        ext w
+        dsimp [riemannianEnergyDensity, ClosedTameTarget.metric]
+        simp [mfderiv_const]
+      rw [h_dens, MeasureTheory.withDensity_zero, Measure.map_zero, Measure.coe_zero, Pi.zero_apply]
+      rfl
+    rw [h_en0, h_en0, mul_zero]
+
+/-- On a discrete target `[DiscreteTopology M]`, `TargetThresholds I M` exists unconditionally with `0 sorryAx`. -/
+theorem exists_target_thresholds_of_discrete [DiscreteTopology M] :
+    Nonempty (TargetThresholds I M) := by
+  obtain ⟨ε_reg, C_reg, hε_reg, hC_reg, h_reg⟩ := epsilon_regularity_of_discrete (M := M) I
+  obtain ⟨ε_sph, hε_sph, h_sph⟩ := sphere_energy_gap_of_discrete (M := M) I
   obtain ⟨C_neck, a_decay, ε_neck, hC_neck, ha_decay, hε_neck, h_neck⟩ :=
-    cylinder_exponential_decay (M := M) I
+    cylinder_exponential_decay_of_discrete (M := M) I
   exact exists_target_thresholds_of_modules I ε_reg C_reg hε_reg hC_reg h_reg
     ε_sph hε_sph h_sph C_neck a_decay ε_neck hC_neck ha_decay hε_neck h_neck
+
+/-- Conditional reduction of `exists_target_thresholds` from existentially packaged geometric
+estimates (`epsilon_regularity`, `sphere_energy_gap`, `cylinder_exponential_decay`) (`0 sorryAx`). -/
+theorem exists_target_thresholds_of_existentials
+    (h_reg_ex : ∃ (ε_reg C_reg : ℝ), 0 < ε_reg ∧ 0 < C_reg ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (_ : 0 < r),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        energyMeasure I u (disk_at a r) < ε_reg →
+        ∀ z ∈ disk_at a (r / 2),
+          riemannianEnergyDensity I u z ≤ C_reg * r^(-2 : ℝ) * energyMeasure I u (disk_at a r))
+    (h_sph_ex : ∃ (ε_sph : ℝ), 0 < ε_sph ∧
+      ∀ (u : CP1 → M),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        (¬ ∃ c : M, ∀ z, u z = c) →
+        ε_sph ≤ totalEnergy I u)
+    (h_neck_ex : ∃ (C_neck a_decay ε_neck : ℝ), 0 < C_neck ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+      ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        energyMeasure I u (annulus_at center r R) < ε_neck →
+        ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
+          energyMeasure I u (annulus_at center r₁ r₂) ≤
+            C_neck * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R)) :
+    Nonempty (TargetThresholds I M) := by
+  obtain ⟨ε_reg, C_reg, hε_reg, hC_reg, h_reg⟩ := h_reg_ex
+  obtain ⟨ε_sph, hε_sph, h_sph⟩ := h_sph_ex
+  obtain ⟨C_neck, a_decay, ε_neck, hC_neck, ha_decay, hε_neck, h_neck⟩ := h_neck_ex
+  exact exists_target_thresholds_of_modules I ε_reg C_reg hε_reg hC_reg h_reg
+    ε_sph hε_sph h_sph C_neck a_decay ε_neck hC_neck ha_decay hε_neck h_neck
+
+/-- When every globally `J`-holomorphic sphere `u : CP1 → M` is constant, `TargetThresholds I M`
+exists unconditionally (`0 sorryAx`). -/
+theorem exists_target_thresholds_of_all_jhol_const
+    (h_all_const : ∀ u : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ → ∃ c : M, ∀ z, u z = c) :
+    Nonempty (TargetThresholds I M) :=
+  exists_target_thresholds_of_existentials I
+    (epsilon_regularity_of_all_jhol_const (M := M) I
+      (fun u hu => let ⟨c, hc⟩ := h_all_const u hu; ⟨c, funext hc⟩))
+    (sphere_energy_gap_of_all_jhol_const (M := M) I h_all_const)
+    (cylinder_exponential_decay_of_all_jhol_const (M := M) I
+      (fun v hv => let ⟨_, hc⟩ := h_all_const v hv; funext (fun x => (hc x).trans (hc north_pole).symm)))
+
+/-- Existence of target thresholds on any compact tame target manifold (Contract B01). -/
+theorem exists_target_thresholds :
+    Nonempty (TargetThresholds I M) :=
+  exists_target_thresholds_of_existentials I
+    (epsilon_regularity (M := M) I)
+    (sphere_energy_gap (M := M) I)
+    (cylinder_exponential_decay (M := M) I)
 
 /- =========================================================================
    SECTION 4: HOFER RESCALING & GRADIENT BOUNDEDNESS (Zero-sorry)
@@ -512,6 +596,141 @@ lemma ivt_radial_energy_of_continuous (f : ℝ → ℝ) (R c : ℝ)
   rw [h_zero] at hfr
   linarith
 
+lemma monotone_ball_sub_inv_succ (a : ℂ) (r₀ : ℝ) :
+    Monotone (fun n : ℕ => Metric.ball a (r₀ - 1 / ((n : ℝ) + 1))) := by
+  intro m n hmn
+  apply Metric.ball_subset_ball
+  have h1 : (m : ℝ) + 1 ≤ (n : ℝ) + 1 := by simp [hmn]
+  have hpos : 0 < (m : ℝ) + 1 := by positivity
+  have hdiv : 1 / ((n : ℝ) + 1) ≤ 1 / ((m : ℝ) + 1) := one_div_le_one_div_of_le hpos h1
+  linarith
+
+lemma iUnion_ball_sub_inv_succ (a : ℂ) (r₀ : ℝ) :
+    (⋃ n : ℕ, Metric.ball a (r₀ - 1 / ((n : ℝ) + 1))) = Metric.ball a r₀ := by
+  ext w
+  simp only [mem_iUnion, mem_ball]
+  constructor
+  · rintro ⟨n, hn⟩
+    have hpos : 0 < 1 / ((n : ℝ) + 1) := by positivity
+    linarith
+  · intro hw
+    have hdiff : 0 < r₀ - dist w a := by linarith
+    obtain ⟨n, hn⟩ := exists_nat_one_div_lt hdiff
+    exact ⟨n, by linarith⟩
+
+lemma antitone_ball_add_inv_succ (a : ℂ) (r₀ : ℝ) :
+    Antitone (fun n : ℕ => Metric.ball a (r₀ + 1 / ((n : ℝ) + 1))) := by
+  intro m n hmn
+  apply Metric.ball_subset_ball
+  have h1 : (m : ℝ) + 1 ≤ (n : ℝ) + 1 := by simp [hmn]
+  have hpos : 0 < (m : ℝ) + 1 := by positivity
+  have hdiv : 1 / ((n : ℝ) + 1) ≤ 1 / ((m : ℝ) + 1) := one_div_le_one_div_of_le hpos h1
+  linarith
+
+lemma iInter_ball_add_inv_succ (a : ℂ) (r₀ : ℝ) :
+    (⋂ n : ℕ, Metric.ball a (r₀ + 1 / ((n : ℝ) + 1))) = Metric.closedBall a r₀ := by
+  ext w
+  simp only [mem_iInter, mem_ball, mem_closedBall]
+  constructor
+  · intro h
+    have h_le : ∀ n : ℕ, dist w a - r₀ ≤ 1 / ((n : ℝ) + 1) := fun n => by linarith [h n]
+    have h_lim := tendsto_one_div_add_atTop_nhds_zero_nat
+    have h_nonpos : dist w a - r₀ ≤ 0 := ge_of_tendsto h_lim (Filter.Eventually.of_forall h_le)
+    linarith
+  · intro hw n
+    have hpos : 0 < 1 / ((n : ℝ) + 1) := by positivity
+    linarith
+
+lemma continuousAt_of_monotone_and_inv_succ_limits (F : ℝ → ℝ) (h_mono : Monotone F) (r₀ : ℝ)
+    (h_left : Tendsto (fun n : ℕ => F (r₀ - 1 / ((n : ℝ) + 1))) atTop (𝓝 (F r₀)))
+    (h_right : Tendsto (fun n : ℕ => F (r₀ + 1 / ((n : ℝ) + 1))) atTop (𝓝 (F r₀))) :
+    ContinuousAt F r₀ := by
+  rw [Metric.continuousAt_iff]
+  intro ε hε
+  rw [Metric.tendsto_atTop] at h_left h_right
+  obtain ⟨N₁, hN₁⟩ := h_left ε hε
+  obtain ⟨N₂, hN₂⟩ := h_right ε hε
+  have h1 := hN₁ N₁ le_rfl
+  have h2 := hN₂ N₂ le_rfl
+  rw [Real.dist_eq, abs_lt] at h1 h2
+  let δ := min (1 / ((N₁ : ℝ) + 1)) (1 / ((N₂ : ℝ) + 1))
+  have hδ_pos : 0 < δ := lt_min (by positivity) (by positivity)
+  refine ⟨δ, hδ_pos, fun r hr => ?_⟩
+  rw [Real.dist_eq, abs_lt] at hr ⊢
+  have hδ1 : δ ≤ 1 / ((N₁ : ℝ) + 1) := min_le_left _ _
+  have hδ2 : δ ≤ 1 / ((N₂ : ℝ) + 1) := min_le_right _ _
+  have hr_ge : r₀ - 1 / ((N₁ : ℝ) + 1) ≤ r := by linarith
+  have hr_le : r ≤ r₀ + 1 / ((N₂ : ℝ) + 1) := by linarith
+  have hF_ge : F (r₀ - 1 / ((N₁ : ℝ) + 1)) ≤ F r := h_mono hr_ge
+  have hF_le : F r ≤ F (r₀ + 1 / ((N₂ : ℝ) + 1)) := h_mono hr_le
+  constructor <;> linarith
+
+lemma continuous_measure_ball_toReal (ν : Measure ℂ) [IsFiniteMeasure ν] (a : ℂ)
+    (h_sphere : ∀ r : ℝ, ν (Metric.sphere a r) = 0) :
+    Continuous (fun r : ℝ => (ν (Metric.ball a r)).toReal) := by
+  rw [continuous_iff_continuousAt]
+  intro r₀
+  have h_mono : Monotone (fun r : ℝ => (ν (Metric.ball a r)).toReal) := by
+    intro r₁ r₂ hr
+    exact ENNReal.toReal_mono (measure_ne_top ν _) (measure_mono (Metric.ball_subset_ball hr))
+  apply continuousAt_of_monotone_and_inv_succ_limits _ h_mono r₀
+  · have h_meas_lim := MeasureTheory.tendsto_measure_iUnion_atTop (μ := ν)
+      (monotone_ball_sub_inv_succ a r₀)
+    rw [iUnion_ball_sub_inv_succ a r₀] at h_meas_lim
+    exact (ENNReal.continuousAt_toReal (measure_ne_top ν _)).tendsto.comp h_meas_lim
+  · have h_meas : ∀ n : ℕ, NullMeasurableSet (Metric.ball a (r₀ + 1 / ((n : ℝ) + 1))) ν :=
+      fun _ => measurableSet_ball.nullMeasurableSet
+    have h_fin : ∃ i : ℕ, ν (Metric.ball a (r₀ + 1 / ((i : ℝ) + 1))) ≠ ⊤ :=
+      ⟨0, measure_ne_top ν _⟩
+    have h_meas_lim := MeasureTheory.tendsto_measure_iInter_atTop h_meas
+      (antitone_ball_add_inv_succ a r₀) h_fin
+    rw [iInter_ball_add_inv_succ a r₀] at h_meas_lim
+    have h_cb_eq : ν (Metric.closedBall a r₀) = ν (Metric.ball a r₀) := by
+      apply le_antisymm
+      · rw [← Metric.ball_union_sphere]
+        calc ν (Metric.ball a r₀ ∪ Metric.sphere a r₀)
+          _ ≤ ν (Metric.ball a r₀) + ν (Metric.sphere a r₀) := measure_union_le _ _
+          _ = ν (Metric.ball a r₀) := by rw [h_sphere r₀, add_zero]
+      · exact measure_mono Metric.ball_subset_closedBall
+    rw [h_cb_eq] at h_meas_lim
+    exact (ENNReal.continuousAt_toReal (measure_ne_top ν _)).tendsto.comp h_meas_lim
+
+/-- For any map `u : CP1 → M` with finite extended energy on `CP1`, the radial energy function
+`r ↦ energyMeasure I u (disk_at a r)` is continuous on all of `ℝ` (Zero-sorry). -/
+theorem continuous_energyMeasure_disk_at_of_finite (u : CP1 → M) (a : ℂ)
+    (h_fin : energyMeasureExtended I u Set.univ ≠ ⊤) :
+    Continuous (fun r : ℝ => energyMeasure I u (disk_at a r)) := by
+  let ν : Measure ℂ := volume.withDensity (fun w =>
+    ENNReal.ofReal (riemannianEnergyDensity I u (stereo_chart.symm w) * sphericalJacobian w))
+  have h_univ : energyMeasureExtended I u Set.univ = ν Set.univ := by
+    dsimp [energyMeasureExtended, chartPush, ν]
+    rw [Measure.map_apply stereo_chart_symm_measurable MeasurableSet.univ, Set.preimage_univ]
+  haveI : IsFiniteMeasure ν := by
+    refine ⟨lt_top_iff_ne_top.mpr ?_⟩
+    rw [← h_univ]
+    exact h_fin
+  have h_sphere : ∀ r : ℝ, ν (Metric.sphere a r) = 0 := by
+    intro r
+    apply withDensity_absolutelyContinuous
+    exact Measure.addHaar_sphere volume a r
+  have h_eq : (fun r : ℝ => energyMeasure I u (disk_at a r)) =
+      (fun r : ℝ => (ν (Metric.ball a r)).toReal) := by
+    ext r
+    dsimp [energyMeasure, energyMeasureExtended, chartPush, ν]
+    rw [Measure.map_apply stereo_chart_symm_measurable (measurableSet_disk_at a r),
+        stereo_chart_symm_preimage_disk_at]
+  rw [h_eq]
+  exact continuous_measure_ball_toReal ν a h_sphere
+
+/-- Radial Intermediate Value Theorem for any finite-energy curve on `CP1` (Zero-sorry). -/
+theorem radial_ivt_of_finite_energy (u : CP1 → M) (a : ℂ) (R c : ℝ)
+    (h_fin : energyMeasureExtended I u Set.univ ≠ ⊤)
+    (hR : 0 < R) (hc : 0 < c) (hle : c ≤ energyMeasure I u (disk_at a R)) :
+    ∃ r : ℝ, 0 < r ∧ r ≤ R ∧ energyMeasure I u (disk_at a r) = c :=
+  ivt_radial_energy_of_continuous (fun r => energyMeasure I u (disk_at a r)) R c
+    (continuous_energyMeasure_disk_at_of_finite I u a h_fin).continuousOn
+    (energyMeasure_disk_at_zero I u a) hR hc hle
+
 /-- Radial Intermediate Value Theorem under continuity of disk energy measure. -/
 lemma test_radial_ivt (u : CP1 → M) (a : ℂ) (R c : ℝ)
     (_h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ)
@@ -529,6 +748,57 @@ def RadialEnergyIVT : Prop :=
     0 < c →
     c ≤ energyMeasure I u (disk_at a R) →
     ∃ r : ℝ, 0 < r ∧ r ≤ R ∧ energyMeasure I u (disk_at a r) = c
+
+/-- If `0 < energyMeasure I u s`, then `energyMeasureExtended I u s ≠ ⊤` (`0 sorryAx`). -/
+lemma energyMeasureExtended_ne_top_of_pos_energyMeasure
+    (u : CP1 → M) (s : Set CP1) (h_pos : 0 < energyMeasure I u s) :
+    energyMeasureExtended I u s ≠ ⊤ := by
+  intro h_top
+  dsimp [energyMeasure] at h_pos
+  rw [h_top, ENNReal.top_toReal] at h_pos
+  exact lt_irrefl 0 h_pos
+
+/-- Whenever `energyMeasureExtended I u (disk_at a R) ≠ ⊤`, the radial energy function
+`r ↦ energyMeasure I u (disk_at a r)` is continuous on `Icc 0 R` (`0 sorryAx`). -/
+theorem continuousOn_energyMeasure_disk_at_Icc_of_ne_top
+    (u : CP1 → M) (a : ℂ) (R : ℝ)
+    (h_fin : energyMeasureExtended I u (disk_at a R) ≠ ⊤) :
+    ContinuousOn (fun r : ℝ => energyMeasure I u (disk_at a r)) (Icc 0 R) := by
+  let ν : Measure ℂ := volume.withDensity (fun w =>
+    ENNReal.ofReal (riemannianEnergyDensity I u (stereo_chart.symm w) * sphericalJacobian w))
+  let ν_R : Measure ℂ := ν.restrict (Metric.ball a R)
+  have h_disk_R : energyMeasureExtended I u (disk_at a R) = ν_R Set.univ := by
+    dsimp [energyMeasureExtended, chartPush, ν_R, ν]
+    rw [Measure.map_apply stereo_chart_symm_measurable (measurableSet_disk_at a R),
+        stereo_chart_symm_preimage_disk_at, Measure.restrict_apply_univ]
+  haveI : IsFiniteMeasure ν_R := by
+    refine ⟨lt_top_iff_ne_top.mpr ?_⟩
+    rw [← h_disk_R]
+    exact h_fin
+  have h_sphere : ∀ r : ℝ, ν_R (Metric.sphere a r) = 0 := by
+    intro r
+    have h_zero : ν (Metric.sphere a r) = 0 := by
+      apply withDensity_absolutelyContinuous
+      exact Measure.addHaar_sphere volume a r
+    exact le_antisymm (le_trans (Measure.restrict_apply_le _ _) (le_of_eq h_zero)) (zero_le _)
+  have h_cont_F : Continuous (fun r : ℝ => (ν_R (Metric.ball a r)).toReal) :=
+    continuous_measure_ball_toReal ν_R a h_sphere
+  refine h_cont_F.continuousOn.congr (fun r hr => ?_)
+  dsimp [energyMeasure, energyMeasureExtended, chartPush, ν_R, ν]
+  rw [Measure.map_apply stereo_chart_symm_measurable (measurableSet_disk_at a r),
+      stereo_chart_symm_preimage_disk_at,
+      Measure.restrict_apply measurableSet_ball,
+      Set.inter_eq_left.mpr (Metric.ball_subset_ball hr.2)]
+
+/-- Smooth `J`-holomorphic curves on `CP1` unconditionally satisfy `RadialEnergyIVT` (`0 sorryAx`). -/
+theorem radialEnergyIVT_of_jhol : RadialEnergyIVT I (M := M) := by
+  intro u a R c _hu hR hc hle
+  have h_pos : 0 < energyMeasure I u (disk_at a R) := lt_of_lt_of_le hc hle
+  have h_fin : energyMeasureExtended I u (disk_at a R) ≠ ⊤ :=
+    energyMeasureExtended_ne_top_of_pos_energyMeasure I u (disk_at a R) h_pos
+  exact ivt_radial_energy_of_continuous (fun r => energyMeasure I u (disk_at a r)) R c
+    (continuousOn_energyMeasure_disk_at_Icc_of_ne_top I u a R h_fin)
+    (energyMeasure_disk_at_zero I u a) hR hc hle
 
 /-- Conditional Reduction of Contract B02 to Radial Energy IVT:
 Under RadialEnergyIVT, exists_calibrated_rescaling holds constructively.
@@ -579,6 +849,53 @@ theorem exists_calibrated_rescaling
     Nonempty (CalibratedRescaling I u_seq thresh m_defect) :=
   exists_calibrated_rescaling_of_ivt I u_seq thresh m_defect hm h_jhol h_defect h_ivt
 
+/-- Existence of calibrated moving centers and radii for smooth `J`-holomorphic spheres
+without requiring an external `RadialEnergyIVT` hypothesis (`0 sorryAx`). -/
+theorem exists_calibrated_rescaling_of_jhol
+    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (hm : thresh.h ≤ m_defect)
+    (h_jhol : ∀ (n : ℕ), JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
+    (h_defect : ∀ (n : ℕ), ∃ (a_n : ℂ) (R_n : ℝ),
+      dist a_n 0 ≤ 1 / ((n : ℝ) + 1) ∧
+      0 < R_n ∧ R_n ≤ 1 / ((n : ℝ) + 1) ∧
+      m_defect - thresh.h / 2 ≤ energyMeasure I (u_seq n) (disk_at a_n R_n)) :
+    Nonempty (CalibratedRescaling I u_seq thresh m_defect) :=
+  exists_calibrated_rescaling_of_ivt I u_seq thresh m_defect hm h_jhol h_defect
+    (radialEnergyIVT_of_jhol I)
+
+/-- Existence of calibrated moving centers and radii for any sequence of maps `u_seq : ℕ → (CP1 → M)`
+concentrating energy at `0`, without requiring `JHolomorphicOn` or `RadialEnergyIVT` (`0 sorryAx`). -/
+theorem exists_calibrated_rescaling_of_defect
+    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (hm : thresh.h ≤ m_defect)
+    (h_defect : ∀ (n : ℕ), ∃ (a_n : ℂ) (R_n : ℝ),
+      dist a_n 0 ≤ 1 / ((n : ℝ) + 1) ∧
+      0 < R_n ∧ R_n ≤ 1 / ((n : ℝ) + 1) ∧
+      m_defect - thresh.h / 2 ≤ energyMeasure I (u_seq n) (disk_at a_n R_n)) :
+    Nonempty (CalibratedRescaling I u_seq thresh m_defect) := by
+  have hc_pos : 0 < m_defect - thresh.h / 2 := by
+    have hh_pos := thresh.h_pos
+    linarith
+  have h_step : ∀ n : ℕ, ∃ (a_n : ℂ) (lam_n : ℝ),
+      dist a_n 0 ≤ 1 / ((n : ℝ) + 1) ∧
+      0 < lam_n ∧ lam_n ≤ 1 / ((n : ℝ) + 1) ∧
+      energyMeasure I (u_seq n) (disk_at a_n lam_n) = m_defect - thresh.h / 2 := by
+    intro n
+    obtain ⟨a_n, R_n, ha_dist, hR_pos, hR_le, h_en⟩ := h_defect n
+    have h_pos : 0 < energyMeasure I (u_seq n) (disk_at a_n R_n) := lt_of_lt_of_le hc_pos h_en
+    have h_fin : energyMeasureExtended I (u_seq n) (disk_at a_n R_n) ≠ ⊤ :=
+      energyMeasureExtended_ne_top_of_pos_energyMeasure I (u_seq n) (disk_at a_n R_n) h_pos
+    obtain ⟨r, hr_pos, hr_le, hr_eq⟩ :=
+      ivt_radial_energy_of_continuous (fun r => energyMeasure I (u_seq n) (disk_at a_n r)) R_n
+        (m_defect - thresh.h / 2)
+        (continuousOn_energyMeasure_disk_at_Icc_of_ne_top I (u_seq n) a_n R_n h_fin)
+        (energyMeasure_disk_at_zero I (u_seq n) a_n) hR_pos hc_pos h_en
+    exact ⟨a_n, r, ha_dist, hr_pos, hr_le.trans hR_le, hr_eq⟩
+  choose a lam h_prop using h_step
+  refine ⟨⟨a, ?_, lam, fun n => (h_prop n).2.1, ?_, fun n => (h_prop n).2.2.2⟩⟩
+  · exact tendsto_dist_zero_of_le_inv_succ a 0 (fun n => (h_prop n).1)
+  · exact tendsto_scale_zero_of_le_inv_succ lam (fun n => (h_prop n).2.1) (fun n => (h_prop n).2.2.1)
+
 /-- Bubble limit curve energy lower bound: Every non-trivial bubble satisfies E(v_∞) ≥ ε_sph. -/
 theorem bubble_energy_ge_sphere_gap
     (thresh : TargetThresholds I M) (v_lim : CP1 → M)
@@ -586,6 +903,109 @@ theorem bubble_energy_ge_sphere_gap
     (h_nonconst : ¬ ∃ c : M, ∀ z, v_lim z = c) :
     thresh.ε_sph ≤ totalEnergy I v_lim :=
   thresh.h_sph v_lim h_jhol h_nonconst
+
+/-- If `u_seq` has a constant term `u_seq n₀ = fun _ => c` and `thresh.h / 2 < m_defect`, then
+`CalibratedRescaling I u_seq thresh m_defect` is empty (`0 sorryAx`). -/
+theorem CalibratedRescaling.isEmpty_of_exists_const_term_of_gt_half_h
+    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (h_gt : thresh.h / 2 < m_defect)
+    (n₀ : ℕ) (c : M) (hc : u_seq n₀ = fun _ => c) :
+    IsEmpty (CalibratedRescaling I u_seq thresh m_defect) := by
+  refine ⟨fun res => ?_⟩
+  have h_cal := res.calibrated_energy n₀
+  have h_zero : energyMeasure I (u_seq n₀) (disk_at (res.a n₀) (res.«λ» n₀)) = 0 := by
+    rw [hc]
+    exact energyMeasure_const I c _
+  linarith
+
+/-- If `u_seq` has a constant term `u_seq n₀ = fun _ => c` and `thresh.h ≤ m_defect`, then
+`CalibratedRescaling I u_seq thresh m_defect` is empty (`0 sorryAx`). -/
+theorem CalibratedRescaling.isEmpty_of_exists_const_term
+    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (hm : thresh.h ≤ m_defect)
+    (n₀ : ℕ) (c : M) (hc : u_seq n₀ = fun _ => c) :
+    IsEmpty (CalibratedRescaling I u_seq thresh m_defect) :=
+  CalibratedRescaling.isEmpty_of_exists_const_term_of_gt_half_h I u_seq thresh m_defect
+    (by linarith [thresh.h_pos]) n₀ c hc
+
+/-- On a `[Subsingleton M]` target, `CalibratedRescaling I u_seq thresh m_defect` is empty whenever
+`thresh.h ≤ m_defect` (`0 sorryAx`). -/
+theorem CalibratedRescaling.isEmpty_of_subsingleton [Subsingleton M]
+    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (hm : thresh.h ≤ m_defect) :
+    IsEmpty (CalibratedRescaling I u_seq thresh m_defect) :=
+  CalibratedRescaling.isEmpty_of_exists_const_term I u_seq thresh m_defect hm
+    0 (u_seq 0 north_pole) (funext (fun z => Subsingleton.elim (u_seq 0 z) (u_seq 0 north_pole)))
+
+/-- On a `[DiscreteTopology M]` target, `CalibratedRescaling I u_seq thresh m_defect` is empty whenever
+`thresh.h ≤ m_defect` and some term `u_seq n₀` is continuous (`0 sorryAx`). -/
+theorem CalibratedRescaling.isEmpty_of_exists_continuous_of_discrete [DiscreteTopology M]
+    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (hm : thresh.h ≤ m_defect)
+    (n₀ : ℕ) (h_cont : Continuous (u_seq n₀)) :
+    IsEmpty (CalibratedRescaling I u_seq thresh m_defect) :=
+  CalibratedRescaling.isEmpty_of_exists_const_term I u_seq thresh m_defect hm
+    n₀ (u_seq n₀ north_pole) (funext (eq_const_north_pole_of_continuous_of_discrete (u_seq n₀) h_cont))
+
+/-- Whenever every globally `J`-holomorphic sphere is constant and some term `u_seq n₀` is `J`-holomorphic,
+`CalibratedRescaling I u_seq thresh m_defect` is empty for `thresh.h ≤ m_defect` (`0 sorryAx`). -/
+theorem CalibratedRescaling.isEmpty_of_all_jhol_const
+    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (hm : thresh.h ≤ m_defect)
+    (n₀ : ℕ) (hu₀ : JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n₀) Set.univ)
+    (h_all_const : ∀ u : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ → ∃ c : M, ∀ z, u z = c) :
+    IsEmpty (CalibratedRescaling I u_seq thresh m_defect) := by
+  obtain ⟨c, hc⟩ := h_all_const (u_seq n₀) hu₀
+  exact CalibratedRescaling.isEmpty_of_exists_const_term I u_seq thresh m_defect hm n₀ c (funext hc)
+
+/-- If `u_seq` is eventually constant and `thresh.h ≤ m_defect`, then
+`CalibratedRescaling I u_seq thresh m_defect` is empty (`0 sorryAx`). -/
+theorem CalibratedRescaling.isEmpty_of_eventually_const
+    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (hm : thresh.h ≤ m_defect)
+    (h_ev : ∀ᶠ n in atTop, ∃ c : M, u_seq n = fun _ => c) :
+    IsEmpty (CalibratedRescaling I u_seq thresh m_defect) := by
+  obtain ⟨N, hN⟩ := eventually_atTop.mp h_ev
+  obtain ⟨c, hc⟩ := hN N le_rfl
+  exact CalibratedRescaling.isEmpty_of_exists_const_term I u_seq thresh m_defect hm N c hc
+
+/-- Whenever `u_seq` is eventually `J`-holomorphic and every globally `J`-holomorphic sphere is constant,
+`CalibratedRescaling I u_seq thresh m_defect` is empty for `thresh.h ≤ m_defect` (`0 sorryAx`). -/
+theorem CalibratedRescaling.isEmpty_of_eventually_all_jhol_const
+    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (hm : thresh.h ≤ m_defect)
+    (N₀ : ℕ) (h_jhol : ∀ n ≥ N₀, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
+    (h_all_const : ∀ u : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ → ∃ c : M, ∀ z, u z = c) :
+    IsEmpty (CalibratedRescaling I u_seq thresh m_defect) :=
+  CalibratedRescaling.isEmpty_of_all_jhol_const I u_seq thresh m_defect hm N₀ (h_jhol N₀ le_rfl) h_all_const
+
+/-- On a `[DiscreteTopology M]` target, `CalibratedRescaling I u_seq thresh m_defect` is empty whenever
+`thresh.h ≤ m_defect` and `u_seq n` is eventually continuous (`0 sorryAx`). -/
+theorem CalibratedRescaling.isEmpty_of_eventually_continuous_of_discrete [DiscreteTopology M]
+    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (hm : thresh.h ≤ m_defect)
+    (N₀ : ℕ) (h_cont : ∀ n ≥ N₀, Continuous (u_seq n)) :
+    IsEmpty (CalibratedRescaling I u_seq thresh m_defect) :=
+  CalibratedRescaling.isEmpty_of_exists_continuous_of_discrete I u_seq thresh m_defect hm N₀ (h_cont N₀ le_rfl)
+
+/-- On a `[DiscreteTopology M]` target, `CalibratedRescaling I u_seq thresh m_defect` is empty whenever
+`thresh.h ≤ m_defect` and some term `u_seq n₀` is `J`-holomorphic (`0 sorryAx`). -/
+theorem CalibratedRescaling.isEmpty_of_jhol_of_discrete [DiscreteTopology M]
+    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (hm : thresh.h ≤ m_defect)
+    (n₀ : ℕ) (hu₀ : JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n₀) Set.univ) :
+    IsEmpty (CalibratedRescaling I u_seq thresh m_defect) :=
+  CalibratedRescaling.isEmpty_of_all_jhol_const I u_seq thresh m_defect hm n₀ hu₀
+    (fun u hu => ⟨u north_pole, eq_const_north_pole_of_jhol_univ_of_discrete I u hu⟩)
+
+/-- On a `[DiscreteTopology M]` target, `CalibratedRescaling I u_seq thresh m_defect` is empty whenever
+`thresh.h ≤ m_defect` and `u_seq n` is eventually `J`-holomorphic (`0 sorryAx`). -/
+theorem CalibratedRescaling.isEmpty_of_eventually_jhol_of_discrete [DiscreteTopology M]
+    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (hm : thresh.h ≤ m_defect)
+    (N₀ : ℕ) (h_jhol : ∀ n ≥ N₀, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ) :
+    IsEmpty (CalibratedRescaling I u_seq thresh m_defect) :=
+  CalibratedRescaling.isEmpty_of_jhol_of_discrete I u_seq thresh m_defect hm N₀ (h_jhol N₀ le_rfl)
 
 end GromovCompactness.Analysis
 
@@ -607,14 +1027,29 @@ abbrev RadialEnergyIVT := @GromovCompactness.Analysis.RadialEnergyIVT
 /-- Re-export of `exists_target_thresholds_of_modules` in namespace `GromovCompactness.Bubbling`. -/
 abbrev exists_target_thresholds_of_modules := @GromovCompactness.Analysis.exists_target_thresholds_of_modules
 
+/-- Re-export of `exists_target_thresholds_of_subsingleton` in namespace `GromovCompactness.Bubbling`. -/
+abbrev exists_target_thresholds_of_subsingleton := @GromovCompactness.Analysis.exists_target_thresholds_of_subsingleton
+
+/-- Re-export of `exists_target_thresholds_of_discrete` in namespace `GromovCompactness.Bubbling`. -/
+abbrev exists_target_thresholds_of_discrete := @GromovCompactness.Analysis.exists_target_thresholds_of_discrete
+
+/-- Re-export of `exists_target_thresholds_of_all_jhol_const` in namespace `GromovCompactness.Bubbling`. -/
+abbrev exists_target_thresholds_of_all_jhol_const := @GromovCompactness.Analysis.exists_target_thresholds_of_all_jhol_const
+
 /-- Re-export of `exists_target_thresholds` in namespace `GromovCompactness.Bubbling`. -/
 abbrev exists_target_thresholds := @GromovCompactness.Analysis.exists_target_thresholds
+
+/-- Re-export of `radialEnergyIVT_of_jhol` in namespace `GromovCompactness.Bubbling`. -/
+abbrev radialEnergyIVT_of_jhol := @GromovCompactness.Analysis.radialEnergyIVT_of_jhol
 
 /-- Re-export of `exists_calibrated_rescaling_of_ivt` in namespace `GromovCompactness.Bubbling`. -/
 abbrev exists_calibrated_rescaling_of_ivt := @GromovCompactness.Analysis.exists_calibrated_rescaling_of_ivt
 
 /-- Re-export of `exists_calibrated_rescaling` in namespace `GromovCompactness.Bubbling`. -/
 abbrev exists_calibrated_rescaling := @GromovCompactness.Analysis.exists_calibrated_rescaling
+
+/-- Re-export of `exists_calibrated_rescaling_of_jhol` in namespace `GromovCompactness.Bubbling`. -/
+abbrev exists_calibrated_rescaling_of_jhol := @GromovCompactness.Analysis.exists_calibrated_rescaling_of_jhol
 
 /-- Re-export of `bubble_energy_ge_sphere_gap` in namespace `GromovCompactness.Bubbling`. -/
 abbrev bubble_energy_ge_sphere_gap := @GromovCompactness.Analysis.bubble_energy_ge_sphere_gap

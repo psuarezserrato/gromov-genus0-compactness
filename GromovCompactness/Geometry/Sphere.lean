@@ -1313,4 +1313,117 @@ theorem inversion_matrix : inversion.matrix = MoebiusMatrix.inversion :=
 theorem rotation_matrix (θ : ℝ) : (rotation θ).matrix = MoebiusMatrix.rotation θ :=
   rfl
 
+/- =========================================================================
+   PROJECTIVE EQUIVALENCE AND ONEPOINT ℂ EVALUATION RIGIDITY
+   ========================================================================= -/
+
+/-- Homogeneous coordinate lift from `OnePoint ℂ` to `ℂ × ℂ \ {(0, 0)}`. -/
+def onePointToProj (p : OnePoint ℂ) : ℂ × ℂ :=
+  match p with
+  | OnePoint.infty => (1, 0)
+  | OnePoint.some z => (z, 1)
+
+theorem onePointToProj_ne_zero (p : OnePoint ℂ) : onePointToProj p ≠ (0, 0) := by
+  match p with
+  | OnePoint.infty =>
+    intro h
+    have h1 : (1 : ℂ) = 0 := congr_arg Prod.fst h
+    exact one_ne_zero h1
+  | OnePoint.some z =>
+    intro h
+    have h2 : (1 : ℂ) = 0 := congr_arg Prod.snd h
+    exact one_ne_zero h2
+
+theorem not_projEquiv_onePointToProj {p q : OnePoint ℂ} (hne : p ≠ q) :
+    ¬ ProjEquiv (onePointToProj p) (onePointToProj q) := by
+  match p, q with
+  | OnePoint.infty, OnePoint.infty => exact False.elim (hne rfl)
+  | OnePoint.infty, OnePoint.some w =>
+    dsimp [onePointToProj, ProjEquiv]
+    intro h
+    have h1 : (1 : ℂ) = 0 := by linear_combination h
+    exact one_ne_zero h1
+  | OnePoint.some z, OnePoint.infty =>
+    dsimp [onePointToProj, ProjEquiv]
+    intro h
+    have h1 : (1 : ℂ) = 0 := by linear_combination -h
+    exact one_ne_zero h1
+  | OnePoint.some z, OnePoint.some w =>
+    dsimp [onePointToProj, ProjEquiv]
+    intro h
+    have hzw : z = w := by linear_combination h
+    exact hne (congr_arg OnePoint.some hzw)
+
+theorem projEquiv_act_onePointToProj_eval (M : MoebiusMatrix) (p : OnePoint ℂ) :
+    ProjEquiv (M.act (onePointToProj p)) (onePointToProj (M.eval p)) := by
+  match p with
+  | OnePoint.infty =>
+    dsimp [onePointToProj, MoebiusMatrix.act, MoebiusMatrix.eval]
+    by_cases hc : M.c = 0
+    · simp [hc, onePointToProj, ProjEquiv]
+    · simp [hc, onePointToProj, ProjEquiv]
+      exact (mul_div_cancel₀ M.a hc).symm
+  | OnePoint.some z =>
+    dsimp [onePointToProj, MoebiusMatrix.act, MoebiusMatrix.eval]
+    by_cases hden : M.c * z + M.d = 0
+    · simp only [hden, ↓reduceIte, onePointToProj, ProjEquiv]
+      linear_combination -hden
+    · simp only [hden, ↓reduceIte, onePointToProj, ProjEquiv]
+      have h1 : (M.a * z + M.b * 1) * 1 = M.a * z + M.b := by ring
+      have h2 : (M.c * z + M.d * 1) * ((M.a * z + M.b) / (M.c * z + M.d)) =
+                (M.c * z + M.d) * ((M.a * z + M.b) / (M.c * z + M.d)) := by ring
+      rw [h1, h2]
+      exact (mul_div_cancel₀ (M.a * z + M.b) hden).symm
+
+theorem MoebiusMatrix.eval_id (p : OnePoint ℂ) :
+    MoebiusMatrix.id.eval p = p := by
+  match p with
+  | OnePoint.infty =>
+    dsimp [MoebiusMatrix.eval, MoebiusMatrix.id]
+    simp
+  | OnePoint.some z =>
+    dsimp [MoebiusMatrix.eval, MoebiusMatrix.id]
+    simp
+
+theorem MoebiusMatrix.eval_id_fun :
+    MoebiusMatrix.id.eval = _root_.id := by
+  funext p
+  exact MoebiusMatrix.eval_id p
+
+theorem pglEquiv_id_iff (M : MoebiusMatrix) :
+    PglEquiv M MoebiusMatrix.id ↔ (M.b = 0 ∧ M.c = 0 ∧ M.a = M.d) := by
+  constructor
+  · intro h
+    have h0 := h (1, 0)
+    have h1 := h (0, 1)
+    have h11 := h (1, 1)
+    dsimp [MoebiusMatrix.act, MoebiusMatrix.id, ProjEquiv] at h0 h1 h11
+    refine ⟨?_, ?_, ?_⟩
+    · linear_combination h1
+    · linear_combination -h0
+    · linear_combination h11 - h1 - h0
+  · rintro ⟨hb, hc, had⟩ p
+    dsimp [MoebiusMatrix.act, MoebiusMatrix.id, ProjEquiv]
+    linear_combination p.2 ^ 2 * hb - p.1 ^ 2 * hc + (p.1 * p.2) * had
+
+theorem PglEquiv.eval_eq_of_id {M : MoebiusMatrix} (h : PglEquiv M MoebiusMatrix.id)
+    (p : OnePoint ℂ) : M.eval p = p := by
+  obtain ⟨hb, hc, had⟩ := (pglEquiv_id_iff M).mp h
+  have hd_ne : M.d ≠ 0 := by
+    intro hd0
+    have hdet := M.det_ne_zero
+    rw [had, hd0, hb, hc] at hdet
+    ring_nf at hdet
+    exact hdet rfl
+  match p with
+  | OnePoint.infty =>
+    dsimp [MoebiusMatrix.eval]
+    simp [hc]
+  | OnePoint.some z =>
+    dsimp [MoebiusMatrix.eval]
+    have hden : M.c * z + M.d = M.d := by rw [hc, zero_mul, zero_add]
+    have hnum : M.a * z + M.b = M.d * z := by rw [had, hb, add_zero]
+    rw [hden, hnum]
+    simp [hd_ne]
+
 end GromovCompactness
