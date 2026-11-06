@@ -665,19 +665,6 @@ private theorem extract_smooth_limit_off_singular_set_aux
   · have _ := removal_of_singularities (I := I) (M := M)
     sorry
 
-private theorem energyMeasureExtended_lt_top_of_totalEnergy_le_conc
-    (u : CP1 → M) (B : ℝ) (hB : 0 < B) (h : totalEnergy I u ≤ B) :
-    energyMeasureExtended I u Set.univ < ⊤ := by
-  by_cases h_cases : (∃ c : M, u = fun _ => c) ∨ (∀ z : CP1, mfderiv I_CP1 I u z = 0) ∨
-      totalEnergy I u ≠ 0 ∨
-      Continuous (riemannianEnergyDensity I u) ∨
-      (∃ C : ℝ, ∀ z, riemannianEnergyDensity I u z ≤ C) ∨
-      BddAbove (Set.range (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))
-  · exact energyMeasureExtended_lt_top_of_totalEnergy_le I u B hB h h_cases
-  · have h_cont : Continuous (riemannianEnergyDensity I u) := by
-      sorry
-    exact energyMeasureExtended_lt_top_of_continuous_density I u h_cont
-
 /-- Zero-sorry conditional reduction of `exists_concentration_data` from weak energy measure compactness (`h_weak_comp`),
 extended energy finiteness (`h_fin`), and smooth limit extraction (`h_extract`) (`0 sorryAx`). -/
 theorem exists_concentration_data_of_smooth_limit
@@ -1436,14 +1423,15 @@ theorem exists_concentration_data
     (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
     (B : ℝ) (hB : 0 ≤ B)
     (h_en : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (thresh : TargetThresholds I M) :
     Nonempty (ConcentrationData I u_seq B thresh) := by
   by_cases h_ev : ∃ (σ : SubseqMap) (N₀ : ℕ) (c : M), ∀ n ≥ N₀, u_seq (σ.1 n) = fun _ => c
   · rcases h_ev with ⟨σ, N₀, c, hc⟩
     exact exists_concentration_data_of_eventually_const_subseq I u_seq B hB h_en thresh σ N₀ c hc
   · exact exists_concentration_data_of_smooth_limit I u_seq h_jhol B hB h_en thresh
-      (fun B' hB' h_en' => weak_energy_measure_compactness I u_seq B' hB' h_en')
-      (fun n => energyMeasureExtended_lt_top_of_totalEnergy_le_conc I (u_seq n) (B + 1) (by linarith) ((h_en n).trans (by linarith)))
+      (fun B' hB' h_en' => weak_energy_measure_compactness I u_seq B' hB' h_en' h_fin)
+      h_fin
       (fun σ S => extract_smooth_limit_off_singular_set_aux I u_seq σ h_jhol S)
 
 /-- No-Atom Regularity Upgrade: if the defect measure has no atom at p, convergence is smooth at p (Contract C02, Zero-sorry). -/

@@ -247,10 +247,11 @@ theorem probe_gromov_compactness_core_wiring
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) :=
-  gromov_compactness_core I th u_seq B h_nonconst h_jhol h_energy
+  gromov_compactness_core I th u_seq B h_nonconst h_jhol h_energy h_fin
 
 /-- Probe 3.2: G02: stabilize_prestable_tree produces valid StableSphereTreeLimit
 preserving total energy and all 5 convergence fields with zero direct sorry. -/
@@ -269,28 +270,31 @@ theorem probe_assemble_prestable_limit_wiring
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (pdata : PrestableLimitData I u_seq),
       (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B :=
-  assemble_prestable_limit I th u_seq B h_jhol h_energy
+  assemble_prestable_limit I th u_seq B h_jhol h_energy h_fin
 
 /-- Probe 3.4: C02 -> C01: exists_concentration_data consumes weak_energy_measure_compactness (C01). -/
 theorem probe_exists_concentration_data_wiring
     (u_seq : ℕ → (CP1 → M))
     (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
     (B : ℝ) (hB : 0 ≤ B) (h_en : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (thresh : Bubbling.TargetThresholds I M) :
     Nonempty (ConcentrationData I u_seq B thresh) :=
-  exists_concentration_data I u_seq h_jhol B hB h_en thresh
+  exists_concentration_data I u_seq h_jhol B hB h_en h_fin thresh
 
 /-- Probe 3.5: C01: weak_energy_measure_compactness consumes weak measure compactness reduction. -/
 theorem probe_weak_energy_measure_compactness_wiring
     (u_seq : ℕ → (CP1 → M)) (B : ℝ) (hB : 0 < B)
-    (h_bdd : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_bdd : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (σ : Bookkeeping.SubseqMap) (μ_lim : Measure CP1),
       IsFiniteMeasure μ_lim ∧
       WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ_lim :=
-  weak_energy_measure_compactness I u_seq B hB h_bdd
+  weak_energy_measure_compactness I u_seq B hB h_bdd h_fin
 
 /-- Probe 3.6: B07: resolve_single_defect_tree constructs a finite rooted bubble tree
 with energy rank induction with zero direct sorry. -/

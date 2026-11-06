@@ -862,7 +862,8 @@ theorem gromov_compactness_core
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) := by
   by_cases h_wit : ∃ (σ : Bookkeeping.SubseqMap) (u_lim : StableSphereTreeLimit I (M := M)),
@@ -871,7 +872,7 @@ theorem gromov_compactness_core
     exact gromov_compactness_core_of_subseq_witness I u_seq σ u_lim wit
   · by_cases h_lt : B < th.ε_sph
     · exact gromov_compactness_core_of_lt_eps_sph I th u_seq B h_nonconst h_jhol h_energy h_lt
-    · obtain ⟨pdata, _h_en_le⟩ := assemble_prestable_limit I th u_seq B h_jhol h_energy
+    · obtain ⟨pdata, _h_en_le⟩ := assemble_prestable_limit I th u_seq B h_jhol h_energy h_fin
       exact gromov_compactness_core_of_assemble_and_stabilize I u_seq pdata
         (stabilize_prestable_tree I u_seq pdata h_nonconst)
 
@@ -881,10 +882,12 @@ theorem gromov_subsequence_alternative_of_core
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
     (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (h_core : ∀ (v : ℕ → (CP1 → M)),
       (∀ n, ¬ ∃ c : M, ∀ z, v n z = c) →
       (∀ n, JHolomorphicOn I I_CP1 (v n) Set.univ) →
       (∀ n, totalEnergy I (v n) ≤ B) →
+      (∀ n, energyMeasureExtended I (v n) Set.univ < ⊤) →
       ∃ (u_lim : StableSphereTreeLimit I (M := M)),
         Nonempty (CompactnessWitness I v u_lim)) :
     (∃ (σ : Bookkeeping.SubseqMap) (c : M),
@@ -927,7 +930,8 @@ theorem gromov_subsequence_alternative_of_core
       exact hz (hc z)
     have h_v_jhol : ∀ n, JHolomorphicOn I I_CP1 (v n) Set.univ := fun n => h_jhol (σ_shift.1 n)
     have h_v_energy : ∀ n, totalEnergy I (v n) ≤ B := fun n => h_energy (σ_shift.1 n)
-    obtain ⟨u_lim, hwit⟩ := h_core v h_v_nonconst h_v_jhol h_v_energy
+    have h_v_fin : ∀ n, energyMeasureExtended I (v n) Set.univ < ⊤ := fun n => h_fin (σ_shift.1 n)
+    obtain ⟨u_lim, hwit⟩ := h_core v h_v_nonconst h_v_jhol h_v_energy h_v_fin
     right
     exact ⟨σ_shift, u_lim, hwit⟩
 
@@ -939,13 +943,14 @@ theorem gromov_subsequence_alternative
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     (∃ (σ : Bookkeeping.SubseqMap) (c : M),
       Tendsto (fun n => u_seq (σ.1 n)) atTop (𝓝 (fun _ => c))) ∨
     (∃ (σ : Bookkeeping.SubseqMap) (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I (fun n => u_seq (σ.1 n)) u_lim)) :=
-  gromov_subsequence_alternative_of_core I th u_seq B h_jhol h_energy
-    (fun v hv_nc hv_jhol hv_en => gromov_compactness_core I th v B hv_nc hv_jhol hv_en)
+  gromov_subsequence_alternative_of_core I th u_seq B h_jhol h_energy h_fin
+    (fun v hv_nc hv_jhol hv_en hv_fin => gromov_compactness_core I th v B hv_nc hv_jhol hv_en hv_fin)
 
 #print axioms compactnessWitness_energy_le
 #print axioms compactnessWitness_subseq_strictMono

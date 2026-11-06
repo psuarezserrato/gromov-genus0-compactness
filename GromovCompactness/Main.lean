@@ -89,7 +89,8 @@ theorem gromov_compactness_genus_zero
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) ∧
       let P := Fintype.card { v : u_lim.tree.V // is_principal_component I u_lim v }
@@ -98,7 +99,7 @@ theorem gromov_compactness_genus_zero
       (1 < Fintype.card u_lim.tree.V → G + 2 ≤ P ∧ Fintype.card u_lim.tree.V + 2 ≤ 2 * P) ∧
       ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2)) :=
   gromov_compactness_genus_zero_of_core I th u_seq B h_energy
-    (gromov_compactness_core I th u_seq B h_nonconst h_jhol h_energy)
+    (gromov_compactness_core I th u_seq B h_nonconst h_jhol h_energy h_fin)
 
 /-- Zero-sorry Genus 0 Gromov Compactness when a subsequence converges smoothly on `CP1` to a
 non-constant map with energy conservation (`0 sorryAx`). -/

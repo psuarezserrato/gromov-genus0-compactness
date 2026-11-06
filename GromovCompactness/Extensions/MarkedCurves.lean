@@ -1699,7 +1699,8 @@ private theorem extract_marked_compactness_limit {k : ℕ}
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → MarkedSphere M k) (B : ℝ)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n).map Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n).map ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n).map ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n).map Set.univ < ⊤) :
     ∃ (u_lim : MarkedStableTreeLimit I (M := M) k)
       (wit : MarkedCompactnessWitness I u_seq u_lim),
       markedTreeTotalEnergy I u_lim ≤ B := by
@@ -1712,7 +1713,7 @@ private theorem extract_marked_compactness_limit {k : ℕ}
       by_cases h_sub_nc : ∃ (σ : Bookkeeping.SubseqMap), ∀ n, ¬ ∃ c : M, ∀ z, (u_seq (σ.1 n)).map z = c
       · rcases h_sub_nc with ⟨σ, h_nc⟩
         obtain ⟨u_lim, ⟨wit⟩⟩ := gromov_compactness_core I th (fun n => (u_seq (σ.1 n)).map) B
-          h_nc (fun n => h_jhol (σ.1 n)) (fun n => h_energy (σ.1 n))
+          h_nc (fun n => h_jhol (σ.1 n)) (fun n => h_energy (σ.1 n)) (fun n => h_fin (σ.1 n))
         exact marked_gromov_compactness_zero_marks_of_subseq I u_seq B σ h_energy u_lim wit
       · sorry
     · by_cases h_const : ∃ (σ : Bookkeeping.SubseqMap) (c : M) (pts : Fin k → CP1)
@@ -1741,10 +1742,11 @@ theorem marked_gromov_compactness {k : ℕ}
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → MarkedSphere M k) (B : ℝ)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n).map Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n).map ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n).map ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n).map Set.univ < ⊤) :
     ∃ (u_lim : MarkedStableTreeLimit I (M := M) k),
       Nonempty (MarkedCompactnessWitness I u_seq u_lim) := by
-  obtain ⟨u_lim, wit, _⟩ := extract_marked_compactness_limit I th u_seq B h_jhol h_energy
+  obtain ⟨u_lim, wit, _⟩ := extract_marked_compactness_limit I th u_seq B h_jhol h_energy h_fin
   exact ⟨u_lim, ⟨wit⟩⟩
 
 /-- **Deligne–Mumford 4-Point Moduli Space Parameterization via Cross-Ratio**.

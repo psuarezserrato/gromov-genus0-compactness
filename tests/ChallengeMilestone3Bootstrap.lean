@@ -363,10 +363,11 @@ theorem test_elliptic_bootstrap_k_zero (p : ℝ) (hp : 1 < p) (r R : ℝ) (hrR :
     ∃ (C : ℝ), 0 < C ∧
     ∀ (f : ℂ → ℂ),
       ContDiffOn ℝ 1 f (Metric.closedBall 0 R) →
+      SatisfiesSobolevCauchyRiemann p 0 r R f →
       sobolevNorm p 1 f (Metric.closedBall 0 r) ≤
         C * (sobolevNorm p 0 (cauchyRiemann f) (Metric.closedBall 0 R) +
              sobolevNorm p 0 f (Metric.closedBall 0 R)) := by
-  have h := elliptic_bootstrap_wkp p hp 0 r R hrR
+  have h := elliptic_bootstrap_wkp_of_certificate p hp 0 r R hrR
   exact h
 
 /-- Test 4.3 (Order k = 1):
@@ -376,10 +377,11 @@ theorem test_elliptic_bootstrap_k_one (p : ℝ) (hp : 1 < p) (r R : ℝ) (hrR : 
     ∃ (C : ℝ), 0 < C ∧
     ∀ (f : ℂ → ℂ),
       ContDiffOn ℝ 2 f (Metric.closedBall 0 R) →
+      SatisfiesSobolevCauchyRiemann p 1 r R f →
       sobolevNorm p 2 f (Metric.closedBall 0 r) ≤
         C * (sobolevNorm p 1 (cauchyRiemann f) (Metric.closedBall 0 R) +
              sobolevNorm p 1 f (Metric.closedBall 0 R)) := by
-  have h := elliptic_bootstrap_wkp p hp 1 r R hrR
+  have h := elliptic_bootstrap_wkp_of_certificate p hp 1 r R hrR
   exact h
 
 /-- Test 4.4: Concentric Radii Shrinkage & Geometric Inclusions:

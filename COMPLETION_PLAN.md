@@ -43,6 +43,12 @@
 > [!NOTE]
 > **Phase 5 (`P0-1`–`P0-11`) is 100% complete and certified (`e77a1e7`).** `gromov_compactness_core` (`#29`), `gromov_subsequence_alternative` (`#22`), `stabilize_prestable_tree` (`#28`), `assemble_prestable_limit` (`#24`), `resolve_single_defect_tree` (`#21`), `exists_concentration_data` (`#16`), `weak_energy_measure_compactness` (`#15`), `removal_of_singularities` (`#13`), and `bochner_differential_inequality` (`#2`) now have **zero direct `sorry`** and are wired to explicit leaf sub-lemmas verified by `#audit_wiring` in `tests/PhaseAxiomCensus.lean`.
 
+> [!WARNING]
+> **Statement change with user sign-off (6 Nov 2026) — finiteness hypothesis `h_fin`.**
+> `totalEnergy` is defined via `ENNReal.toReal`, so an infinite-energy map has `totalEnergy = 0 ≤ B`; finiteness of the energy measure is therefore *not* derivable from `totalEnergy ≤ B`, and `weak_energy_measure_compactness` (#15) was unsound as originally stated. Continuity/boundedness of `riemannianEnergyDensity` for `J`-holomorphic `u` is also not derivable from `ContMDiffOn`, because `ω`, `J` and `mfderiv` are expressed in the arbitrary preferred charts `chartAt`. Decision (option A): add the explicit hypothesis `h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤` to #15, #16, #22, #24, #29, #36, #45 and `gromov_compactness_genus_zero`, and to the private extraction lemmas and test call sites. The two unprovable `sorry` lemmas (`…_totalEnergy_le_aux`, `…_le_conc`) were deleted. **Open obligation:** discharge `h_fin` for `J`-holomorphic maps (needs a frame-consistency repair of `Target.lean`/`Energy.lean`, or a bound on the density).
+> Also: `OneLevelDecomposition.disk_energy_lt_totalEnergy` did not compile and was replaced by `disk_energy_lt_m_defect` (different statement, helper only); `prokhorov_weak_compactness_of_eventually_eq_const` gained `[∀ n, IsFiniteMeasure (μ_seq n)]`.
+> **Leaf count correction:** earlier "11 direct `sorry`" was a grep undercount; the real number is **30 direct `sorry` leaves** (census: 41 `sorryAx`-dependent declarations, unchanged). Seven old test files (`ChallengeGeometry`, `ChallengeSphere`, `ChallengePhase2ModelA`, `ChallengeMilestone3Smoothness`, `AdversarialAttacksIter2`, and one `neck_pointwise_oscillation_bound` probe in `ChallengePhase3ModelB`) fail to compile on lemmas this change did not touch; they look stale since Phase 5 and are not yet confirmed as pre-existing against `92dde78`.
+
 ---
 
 ## 2. Phase 5 (Blockers): Definition Repair and Statement Audit — ✅ COMPLETED (`e77a1e7`)

@@ -1,0 +1,4 @@
+import GromovCompactness.Analysis.Bochner
+
+#print axioms GromovCompactness.Analysis.bochner_curvature_term_bound
+#print axioms GromovCompactness.Analysis.bochner_differential_inequality

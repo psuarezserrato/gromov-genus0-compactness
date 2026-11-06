@@ -1136,13 +1136,14 @@ private theorem extract_bounded_marked_stable_subseq (k : ℕ) (B : ℝ)
       exact extract_bounded_marked_stable_subseq_of_const_edgeless I k B reps φ hφ lim_rep h_const h_const_map h_no_edges
     · by_cases h_ms : ∃ (τ : Bookkeeping.SubseqMap) (u_seq : ℕ → MarkedSphere M k)
           (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n).map Set.univ)
-          (h_stab : ∀ n, (∃ c : M, ∀ z : CP1, (u_seq n).map z = c) → 3 ≤ k),
+          (h_stab : ∀ n, (∃ c : M, ∀ z : CP1, (u_seq n).map z = c) → 3 ≤ k)
+          (h_fin : ∀ n, energyMeasureExtended I (u_seq n).map Set.univ < ⊤),
           ∀ n, (reps (τ.1 n)).1 = MarkedStableMap.of_markedStableTreeLimit I
             (MarkedStableTreeLimit.of_markedSphere I (u_seq n) (h_jhol n) (h_stab n))
-      · rcases h_ms with ⟨τ, u_seq, h_jhol, h_stab, h_reps_eq⟩
+      · rcases h_ms with ⟨τ, u_seq, h_jhol, h_stab, h_fin, h_reps_eq⟩
         obtain ⟨th⟩ := Bubbling.exists_target_thresholds I (M := M)
         obtain ⟨u_lim, ⟨wit⟩⟩ := marked_gromov_compactness I th u_seq B h_jhol
-          (totalEnergy_markedSphere_le_of_boundedMarkedStableMap I k B (fun n => reps (τ.1 n)) u_seq h_jhol h_stab h_reps_eq)
+          (totalEnergy_markedSphere_le_of_boundedMarkedStableMap I k B (fun n => reps (τ.1 n)) u_seq h_jhol h_stab h_reps_eq) h_fin
         exact extract_bounded_marked_stable_subseq_of_marked_spheres_subseq I k B reps τ u_seq h_jhol h_stab h_reps_eq u_lim wit
       · sorry
 

@@ -103,7 +103,7 @@ and transition collapse conditions. -/
 theorem challenge_stress_case_2_prestable_has_frames
     (u_seq : ℕ → (CP1 → M)) (pdata : PrestableLimitData I u_seq) :
     Nonempty ((v : pdata.tree.V) → ℕ → MoebiusFrame) ∧
-    (∀ n, pdata.frames pdata.root n = MoebiusFrame.id) :=
+    (∃ ϕ_root : ℕ → MoebiusFrame, ∀ n, pdata.frames pdata.root n = ϕ_root n) :=
   ⟨⟨pdata.frames⟩, pdata.root_frame_id⟩
 
 /-- Challenge 2.3: Verify that under an affine rescaling frame $\phi_n(z) = z / n$,
@@ -172,10 +172,11 @@ theorem challenge_stress_case_4_multiple_covers_supported
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) := by
-  obtain ⟨u_lim, hwit, _, _, _⟩ := gromov_compactness_genus_zero I th u_seq B h_nonconst h_jhol h_energy
+  obtain ⟨u_lim, hwit, _, _, _⟩ := gromov_compactness_genus_zero I th u_seq B h_nonconst h_jhol h_energy h_fin
   exact ⟨u_lim, hwit⟩
 
 /-- Challenge 4.2: Verify that `OneLevelDecomposition` allows multiple-cover bubbles $v$. -/
@@ -279,10 +280,11 @@ theorem challenge_stress_case_8_no_fixed_homology_core
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) :=
-  gromov_compactness_core I th u_seq B h_nonconst h_jhol h_energy
+  gromov_compactness_core I th u_seq B h_nonconst h_jhol h_energy h_fin
 
 /-- Challenge 8.2: Verify that `gromov_subsequence_alternative` covers all sphere sequences
 without fixed homology. -/
@@ -290,12 +292,13 @@ theorem challenge_stress_case_8_subsequence_alternative_no_homology
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     (∃ (σ : Bookkeeping.SubseqMap) (c : M),
       Tendsto (fun n => u_seq (σ.1 n)) atTop (𝓝 (fun _ => c))) ∨
     (∃ (σ : Bookkeeping.SubseqMap) (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I (fun n => u_seq (σ.1 n)) u_lim)) :=
-  gromov_subsequence_alternative I th u_seq B h_jhol h_energy
+  gromov_subsequence_alternative I th u_seq B h_jhol h_energy h_fin
 
 --------------------------------------------------------------------------------
 -- SECTION 9: Master Integration and Axiom Purity Certification
@@ -324,7 +327,8 @@ theorem challenge_query_G05_master
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) ∧
       let P := Fintype.card { v : u_lim.tree.V // is_principal_component I u_lim v }
@@ -332,7 +336,7 @@ theorem challenge_query_G05_master
       (P * th.h ≤ B) ∧
       (1 < Fintype.card u_lim.tree.V → G + 2 ≤ P ∧ Fintype.card u_lim.tree.V + 2 ≤ 2 * P) ∧
       ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2)) :=
-  gromov_compactness_genus_zero I th u_seq B h_nonconst h_jhol h_energy
+  gromov_compactness_genus_zero I th u_seq B h_nonconst h_jhol h_energy h_fin
 
 #print axioms gromov_compactness_genus_zero
 

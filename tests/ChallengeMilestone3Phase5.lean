@@ -295,10 +295,11 @@ theorem test_assemble_prestable_limit_composite
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (pdata : PrestableLimitData I u_seq),
       (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B :=
-  assemble_prestable_limit I th u_seq B h_jhol h_energy
+  assemble_prestable_limit I th u_seq B h_jhol h_energy h_fin
 
 /-- Test B.3.3: Single defect resolution into bubble tree (Contract B07).
 Proved with ZERO direct sorry in `resolve_single_defect_tree` via energy rank induction.
@@ -313,11 +314,12 @@ Proved with ZERO direct sorry in `weak_energy_measure_compactness`.
 CONDITIONAL STATUS: Transitively depends on `sorryAx` via leaf weak measure compactness (`weak_measure_compactness`). -/
 theorem test_weak_energy_measure_compactness_composite
     (u_seq : ℕ → (CP1 → M)) (B : ℝ) (hB : 0 < B)
-    (h_bdd : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_bdd : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (σ : Bookkeeping.SubseqMap) (μ_lim : Measure CP1),
       IsFiniteMeasure μ_lim ∧
       WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ_lim :=
-  weak_energy_measure_compactness I u_seq B hB h_bdd
+  weak_energy_measure_compactness I u_seq B hB h_bdd h_fin
 
 /-- Test B.3.5: Core Genus 0 Gromov Compactness Theorem (Theorem 1 Core & Contract G03).
 Proved with ZERO direct sorry in `gromov_compactness_core` by composing G01 and G02.
@@ -327,10 +329,11 @@ theorem test_gromov_compactness_core_composite
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) :=
-  gromov_compactness_core I th u_seq B h_nonconst h_jhol h_energy
+  gromov_compactness_core I th u_seq B h_nonconst h_jhol h_energy h_fin
 
 
 -- ============================================================================

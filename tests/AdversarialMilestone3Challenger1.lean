@@ -208,22 +208,24 @@ theorem test_gromov_compactness_core_invocation
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) :=
-  gromov_compactness_core I th u_seq B h_nonconst h_jhol h_energy
+  gromov_compactness_core I th u_seq B h_nonconst h_jhol h_energy h_fin
 
 /-- Test 4.2: Invocation of Gromov Subsequence Alternative (constant vs non-constant limit). -/
 theorem test_gromov_subsequence_alternative_invocation
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     (∃ (σ : Bookkeeping.SubseqMap) (c : M),
       Tendsto (fun n => u_seq (σ.1 n)) atTop (𝓝 (fun _ => c))) ∨
     (∃ (σ : Bookkeeping.SubseqMap) (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I (fun n => u_seq (σ.1 n)) u_lim)) :=
-  gromov_subsequence_alternative I th u_seq B h_jhol h_energy
+  gromov_subsequence_alternative I th u_seq B h_jhol h_energy h_fin
 
 /-- Test 4.3: Invocation of Master Stabilization Theorem (Contract G02). -/
 theorem test_stabilize_prestable_tree_invocation
@@ -253,10 +255,11 @@ theorem test_assemble_prestable_limit_invocation
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (pdata : PrestableLimitData I u_seq),
       (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B :=
-  assemble_prestable_limit I th u_seq B h_jhol h_energy
+  assemble_prestable_limit I th u_seq B h_jhol h_energy h_fin
 
 /-- Test 4.5: Invocation of Single Defect Tree Resolution (Contract B07). -/
 theorem test_resolve_single_defect_tree_invocation
@@ -267,11 +270,12 @@ theorem test_resolve_single_defect_tree_invocation
 /-- Test 4.6: Invocation of Weak Energy Measure Compactness (Contract C01). -/
 theorem test_weak_energy_measure_compactness_invocation
     (u_seq : ℕ → (CP1 → M)) (B : ℝ) (hB : 0 < B)
-    (h_bdd : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_bdd : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (σ : Bookkeeping.SubseqMap) (μ_lim : Measure CP1),
       IsFiniteMeasure μ_lim ∧
       WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ_lim :=
-  weak_energy_measure_compactness I u_seq B hB h_bdd
+  weak_energy_measure_compactness I u_seq B hB h_bdd h_fin
 
 /-- Test 4.7: Invocation of Concentration Data Extraction (Contract C02). -/
 theorem test_exists_concentration_data_invocation
@@ -279,9 +283,10 @@ theorem test_exists_concentration_data_invocation
     (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
     (B : ℝ) (hB : 0 ≤ B)
     (h_en : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (thresh : Bubbling.TargetThresholds I M) :
     Nonempty (ConcentrationData I u_seq B thresh) :=
-  exists_concentration_data I u_seq h_jhol B hB h_en thresh
+  exists_concentration_data I u_seq h_jhol B hB h_en h_fin thresh
 
 /-- Test 4.8: Invocation of Smooth Removal of Singularities (Contract A12). -/
 theorem test_removal_of_singularities_invocation

@@ -376,19 +376,6 @@ theorem energyMeasureExtended_lt_top_of_totalEnergy_le
   · exact energyMeasureExtended_lt_top_of_bddAbove_density I u h_bdd
   · exact energyMeasureExtended_lt_top_of_bddAbove_chart_density I u h_chart
 
-private theorem energyMeasureExtended_lt_top_of_totalEnergy_le_aux
-    (u : CP1 → M) (B : ℝ) (hB : 0 < B) (h : totalEnergy I u ≤ B) :
-    energyMeasureExtended I u Set.univ < ⊤ := by
-  by_cases h_cases : (∃ c : M, u = fun _ => c) ∨ (∀ z : CP1, mfderiv I_CP1 I u z = 0) ∨
-      totalEnergy I u ≠ 0 ∨
-      Continuous (riemannianEnergyDensity I u) ∨
-      (∃ C : ℝ, ∀ z, riemannianEnergyDensity I u z ≤ C) ∨
-      BddAbove (Set.range (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))
-  · exact energyMeasureExtended_lt_top_of_totalEnergy_le I u B hB h h_cases
-  · have h_cont : Continuous (riemannianEnergyDensity I u) := by
-      sorry
-    exact energyMeasureExtended_lt_top_of_continuous_density I u h_cont
-
 /-- Zero-sorry conditional reduction of `weak_energy_measure_compactness` given extended energy finiteness
 and Prokhorov weak measure compactness (`0 sorryAx`). -/
 theorem weak_energy_measure_compactness_of_fin_and_compactness
@@ -792,17 +779,19 @@ theorem prokhorov_weak_compactness_of_eventually_eq_const
     ⟨shiftSubseqMap N₀, μ₀, h_fin, fun n => h_ev (n + N₀) (Nat.le_add_left N₀ n)⟩
 
 /-- Weak Compactness of Energy Measures for sequences of J-holomorphic curves (Contract C01).
-Proved with zero direct sorry. -/
+Proved with zero direct sorry. The finiteness hypothesis `h_fin` is explicit because `totalEnergy` is
+defined via `ENNReal.toReal` and so reads infinite energy as `0`; finiteness of the energy measure is
+not derivable from `totalEnergy ≤ B` alone. -/
 theorem weak_energy_measure_compactness
     (u_seq : ℕ → (CP1 → M)) (B : ℝ) (hB : 0 < B)
-    (h_bdd : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    (h_bdd : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (σ : SubseqMap) (μ_lim : Measure CP1),
       IsFiniteMeasure μ_lim ∧
       WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ_lim := by
   by_cases h_const : ∃ (σ : SubseqMap), ∀ n, ∃ c : M, u_seq (σ.1 n) = fun _ => c
   · exact weak_energy_measure_compactness_of_const_subseq_varying I u_seq h_const
-  · exact weak_energy_measure_compactness_of_fin_and_compactness I u_seq B hB h_bdd
-      (fun n => energyMeasureExtended_lt_top_of_totalEnergy_le_aux I (u_seq n) B hB (h_bdd n))
+  · exact weak_energy_measure_compactness_of_fin_and_compactness I u_seq B hB h_bdd h_fin
       weak_measure_compactness
 
 #print axioms weak_energy_measure_compactness_of_weak_measure_compactness

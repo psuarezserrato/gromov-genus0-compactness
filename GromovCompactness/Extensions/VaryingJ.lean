@@ -770,7 +770,8 @@ private theorem extract_varying_J_stable_limit
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicWithJ I (varying_J.J_seq n) (u_seq n) Set.univ)
-    (h_energy : ∀ n, pullbackOmegaMeasure I (u_seq n) Set.univ ≤ B) :
+    (h_energy : ∀ n, pullbackOmegaMeasure I (u_seq n) Set.univ ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v)) ≤ B ∧
       (∀ v : u_lim.tree.V, is_principal_component I u_lim v →
@@ -815,7 +816,7 @@ private theorem extract_varying_J_stable_limit
           rw [totalEnergy_eq_pullbackOmegaMeasure_of_jhol I (u_seq (σ.1 n)) (h_jhol_sub n)]
           exact h_energy (σ.1 n)
         obtain ⟨u_lim, ⟨wit⟩⟩ := gromov_compactness_core I th (fun n => u_seq (σ.1 n)) B
-          (fun n => h_nonconst (σ.1 n)) h_jhol_sub h_en_sub
+          (fun n => h_nonconst (σ.1 n)) h_jhol_sub h_en_sub (fun n => h_fin (σ.1 n))
         exact extract_varying_J_stable_limit_of_eq_target_J I varying_J uth u_seq B
           h_jhol h_energy σ hJ_eq u_lim wit
       · exact extract_varying_J_stable_limit_of_smooth_conv I varying_J uth u_seq B h_jhol u₀ h_conv hu_nonconst hu_le hu_ge
@@ -823,7 +824,7 @@ private theorem extract_varying_J_stable_limit
       · exact extract_varying_J_stable_limit_of_single_nonconst I varying_J uth B u₀ hu_jhol hu_nonconst hu_le hu_ge
       · exact extract_varying_J_stable_limit_of_le_gap I varying_J uth B u_lim h_en_le h_sph h_le_gap
       · obtain ⟨th⟩ := Bubbling.exists_target_thresholds I (M := M)
-        obtain ⟨u_lim, ⟨wit⟩⟩ := gromov_compactness_core I th u_seq B h_nonconst h_jhol_lim h_en_lim
+        obtain ⟨u_lim, ⟨wit⟩⟩ := gromov_compactness_core I th u_seq B h_nonconst h_jhol_lim h_en_lim h_fin
         exact extract_varying_J_stable_limit_of_compactnessWitness I varying_J uth u_seq B h_en_lim u_lim wit h_sph h_le_gap
     · sorry
 
@@ -1653,7 +1654,8 @@ theorem gromov_compactness_varying_J
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicWithJ I (varying_J.J_seq n) (u_seq n) Set.univ)
-    (h_energy : ∀ n, pullbackOmegaMeasure I (u_seq n) Set.univ ≤ B) :
+    (h_energy : ∀ n, pullbackOmegaMeasure I (u_seq n) Set.univ ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∀ v : u_lim.tree.V, JHolomorphicOn I I_CP1 (u_lim.map v) Set.univ) ∧
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v)) ≤ B ∧
@@ -1663,7 +1665,7 @@ theorem gromov_compactness_varying_J
       (1 < Fintype.card u_lim.tree.V → G + 2 ≤ P ∧ Fintype.card u_lim.tree.V + 2 ≤ 2 * P) ∧
       ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / uth.h⌋ - 2)) := by
   obtain ⟨u_lim, h_lim_energy, h_prin_gap⟩ :=
-    extract_varying_J_stable_limit I varying_J uth u_seq B h_nonconst h_jhol h_energy
+    extract_varying_J_stable_limit I varying_J uth u_seq B h_nonconst h_jhol h_energy h_fin
   exact gromov_compactness_varying_J_of_limit I varying_J uth B u_lim h_lim_energy h_prin_gap
 
 #print axioms symmetrizedMetric_symm
