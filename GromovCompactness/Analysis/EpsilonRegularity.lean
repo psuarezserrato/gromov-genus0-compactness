@@ -273,7 +273,7 @@ theorem mul_integral_translated_density_le_energyMeasure
       (∫ w in Metric.ball (0 : ℂ) r, riemannianEnergyDensity I u (stereo_chart.symm (a + w))) ≤
       energyMeasure I u (disk_at a r) := by
   rw [integral_translate_ball a r (fun w => riemannianEnergyDensity I u (stereo_chart.symm w))]
-  rw [← MeasureTheory.integral_mul_left]
+  rw [← MeasureTheory.integral_const_mul]
   rw [energyMeasure_disk_at_eq_setIntegral_of_continuous I u a r h_cont]
   have h_int1 : IntegrableOn
       (fun w => (2 / (1 + (‖a‖ + r) ^ 2)) ^ 2 * riemannianEnergyDensity I u (stereo_chart.symm w))
@@ -295,7 +295,7 @@ theorem mul_integral_translated_density_le_energyMeasure
     dsimp [sphericalJacobian]
     have h_nonneg1 : 0 ≤ 2 / (1 + (‖a‖ + r) ^ 2) := by positivity
     have hw_abs : Complex.abs w ≤ Complex.abs a + r := by
-      simpa only [Complex.norm_eq_abs] using hw_norm
+      simpa only [Complex.norm_def] using hw_norm
     gcongr
   have h_nonneg : 0 ≤ riemannianEnergyDensity I u (stereo_chart.symm w) :=
     riemannianEnergyDensity_nonneg I u _

@@ -35,7 +35,7 @@ lemma dirac_apply_singleton_self (p : CP1) : (Measure.dirac p : Measure CP1) {p}
 /-- Evaluating a Dirac measure at a different point yields 0 (Zero-sorry). -/
 lemma dirac_apply_singleton_ne {p q : CP1} (hne : p ≠ q) : (Measure.dirac p : Measure CP1) {q} = 0 := by
   have h_not : p ∉ ({q} : Set CP1) := by simp [hne]
-  rw [Measure.dirac_apply' _ (measurableSet_singleton q), Set.indicator_of_not_mem h_not]
+  rw [Measure.dirac_apply' _ (measurableSet_singleton q), Set.indicator_of_notMem h_not]
 
 /-- Evaluating a finite sum of weighted Dirac measures at an atom p ∈ S yields m(p) (Zero-sorry). -/
 lemma dirac_sum_singleton_mem (S : Finset CP1) (m : CP1 → ℝ) (p : CP1) (hp : p ∈ S) :
@@ -147,7 +147,7 @@ lemma dirac_sum_isolating_set (S : Finset CP1) (m : CP1 → ℝ) (A : Set CP1) (
       have hx_inter : x ∈ A ∩ (S : Set CP1) := ⟨hx_A, hx_S⟩
       rw [h_isol, Set.mem_singleton_iff] at hx_inter
       exact hne hx_inter
-    rw [Measure.smul_apply, Measure.dirac_apply' x hA, Set.indicator_of_not_mem hx_not_A, smul_eq_mul, mul_zero]
+    rw [Measure.smul_apply, Measure.dirac_apply' x hA, Set.indicator_of_notMem hx_not_A, smul_eq_mul, mul_zero]
   rw [h_dirac_self, h_dirac_rest, add_zero]
 
 /-- Isolating disk energy convergence from defect decomposition and μ-null boundary (Zero-sorry). -/
@@ -1036,7 +1036,7 @@ lemma frontier_disk_at_null_of_isolating
       subst hx_inter
       exact hx_front.2 hp_in_disk
     rw [Measure.smul_apply, Measure.dirac_apply' x isClosed_frontier.measurableSet,
-      Set.indicator_of_not_mem hx_not_front, smul_eq_mul, mul_zero]
+      Set.indicator_of_notMem hx_not_front, smul_eq_mul, mul_zero]
   rw [h_bg_zero, h_atoms_zero, add_zero]
 
 /-- Pointwise Defect Mass Concentration on Isolating Disks (Contract C03). -/

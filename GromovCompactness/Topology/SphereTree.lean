@@ -69,7 +69,7 @@ structure StableSphereTreeLimit where
   /-- Nodal matching condition: across every edge $v \sim w$, the curve images coincide at the node:
   $$u_v(z_{vw}) = u_w(z_{wv}).$$ -/
   nodal_match : ∀ (v w : tree.V) (h : tree.adj.Adj v w),
-    map v (tree.node_point v w h) = map w (tree.node_point w v (tree.adj.symm h))
+    map v (tree.node_point v w h) = map w (tree.node_point w v (tree.adj.adj_symm h))
   /-- Stability condition for unmarked curves ($k = 0$): any component on which $u_v$ is constant
   ("ghost bubble") must have at least 3 special points (nodal attachments) $\operatorname{deg}(v) \ge 3$
   so that its biholomorphic automorphism group in $\operatorname{PSL}(2, \mathbb{C})$ fixing nodal points is finite.
@@ -113,7 +113,7 @@ lemma tree_degree_ge_one (tree : SphereTree)
       rw [h_all a, h_all b]
     omega
   rcases h_exists_ne with ⟨w, hw⟩
-  have h_reach : tree.adj.Reachable v w := tree.is_tree.isConnected.preconnected v w
+  have h_reach : tree.adj.Reachable v w := tree.is_tree.connected.preconnected v w
   rcases h_reach with ⟨p⟩
   have hp_not_nil : ¬ p.Nil := SimpleGraph.Walk.not_nil_of_ne hw.symm
   rcases SimpleGraph.Walk.not_nil_iff.mp hp_not_nil with ⟨u, hvu, _⟩
@@ -147,7 +147,7 @@ theorem ghost_components_bound
     simp [is_principal_component]
   have h_sum_cards : (Finset.univ.filter (is_ghost_component I lim)).card +
       (Finset.univ.filter (is_principal_component I lim)).card = Fintype.card lim.tree.V := by
-    rw [h_prin_eq, Finset.filter_card_add_filter_neg_card_eq_card, Finset.card_univ]
+    rw [h_prin_eq, Finset.card_filter_add_card_filter_not, Finset.card_univ]
   have h_V_eq : Fintype.card lim.tree.V = G + P := by
     rw [h_card_G, h_card_P, h_sum_cards]
   have h_split := Finset.sum_filter_add_sum_filter_not (s := (Finset.univ : Finset lim.tree.V))
@@ -188,14 +188,16 @@ def graftAdj (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ : T₂.V) : SimpleGr
     | Sum.inr u, Sum.inr v => T₂.adj.Adj u v
     | Sum.inl u, Sum.inr v => u = v₁ ∧ v = v₂
     | Sum.inr u, Sum.inl v => u = v₂ ∧ v = v₁
-  symm
-    | Sum.inl _u, Sum.inl _v, h => T₁.adj.symm h
-    | Sum.inr _u, Sum.inr _v, h => T₂.adj.symm h
-    | Sum.inl _u, Sum.inr _v, ⟨h1, h2⟩ => ⟨h2, h1⟩
-    | Sum.inr _u, Sum.inl _v, ⟨h1, h2⟩ => ⟨h2, h1⟩
-  loopless
-    | Sum.inl u => T₁.adj.loopless u
-    | Sum.inr u => T₂.adj.loopless u
+  symm := ⟨fun a b h => by
+    rcases a with u | u <;> rcases b with v | v
+    · exact T₁.adj.adj_symm h
+    · exact ⟨h.2, h.1⟩
+    · exact ⟨h.2, h.1⟩
+    · exact T₂.adj.adj_symm h⟩
+  loopless := ⟨fun a h => by
+    rcases a with u | u
+    · exact T₁.adj.irrefl h
+    · exact T₂.adj.irrefl h⟩
 
 def graftHomInl (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ : T₂.V) :
     T₁.adj →g graftAdj T₁ T₂ v₁ v₂ where
@@ -215,23 +217,23 @@ lemma graft_connected (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ : T₂.V) :
     (graftAdj T₁ T₂ v₁ v₂).Connected := by
   refine ⟨fun x y => ?_⟩
   rcases x with x₁ | x₂ <;> rcases y with y₁ | y₂
-  · rcases T₁.is_tree.isConnected.preconnected x₁ y₁ with ⟨p⟩
+  · rcases T₁.is_tree.connected.preconnected x₁ y₁ with ⟨p⟩
     exact ⟨p.map (graftHomInl T₁ T₂ v₁ v₂)⟩
-  · rcases T₁.is_tree.isConnected.preconnected x₁ v₁ with ⟨p₁⟩
-    rcases T₂.is_tree.isConnected.preconnected v₂ y₂ with ⟨p₂⟩
+  · rcases T₁.is_tree.connected.preconnected x₁ v₁ with ⟨p₁⟩
+    rcases T₂.is_tree.connected.preconnected v₂ y₂ with ⟨p₂⟩
     let w_bridge : (graftAdj T₁ T₂ v₁ v₂).Walk (Sum.inl v₁) (Sum.inr v₂) :=
       SimpleGraph.Walk.cons (graftAdj_bridge T₁ T₂ v₁ v₂) SimpleGraph.Walk.nil
     let p₁' := p₁.map (graftHomInl T₁ T₂ v₁ v₂)
     let p₂' := p₂.map (graftHomInr T₁ T₂ v₁ v₂)
     exact ⟨p₁'.append (w_bridge.append p₂')⟩
-  · rcases T₂.is_tree.isConnected.preconnected x₂ v₂ with ⟨p₂⟩
-    rcases T₁.is_tree.isConnected.preconnected v₁ y₁ with ⟨p₁⟩
+  · rcases T₂.is_tree.connected.preconnected x₂ v₂ with ⟨p₂⟩
+    rcases T₁.is_tree.connected.preconnected v₁ y₁ with ⟨p₁⟩
     let w_bridge : (graftAdj T₁ T₂ v₁ v₂).Walk (Sum.inr v₂) (Sum.inl v₁) :=
-      SimpleGraph.Walk.cons ((graftAdj T₁ T₂ v₁ v₂).symm (graftAdj_bridge T₁ T₂ v₁ v₂)) SimpleGraph.Walk.nil
+      SimpleGraph.Walk.cons ((graftAdj T₁ T₂ v₁ v₂).adj_symm (graftAdj_bridge T₁ T₂ v₁ v₂)) SimpleGraph.Walk.nil
     let p₂' := p₂.map (graftHomInr T₁ T₂ v₁ v₂)
     let p₁' := p₁.map (graftHomInl T₁ T₂ v₁ v₂)
     exact ⟨p₂'.append (w_bridge.append p₁')⟩
-  · rcases T₂.is_tree.isConnected.preconnected x₂ y₂ with ⟨p⟩
+  · rcases T₂.is_tree.connected.preconnected x₂ y₂ with ⟨p⟩
     exact ⟨p.map (graftHomInr T₁ T₂ v₁ v₂)⟩
 
 def isRight (T₁ T₂ : SphereTree) : T₁.V ⊕ T₂.V → Bool
@@ -288,7 +290,7 @@ lemma cycle_not_mem_bridge (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ : T₂
   have h_count : p.edges.count s(Sum.inl v₁, Sum.inr v₂) = 0 := by
     have h_mod : (p.edges.count s(Sum.inl v₁, Sum.inr v₂) : ZMod 2) = 0 := h_parity
     have h_dvd : 2 ∣ p.edges.count s(Sum.inl v₁, Sum.inr v₂) :=
-      (ZMod.natCast_zmod_eq_zero_iff_dvd _ 2).mp h_mod
+      (ZMod.natCast_eq_zero_iff _ 2).mp h_mod
     obtain ⟨k, hk⟩ := h_dvd
     omega
   exact List.count_eq_zero.mp h_count
@@ -313,11 +315,15 @@ lemma walkOfInl_map (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ : T₂.V) :
     ∀ {u v : T₁.V} (p : (graftAdj T₁ T₂ v₁ v₂).Walk (Sum.inl u) (Sum.inl v))
     (hp : s(Sum.inl v₁, Sum.inr v₂) ∉ p.edges),
     (walkOfInl T₁ T₂ v₁ v₂ p hp).map (graftHomInl T₁ T₂ v₁ v₂) = p
-  | _, _, SimpleGraph.Walk.nil, _ => by simp [walkOfInl]
+  | _, _, SimpleGraph.Walk.nil, _ => by simp [walkOfInl]; try rfl
   | u, _, SimpleGraph.Walk.cons (v := Sum.inl u') h q, hp => by
-    simp only [walkOfInl, SimpleGraph.Walk.map_cons, graftHomInl]
+    simp only [walkOfInl]
+    have h' : T₁.adj.Adj u u' := h
+    show SimpleGraph.Walk.map (graftHomInl T₁ T₂ v₁ v₂)
+      (SimpleGraph.Walk.cons h' (walkOfInl T₁ T₂ v₁ v₂ q _)) = SimpleGraph.Walk.cons h q
+    rw [SimpleGraph.Walk.map_cons]
     congr 1
-    apply walkOfInl_map
+    exact walkOfInl_map T₁ T₂ v₁ v₂ q _
   | u, _, SimpleGraph.Walk.cons (v := Sum.inr u') h q, hp => by
     have h_bridge : s(Sum.inl u, Sum.inr u') ∈ (SimpleGraph.Walk.cons h q).edges := by simp
     have h_eq : u = v₁ ∧ u' = v₂ := h
@@ -345,11 +351,15 @@ lemma walkOfInr_map (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ : T₂.V) :
     ∀ {u v : T₂.V} (p : (graftAdj T₁ T₂ v₁ v₂).Walk (Sum.inr u) (Sum.inr v))
     (hp : s(Sum.inl v₁, Sum.inr v₂) ∉ p.edges),
     (walkOfInr T₁ T₂ v₁ v₂ p hp).map (graftHomInr T₁ T₂ v₁ v₂) = p
-  | _, _, SimpleGraph.Walk.nil, _ => by simp [walkOfInr]
+  | _, _, SimpleGraph.Walk.nil, _ => by simp [walkOfInr]; try rfl
   | u, _, SimpleGraph.Walk.cons (v := Sum.inr u') h q, hp => by
-    simp only [walkOfInr, SimpleGraph.Walk.map_cons, graftHomInr]
+    simp only [walkOfInr]
+    have h' : T₂.adj.Adj u u' := h
+    show SimpleGraph.Walk.map (graftHomInr T₁ T₂ v₁ v₂)
+      (SimpleGraph.Walk.cons h' (walkOfInr T₁ T₂ v₁ v₂ q _)) = SimpleGraph.Walk.cons h q
+    rw [SimpleGraph.Walk.map_cons]
     congr 1
-    apply walkOfInr_map
+    exact walkOfInr_map T₁ T₂ v₁ v₂ q _
   | u, _, SimpleGraph.Walk.cons (v := Sum.inl u') h q, hp => by
     have h_bridge : s(Sum.inr u, Sum.inl u') ∈ (SimpleGraph.Walk.cons h q).edges := by simp
     have h_eq : u = v₂ ∧ u' = v₁ := h
@@ -366,18 +376,18 @@ lemma graft_is_acyclic (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ : T₂.V) 
     have h_map := walkOfInl_map T₁ T₂ v₁ v₂ c h_not_bridge
     have h_inj : Function.Injective (Sum.inl : T₁.V → T₁.V ⊕ T₂.V) := Sum.inl_injective
     have h_cyc : c₁.IsCycle := by
-      have h_iff := SimpleGraph.Walk.map_isCycle_iff_of_injective (f := graftHomInl T₁ T₂ v₁ v₂) h_inj (p := c₁)
+      have h_iff := SimpleGraph.Walk.isCycle_map_iff_of_injective (f := graftHomInl T₁ T₂ v₁ v₂) h_inj (p := c₁)
       rw [h_map] at h_iff
       exact h_iff.mp hc
-    exact T₁.is_tree.IsAcyclic c₁ h_cyc
+    exact T₁.is_tree.isAcyclic c₁ h_cyc
   · let c₂ := walkOfInr T₁ T₂ v₁ v₂ c h_not_bridge
     have h_map := walkOfInr_map T₁ T₂ v₁ v₂ c h_not_bridge
     have h_inj : Function.Injective (Sum.inr : T₂.V → T₁.V ⊕ T₂.V) := Sum.inr_injective
     have h_cyc : c₂.IsCycle := by
-      have h_iff := SimpleGraph.Walk.map_isCycle_iff_of_injective (f := graftHomInr T₁ T₂ v₁ v₂) h_inj (p := c₂)
+      have h_iff := SimpleGraph.Walk.isCycle_map_iff_of_injective (f := graftHomInr T₁ T₂ v₁ v₂) h_inj (p := c₂)
       rw [h_map] at h_iff
       exact h_iff.mp hc
-    exact T₂.is_tree.IsAcyclic c₂ h_cyc
+    exact T₂.is_tree.isAcyclic c₂ h_cyc
 
 lemma graft_is_tree (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ : T₂.V) :
     (graftAdj T₁ T₂ v₁ v₂).IsTree :=

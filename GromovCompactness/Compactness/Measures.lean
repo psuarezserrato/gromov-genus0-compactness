@@ -323,7 +323,7 @@ theorem energyMeasureExtended_lt_top_of_totalEnergy_ne_zero
   intro h_top
   apply h_ne
   dsimp [totalEnergy, energyMeasure]
-  rw [h_top, ENNReal.top_toReal]
+  rw [h_top, ENNReal.toReal_top]
 
 /-- The extended energy measure of a constant map `fun _ => c` on `Set.univ` is finite (`0 sorryAx`). -/
 theorem energyMeasureExtended_lt_top_of_const_map
@@ -332,6 +332,7 @@ theorem energyMeasureExtended_lt_top_of_const_map
   energyMeasureExtended_lt_top_of_density_le_zero I (fun _ => c) (fun z => by
     dsimp [riemannianEnergyDensity, ClosedTameTarget.metric]
     rw [mfderiv_const]
+    erw [ContinuousLinearMap.zero_apply]
     simp)
 
 /-- If `w ↦ riemannianEnergyDensity I u (stereo_chart.symm w)` is bounded above on `ℂ`,
@@ -359,6 +360,7 @@ theorem riemannianEnergyDensity_eq_zero_of_mfderiv_eq_zero
     riemannianEnergyDensity I u z = 0 := by
   dsimp [riemannianEnergyDensity, ClosedTameTarget.metric]
   rw [h_mf z]
+  erw [ContinuousLinearMap.zero_apply]
   simp
 
 /-- If `mfderiv I_CP1 I u` vanishes everywhere on `CP1`, then `energyMeasureExtended I u Set.univ < ⊤` (`0 sorryAx`). -/
@@ -431,6 +433,7 @@ theorem weak_energy_measure_compactness_of_const_subseq
     energyMeasureExtended_lt_top_of_density_le_zero I (fun _ => c) (fun z => by
       dsimp [riemannianEnergyDensity, ClosedTameTarget.metric]
       rw [mfderiv_const]
+      erw [ContinuousLinearMap.zero_apply]
       simp)
   have h_is_fin : IsFiniteMeasure (energyMeasureExtended I (fun _ : CP1 => c)) :=
     ⟨h_fin_c⟩
@@ -454,7 +457,9 @@ theorem energyMeasureExtended_const_eq
     ext w
     dsimp [riemannianEnergyDensity, ClosedTameTarget.metric]
     simp only [mfderiv_const]
+    erw [ContinuousLinearMap.zero_apply]
     simp
+    all_goals (erw [map_zero, map_zero, ContinuousLinearMap.zero_apply]; simp)
   rw [h_dens]
 
 /-- Unconditional weak energy measure compactness when `u_seq` admits a subsequence of constant maps
@@ -522,6 +527,7 @@ theorem riemannianEnergyDensity_eq_zero_of_discrete [DiscreteTopology M]
     Filter.eventuallyEq_iff_exists_mem.mpr ⟨u ⁻¹' ({u z} : Set M), h_open.mem_nhds rfl, fun _ hw => hw⟩
   dsimp [riemannianEnergyDensity, ClosedTameTarget.metric]
   rw [h_ev.mfderiv_eq, mfderiv_const]
+  erw [ContinuousLinearMap.zero_apply]
   simp
 
 /-- On a `[DiscreteTopology M]` target, any smooth map `u : CP1 → M` has finite extended energy measure (`0 sorryAx`). -/

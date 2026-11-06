@@ -253,7 +253,7 @@ lemma heinz_central_value_bound_c_zero (b : ℝ) (hb : 0 ≤ b)
     have h_term2 : 2 * b * e₀^2 * ρ^2 = (2 * b * e₀ * ρ^2) * e₀ := by ring
     rw [h_term2] at h_bound
     have h_le_half : (2 * b * e₀ * ρ^2) * e₀ ≤ (1 / 2) * e₀ := mul_le_mul_of_nonneg_right h_case he₀.le
-    have h_half_bound : e₀ ≤ (Real.pi * ρ^2)⁻¹ * E + (1 / 2) * e₀ := le_trans h_bound (add_le_add_left h_le_half _)
+    have h_half_bound : e₀ ≤ (Real.pi * ρ^2)⁻¹ * E + (1 / 2) * e₀ := le_trans h_bound (by linarith)
     have h_sub : (1 / 2) * e₀ ≤ (Real.pi * ρ^2)⁻¹ * E := by linarith
     have h_ρ2_pos : 0 < ρ^2 := sq_pos_of_pos hρ
     calc (2 * ρ)^2 * e₀ = 4 * ρ^2 * e₀ := by ring
@@ -323,7 +323,6 @@ lemma heinz_central_value_bound_c_zero (b : ℝ) (hb : 0 ≤ b)
         mul_le_mul_of_nonneg_left h_cancel (le_of_lt h_pi_pos)
       have h_simp : (Real.pi / (4 * b)) * ((4 * b / Real.pi) * E) = E := by
         field_simp
-        ring
       rw [h_simp] at h_mul_pi
       have h_left : (Real.pi / (4 * b)) * (1 / 2) = Real.pi / (8 * b) := by ring
       rw [h_left] at h_mul_pi
@@ -413,7 +412,7 @@ theorem heinz_setIntegral_ball_mono
     (∫ w in Metric.ball z₀ t, e w) ≤ (∫ w in Metric.ball (0 : ℂ) r, e w) := by
   apply MeasureTheory.setIntegral_mono_set he_int
     (Filter.Eventually.of_forall (fun w => he_nonneg w))
-  exact HasSubset.Subset.eventuallyLE h_sub
+  exact Filter.Eventually.of_forall (fun w hw => h_sub hw)
 
 lemma iteratedFDeriv_two_apply_eq_fderiv_eval (f : ℂ → ℝ) (z v w : ℂ)
     (hf : DifferentiableAt ℝ (fderiv ℝ f) z) :
@@ -436,7 +435,7 @@ lemma iteratedFDeriv_two_apply_eq_fderiv_eval (f : ℂ → ℝ) (z v w : ℂ)
 
 lemma norm_sq_eq_re_im (w : ℂ) :
     ‖w‖ ^ 2 = Complex.reCLM w * Complex.reCLM w + Complex.imCLM w * Complex.imCLM w := by
-  rw [Complex.norm_eq_abs, Complex.sq_abs, Complex.normSq_apply]
+  rw [Complex.sq_norm, Complex.normSq_apply]
   rfl
 
 lemma hasFDerivAt_clm_sq (L : ℂ →L[ℝ] ℝ) (z : ℂ) :
@@ -520,7 +519,7 @@ lemma laplacian2D_add_on_open {f g : ℂ → ℝ} {s : Set ℂ} (hs : IsOpen s)
     rw [← iteratedFDerivWithin_of_isOpen 2 hs hz,
         ← iteratedFDerivWithin_of_isOpen 2 hs hz (f := f),
         ← iteratedFDerivWithin_of_isOpen 2 hs hz (f := g)]
-    exact iteratedFDerivWithin_add_apply hf hg hs.uniqueDiffOn hz
+    exact iteratedFDerivWithin_add_apply (hf z hz) (hg z hz) hs.uniqueDiffOn hz
   change (iteratedFDeriv ℝ 2 (f + g) z) ![1, 1] + (iteratedFDeriv ℝ 2 (f + g) z) ![Complex.I, Complex.I] = _
   rw [h1]
   simp only [ContinuousMultilinearMap.add_apply]
@@ -551,7 +550,7 @@ theorem laplacian2D_quadratic_gauge_modification
 
 lemma norm_polarCoord_symm_of_pos {p : ℝ × ℝ} (hp : 0 < p.1) :
     ‖Complex.polarCoord.symm p‖ = p.1 := by
-  rw [Complex.norm_eq_abs, Complex.polarCoord_symm_abs, _root_.abs_of_pos hp]
+  rw [Complex.norm_polarCoord_symm, _root_.abs_of_pos hp]
 
 lemma setIntegral_norm_sq_ball_zero {t : ℝ} (ht : 0 ≤ t) :
     (∫ w in Metric.ball (0 : ℂ) t, ‖w‖ ^ 2) = Real.pi * t ^ 4 / 2 := by
@@ -581,15 +580,15 @@ lemma setIntegral_norm_sq_ball_zero {t : ℝ} (ht : 0 ≤ t) :
           have hw_not_ball : Complex.polarCoord.symm (r, θ) ∉ Metric.ball (0 : ℂ) t := by
             rw [mem_ball, dist_zero_right, h_norm]
             exact hrt
-          rw [indicator_of_mem hp_tgt, indicator_of_not_mem hp_not_box]
+          rw [indicator_of_mem hp_tgt, indicator_of_notMem hp_not_box]
           dsimp only
-          rw [indicator_of_not_mem hw_not_ball, smul_zero]
+          rw [indicator_of_notMem hw_not_ball, smul_zero]
       · have hp_not_tgt : (r, θ) ∉ polarCoord.target := fun h => hθ h.2
         have hp_not_box : (r, θ) ∉ Ioo (0 : ℝ) t ×ˢ Ioo (-Real.pi) Real.pi := fun h => hθ h.2
-        rw [indicator_of_not_mem hp_not_tgt, indicator_of_not_mem hp_not_box]
+        rw [indicator_of_notMem hp_not_tgt, indicator_of_notMem hp_not_box]
     · have hp_not_tgt : (r, θ) ∉ polarCoord.target := fun h => hr0 h.1
       have hp_not_box : (r, θ) ∉ Ioo (0 : ℝ) t ×ˢ Ioo (-Real.pi) Real.pi := fun h => hr0 h.1.1
-      rw [indicator_of_not_mem hp_not_tgt, indicator_of_not_mem hp_not_box]
+      rw [indicator_of_notMem hp_not_tgt, indicator_of_notMem hp_not_box]
   rw [h_eq, integral_indicator (measurableSet_Ioo.prod measurableSet_Ioo)]
   rw [Measure.volume_eq_prod (α := ℝ) (β := ℝ)]
   rw [setIntegral_prod_mul (f := fun x : ℝ => x ^ 3) (g := fun _ : ℝ => (1 : ℝ))]
@@ -626,7 +625,7 @@ theorem setIntegral_quadratic_gauge_ball (z₀ : ℂ) (K : ℝ) {t : ℝ} (ht : 
   have h_q_int : IntegrableOn (fun w : ℂ => (K / 4) * ‖w - z₀‖ ^ 2) (Metric.ball z₀ t) volume :=
     (h_q_cont.continuousOn.integrableOn_compact (isCompact_closedBall z₀ t)).mono_set Metric.ball_subset_closedBall
   rw [integral_add he_int h_q_int]
-  rw [MeasureTheory.integral_mul_left, setIntegral_norm_sq_ball z₀ ht]
+  rw [MeasureTheory.integral_const_mul, setIntegral_norm_sq_ball z₀ ht]
   ring
 
 lemma complex_decomp_one_I (u : ℂ) :
@@ -753,7 +752,7 @@ lemma hasDerivAt_rho_mul_fderiv_radial (g : ℂ → ℝ) (z₀ : ℂ) (ρ θ : �
           ![Complex.exp (Complex.I * (θ : ℂ)), Complex.exp (Complex.I * (θ : ℂ))]) ρ := by
   have h1 : HasDerivAt (fun r : ℝ => r) 1 ρ := hasDerivAt_id ρ
   have h2 := hasDerivAt_fderiv_eval_rho g z₀ ρ θ (Complex.exp (Complex.I * (θ : ℂ))) hg
-  have h_mul := h1.mul h2
+  have h_mul := h1.fun_mul h2
   simpa only [one_mul] using h_mul
 
 lemma hasDerivAt_fderiv_eval_theta (g : ℂ → ℝ) (z₀ : ℂ) (ρ θ : ℝ) (v : ℂ)
@@ -804,9 +803,9 @@ lemma hasDerivAt_fderiv_angular (g : ℂ → ℝ) (z₀ : ℂ) (ρ θ : ℝ)
     rw [I_mul_exp_I_mul_ofReal_decomp t, ContinuousLinearMap.map_add,
         ContinuousLinearMap.map_smul, ContinuousLinearMap.map_smul, smul_eq_mul, smul_eq_mul]
   rw [h_fn]
-  have hd1 := (Real.hasDerivAt_sin θ).neg.mul (hasDerivAt_fderiv_eval_theta g z₀ ρ θ 1 hg)
-  have hd2 := (Real.hasDerivAt_cos θ).mul (hasDerivAt_fderiv_eval_theta g z₀ ρ θ Complex.I hg)
-  have hd := hd1.add hd2
+  have hd1 := (Real.hasDerivAt_sin θ).fun_neg.fun_mul (hasDerivAt_fderiv_eval_theta g z₀ ρ θ 1 hg)
+  have hd2 := (Real.hasDerivAt_cos θ).fun_mul (hasDerivAt_fderiv_eval_theta g z₀ ρ θ Complex.I hg)
+  have hd := hd1.fun_add hd2
   have h_deriv_eq :
       (-Real.cos θ * fderiv ℝ g ζ 1 + -Real.sin θ * (ρ * (iteratedFDeriv ℝ 2 g ζ) ![Complex.I * eθ, 1])) +
       (-Real.sin θ * fderiv ℝ g ζ Complex.I + Real.cos θ * (ρ * (iteratedFDeriv ℝ 2 g ζ) ![Complex.I * eθ, Complex.I])) =
@@ -894,7 +893,7 @@ lemma differentiableAt_fderiv_of_contDiffOn
   have h_within : ContDiffOn ℝ 1 (fderivWithin ℝ g s) s :=
     (contDiffOn_succ_iff_fderivWithin (n := 1) hs.uniqueDiffOn).mp hg |>.2.2
   have h_diff_within : DifferentiableWithinAt ℝ (fderivWithin ℝ g s) s z :=
-    (h_within z hz).differentiableWithinAt le_rfl
+    (h_within z hz).differentiableWithinAt (by norm_num)
   have h_diff_at : DifferentiableAt ℝ (fderivWithin ℝ g s) z :=
     h_diff_within.differentiableAt (hs.mem_nhds hz)
   have h_eq : fderivWithin ℝ g s =ᶠ[nhds z] fderiv ℝ g := by
@@ -957,17 +956,17 @@ lemma continuousOn_iteratedFDeriv_two_polar_eval (g : ℂ → ℝ) {z₀ : ℂ} 
       (continuous_polar_map z₀).continuousOn (mapsTo_polar_box h_sub hst)
   have h_vec : Continuous (fun p : ℝ × ℝ => (![v p, v p] : Fin 2 → ℂ)) :=
     continuous_pi (fun i => by fin_cases i <;> exact hv)
-  exact continuous_eval.comp_continuousOn (h_iter.prod h_vec.continuousOn)
+  exact continuous_eval.comp_continuousOn (h_iter.prodMk h_vec.continuousOn)
 
 lemma continuousOn_fst_section {α β γ : Type*} [TopologicalSpace α] [TopologicalSpace β] [TopologicalSpace γ]
     {f : α × β → γ} {s : Set α} {t : Set β} (hf : ContinuousOn f (s ×ˢ t)) {x : α} (hx : x ∈ s) :
     ContinuousOn (fun y => f (x, y)) t :=
-  hf.comp (Continuous.Prod.mk x).continuousOn (fun _ hy => ⟨hx, hy⟩)
+  hf.comp (Continuous.prodMk_right x).continuousOn (fun _ hy => ⟨hx, hy⟩)
 
 lemma continuousOn_snd_section {α β γ : Type*} [TopologicalSpace α] [TopologicalSpace β] [TopologicalSpace γ]
     {f : α × β → γ} {s : Set α} {t : Set β} (hf : ContinuousOn f (s ×ˢ t)) {y : β} (hy : y ∈ t) :
     ContinuousOn (fun x => f (x, y)) s :=
-  hf.comp (continuous_id.prod_mk continuous_const).continuousOn (fun _ hx => ⟨hx, hy⟩)
+  hf.comp (continuous_id.prodMk continuous_const).continuousOn (fun _ hx => ⟨hx, hy⟩)
 
 lemma intervalIntegral_swap_of_continuousOn
     {a b c d : ℝ} (hab : a ≤ b) (hcd : c ≤ d)
@@ -1246,15 +1245,15 @@ lemma setIntegral_ball_eq_polar_iterated
           have hw_not_ball : Complex.polarCoord.symm (ρ, θ) ∉ Metric.ball (0 : ℂ) t := by
             rw [mem_ball, dist_zero_right, h_norm]
             exact hρt
-          rw [indicator_of_mem hp_tgt, indicator_of_not_mem hp_not_box]
+          rw [indicator_of_mem hp_tgt, indicator_of_notMem hp_not_box]
           dsimp only
-          rw [indicator_of_not_mem hw_not_ball, smul_zero]
+          rw [indicator_of_notMem hw_not_ball, smul_zero]
       · have hp_not_tgt : (ρ, θ) ∉ polarCoord.target := fun h => hθ h.2
         have hp_not_box : (ρ, θ) ∉ Ioo (0 : ℝ) t ×ˢ Ioo (-Real.pi) Real.pi := fun h => hθ h.2
-        rw [indicator_of_not_mem hp_not_tgt, indicator_of_not_mem hp_not_box]
+        rw [indicator_of_notMem hp_not_tgt, indicator_of_notMem hp_not_box]
     · have hp_not_tgt : (ρ, θ) ∉ polarCoord.target := fun h => hρ0 h.1
       have hp_not_box : (ρ, θ) ∉ Ioo (0 : ℝ) t ×ˢ Ioo (-Real.pi) Real.pi := fun h => hρ0 h.1.1
-      rw [indicator_of_not_mem hp_not_tgt, indicator_of_not_mem hp_not_box]
+      rw [indicator_of_notMem hp_not_tgt, indicator_of_notMem hp_not_box]
   rw [h_eq, MeasureTheory.integral_indicator (measurableSet_Ioo.prod measurableSet_Ioo)]
   rw [Measure.volume_eq_prod (α := ℝ) (β := ℝ)]
   have h_cont_prod : ContinuousOn (fun p : ℝ × ℝ =>

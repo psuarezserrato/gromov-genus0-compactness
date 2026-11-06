@@ -655,7 +655,7 @@ theorem energyMeasureExtended_univ_ne_top_of_totalEnergy_ne_zero
   intro h_top
   apply h_ne
   dsimp [totalEnergy, energyMeasure]
-  rw [h_top, ENNReal.top_toReal]
+  rw [h_top, ENNReal.toReal_top]
 
 /-- Extended energy measure on `Set.univ` is finite for any `J`-holomorphic sphere with bounded
 stereographic chart energy density (`0 sorryAx`). -/

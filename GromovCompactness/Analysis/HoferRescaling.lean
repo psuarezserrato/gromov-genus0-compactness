@@ -755,7 +755,7 @@ lemma energyMeasureExtended_ne_top_of_pos_energyMeasure
     energyMeasureExtended I u s ≠ ⊤ := by
   intro h_top
   dsimp [energyMeasure] at h_pos
-  rw [h_top, ENNReal.top_toReal] at h_pos
+  rw [h_top, ENNReal.toReal_top] at h_pos
   exact lt_irrefl 0 h_pos
 
 /-- Whenever `energyMeasureExtended I u (disk_at a R) ≠ ⊤`, the radial energy function

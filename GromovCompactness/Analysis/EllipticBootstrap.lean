@@ -1705,13 +1705,13 @@ theorem polar_far_zone_integrand_bound
   have hρ_nonneg : 0 ≤ ρ := hρpos.le
   let ζ := z + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))
   have hρ_norm : ‖(ρ : ℂ)‖ = ρ := by
-    rw [Complex.norm_eq_abs, Complex.abs_of_nonneg hρ_nonneg]
+    rw [Complex.norm_def, Complex.abs_of_nonneg hρ_nonneg]
   have hnorm_ζz : ‖ζ - z‖ = ρ := by
     have h_eq : ζ - z = (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) := by
       dsimp [ζ]; ring
     rw [h_eq, norm_mul, hρ_norm]
     have hexp : ‖Complex.exp (Complex.I * (θ : ℂ))‖ = 1 := by
-      rw [mul_comm, Complex.norm_eq_abs, Complex.abs_exp_ofReal_mul_I]
+      rw [mul_comm, Complex.norm_def, Complex.abs_exp_ofReal_mul_I]
     rw [hexp, mul_one]
   have hζz : (2 * δ : ℝ) ≤ ‖ζ - z‖ := by
     rw [hnorm_ζz]; exact hρ
@@ -1839,7 +1839,7 @@ theorem cauchy_pompeiu_pointwise_holder_bound_of_parts
   have h_pi_pos : 0 < Real.pi := Real.pi_pos
   have h_pi_ne : Real.pi ≠ 0 := h_pi_pos.ne'
   have h_pi_norm : ‖((Real.pi : ℂ)⁻¹)‖ = Real.pi⁻¹ := by
-    rw [norm_inv, Complex.norm_eq_abs, Complex.abs_of_nonneg h_pi_pos.le]
+    rw [norm_inv, Complex.norm_def, Complex.abs_of_nonneg h_pi_pos.le]
   have h_sum := pompeiu_near_plus_far_holder_bound h_near h_far
   have h_pomp : ‖((Real.pi : ℂ)⁻¹) * (I_near + I_far)‖ ≤
       (4 * M * ((2 * r) ^ (1 - α) + A ^ (1 - α) / (1 - α))) * ‖z - w‖ ^ α := by
@@ -1909,10 +1909,10 @@ theorem clm_opNorm_le_norm_one_add_norm_I
     conv_lhs => rw [← complex_real_smul_decomp v]
     rw [map_add, L.map_smul, L.map_smul]
   have hre : |v.re| ≤ ‖v‖ := by
-    rw [Complex.norm_eq_abs]
+    rw [Complex.norm_def]
     exact Complex.abs_re_le_abs v
   have him : |v.im| ≤ ‖v‖ := by
-    rw [Complex.norm_eq_abs]
+    rw [Complex.norm_def]
     exact Complex.abs_im_le_abs v
   calc ‖L v‖
       = ‖v.re • L 1 + v.im • L Complex.I‖ := by rw [hv]
