@@ -89,13 +89,13 @@ lemma c_equiv_symm_e2 : c_equiv_e2.symm e2 = Complex.I := by
   rw [← c_equiv_I, c_equiv_e2.symm_apply_apply]
 
 lemma J_CP1_e1 : J_CP1 e1 = e2 := by
-  dsimp [J_CP1]
-  rw [c_equiv_symm_e1]
+  have h : J_CP1 e1 = c_equiv_e2 (Complex.I * c_equiv_e2.symm e1) := rfl
+  rw [h, c_equiv_symm_e1]
   simp [c_equiv_I]
 
 lemma J_CP1_e2 : J_CP1 e2 = -e1 := by
-  dsimp [J_CP1]
-  rw [c_equiv_symm_e2]
+  have h : J_CP1 e2 = c_equiv_e2 (Complex.I * c_equiv_e2.symm e2) := rfl
+  rw [h, c_equiv_symm_e2]
   simp [c_equiv_1]
 
 /-- Pointwise Riemannian Dirichlet energy density of $u$ at point $z \in \mathbb{CP}^1$. -/
@@ -160,7 +160,7 @@ theorem energy_density_eq_omega (u : CP1 → M) (z : CP1)
    ========================================================================= -/
 
 lemma stereo_chart_symm_continuous : Continuous stereo_chart.symm := by
-  rw [continuous_iff_continuousOn_univ]
+  rw [← continuousOn_univ]
   have ht := stereo_chart_target
   rw [← ht]
   exact stereo_chart.continuousOn_symm
@@ -188,7 +188,7 @@ lemma stereo_chart_symm_preimage_north_pole : stereo_chart.symm ⁻¹' {north_po
   have h_source := stereo_chart.map_target (show w ∈ stereo_chart.target by simp [stereo_chart])
   rw [hw] at h_source
   dsimp [stereo_chart] at h_source
-  simp only [PartialHomeomorph.transHomeomorph_source, stereographic'_source] at h_source
+  simp only [OpenPartialHomeomorph.transHomeomorph_source, stereographic'_source] at h_source
   exact h_source rfl
 
 lemma stereo_chart_symm_preimage_pt (p : CP1) (hp : p ≠ north_pole) :
@@ -266,7 +266,6 @@ lemma sphericalJacobian_lower_bound (w₀ : ℂ) (r : ℝ) (hr : 0 < r) :
     have hw_norm := h_bound w hw
     have h_nonneg1 : 0 ≤ 2 / (1 + R^2) := by positivity
     gcongr
-    exact hw_norm
 
 /-- Canonical pushforward of a measure on ℂ to the Riemann sphere CP1 via stereographic projection. -/
 noncomputable def chartPush (ν : Measure ℂ) : Measure CP1 :=
@@ -371,7 +370,10 @@ lemma deriv_aux (r : ℝ) :
   have h3 := (hasDerivAt_inv h2).comp r h1
   have h4 := h3.const_mul (-2 : ℝ)
   convert h4 using 1
-  ring
+  · funext x
+    simp [Function.comp, div_eq_mul_inv]
+  · field_simp
+    ring
 
 lemma tendsto_aux : Tendsto (fun x : ℝ => - 2 / (1 + x^2)) atTop (𝓝 0) := by
   have h : (fun x : ℝ => - 2 / (1 + x^2)) = (fun y : ℝ => -2 * y) ∘ (fun x : ℝ => (1 + x^2)⁻¹) := by
@@ -382,7 +384,7 @@ lemma tendsto_aux : Tendsto (fun x : ℝ => - 2 / (1 + x^2)) atTop (𝓝 0) := b
   have hinv : Tendsto (fun x : ℝ => (1 + x^2)⁻¹) atTop (𝓝 0) :=
     tendsto_inv_atTop_zero.comp hlim
   have hmul : Tendsto (fun y : ℝ => -2 * y) (𝓝 0) (𝓝 0) := by
-    simpa using (continuous_mul_left (-2 : ℝ)).tendsto 0
+    simpa using (continuous_id.const_mul (-2 : ℝ)).tendsto 0
   exact hmul.comp hinv
 
 lemma integrable_radial : IntegrableOn (fun r : ℝ => 4 * r / (1 + r^2)^2) (Ioi 0) := by
@@ -399,8 +401,8 @@ lemma lintegral_radial_lt_top :
   integrable_radial.lintegral_lt_top
 
 lemma norm_sq_polarCoord_symm (p : ℝ × ℝ) :
-    Complex.abs (Complex.polarCoord.symm p) ^ 2 = p.1^2 := by
-  rw [Complex.polarCoord_symm_abs]
+    ‖Complex.polarCoord.symm p‖ ^ 2 = p.1^2 := by
+  rw [Complex.norm_polarCoord_symm]
   exact sq_abs p.1
 
 lemma sphericalJacobian_lintegral_lt_top :
@@ -424,7 +426,7 @@ lemma sphericalJacobian_lintegral_lt_top :
     have hr_pos : 0 ≤ p.1 := hr.le
     rw [← ENNReal.ofReal_mul hr_pos]
     rw [h_prod, mul_one]
-  have h_congr := setLIntegral_congr_fun (μ := volume) h_meas_target (ae_of_all _ h_eq_integrand)
+  have h_congr := setLIntegral_congr_fun (μ := volume) h_meas_target h_eq_integrand
   rw [h_congr]
   clear h_congr h_eq_integrand
   change (∫⁻ p in Ioi (0 : ℝ) ×ˢ Ioo (-Real.pi) Real.pi,
@@ -568,15 +570,15 @@ theorem totalEnergy_pos_of_exists_ball (u : CP1 → M) (w₀ : ℂ) (r : ℝ) (h
 
 abbrev E2 := EuclideanSpace ℝ (Fin 2)
 
-noncomputable def p0 : E2 →L[ℝ] ℝ := ContinuousLinearMap.proj (0 : Fin 2)
-noncomputable def p1 : E2 →L[ℝ] ℝ := ContinuousLinearMap.proj (1 : Fin 2)
+noncomputable def p0 : E2 →L[ℝ] ℝ := EuclideanSpace.proj (0 : Fin 2)
+noncomputable def p1 : E2 →L[ℝ] ℝ := EuclideanSpace.proj (1 : Fin 2)
 
 /-- Standard constant symplectic form on EuclideanSpace ℝ (Fin 2). -/
 noncomputable def stdOmega : E2 →L[ℝ] E2 →L[ℝ] ℝ :=
   ContinuousLinearMap.smulRight p0 p1 - ContinuousLinearMap.smulRight p1 p0
 
 lemma stdOmega_skew (v w : E2) : stdOmega v w = - stdOmega w v := by
-  change v 0 * w 1 - v 1 * w 0 = - (w 0 * v 1 - w 1 * v 0)
+  simp [stdOmega, p0, p1]
   ring
 
 lemma stdOmega_closed (y : E2) (v₁ v₂ v₃ : E2) :
@@ -606,7 +608,7 @@ lemma J_CP1_coords (v : E2) : (J_CP1 v) 0 = - v 1 ∧ (J_CP1 v) 1 = v 0 := by
 
 lemma stdOmega_J_self (v : E2) : stdOmega v (J_CP1 v) = (v 0)^2 + (v 1)^2 := by
   have hc := J_CP1_coords v
-  change v 0 * (J_CP1 v) 1 - v 1 * (J_CP1 v) 0 = (v 0)^2 + (v 1)^2
+  simp [stdOmega, p0, p1]
   rw [hc.1, hc.2]
   ring
 
@@ -678,10 +680,10 @@ lemma concrete_nonconstant_map_jhol :
   · intro z hz v
     rw [mfderiv_id]
     dsimp [CP1_ClosedTameTarget, RiemannDomain.j, CP1.almostComplexStructure]
+    rfl
 
 lemma stdOmega_e1_e2 : stdOmega e1 e2 = 1 := by
-  change (!₂[1, 0] : E2) 0 * (!₂[0, 1] : E2) 1 - (!₂[1, 0] : E2) 1 * (!₂[0, 1] : E2) 0 = 1
-  norm_num
+  simp [stdOmega, p0, p1, e1, e2]
 
 /-- Pointwise Riemannian energy density of the identity map is identically 1. -/
 lemma riemannianEnergyDensity_id (z : CP1) :
@@ -799,9 +801,11 @@ theorem det_mulLeft_complex (c : ℂ) :
     · simp [b]
     · simp [b]
     · simp [b]
+  have key : Matrix.det !![c.re, -c.im; c.im, c.re] = Complex.normSq c := by
+    rw [Matrix.det_fin_two_of]
+    simp [Complex.normSq]
   rw [hM]
-  rw [Matrix.det_fin_two]
-  simp [Complex.normSq, mul_comm]
+  exact key
 
 /-- Rotation invariance of Lebesgue volume on ℂ:
 For any unit complex number c (e.g. c = exp(iθ)), multiplication by c preserves volume. -/
@@ -828,11 +832,12 @@ theorem volume_map_affine (a : ℂ) (l : ℝ) (hl : 0 < l) :
   have h_meas_smul : Measurable (fun (w : ℂ) => l • w) :=
     continuous_const_smul l |>.measurable
   have h_meas_trans : Measurable (fun (w : ℂ) => w + a) :=
-    continuous_add_right a |>.measurable
+    (continuous_id.add continuous_const : Continuous fun w : ℂ => w + a) |>.measurable
   rw [← Measure.map_map h_meas_trans h_meas_smul]
   rw [volume_map_homothety l hl]
   rw [Measure.map_smul]
   rw [volume_map_translation a]
+  exact h_meas_trans.aemeasurable
 
 /-- Integral change-of-variables under dilation w ↦ l • w:
 ∫ f(l • w) dw = l⁻² ∫ f(z) dz. -/
@@ -843,7 +848,7 @@ theorem lintegral_comp_homothety (f : ℂ → ℝ≥0∞) (hf : Measurable f)
     continuous_const_smul l |>.measurable
   rw [← lintegral_map hf h_meas]
   rw [volume_map_homothety l hl]
-  rw [lintegral_smul_measure]
+  rw [lintegral_smul_measure, smul_eq_mul]
 
 /-- Exact cancellation:
 The quadratic derivative scaling l² and the measure scaling l⁻² cancel identically:
@@ -874,10 +879,10 @@ theorem lintegral_affine_scaling_cancellation (a : ℂ) (l : ℝ) (hl : 0 < l)
     (∫⁻ w : ℂ, ENNReal.ofReal (l ^ 2) * f (a + l • w)) = ∫⁻ z : ℂ, f z := by
   rw [lintegral_const_mul' _ _ (by norm_num)]
   have h_meas : Measurable (fun (w : ℂ) => a + l • w) :=
-    (continuous_add_left a).comp (continuous_const_smul l) |>.measurable
+    ((continuous_const.add continuous_id : Continuous fun w : ℂ => a + w).comp (continuous_const_smul l)) |>.measurable
   rw [← lintegral_map hf h_meas]
   rw [volume_map_affine a l hl]
-  rw [lintegral_smul_measure]
+  rw [lintegral_smul_measure, smul_eq_mul]
   rw [← mul_assoc]
   rw [dilation_factor_cancellation l hl]
   rw [one_mul]
@@ -967,7 +972,7 @@ lemma toReal_volume_ball (a : ℂ) (r : ℝ) :
   · push_neg at hr
     rw [max_eq_right hr.le]
     have hball : ball a r = ∅ := ball_eq_empty.mpr hr.le
-    rw [hball, measure_empty, ENNReal.zero_toReal]
+    rw [hball, measure_empty, ENNReal.toReal_zero]
     simp
 
 /-- Continuity of Lebesgue volume on expanding concentric balls in ℂ:

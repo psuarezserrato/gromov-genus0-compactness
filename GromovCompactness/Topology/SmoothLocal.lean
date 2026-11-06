@@ -214,7 +214,7 @@ theorem smooth_local_jhol_closure [tgt : ClosedTameTarget I M]
     have h_diff := h_cpt.2.1 z hz_mem
     have h_J := h_cpt.2.2.2 z hz_mem
     have h_eval : Continuous (fun (L : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) => L (dom.j z v)) :=
-      (ContinuousLinearMap.apply ℝ E (dom.j z v)).continuous
+      (ContinuousLinearMap.apply ℝ E (show EuclideanSpace ℝ (Fin 2) from dom.j z v)).continuous
     have lim1 : Tendsto (fun n => mfderiv I_CP1 I (u_seq n) z (dom.j z v)) atTop
         (nhds (mfderiv I_CP1 I u_lim z (dom.j z v))) :=
       h_eval.tendsto (mfderiv I_CP1 I u_lim z) |>.comp h_diff
@@ -228,7 +228,7 @@ theorem smooth_local_jhol_closure [tgt : ClosedTameTarget I M]
         (fun n => tgt.J (u_seq n z) (mfderiv I_CP1 I (u_seq n) z v)) := by
       ext n; exact h_eq_n n
     rw [h_seq_eq] at lim1
-    exact tendsto_nhds_unique lim1 lim2
+    exact @tendsto_nhds_unique _ _ _ (inferInstanceAs (T2Space E)) _ _ _ _ _ lim1 lim2
 
 /-- Compatibility of $C^\infty_{\mathrm{loc}}$ convergence with composition by Möbius frames:
 If $u_n \to u$ locally smoothly and $\phi_n \to \phi$ in $\operatorname{MoebiusFrame}$,
@@ -356,7 +356,6 @@ lemma applyFramesSeq_congr_at (frames : List ConvergingFrame)
   | nil => exact h
   | cons F Fs ih =>
     apply ih
-    dsimp
     rw [h]
 
 /-- Core $C^\infty_{\mathrm{loc}}$ convergence is invariant under eventual equality of sequences (`0 sorryAx`). -/
