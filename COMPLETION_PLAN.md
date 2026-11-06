@@ -177,9 +177,14 @@ Structural causes: **S1** arbitrary `[MetricSpace M]` not tied to `ClosedTameTar
 
 Next steps: (1) Prokhorov leaf Measures:226 via backported Riesz–Markov (independent of the repairs); (2) statement-repair phase grouped by theme — sequence leaves need J-hol/energy/finiteness hypotheses; link the metric to `ClosedTameTarget.metric`; target-dependent thresholds; fix the chart-frame convention in `Target.lean`/`Energy.lean`; each repair needs sign-off.
 
-### 3.6 Riesz–Markov / Prokhorov (resolved 6 Nov 2026)
+### 3.6 Riesz–Markov / Prokhorov & Mathlib v4.35.0 Migration (resolved 6 Nov 2026)
 
-Mathlib v4.16.0 (`a6276f4c6097675b1cf5ebd49b1146b735f38c02`) has only the content half of Riesz–Markov. Mathlib `master` (Lean v4.36) has the full chain and Prokhorov, too far from v4.16 to port. Instead the **real-valued theorem was vendored from Mathlib commit `0c2287c997d441f56da560642ceae6bf40271350` (2025-04-12, Lean v4.19)** with a handful of helper lemmas backported (`exists_add_of_le`, `toReal`, `toRealLinearMap`, `toNNRealLinear`, `Content.mk_apply`): `GromovCompactness/Vendor/RieszMarkovKakutani.lean` (standard axioms only). On top of it: `Topology/RieszMeasure.lean` (`exists_measure_of_posLinear`), `Topology/ProkhorovCompact.lean` (`prokhorov_seq_compact`, B1–B5), `Topology/PortmanteauFinite.lean` (closed-set and null-frontier Portmanteau for finite measures). **Do not `import Mathlib` (or Mathlib's own `RieszMarkovKakutani`) in any module that imports these** — it clashes on `rieszContent`.
+1. **Migration to Latest Stable Mathlib (`v4.35.0`, rev `56a005855ea17e0b0958f73ec801ae140b0a1679`)**:
+   - Upgraded `lean-toolchain` and `lakefile.lean` from `v4.16.0` to `v4.35.0`.
+   - Removed the temporary vendored Riesz–Markov backport (`GromovCompactness/Vendor/RieszMarkovKakutani.lean`) and proved `GromovCompactness/Topology/RieszMeasure.lean` (`exists_measure_of_posLinear`) directly from upstream `Mathlib.MeasureTheory.Integral.RieszMarkovKakutani.Real` (`RealRMK.rieszMeasure` and `RealRMK.integral_rieszMeasure`, `0 sorryAx`).
+   - Built on top of it: `Topology/ProkhorovCompact.lean` (`prokhorov_seq_compact`, `0 sorryAx`) and `Topology/PortmanteauFinite.lean` (closed-set and null-frontier Portmanteau for finite measures, `0 sorryAx`), closing `#14` (`weak_measure_compactness`) and `#15` (`weak_energy_measure_compactness`) unconditionally.
+   - Updated all 33 modules across `GromovCompactness` and `tests/PhaseAxiomCensus.lean` for Mathlib `v4.35.0` API changes (`SimpleGraph` `Std.Symm`/`Std.Irrefl`, `notMem_*`, `isClosed_closedBall`, `mfderiv_const`, `fderiv_const_apply`, `extraction_of_frequently_atTop`, `Metric.ediam`, `String.trimAscii`).
+   - Verified `lake build` (`3,071` jobs, `0` errors) and `tests/PhaseAxiomCensus.lean` (`#audit_wiring` PASSED; `3,169` declarations in scope, `3,130` clean, `39` sorry-dependent / `38` theorems, `28` direct `sorry` leaves).
 
 ---
 
