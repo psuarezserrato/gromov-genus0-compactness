@@ -98,30 +98,7 @@ theorem gromov_compactness_genus_zero
       ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
         SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
         μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
-    (h_cert : Bubbling.OneLevelCertificate I th)
-    (h_conc_defects : Assembly.ConcDefectCertificate I u_seq B th)
-    (h_graft_extract : ∀ (cdata : Compactness.ConcentrationData I u_seq B th)
-      (m_defect : CP1 → ℝ)
-      (P : Assembly.PartialRootGraftedTree I u_seq B th cdata m_defect cdata.S),
-      ∃ (σ : Bookkeeping.SubseqMap) (res : Assembly.TreeRescalingData P.tree P.root),
-        (∀ (frames : (v : P.tree.V) → ℕ → MoebiusFrame),
-          (∀ n, frames P.root n = MoebiusFrame.id) →
-          (∀ (w : P.tree.V) (hw : w ≠ P.root) (n : ℕ),
-            frames w n = MoebiusFrame.comp (frames (res.parent w hw) n)
-              (affine_scaling (res.center w n) (res.scale w n) (res.scale_pos w n))) →
-          (∀ (v : P.tree.V),
-            SmoothLocalConvergesOn I
-              (fun n => (u_seq (σ.1 n)) ∘ (frames v n).toHomeo)
-              (P.map v)
-              (punctured_sphere { z | ∃ (w : P.tree.V) (h : P.tree.adj.Adj v w), z = P.tree.node_point v w h })) ∧
-          (P.tree.adj.degree P.root = 1 → (∃ c : M, ∀ z : CP1, P.map P.root z = c) →
-            ∀ (w₀ : P.tree.V) (hw₀_adj : P.tree.adj.Adj P.root w₀),
-              SmoothLocalConvergesOn I
-                (fun n => (u_seq (σ.1 n)) ∘ (frames w₀ n).toHomeo)
-                (P.map w₀)
-                {P.tree.node_point w₀ P.root (P.tree.adj.adj_symm hw₀_adj)})) ∧
-        Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
-          (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p))) :
+    (h_graft : Assembly.GraftCertificate I u_seq B th) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) ∧
       let P := Fintype.card { v : u_lim.tree.V // is_principal_component I u_lim v }
@@ -131,7 +108,7 @@ theorem gromov_compactness_genus_zero
       ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2)) :=
   gromov_compactness_genus_zero_of_core I th u_seq B h_energy
     (gromov_compactness_core I th u_seq B h_nonconst h_jhol h_energy h_fin
-      h_conc_extract h_cert h_conc_defects h_graft_extract)
+      h_conc_extract h_graft)
 
 /-- Zero-sorry Genus 0 Gromov Compactness when a subsequence converges smoothly on `CP1` to a
 non-constant map with energy conservation (`0 sorryAx`). -/

@@ -170,4 +170,33 @@ theorem s3_no_defect_without_concentration (f : ℕ → (CP1 → M)) (a : ℂ) (
 #print axioms s2_old_one_level_false_of_missing_energy
 #print axioms s3_no_defect_without_concentration
 
+
+/-! ## S4: the old `h_graft_extract` is contradictory for sequences with convergent energies -/
+
+/-- The energy conclusion of the old `h_graft_extract` (as at `0a3de26`): for *every* defect-mass
+function `m` and *every* grafted tree `P`, some subsequence has energies converging to
+`E(u₀) + Σ m`. -/
+def OldGraftEnergy (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M) : Prop :=
+  ∀ (cdata : Compactness.ConcentrationData I u_seq B th) (m : CP1 → ℝ)
+    (_P : Assembly.PartialRootGraftedTree I u_seq B th cdata m cdata.S),
+    ∃ σ : Bookkeeping.SubseqMap, Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
+      (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m p))
+
+/-- **S4.** If the energies of `u_seq` converge and two grafted trees with different total defect
+mass exist for the same concentration data, the old graft certificate is false. -/
+theorem s4_old_graft_contradiction (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (th : Bubbling.TargetThresholds I M) (h_old : OldGraftEnergy I u_seq B th)
+    (L : ℝ) (h_conv : Tendsto (fun n => totalEnergy I (u_seq n)) atTop (𝓝 L))
+    (cdata : Compactness.ConcentrationData I u_seq B th) (m₁ m₂ : CP1 → ℝ)
+    (P₁ : Assembly.PartialRootGraftedTree I u_seq B th cdata m₁ cdata.S)
+    (P₂ : Assembly.PartialRootGraftedTree I u_seq B th cdata m₂ cdata.S)
+    (h_ne : ∑ p ∈ cdata.S, m₁ p ≠ ∑ p ∈ cdata.S, m₂ p) : False := by
+  obtain ⟨σ₁, h₁⟩ := h_old cdata m₁ P₁
+  obtain ⟨σ₂, h₂⟩ := h_old cdata m₂ P₂
+  have e₁ := tendsto_nhds_unique (h_conv.comp σ₁.2.tendsto_atTop) h₁
+  have e₂ := tendsto_nhds_unique (h_conv.comp σ₂.2.tendsto_atTop) h₂
+  exact h_ne (by linarith)
+
+#print axioms s4_old_graft_contradiction
+
 end GromovCompactness.CertificateSanity
