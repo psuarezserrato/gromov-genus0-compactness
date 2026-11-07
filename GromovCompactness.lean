@@ -6,6 +6,7 @@ Authors: Autoformalization Team
 import GromovCompactness.LibraryAudit
 import GromovCompactness.Geometry.Target
 import GromovCompactness.Geometry.Sphere
+import GromovCompactness.Geometry.NormalCharts
 import GromovCompactness.Analysis.Energy
 import GromovCompactness.Analysis.Monotonicity
 import GromovCompactness.Analysis.Bochner
