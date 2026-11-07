@@ -1988,6 +1988,85 @@ def ConcDefectCertificate (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling
     cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • MeasureTheory.Measure.dirac p) →
     ∀ p ∈ cdata.S, ∃ (f : ℕ → (CP1 → M)) (a : ℂ), Bubbling.IsDefectSeq I f a (m p) (cdata.u₀ p)
 
+/-- Sequence-relative graft certificate (replaces the over-quantified `h_graft_extract`).
+The old certificate asked the sequence to converge to *every* grafted tree, with *arbitrary*
+defect masses; for a sequence with convergent energies and a nonempty singular set this is
+contradictory (see `tests/CertificateSanity.lean`, `s4`). This version only asks that, for the
+genuine defect masses `m` of the concentration data, *some* grafted tree with root `u₀` is the limit
+of the sequence along some subsequence and rescaling data. -/
+def GraftCertificate (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M) : Prop :=
+  ∀ (cdata : Compactness.ConcentrationData I u_seq B th) (m : CP1 → ℝ),
+    (∀ p ∈ cdata.S, th.ε_sph ≤ m p) →
+    cdata.μ = energyMeasureExtended I cdata.u₀ +
+      ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • MeasureTheory.Measure.dirac p) →
+    ∃ (P : PartialRootGraftedTree I u_seq B th cdata m cdata.S) (σ : Bookkeeping.SubseqMap)
+      (res : TreeRescalingData P.tree P.root),
+      (∀ (frames : (v : P.tree.V) → ℕ → MoebiusFrame),
+        (∀ n, frames P.root n = MoebiusFrame.id) →
+        (∀ (w : P.tree.V) (hw : w ≠ P.root) (n : ℕ),
+          frames w n = MoebiusFrame.comp (frames (res.parent w hw) n)
+            (affine_scaling (res.center w n) (res.scale w n) (res.scale_pos w n))) →
+        (∀ (v : P.tree.V),
+          SmoothLocalConvergesOn I
+            (fun n => (u_seq (σ.1 n)) ∘ (frames v n).toHomeo)
+            (P.map v)
+            (punctured_sphere { z | ∃ (w : P.tree.V) (h : P.tree.adj.Adj v w), z = P.tree.node_point v w h })) ∧
+        (P.tree.adj.degree P.root = 1 → (∃ c : M, ∀ z : CP1, P.map P.root z = c) →
+          ∀ (w₀ : P.tree.V) (hw₀_adj : P.tree.adj.Adj P.root w₀),
+            SmoothLocalConvergesOn I
+              (fun n => (u_seq (σ.1 n)) ∘ (frames w₀ n).toHomeo)
+              (P.map w₀)
+              {P.tree.node_point w₀ P.root (P.tree.adj.adj_symm hw₀_adj)})) ∧
+      Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
+        (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m p))
+
+/-- A grafted tree that is the limit of the sequence yields prestable limit data (`0 sorryAx`). -/
+theorem prestable_limit_of_grafted_tree
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M)
+    (cdata : Compactness.ConcentrationData I u_seq B th) (m_defect : CP1 → ℝ)
+    (h_energy_bdd : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (P : PartialRootGraftedTree I u_seq B th cdata m_defect cdata.S) (σ : Bookkeeping.SubseqMap)
+    (res : TreeRescalingData P.tree P.root)
+    (h_conv : ∀ (frames : (v : P.tree.V) → ℕ → MoebiusFrame),
+        (∀ n, frames P.root n = MoebiusFrame.id) →
+        (∀ (w : P.tree.V) (hw : w ≠ P.root) (n : ℕ),
+          frames w n = MoebiusFrame.comp (frames (res.parent w hw) n)
+            (affine_scaling (res.center w n) (res.scale w n) (res.scale_pos w n))) →
+        (∀ (v : P.tree.V),
+          SmoothLocalConvergesOn I
+            (fun n => (u_seq (σ.1 n)) ∘ (frames v n).toHomeo)
+            (P.map v)
+            (punctured_sphere { z | ∃ (w : P.tree.V) (h : P.tree.adj.Adj v w), z = P.tree.node_point v w h })) ∧
+        (P.tree.adj.degree P.root = 1 → (∃ c : M, ∀ z : CP1, P.map P.root z = c) →
+          ∀ (w₀ : P.tree.V) (hw₀_adj : P.tree.adj.Adj P.root w₀),
+            SmoothLocalConvergesOn I
+              (fun n => (u_seq (σ.1 n)) ∘ (frames w₀ n).toHomeo)
+              (P.map w₀)
+              {P.tree.node_point w₀ P.root (P.tree.adj.adj_symm hw₀_adj)}))
+    (h_en_tendsto : Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
+        (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p))) :
+    ∃ (pdata : PrestableLimitData I u_seq),
+      (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B := by
+  obtain ⟨frames, h_root_id, h_rec, h_collapse⟩ := assemble_global_frames P.tree P.root res
+  let pdata : PrestableLimitData I u_seq := {
+    tree := P.tree
+    root := P.root
+    map := P.map
+    is_jhol := P.is_jhol
+    nodal_match := P.nodal_match
+    stable_off_root := P.stable_off_root
+    σ := σ
+    frames := frames
+    root_frame_id := ⟨_, h_root_id⟩
+    frame_collapse := h_collapse
+    smooth_conv := (h_conv frames h_root_id h_rec).1
+    ghost_root_deg_one_conv := (h_conv frames h_root_id h_rec).2
+    energy_ident := by
+      rw [P.energy_sum]
+      exact h_en_tendsto
+  }
+  exact ⟨pdata, prestable_limit_energy_bound I u_seq B pdata h_energy_bdd⟩
+
 /-- Assembles the base map u₀ and all defect trees from Contract B07 into a global prestable limit (Contract G01).
 Proved with zero direct sorry. -/
 theorem assemble_prestable_limit
@@ -2003,30 +2082,7 @@ theorem assemble_prestable_limit
       ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
         SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
         μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
-    (h_cert : Bubbling.OneLevelCertificate I th)
-    (h_conc_defects : ConcDefectCertificate I u_seq B th)
-    (h_graft_extract : ∀ (cdata : Compactness.ConcentrationData I u_seq B th)
-      (m_defect : CP1 → ℝ)
-      (P : PartialRootGraftedTree I u_seq B th cdata m_defect cdata.S),
-      ∃ (σ : Bookkeeping.SubseqMap) (res : TreeRescalingData P.tree P.root),
-        (∀ (frames : (v : P.tree.V) → ℕ → MoebiusFrame),
-          (∀ n, frames P.root n = MoebiusFrame.id) →
-          (∀ (w : P.tree.V) (hw : w ≠ P.root) (n : ℕ),
-            frames w n = MoebiusFrame.comp (frames (res.parent w hw) n)
-              (affine_scaling (res.center w n) (res.scale w n) (res.scale_pos w n))) →
-          (∀ (v : P.tree.V),
-            SmoothLocalConvergesOn I
-              (fun n => (u_seq (σ.1 n)) ∘ (frames v n).toHomeo)
-              (P.map v)
-              (punctured_sphere { z | ∃ (w : P.tree.V) (h : P.tree.adj.Adj v w), z = P.tree.node_point v w h })) ∧
-          (P.tree.adj.degree P.root = 1 → (∃ c : M, ∀ z : CP1, P.map P.root z = c) →
-            ∀ (w₀ : P.tree.V) (hw₀_adj : P.tree.adj.Adj P.root w₀),
-              SmoothLocalConvergesOn I
-                (fun n => (u_seq (σ.1 n)) ∘ (frames w₀ n).toHomeo)
-                (P.map w₀)
-                {P.tree.node_point w₀ P.root (P.tree.adj.adj_symm hw₀_adj)})) ∧
-        Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
-          (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p))) :
+    (h_graft : GraftCertificate I u_seq B th) :
     ∃ (pdata : PrestableLimitData I u_seq),
       (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B := by
   by_cases h_pdata : ∃ (σ : Bookkeeping.SubseqMap),
@@ -2039,18 +2095,10 @@ theorem assemble_prestable_limit
       exact assemble_prestable_limit_of_eventually_const_subseq I u_seq B h_jhol h_energy σ N₀ c hc
     · have hB : 0 ≤ B := (energy_nonneg I (u_seq 0) Set.univ).trans (h_energy 0)
       obtain ⟨cdata⟩ := Compactness.exists_concentration_data I u_seq h_jhol B hB h_energy h_fin th h_conc_extract
-      obtain ⟨m_defect, hm_sph, _hm_zero, h_decomp, h_tendsto_energy⟩ :=
+      obtain ⟨m_defect, hm_sph, _hm_zero, h_decomp, _h_tendsto_energy⟩ :=
         Compactness.defect_measure_identity I u_seq B h_jhol h_energy h_fin th cdata
-      let defect_trees : (p : CP1) → p ∈ cdata.S → Bubbling.LocalDefectTree I th (m_defect p) (cdata.u₀ p) :=
-        fun p hp =>
-          have h_pos : 0 < m_defect p := th.ε_sph_pos.trans_le (hm_sph p hp)
-          have h_ex := h_conc_defects cdata m_defect h_decomp p hp
-          Classical.choice (Bubbling.resolve_single_defect_tree I u_seq h_jhol B h_energy h_fin th
-            (m_defect p) h_pos (cdata.u₀ p) h_cert (Classical.choose h_ex)
-            (Classical.choose (Classical.choose_spec h_ex))
-            (Classical.choose_spec (Classical.choose_spec h_ex)))
-      exact assemble_prestable_limit_of_components I th u_seq B h_energy cdata m_defect hm_sph h_tendsto_energy
-        defect_trees (h_graft_extract cdata m_defect)
+      obtain ⟨P, σ, res, h_conv, h_en⟩ := h_graft cdata m_defect hm_sph h_decomp
+      exact prestable_limit_of_grafted_tree I u_seq B th cdata m_defect h_energy P σ res h_conv h_en
 
 #print axioms frame_comp_id_left
 #print axioms frame_comp_id_right
