@@ -554,27 +554,6 @@ lemma jholomorphic_sphere_exits_darboux_ball
   · exact ⟨exits_ball_of_exists_pair_dist_ge r₀ u x h_pair, h_bdd⟩
   · exact ⟨exits_ball_of_lt_diam_range r₀ hr₀ u x h_diam, h_bdd⟩
 
-private lemma jholomorphic_sphere_exits_darboux_ball_aux
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-    {M : Type*} [MetricSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
-    (r₀ : ℝ) (hr₀ : 0 < r₀)
-    (u : CP1 → M) (x : M)
-    (hx : x ∈ Set.range u)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ)
-    (h_nonconst : ¬ ∃ c : M, ∀ z, u z = c) :
-    (∃ z, u z ∉ Metric.ball x r₀) ∧
-    BddAbove (Set.range (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w))) := by
-  by_cases h_cases : (BddAbove (Set.range (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w))) ∨
-        BddAbove (Set.range (riemannianEnergyDensity I u)) ∨
-        Continuous (riemannianEnergyDensity I u)) ∧
-      ((∃ z : CP1, r₀ ≤ dist (u z) x) ∨
-        (∃ z₁ z₂ : CP1, 2 * r₀ ≤ dist (u z₁) (u z₂)) ∨
-        2 * r₀ < Metric.diam (Set.range u))
-  · exact jholomorphic_sphere_exits_darboux_ball I r₀ hr₀ u x hx hu h_nonconst h_cases
-  · sorry
-
 /-- Constant maps `fun _ => x₀` have continuous (identically zero) Riemannian energy density (`0 sorryAx`). -/
 theorem continuous_riemannianEnergyDensity_const
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -1206,24 +1185,9 @@ theorem sphere_energy_gap
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
       (¬ ∃ c : M, ∀ z, u z = c) →
       ε_sph ≤ totalEnergy I u := by
-  obtain ⟨c, r₀, hc, hr₀, h_mono⟩ := target_monotonicity (M := M) I
-  refine ⟨c * r₀^2, by positivity, ?_⟩
-  intro u hu h_nonconst
-  by_cases h_cases : ∀ x ∈ Set.range u,
-      (BddAbove (Set.range (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w))) ∨
-        BddAbove (Set.range (riemannianEnergyDensity I u)) ∨
-        Continuous (riemannianEnergyDensity I u)) ∧
-      ((∃ z : CP1, r₀ ≤ dist (u z) x) ∨
-        (∃ z₁ z₂ : CP1, 2 * r₀ ≤ dist (u z₁) (u z₂)) ∨
-        2 * r₀ < Metric.diam (Set.range u))
-  · exact sphere_energy_gap_of_cases I hc hr₀ h_mono u hu h_nonconst h_cases
-  · obtain ⟨z₀⟩ : Nonempty CP1 := inferInstance
-    let x := u z₀
-    have hx : x ∈ Set.range u := ⟨z₀, rfl⟩
-    obtain ⟨⟨z_out, hz_out⟩, h_bdd⟩ := jholomorphic_sphere_exits_darboux_ball_aux I r₀ hr₀ u x hx hu h_nonconst
-    have h_bound := h_mono u x r₀ hr₀ le_rfl hx hu h_nonconst ⟨z_out, hz_out⟩
-    have h_sub := energyMeasure_le_totalEnergy I u (u ⁻¹' Metric.ball x r₀)
-      (energyMeasureExtended_univ_ne_top_of_jhol I u hu h_bdd)
-    linarith
+  obtain ⟨c, r₀, hc, hr₀, h_mono, h_exit⟩ := target_monotonicity_and_darboux_exit (M := M) I
+  exact sphere_energy_gap_of_global_cases I hc hr₀ h_mono
+    (fun u hu h_nc x hx => ⟨Or.inr (Or.inr (h_exit u x hx hu h_nc).1),
+      Or.inl (h_exit u x hx hu h_nc).2⟩)
 
 end GromovCompactness.Analysis

@@ -275,6 +275,7 @@ structure TargetThresholds (I : ModelWithCorners ℝ E H) (M : Type*)
       riemannianEnergyDensity I u z ≤ C_reg * r^(-2 : ℝ) * energyMeasure I u (disk_at a r)
   ε_sph : ℝ
   ε_sph_pos : 0 < ε_sph
+  h_sph_le_reg : ε_sph ≤ ε_reg
   h_sph : ∀ (u : CP1 → M),
     JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
     (¬ ∃ c : M, ∀ z, u z = c) →
@@ -321,16 +322,24 @@ noncomputable def make_target_thresholds
         energyMeasure I u (annulus_at center r₁ r₂) ≤
           C_neck * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R)) :
     TargetThresholds I M :=
-  let h := min (ε_reg / 2) (min ε_sph (ε_neck / 2))
+  let ε_sph' := min ε_sph ε_reg
+  have hε_sph' : 0 < ε_sph' := lt_min hε_sph hε_reg
+  have h_sph_le_reg : ε_sph' ≤ ε_reg := min_le_right _ _
+  have h_sph' : ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      ε_sph' ≤ totalEnergy I u :=
+    fun u hu h_nc => le_trans (min_le_left _ _) (h_sph u hu h_nc)
+  let h := min (ε_reg / 2) (min ε_sph' (ε_neck / 2))
   have h_pos : 0 < h := by
     have h1 : 0 < ε_reg / 2 := by linarith
     have h2 : 0 < ε_neck / 2 := by linarith
-    exact lt_min h1 (lt_min hε_sph h2)
+    exact lt_min h1 (lt_min hε_sph' h2)
   have h_le_reg : h ≤ ε_reg / 2 := min_le_left _ _
-  have h_le_sph : h ≤ ε_sph := le_trans (min_le_right _ _) (min_le_left _ _)
+  have h_le_sph : h ≤ ε_sph' := le_trans (min_le_right _ _) (min_le_left _ _)
   have h_le_neck : h ≤ ε_neck / 2 := le_trans (min_le_right _ _) (min_le_right _ _)
   ⟨ε_reg, hε_reg, C_reg, hC_reg, h_reg,
-   ε_sph, hε_sph, h_sph,
+   ε_sph', hε_sph', h_sph_le_reg, h_sph',
    ε_neck, hε_neck, C_neck, hC_neck, a_decay, ha_decay, h_neck,
    h, h_pos, h_le_reg, h_le_sph, h_le_neck⟩
 

@@ -494,13 +494,10 @@ private theorem defect_measure_decomposition_exists_aux
       (∃ m : CP1 → ℝ, (∀ p ∈ cdata.S, thresh.ε_sph ≤ m p) ∧
         cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • Measure.dirac p))
   · exact defect_measure_decomposition_exists I u_seq B thresh cdata h_cases
-  · refine ⟨canonicalDefectMass I u_seq B thresh cdata, ?_,
+  · refine ⟨canonicalDefectMass I u_seq B thresh cdata,
+      fun p hp => le_trans thresh.h_sph_le_reg (canonicalDefectMass_ge_reg I u_seq B thresh cdata p hp),
       fun p hp => canonicalDefectMass_of_not_mem I u_seq B thresh cdata p hp, ?_⟩
-    · intro p hp
-      by_cases h_le : thresh.ε_sph ≤ thresh.ε_reg
-      · exact le_trans h_le (canonicalDefectMass_ge_reg I u_seq B thresh cdata p hp)
-      · sorry
-    · sorry
+    sorry
 
 /-- Zero-sorry conditional reduction of `defect_measure_identity` from `defect_measure_decomposition_exists` (`0 sorryAx`). -/
 theorem defect_measure_identity_of_decomp

@@ -278,47 +278,6 @@ theorem exists_one_level_decomp
     Nonempty (OneLevelDecomposition I thresh m_defect base_val) :=
   extract_rescaled_bubble_and_children I thresh m_defect hm base_val h_disk
 
-private theorem exists_one_level_decomp_aux
-    (u_seq : ℕ → (CP1 → M))
-    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (B : ℝ)
-    (_h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
-    (_h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
-    (thresh : TargetThresholds I M) (m_defect : ℝ)
-    (hm : thresh.h ≤ m_defect) (base_val : M) :
-    Nonempty (OneLevelDecomposition I thresh m_defect base_val) := by
-  by_cases h_disk :
-      (∃ v : CP1 → M,
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        m_defect = totalEnergy I v ∧
-        v north_pole = base_val ∧
-        energyMeasure I v (disk_at 0 1) = m_defect - thresh.h / 2) ∨
-      (∃ v : CP1 → M,
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        totalEnergy I v ≤ m_defect - thresh.h ∧
-        v north_pole = base_val ∧
-        totalEnergy I v - energyMeasure I v (disk_at 0 1) = thresh.h / 2) ∨
-      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        (∀ z ∈ q, ‖z‖ < 1) ∧
-        (∀ z ∈ q, thresh.h ≤ m_child z) ∧
-        (∀ z ∉ q, m_child z = 0) ∧
-        m_defect = totalEnergy I v + ∑ z ∈ q, m_child z ∧
-        v north_pole = base_val ∧
-        totalEnergy I v - energyMeasure I v (disk_at 0 1) = thresh.h / 2) ∨
-      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        (∀ z ∈ q, thresh.h ≤ m_child z) ∧
-        (∀ z ∉ q, m_child z = 0) ∧
-        m_defect = totalEnergy I v + ∑ z ∈ q, m_child z ∧
-        v north_pole = base_val ∧
-        energyMeasure I v (disk_at 0 1) + ∑ z ∈ q.filter (fun w => ‖w‖ < 1), m_child z =
-          m_defect - thresh.h / 2)
-  · exact exists_one_level_decomp I thresh m_defect hm base_val h_disk
-  · have _ := neck_vanishing_quantified I (M := M)
-    have _ := removal_of_singularities I (M := M)
-    sorry
-
 /-- Partial grafted sphere tree obtained by grafting a subset `s ⊆ decomp.q` of child defect trees
 onto the parent bubble `decomp.v`. -/
 structure PartialGraftedTree
@@ -1082,7 +1041,7 @@ theorem resolve_single_defect_tree
   by_cases hm_lt : m_defect < thresh.h
   · exact local_defect_tree_of_subthreshold I thresh m_defect hm hm_lt base_val
   · exact resolve_single_defect_tree_of_one_level I thresh
-      (fun m h_ge b => exists_one_level_decomp_aux I u_seq h_jhol B h_energy h_fin thresh m h_ge b) m_defect hm base_val
+      (fun m h_ge b => extract_rescaled_bubble_and_children_aux I u_seq h_jhol B h_energy h_fin thresh m h_ge b) m_defect hm base_val
 
 #print axioms energy_rank_wf
 #print axioms energy_rank_induction

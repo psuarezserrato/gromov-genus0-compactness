@@ -479,7 +479,7 @@ theorem extract_rescaled_bubble_and_children
   · exact ⟨OneLevelDecomposition.of_calibrated_data I thresh m_defect base_val v hv_jhol
       q m_child hm_pos hm_zero h_mass_sum hv_node h_calib⟩
 
-private theorem extract_rescaled_bubble_and_children_aux
+theorem extract_rescaled_bubble_and_children_aux
     (u_seq : ℕ → (CP1 → M))
     (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
     (B : ℝ)
@@ -487,9 +487,7 @@ private theorem extract_rescaled_bubble_and_children_aux
     (_h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (thresh : TargetThresholds I M) (m_defect : ℝ)
     (hm : thresh.h ≤ m_defect)
-    (_res : CalibratedRescaling I u_seq thresh m_defect)
-    (base_val : M)
-    (_h_match : Tendsto (fun n => u_seq n (stereo_chart.symm (_res.a n))) atTop (nhds base_val)) :
+    (base_val : M) :
     Nonempty (OneLevelDecomposition I thresh m_defect base_val) := by
   by_cases h_disk :
       (∃ v : CP1 → M,
@@ -1227,6 +1225,6 @@ theorem exists_one_level_decomposition
           energyMeasure I v (disk_at 0 1) + ∑ z ∈ q.filter (fun w => ‖w‖ < 1), m_child z =
             m_defect - thresh.h / 2)
     · exact exists_one_level_decomposition_of_disk I u_seq thresh m_defect hm res base_val h_match h_disk
-    · exact extract_rescaled_bubble_and_children_aux I u_seq h_jhol B h_energy h_fin thresh m_defect hm res base_val h_match
+    · exact extract_rescaled_bubble_and_children_aux I u_seq h_jhol B h_energy h_fin thresh m_defect hm base_val
 
 end GromovCompactness.Bubbling
