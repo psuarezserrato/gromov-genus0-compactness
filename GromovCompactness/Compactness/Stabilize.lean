@@ -376,6 +376,22 @@ theorem prunedSimpleGraph_degree_eq_of_ne (tree : SphereTree) (root : tree.V)
       left_inv := fun u => by ext; rfl
       right_inv := fun y => by ext; rfl }
 
+/-- Deleting `root` reduces the degree of any neighbor `w₀` of `root` by `1` (Zero-sorry). -/
+theorem prunedSimpleGraph_degree_neighbor_add_one (tree : SphereTree) (root : tree.V)
+    (w₀ : tree.V) (hw₀_adj : tree.adj.Adj root w₀) :
+    (prunedSimpleGraph tree root).degree ⟨w₀, hw₀_adj.ne'⟩ + 1 = tree.adj.degree w₀ := by
+  rw [← SimpleGraph.card_neighborSet_eq_degree, ← SimpleGraph.card_neighborSet_eq_degree]
+  let r₀ : tree.adj.neighborSet w₀ := ⟨root, tree.adj.adj_symm hw₀_adj⟩
+  have h_bij : Fintype.card ((prunedSimpleGraph tree root).neighborSet ⟨w₀, hw₀_adj.ne'⟩) =
+      Fintype.card { y : tree.adj.neighborSet w₀ // y ≠ r₀ } :=
+    Fintype.card_congr
+      { toFun := fun u => ⟨⟨u.1.1, u.2⟩, fun h_eq => u.1.2 (congrArg Subtype.val h_eq)⟩
+        invFun := fun y => ⟨⟨y.1.1, fun h_eq => y.2 (Subtype.ext h_eq)⟩, y.1.2⟩
+        left_inv := fun _ => by ext; rfl
+        right_inv := fun _ => by ext; rfl }
+  rw [h_bij]
+  exact card_subtype_ne_root_add_one r₀
+
 theorem pruned_nodal_set_eq_of_ne (tree : SphereTree) (root : tree.V)
     (w₀ : tree.V) (hw₀_uniq : ∀ y, tree.adj.Adj root y → y = w₀)
     (v : { v : tree.V // v ≠ root }) (hv : v.1 ≠ w₀) :
@@ -594,24 +610,6 @@ lemma smooth_local_upgrade_at_zero_defect_point
   · exact smooth_local_upgrade_eventually_const_seq I v_seq c Ω ⟨N₀, hN₀⟩
   · exact smoothLocalConvergesOn_of_punctured_and_singleton_of_contMDiffOn_univ I v_seq v_lim Ω p
       hv_jhol.1 h_conv_punct h_pt
-
-private lemma smooth_local_upgrade_at_zero_defect_point_aux
-    (u_seq : ℕ → (CP1 → M))
-    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (v_seq : ℕ → (CP1 → M)) (v_lim : CP1 → M)
-    (hv_jhol : JHolomorphicOn I I_CP1 v_lim Set.univ)
-    (Ω : Set CP1) (p : CP1)
-    (h_open : IsOpen Ω) (hp : p ∈ Ω)
-    (h_conv_punct : SmoothLocalConvergesOn I v_seq v_lim (Ω \ {p})) :
-    SmoothLocalConvergesOn I v_seq v_lim Ω := by
-  by_cases h_cases : Ω = ∅ ∨ (∃ c : M, v_seq = (fun _ => fun _ => c) ∧ v_lim = (fun _ => c)) ∨
-      (∃ N₀ : ℕ, ∃ c : M, (∀ n ≥ N₀, ∀ z, v_seq n z = c) ∧ v_lim = (fun _ => c)) ∨
-      SmoothLocalConvergesOn I v_seq v_lim {p}
-  · exact smooth_local_upgrade_at_zero_defect_point I v_seq v_lim hv_jhol Ω p h_open hp h_conv_punct h_cases
-  · have _ := Analysis.epsilon_regularity I (M := M)
-    have _ := Analysis.local_smooth_compactness I (M := M)
-    have _ := smooth_local_limit_unique I (M := M)
-    sorry
 
 /-- Smooth convergence upgrade across a deleted node (`0 sorryAx` conditional reduction):
 At an interior smooth point attached to a degree-1 constant root with zero limiting energy atom,
@@ -935,12 +933,12 @@ At an interior smooth point attached to a degree-1 constant root with zero limit
 convergence upgrades smoothly across the point. -/
 theorem upgrade_convergence_across_deleted_node
     (u_seq : ℕ → (CP1 → M))
-    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
     (pdata : PrestableLimitData I u_seq)
     (w₀ : pdata.tree.V)
     (hw₀_adj : pdata.tree.adj.Adj pdata.root w₀)
-    (_h_deg1 : pdata.tree.adj.degree pdata.root = 1)
-    (_h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
+    (h_deg1 : pdata.tree.adj.degree pdata.root = 1)
+    (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c)
     (Ω : Set CP1)
     (h_open : IsOpen Ω)
     (hp : pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj) ∈ Ω)
@@ -951,11 +949,8 @@ theorem upgrade_convergence_across_deleted_node
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀) Ω :=
-  smooth_local_upgrade_at_zero_defect_point_aux I u_seq h_jhol
-    (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
-    (pdata.map w₀) (pdata.is_jhol w₀) Ω
-    (pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj))
-    h_open hp h_conv_punct
+  upgrade_convergence_across_deleted_node_of_singleton_conv I u_seq pdata w₀ hw₀_adj h_deg1 h_const
+    Ω h_open hp h_conv_punct (pdata.ghost_root_deg_one_conv h_deg1 h_const w₀ hw₀_adj)
 
 /-- Frame and convergence transfer onto the pruned sphere tree when a degree-1
 constant root is contracted and singleton convergence holds at the deleted node (`0 sorryAx`). -/
@@ -1050,6 +1045,11 @@ theorem prune_degree_one_root_of_singleton_conv
     root_frame_id := h_root_id
     frame_collapse := h_collapse
     smooth_conv := h_smooth
+    ghost_root_deg_one_conv := fun h_deg1' h_const' => by
+      have h_ge3 := pdata.stable_off_root w₀ hw₀_ne h_const'
+      have h_add := prunedSimpleGraph_degree_neighbor_add_one pdata.tree pdata.root w₀ hw₀_adj
+      change (prunedSimpleGraph pdata.tree pdata.root).degree ⟨w₀, hw₀_adj.ne'⟩ = 1 at h_deg1'
+      omega
     energy_ident := by
       change Tendsto (fun n => totalEnergy I (u_seq (pdata.σ.1 n))) atTop
         (𝓝 (∑ v : {v : pdata.tree.V // v ≠ pdata.root}, totalEnergy I (pdata.map v.1)))
@@ -1161,6 +1161,11 @@ theorem prune_degree_one_root_of_upgrade
     root_frame_id := h_root_id
     frame_collapse := h_collapse
     smooth_conv := h_smooth
+    ghost_root_deg_one_conv := fun h_deg1' h_const' => by
+      have h_ge3 := pdata.stable_off_root w₀ hw₀_ne h_const'
+      have h_add := prunedSimpleGraph_degree_neighbor_add_one pdata.tree pdata.root w₀ hw₀_adj
+      change (prunedSimpleGraph pdata.tree pdata.root).degree ⟨w₀, hw₀_adj.ne'⟩ = 1 at h_deg1'
+      omega
     energy_ident := by
       change Tendsto (fun n => totalEnergy I (u_seq (pdata.σ.1 n))) atTop
         (𝓝 (∑ v : {v : pdata.tree.V // v ≠ pdata.root}, totalEnergy I (pdata.map v.1)))
@@ -1256,6 +1261,11 @@ theorem prune_degree_one_root_of_continuous_of_discrete [DiscreteTopology M]
     root_frame_id := h_root_id
     frame_collapse := h_collapse
     smooth_conv := h_smooth
+    ghost_root_deg_one_conv := fun h_deg1' h_const' => by
+      have h_ge3 := pdata.stable_off_root w₀ hw₀_ne h_const'
+      have h_add := prunedSimpleGraph_degree_neighbor_add_one pdata.tree pdata.root w₀ hw₀_adj
+      change (prunedSimpleGraph pdata.tree pdata.root).degree ⟨w₀, hw₀_adj.ne'⟩ = 1 at h_deg1'
+      omega
     energy_ident := by
       change Tendsto (fun n => totalEnergy I (u_seq (pdata.σ.1 n))) atTop
         (𝓝 (∑ v : {v : pdata.tree.V // v ≠ pdata.root}, totalEnergy I (pdata.map v.1)))
@@ -1409,6 +1419,11 @@ theorem prune_degree_one_root
     root_frame_id := h_root_id
     frame_collapse := h_collapse
     smooth_conv := h_smooth
+    ghost_root_deg_one_conv := fun h_deg1' h_const' => by
+      have h_ge3 := pdata.stable_off_root w₀ hw₀_ne h_const'
+      have h_add := prunedSimpleGraph_degree_neighbor_add_one pdata.tree pdata.root w₀ hw₀_adj
+      change (prunedSimpleGraph pdata.tree pdata.root).degree ⟨w₀, hw₀_adj.ne'⟩ = 1 at h_deg1'
+      omega
     energy_ident := by
       change Tendsto (fun n => totalEnergy I (u_seq (pdata.σ.1 n))) atTop
         (𝓝 (∑ v : {v : pdata.tree.V // v ≠ pdata.root}, totalEnergy I (pdata.map v.1)))
@@ -2105,6 +2120,12 @@ theorem suppress_degree_two_root
     root_frame_id := h_root_id
     frame_collapse := h_collapse
     smooth_conv := h_smooth
+    ghost_root_deg_one_conv := fun h_deg1' h_const' => by
+      have h_ge3 := pdata.stable_off_root w₁ hadj₁.ne' h_const'
+      have h_eq := suppressedSimpleGraph_degree_eq pdata.tree pdata.root w₁ w₂ hne hadj₁ hadj₂ h_uniq₂ ⟨w₁, hadj₁.ne'⟩
+      change (suppressedSimpleGraph pdata.tree pdata.root w₁ w₂).degree ⟨w₁, hadj₁.ne'⟩ = 1 at h_deg1'
+      dsimp only at h_eq
+      omega
     energy_ident := by
       change Tendsto (fun n => totalEnergy I (u_seq (pdata.σ.1 n))) atTop
         (𝓝 (∑ v : {v : pdata.tree.V // v ≠ pdata.root}, totalEnergy I (pdata.map v.1)))

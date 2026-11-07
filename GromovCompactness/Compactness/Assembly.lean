@@ -81,6 +81,16 @@ structure PrestableLimitData (u_seq : ℕ → (CP1 → M)) where
       (fun n => (u_seq (σ.1 n)) ∘ (frames v n).toHomeo)
       (map v)
       (punctured_sphere { z | ∃ (w : tree.V) (h : tree.adj.Adj v w), z = tree.node_point v w h })
+  /-- Zero-defect singleton convergence at the attachment point of a degree-1 constant root:
+  when `root` has degree 1 and `map root` is constant, the exterior of the unique child bubble `w₀`
+  carries zero limiting energy, so the rescaled sequence on `w₀` also converges smoothly at the attachment node. -/
+  ghost_root_deg_one_conv :
+    tree.adj.degree root = 1 → (∃ c : M, ∀ z : CP1, map root z = c) →
+    ∀ (w₀ : tree.V) (hw₀_adj : tree.adj.Adj root w₀),
+      SmoothLocalConvergesOn I
+        (fun n => (u_seq (σ.1 n)) ∘ (frames w₀ n).toHomeo)
+        (map w₀)
+        {tree.node_point w₀ root (tree.adj.adj_symm hw₀_adj)}
   /-- Global energy conservation: $\lim_{n \to \infty} E(u_{\sigma(n)}) = \sum_{v \in V} E(u_v)$. -/
   energy_ident :
     Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
@@ -331,6 +341,7 @@ def prestable_limit_singleton
       rfl
     rw [h_seq]
     exact h_conv
+  ghost_root_deg_one_conv := fun _ _ _ hw₀_adj => False.elim hw₀_adj
   energy_ident := by
     have h_sum : (∑ v : Bubbling.singletonSphereTree.V, totalEnergy I ((fun _ => u_lim) v)) = totalEnergy I u_lim := by
       change (∑ _v : Unit, totalEnergy I u_lim) = totalEnergy I u_lim
@@ -371,6 +382,7 @@ def prestable_limit_singleton_subseq
       ext n x; rfl
     rw [h_seq]
     exact h_conv
+  ghost_root_deg_one_conv := fun _ _ _ hw₀_adj => False.elim hw₀_adj
   energy_ident := by
     have h_sum : (∑ v : Bubbling.singletonSphereTree.V, totalEnergy I ((fun _ => u_lim) v)) = totalEnergy I u_lim := by
       change (∑ _v : Unit, totalEnergy I u_lim) = totalEnergy I u_lim
@@ -1113,28 +1125,30 @@ private theorem extract_grafted_tree_rescaling_and_conv_aux
         (∀ (w : P.tree.V) (hw : w ≠ P.root) (n : ℕ),
           frames w n = MoebiusFrame.comp (frames (res.parent w hw) n)
             (affine_scaling (res.center w n) (res.scale w n) (res.scale_pos w n))) →
-        ∀ (v : P.tree.V),
+        (∀ (v : P.tree.V),
           SmoothLocalConvergesOn I
             (fun n => (u_seq (σ.1 n)) ∘ (frames v n).toHomeo)
             (P.map v)
             (punctured_sphere { z | ∃ (w : P.tree.V) (h : P.tree.adj.Adj v w), z = P.tree.node_point v w h })) ∧
+        (P.tree.adj.degree P.root = 1 → (∃ c : M, ∀ z : CP1, P.map P.root z = c) →
+          ∀ (w₀ : P.tree.V) (hw₀_adj : P.tree.adj.Adj P.root w₀),
+            SmoothLocalConvergesOn I
+              (fun n => (u_seq (σ.1 n)) ∘ (frames w₀ n).toHomeo)
+              (P.map w₀)
+              {P.tree.node_point w₀ P.root (P.tree.adj.adj_symm hw₀_adj)})) ∧
       Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
         (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p)) := by
-  by_cases h_root : (cdata.S = ∅ ∧
+  by_cases h_root : cdata.S = ∅ ∧
       (Tendsto (fun n => totalEnergy I (u_seq (cdata.σ.1 n))) atTop
           (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p)) ∨
         ∃ (τ : Bookkeeping.SubseqMap),
           Tendsto (fun n => totalEnergy I (u_seq ((cdata.σ.comp τ).1 n))) atTop
-            (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p)))) ∨
-      (∃ (σ : Bookkeeping.SubseqMap) (res : TreeRescalingData P.tree P.root),
-        (∀ (v : P.tree.V),
-          SmoothLocalConvergesOn I
-            (fun n => (u_seq (σ.1 n)) ∘ (globalFrameAt P.tree P.root res v n).toHomeo)
-            (P.map v)
-            (punctured_sphere { z | ∃ (w : P.tree.V) (h : P.tree.adj.Adj v w), z = P.tree.node_point v w h })) ∧
-        Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
-          (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p)))
-  · exact extract_grafted_tree_rescaling_and_conv I u_seq B th cdata m_defect P h_root
+            (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p)))
+  · obtain ⟨σ, res, h_conv, h_en⟩ :=
+      extract_grafted_tree_rescaling_and_conv_of_empty_S I u_seq B th cdata m_defect P h_root.1 h_root.2
+    refine ⟨σ, res, fun frames h_root_id h_rec => ⟨h_conv frames h_root_id h_rec, fun h_deg1 _ _ _ => ?_⟩, h_en⟩
+    have h_deg0 := P.degree_root_eq_zero_of_empty I h_root.1
+    omega
   · sorry
 
 /-- When the concentration singular set `cdata.S` is empty, `graft_defect_trees_to_root` holds
@@ -1466,11 +1480,17 @@ theorem graft_defect_trees_to_root
           (∀ (w : P.tree.V) (hw : w ≠ P.root) (n : ℕ),
             frames w n = MoebiusFrame.comp (frames (res.parent w hw) n)
               (affine_scaling (res.center w n) (res.scale w n) (res.scale_pos w n))) →
-          ∀ (v : P.tree.V),
+          (∀ (v : P.tree.V),
             SmoothLocalConvergesOn I
               (fun n => (u_seq (σ.1 n)) ∘ (frames v n).toHomeo)
               (P.map v)
               (punctured_sphere { z | ∃ (w : P.tree.V) (h : P.tree.adj.Adj v w), z = P.tree.node_point v w h })) ∧
+          (P.tree.adj.degree P.root = 1 → (∃ c : M, ∀ z : CP1, P.map P.root z = c) →
+            ∀ (w₀ : P.tree.V) (hw₀_adj : P.tree.adj.Adj P.root w₀),
+              SmoothLocalConvergesOn I
+                (fun n => (u_seq (σ.1 n)) ∘ (frames w₀ n).toHomeo)
+                (P.map w₀)
+                {P.tree.node_point w₀ P.root (P.tree.adj.adj_symm hw₀_adj)})) ∧
         Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
           (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p))) :
     ∃ (pdata : PrestableLimitData I u_seq),
@@ -1491,7 +1511,8 @@ theorem graft_defect_trees_to_root
       frames := frames
       root_frame_id := ⟨_, h_root_id⟩
       frame_collapse := h_collapse
-      smooth_conv := h_conv frames h_root_id h_rec
+      smooth_conv := (h_conv frames h_root_id h_rec).1
+      ghost_root_deg_one_conv := (h_conv frames h_root_id h_rec).2
       energy_ident := by
         rw [P.energy_sum]
         exact h_en_tendsto
@@ -1517,11 +1538,17 @@ theorem assemble_prestable_limit_of_components
           (∀ (w : P.tree.V) (hw : w ≠ P.root) (n : ℕ),
             frames w n = MoebiusFrame.comp (frames (res.parent w hw) n)
               (affine_scaling (res.center w n) (res.scale w n) (res.scale_pos w n))) →
-          ∀ (v : P.tree.V),
+          (∀ (v : P.tree.V),
             SmoothLocalConvergesOn I
               (fun n => (u_seq (σ.1 n)) ∘ (frames v n).toHomeo)
               (P.map v)
               (punctured_sphere { z | ∃ (w : P.tree.V) (h : P.tree.adj.Adj v w), z = P.tree.node_point v w h })) ∧
+          (P.tree.adj.degree P.root = 1 → (∃ c : M, ∀ z : CP1, P.map P.root z = c) →
+            ∀ (w₀ : P.tree.V) (hw₀_adj : P.tree.adj.Adj P.root w₀),
+              SmoothLocalConvergesOn I
+                (fun n => (u_seq (σ.1 n)) ∘ (frames w₀ n).toHomeo)
+                (P.map w₀)
+                {P.tree.node_point w₀ P.root (P.tree.adj.adj_symm hw₀_adj)})) ∧
         Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
           (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p))) :
     ∃ (pdata : PrestableLimitData I u_seq),
@@ -1682,6 +1709,7 @@ def PrestableLimitData.of_subseq
   root_frame_id := pdata.root_frame_id
   frame_collapse := pdata.frame_collapse
   smooth_conv := pdata.smooth_conv
+  ghost_root_deg_one_conv := pdata.ghost_root_deg_one_conv
   energy_ident := pdata.energy_ident
 
 /-- Zero-sorry prestable limit assembly directly from any `PrestableLimitData` on `u_seq` (`0 sorryAx`). -/
