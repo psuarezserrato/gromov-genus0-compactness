@@ -1225,4 +1225,37 @@ theorem exists_one_level_decomposition
   · exact exists_one_level_decomposition_of_exists_const_term I u_seq thresh m_defect hm res base_val h_match h_const
   · exact extract_rescaled_bubble_and_children_aux I u_seq h_jhol B h_energy h_fin thresh m_defect hm base_val h_disk
 
+/-! ### Sequence-relative one-level certificate
+
+The earlier certificate `h_one_level` asked for a one-level decomposition for *every* mass
+`m ≥ h` and every base point. It ignored the sequence, so on targets whose sphere energies are
+quantized (for example `CP1`) it cannot hold. The predicates below tie the mass `m` to a genuine
+energy defect of a sequence. -/
+
+/-- `f` has a genuine energy defect of mass `m` at the stereographic point `a` with base value `b`:
+the maps are `J`-holomorphic with bounded finite energy, `lim_{r→0} lim_n E(f n; D_r(a)) = m`, and
+on small annuli around `a` the maps eventually stay close to `b`. -/
+def IsDefectSeq (f : ℕ → (CP1 → M)) (a : ℂ) (m : ℝ) (b : M) : Prop :=
+  (∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (f n) Set.univ) ∧
+  (∃ B : ℝ, ∀ n, totalEnergy I (f n) ≤ B) ∧
+  (∀ n, energyMeasureExtended I (f n) Set.univ < ⊤) ∧
+  (∀ ε : ℝ, 0 < ε → ∃ r₀ : ℝ, 0 < r₀ ∧ ∀ r : ℝ, 0 < r → r ≤ r₀ →
+    ∀ᶠ n in atTop, |energyMeasure I (f n) (disk_at a r) - m| < ε) ∧
+  (∀ ε : ℝ, 0 < ε → ∃ r₀ : ℝ, 0 < r₀ ∧ ∀ r : ℝ, 0 < r → r ≤ r₀ →
+    ∀ᶠ n in atTop, ∀ z ∈ annulus_at a (r / 2) r, dist (f n z) b < ε)
+
+/-- A one-level decomposition whose children are again genuine defects of some sequence
+(in the intended proof: the rescaled subsequence). -/
+structure SeqOneLevelDecomposition (thresh : TargetThresholds I M) (m_defect : ℝ) (base_val : M)
+    extends OneLevelDecomposition I thresh m_defect base_val where
+  child_seq : ℂ → ℕ → (CP1 → M)
+  child_defect : ∀ z ∈ q, IsDefectSeq I (child_seq z) z (m_child z) (v (stereo_chart.symm z))
+
+/-- Sequence-relative form of Contract B04: every genuine defect of mass `m ≥ h` admits a one-level
+decomposition whose children are genuine defects. This replaces the over-quantified
+`h_one_level`. -/
+def OneLevelCertificate (thresh : TargetThresholds I M) : Prop :=
+  ∀ (f : ℕ → (CP1 → M)) (a : ℂ) (m : ℝ) (b : M), thresh.h ≤ m →
+    IsDefectSeq I f a m b → Nonempty (SeqOneLevelDecomposition I thresh m b)
+
 end GromovCompactness.Bubbling

@@ -98,33 +98,8 @@ theorem gromov_compactness_genus_zero
       ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
         SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
         μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
-    (h_one_level : ∀ (m : ℝ), th.h ≤ m → ∀ (b : M),
-      (∃ v : CP1 → M,
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        m = totalEnergy I v ∧
-        v north_pole = b ∧
-        energyMeasure I v (disk_at 0 1) = m - th.h / 2) ∨
-      (∃ v : CP1 → M,
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        totalEnergy I v ≤ m - th.h ∧
-        v north_pole = b ∧
-        totalEnergy I v - energyMeasure I v (disk_at 0 1) = th.h / 2) ∨
-      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        (∀ z ∈ q, ‖z‖ < 1) ∧
-        (∀ z ∈ q, th.h ≤ m_child z) ∧
-        (∀ z ∉ q, m_child z = 0) ∧
-        m = totalEnergy I v + ∑ z ∈ q, m_child z ∧
-        v north_pole = b ∧
-        totalEnergy I v - energyMeasure I v (disk_at 0 1) = th.h / 2) ∨
-      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        (∀ z ∈ q, th.h ≤ m_child z) ∧
-        (∀ z ∉ q, m_child z = 0) ∧
-        m = totalEnergy I v + ∑ z ∈ q, m_child z ∧
-        v north_pole = b ∧
-        energyMeasure I v (disk_at 0 1) + ∑ z ∈ q.filter (fun w => ‖w‖ < 1), m_child z =
-          m - th.h / 2))
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_conc_defects : Assembly.ConcDefectCertificate I u_seq B th)
     (h_graft_extract : ∀ (cdata : Compactness.ConcentrationData I u_seq B th)
       (m_defect : CP1 → ℝ)
       (P : Assembly.PartialRootGraftedTree I u_seq B th cdata m_defect cdata.S),
@@ -156,7 +131,7 @@ theorem gromov_compactness_genus_zero
       ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2)) :=
   gromov_compactness_genus_zero_of_core I th u_seq B h_energy
     (gromov_compactness_core I th u_seq B h_nonconst h_jhol h_energy h_fin
-      h_conc_extract h_one_level h_graft_extract)
+      h_conc_extract h_cert h_conc_defects h_graft_extract)
 
 /-- Zero-sorry Genus 0 Gromov Compactness when a subsequence converges smoothly on `CP1` to a
 non-constant map with energy conservation (`0 sorryAx`). -/

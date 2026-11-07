@@ -1979,6 +1979,15 @@ theorem extract_grafted_tree_rescaling_and_conv_of_all_jhol_exists_const
       ext z
       rw [hc z, hc north_pole])
 
+/-- Sequence-relative certificate: every atom of the concentration measure of `u_seq` is a genuine
+defect (`Bubbling.IsDefectSeq`) of some sequence (in the intended proof: a rotated subsequence of
+`u_seq`), with the defect mass and the base value `u₀ p`. Unlike the earlier `h_one_level`, this
+only concerns masses that actually occur. -/
+def ConcDefectCertificate (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M) : Prop :=
+  ∀ (cdata : Compactness.ConcentrationData I u_seq B th) (m : CP1 → ℝ),
+    cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • MeasureTheory.Measure.dirac p) →
+    ∀ p ∈ cdata.S, ∃ (f : ℕ → (CP1 → M)) (a : ℂ), Bubbling.IsDefectSeq I f a (m p) (cdata.u₀ p)
+
 /-- Assembles the base map u₀ and all defect trees from Contract B07 into a global prestable limit (Contract G01).
 Proved with zero direct sorry. -/
 theorem assemble_prestable_limit
@@ -1994,33 +2003,8 @@ theorem assemble_prestable_limit
       ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
         SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
         μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
-    (h_one_level : ∀ (m : ℝ), th.h ≤ m → ∀ (b : M),
-      (∃ v : CP1 → M,
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        m = totalEnergy I v ∧
-        v north_pole = b ∧
-        energyMeasure I v (disk_at 0 1) = m - th.h / 2) ∨
-      (∃ v : CP1 → M,
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        totalEnergy I v ≤ m - th.h ∧
-        v north_pole = b ∧
-        totalEnergy I v - energyMeasure I v (disk_at 0 1) = th.h / 2) ∨
-      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        (∀ z ∈ q, ‖z‖ < 1) ∧
-        (∀ z ∈ q, th.h ≤ m_child z) ∧
-        (∀ z ∉ q, m_child z = 0) ∧
-        m = totalEnergy I v + ∑ z ∈ q, m_child z ∧
-        v north_pole = b ∧
-        totalEnergy I v - energyMeasure I v (disk_at 0 1) = th.h / 2) ∨
-      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        (∀ z ∈ q, th.h ≤ m_child z) ∧
-        (∀ z ∉ q, m_child z = 0) ∧
-        m = totalEnergy I v + ∑ z ∈ q, m_child z ∧
-        v north_pole = b ∧
-        energyMeasure I v (disk_at 0 1) + ∑ z ∈ q.filter (fun w => ‖w‖ < 1), m_child z =
-          m - th.h / 2))
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_conc_defects : ConcDefectCertificate I u_seq B th)
     (h_graft_extract : ∀ (cdata : Compactness.ConcentrationData I u_seq B th)
       (m_defect : CP1 → ℝ)
       (P : PartialRootGraftedTree I u_seq B th cdata m_defect cdata.S),
@@ -2055,12 +2039,16 @@ theorem assemble_prestable_limit
       exact assemble_prestable_limit_of_eventually_const_subseq I u_seq B h_jhol h_energy σ N₀ c hc
     · have hB : 0 ≤ B := (energy_nonneg I (u_seq 0) Set.univ).trans (h_energy 0)
       obtain ⟨cdata⟩ := Compactness.exists_concentration_data I u_seq h_jhol B hB h_energy h_fin th h_conc_extract
-      obtain ⟨m_defect, hm_sph, _hm_zero, _h_decomp, h_tendsto_energy⟩ :=
+      obtain ⟨m_defect, hm_sph, _hm_zero, h_decomp, h_tendsto_energy⟩ :=
         Compactness.defect_measure_identity I u_seq B h_jhol h_energy h_fin th cdata
       let defect_trees : (p : CP1) → p ∈ cdata.S → Bubbling.LocalDefectTree I th (m_defect p) (cdata.u₀ p) :=
         fun p hp =>
           have h_pos : 0 < m_defect p := th.ε_sph_pos.trans_le (hm_sph p hp)
-          Classical.choice (Bubbling.resolve_single_defect_tree I u_seq h_jhol B h_energy h_fin th (m_defect p) h_pos (cdata.u₀ p) h_one_level)
+          have h_ex := h_conc_defects cdata m_defect h_decomp p hp
+          Classical.choice (Bubbling.resolve_single_defect_tree I u_seq h_jhol B h_energy h_fin th
+            (m_defect p) h_pos (cdata.u₀ p) h_cert (Classical.choose h_ex)
+            (Classical.choose (Classical.choose_spec h_ex))
+            (Classical.choose_spec (Classical.choose_spec h_ex)))
       exact assemble_prestable_limit_of_components I th u_seq B h_energy cdata m_defect hm_sph h_tendsto_energy
         defect_trees (h_graft_extract cdata m_defect)
 

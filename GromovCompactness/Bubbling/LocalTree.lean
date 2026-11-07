@@ -615,7 +615,9 @@ theorem resolve_single_defect_tree_of_leaf_bubble
     hm rfl⟩
 
 /-- Zero-sorry conditional reduction of `resolve_single_defect_tree` via `energy_rank_induction`
-from one-level mass decomposition `h_one_level` (`0 sorryAx`). -/
+from one-level mass decomposition `h_one_level` (`0 sorryAx`).
+WARNING: the hypothesis quantifies over every mass `m ≥ h`; it fails on targets with quantized
+sphere energies such as `CP1`. Use `resolve_single_defect_tree_of_certificate` instead. -/
 theorem resolve_single_defect_tree_of_one_level
     (thresh : TargetThresholds I M)
     (h_one_level : ∀ (m : ℝ), thresh.h ≤ m → ∀ (b : M),
@@ -1028,6 +1030,38 @@ theorem resolve_single_defect_tree_of_calibrated_of_all_jhol_eq_north_pole
   resolve_single_defect_tree_of_calibrated_of_all_jhol_const I u_seq thresh m_defect hm res base_val n₀ hu₀
     (fun u hu => ⟨u north_pole, fun z => congr_fun (h_all_np u hu) z⟩)
 
+/-- Contract B07 by energy-rank induction from the sequence-relative certificate
+`OneLevelCertificate` (`0 sorryAx`). The mass is tied to a genuine defect `IsDefectSeq`. -/
+theorem resolve_single_defect_tree_of_certificate
+    (thresh : TargetThresholds I M) (h_cert : OneLevelCertificate I thresh)
+    (m_defect : ℝ) (hm : 0 < m_defect) (f : ℕ → (CP1 → M)) (a : ℂ) (base_val : M)
+    (h_def : IsDefectSeq I f a m_defect base_val) :
+    Nonempty (LocalDefectTree I thresh m_defect base_val) := by
+  revert h_def base_val a f hm
+  refine energy_rank_induction thresh.h
+    (fun m => 0 < m → ∀ (f : ℕ → (CP1 → M)) (a : ℂ) (b : M), IsDefectSeq I f a m b →
+      Nonempty (LocalDefectTree I thresh m b)) ?_ m_defect
+  intro m ih hm_pos f a b h_def
+  by_cases h_ge : thresh.h ≤ m
+  · obtain ⟨sdecomp⟩ := h_cert f a m b h_ge h_def
+    let decomp := sdecomp.toOneLevelDecomposition
+    by_cases h_q : decomp.q = ∅
+    · exact ⟨local_defect_tree_of_empty_children I thresh m b decomp h_ge h_q⟩
+    · have h_children : ∀ (z : ℂ) (hz : z ∈ decomp.q),
+          Nonempty (LocalDefectTree I thresh (decomp.m_child z) (decomp.v (stereo_chart.symm z))) := by
+        intro z hz
+        have h_rel : energy_rank_rel thresh.h (decomp.m_child z) m :=
+          child_rank_strict_decrease I thresh m b decomp h_ge z hz
+        have h_pos : 0 < decomp.m_child z :=
+          thresh.h_pos.trans_le (decomp.m_child_pos z hz)
+        exact ih (decomp.m_child z) h_rel h_pos (sdecomp.child_seq z) z _ (sdecomp.child_defect z hz)
+      let child_trees : (z : ℂ) → z ∈ decomp.q →
+          LocalDefectTree I thresh (decomp.m_child z) (decomp.v (stereo_chart.symm z)) :=
+        fun z hz => Classical.choice (h_children z hz)
+      exact graft_child_defect_trees I thresh m b decomp h_ge child_trees
+  · push_neg at h_ge
+    exact local_defect_tree_of_subthreshold I thresh m hm_pos h_ge b
+
 /-- Resolution of a Single Defect into a Finite Rooted Bubble Tree (Contract B07).
 Proved with zero direct sorry via energy_rank_induction and B04/B06. -/
 theorem resolve_single_defect_tree
@@ -1037,38 +1071,12 @@ theorem resolve_single_defect_tree
     (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
     (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (thresh : TargetThresholds I M) (m_defect : ℝ) (hm : 0 < m_defect) (base_val : M)
-    (h_one_level : ∀ (m : ℝ), thresh.h ≤ m → ∀ (b : M),
-      (∃ v : CP1 → M,
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        m = totalEnergy I v ∧
-        v north_pole = b ∧
-        energyMeasure I v (disk_at 0 1) = m - thresh.h / 2) ∨
-      (∃ v : CP1 → M,
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        totalEnergy I v ≤ m - thresh.h ∧
-        v north_pole = b ∧
-        totalEnergy I v - energyMeasure I v (disk_at 0 1) = thresh.h / 2) ∨
-      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        (∀ z ∈ q, ‖z‖ < 1) ∧
-        (∀ z ∈ q, thresh.h ≤ m_child z) ∧
-        (∀ z ∉ q, m_child z = 0) ∧
-        m = totalEnergy I v + ∑ z ∈ q, m_child z ∧
-        v north_pole = b ∧
-        totalEnergy I v - energyMeasure I v (disk_at 0 1) = thresh.h / 2) ∨
-      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        (∀ z ∈ q, thresh.h ≤ m_child z) ∧
-        (∀ z ∉ q, m_child z = 0) ∧
-        m = totalEnergy I v + ∑ z ∈ q, m_child z ∧
-        v north_pole = b ∧
-        energyMeasure I v (disk_at 0 1) + ∑ z ∈ q.filter (fun w => ‖w‖ < 1), m_child z =
-          m - thresh.h / 2)) :
+    (h_cert : OneLevelCertificate I thresh)
+    (f : ℕ → (CP1 → M)) (a : ℂ) (h_def : IsDefectSeq I f a m_defect base_val) :
     Nonempty (LocalDefectTree I thresh m_defect base_val) := by
   by_cases hm_lt : m_defect < thresh.h
   · exact local_defect_tree_of_subthreshold I thresh m_defect hm hm_lt base_val
-  · exact resolve_single_defect_tree_of_one_level I thresh
-      (fun m h_ge b => extract_rescaled_bubble_and_children_aux I u_seq h_jhol B h_energy h_fin thresh m h_ge b (h_one_level m h_ge b)) m_defect hm base_val
+  · exact resolve_single_defect_tree_of_certificate I thresh h_cert m_defect hm f a base_val h_def
 
 #print axioms energy_rank_wf
 #print axioms energy_rank_induction

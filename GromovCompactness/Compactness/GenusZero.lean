@@ -871,33 +871,8 @@ theorem gromov_compactness_core
       ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
         SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
         μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
-    (h_one_level : ∀ (m : ℝ), th.h ≤ m → ∀ (b : M),
-      (∃ v : CP1 → M,
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        m = totalEnergy I v ∧
-        v north_pole = b ∧
-        energyMeasure I v (disk_at 0 1) = m - th.h / 2) ∨
-      (∃ v : CP1 → M,
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        totalEnergy I v ≤ m - th.h ∧
-        v north_pole = b ∧
-        totalEnergy I v - energyMeasure I v (disk_at 0 1) = th.h / 2) ∨
-      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        (∀ z ∈ q, ‖z‖ < 1) ∧
-        (∀ z ∈ q, th.h ≤ m_child z) ∧
-        (∀ z ∉ q, m_child z = 0) ∧
-        m = totalEnergy I v + ∑ z ∈ q, m_child z ∧
-        v north_pole = b ∧
-        totalEnergy I v - energyMeasure I v (disk_at 0 1) = th.h / 2) ∨
-      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        (∀ z ∈ q, th.h ≤ m_child z) ∧
-        (∀ z ∉ q, m_child z = 0) ∧
-        m = totalEnergy I v + ∑ z ∈ q, m_child z ∧
-        v north_pole = b ∧
-        energyMeasure I v (disk_at 0 1) + ∑ z ∈ q.filter (fun w => ‖w‖ < 1), m_child z =
-          m - th.h / 2))
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_conc_defects : Assembly.ConcDefectCertificate I u_seq B th)
     (h_graft_extract : ∀ (cdata : Compactness.ConcentrationData I u_seq B th)
       (m_defect : CP1 → ℝ)
       (P : Assembly.PartialRootGraftedTree I u_seq B th cdata m_defect cdata.S),
@@ -929,7 +904,7 @@ theorem gromov_compactness_core
   · by_cases h_lt : B < th.ε_sph
     · exact gromov_compactness_core_of_lt_eps_sph I th u_seq B h_nonconst h_jhol h_energy h_lt
     · obtain ⟨pdata, _h_en_le⟩ := assemble_prestable_limit I th u_seq B h_jhol h_energy h_fin
-        h_conc_extract h_one_level h_graft_extract
+        h_conc_extract h_cert h_conc_defects h_graft_extract
       exact gromov_compactness_core_of_assemble_and_stabilize I u_seq pdata
         (stabilize_prestable_tree I th u_seq pdata h_nonconst h_jhol)
 
@@ -1009,33 +984,8 @@ theorem gromov_subsequence_alternative
       ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
         SmoothLocalConvergesOn I (fun n => v ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
         μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
-    (h_one_level : ∀ (m : ℝ), th.h ≤ m → ∀ (b : M),
-      (∃ v : CP1 → M,
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        m = totalEnergy I v ∧
-        v north_pole = b ∧
-        energyMeasure I v (disk_at 0 1) = m - th.h / 2) ∨
-      (∃ v : CP1 → M,
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        totalEnergy I v ≤ m - th.h ∧
-        v north_pole = b ∧
-        totalEnergy I v - energyMeasure I v (disk_at 0 1) = th.h / 2) ∨
-      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        (∀ z ∈ q, ‖z‖ < 1) ∧
-        (∀ z ∈ q, th.h ≤ m_child z) ∧
-        (∀ z ∉ q, m_child z = 0) ∧
-        m = totalEnergy I v + ∑ z ∈ q, m_child z ∧
-        v north_pole = b ∧
-        totalEnergy I v - energyMeasure I v (disk_at 0 1) = th.h / 2) ∨
-      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
-        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-        (∀ z ∈ q, th.h ≤ m_child z) ∧
-        (∀ z ∉ q, m_child z = 0) ∧
-        m = totalEnergy I v + ∑ z ∈ q, m_child z ∧
-        v north_pole = b ∧
-        energyMeasure I v (disk_at 0 1) + ∑ z ∈ q.filter (fun w => ‖w‖ < 1), m_child z =
-          m - th.h / 2))
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_conc_defects : ∀ v : ℕ → (CP1 → M), Assembly.ConcDefectCertificate I v B th)
     (h_graft_extract : ∀ (v : ℕ → (CP1 → M)) (cdata : Compactness.ConcentrationData I v B th)
       (m_defect : CP1 → ℝ)
       (P : Assembly.PartialRootGraftedTree I v B th cdata m_defect cdata.S),
@@ -1065,7 +1015,7 @@ theorem gromov_subsequence_alternative
   gromov_subsequence_alternative_of_core I th u_seq B h_jhol h_energy h_fin
     (fun v hv_nc hv_jhol hv_en hv_fin =>
       gromov_compactness_core I th v B hv_nc hv_jhol hv_en hv_fin
-        (h_conc_extract v) h_one_level (h_graft_extract v))
+        (h_conc_extract v) h_cert (h_conc_defects v) (h_graft_extract v))
 
 #print axioms compactnessWitness_energy_le
 #print axioms compactnessWitness_subseq_strictMono
