@@ -203,15 +203,49 @@ declarations (\NthmClean{} theorems) depend only on \code{propext}, \code{Classi
 
 \paragraph{What is proved only from certificates.}
 The remaining 26 tracked declarations are proved, with no \code{sorry}, from explicit hypotheses
-that are concrete Lean predicates. The local-chart certificates are \code{h\_weitz} (Weitzenb\"ock
-bound $-be^2\le\Delta e$ in coordinates; gives Bochner and $\eps$-regularity), \code{h\_hit\_exit}
-(isoperimetric bound and exit from small Darboux balls; gives monotonicity and the energy gap),
-\code{h\_osc}, \code{h\_decay}, \code{h\_punc} (collar oscillation, exponential decay on cylinders,
-$W^{1,2}$ extension across a puncture; give the cylinder lemmas, neck vanishing and removal of
-singularities), and \code{h\_tower}, \code{h\_aa} (Schauder tower and Arzel\`a--Ascoli extraction in
-charts; give the nonlinear bootstrap and local smooth compactness). They are not proved because
-Mathlib's \code{chartAt} is an arbitrary chart with no normalization, so estimates whose proofs need
-normal or Darboux coordinates cannot be derived from it directly.
+that are concrete Lean predicates. Table~\ref{tab:certificates} lists every certificate currently
+assumed, what it states, which contracts it serves, and how much the Lean proof adds on top of it.
+The last column matters: for several analytic contracts the certificate is identical, or equivalent
+up to algebra, to the conclusion, so the corresponding ``reduction'' carries no analytic content.
+The local-chart certificates are not proved because Mathlib's \code{chartAt} is an arbitrary chart
+with no normalization, so estimates whose proofs need normal or Darboux coordinates cannot be derived
+from it directly.
+
+\begin{table}[p]
+\centering\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.1cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{1.9cm}>{\raggedright\arraybackslash}p{3.1cm}@{}}
+\toprule
+\textbf{Certificate (Lean)} & \textbf{Assumed statement} & \textbf{Serves} & \textbf{What the Lean proof adds}\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Energy and thresholds}}\\
+\code{h\_fin} & Each $u_n$ has finite extended energy. & C01, C02, master & ---\\
+\code{th : TargetThresholds} (parameter) & Constants $\eps_{\mathrm{reg}},\eps_{\mathrm{sph}},\eps_{\mathrm{neck}},h$ with $\eps$-regularity, energy gap and neck decay. & all bubbling, master & Built from \code{h\_weitz}, \code{h\_hit\_exit}, \code{h\_decay} (B01); existence for a given target not shown.\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Local-chart certificates (to be discharged by milestones N1--N3)}}\\
+\code{h\_weitz} & Energy density smooth in coordinates and $\Delta e=|\cdot|^2+K$, $|K|\le be^2$. & A02, A03, B01 & A02: equivalent up to algebra. A03: genuine (mean-value inequality proved).\\
+\code{h\_hit}, \code{h\_hit\_exit} & $r^2\le E(u;u^{-1}B_r(x))$ at boundary hits; nonconstant spheres exit small balls. & A08, A07, B01 & A08: near restatement. A07: short genuine combination.\\
+\code{h\_osc} (\code{SatisfiesCylinder\allowbreak CollarOscillation}) & Oscillation on the collar $\le 4\sqrt{E(u;A(r,R))}$. & A09, B03 & Short algebraic reduction.\\
+\code{h\_decay} & $E(u;A(r_1,r_2))\le C_0((r/r_1)^a+(r_2/R)^a)E(u;A(r,R))$. & A10, B01 & None: identical to the conclusion.\\
+\code{h\_ext} (\code{SatisfiesPuncture\allowbreak SobolevExtension}) & Continuous weak $J$-holomorphic extension across a puncture. & A11, A12 & A11: none (identical). A12: uniqueness, proved.\\
+\code{h\_tower} & Weak $J$-holomorphic maps are $C^n$ for all $n$. & A05, A12 & Trivial: $C^n$ for all $n$ gives $C^\infty$.\\
+\code{h\_aa} & Under gradient bounds a subsequence converges in $C^\infty_{\mathrm{loc}}$. & A06 & Limit is $J$-holomorphic (proved).\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Extraction certificates}}\\
+\code{h\_conc\_extract} & Smooth limit $u_0$ off $S$ and $\mu=\mu_{u_0}+\sum\mu\{p\}\delta_p$. & C02, master & Finiteness of $S$ and packaging, proved.\\
+\code{Assembly.\allowbreak GraftCertificate} & For the genuine defect masses, some grafted tree rooted at $u_0$ is the limit. & G01, master & Frames, stabilization, energy identity, bounds (proved); being replaced by a theorem.\\
+\code{Bubbling.\allowbreak OneLevel\allowbreak Certificate} & B04 for genuine defects (\code{IsDefectSeq}); children are genuine defects. & B07 (not yet used by master) & Energy-rank induction to a finite tree (proved).\\
+\code{Assembly.\allowbreak ConcDefect\allowbreak Certificate} & Each atom of $\mu$ is a genuine defect with mass $\mu\{p\}$ and base $u_0(p)$. & (not yet used by master) & ---\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Extensions}}\\
+\code{h\_rigidity}, \code{h\_finite\_symm} & Three-point rigidity of homeomorphisms; finite component symmetries. & E04 & Fibrewise finiteness (proved).\\
+\code{h\_metr}, \code{h\_extract} & Metrizability of the moduli space; limit extraction for marked curves, moduli space, varying $J$. & E01, E02, E05 & Compactness from sequential compactness; component bounds (proved).\\
+\bottomrule
+\end{tabularx}
+\caption{Certificates currently assumed (commit \code{b78e3d4}). ``Serves'' lists the contracts whose
+Lean proofs take the certificate as a hypothesis.}
+\label{tab:certificates}
+\end{table}
 
 \paragraph{Two over-strong certificates, and their replacements.} A reduction is only as
 meaningful as the satisfiability of its hypotheses. Up to commit \code{0a3de26} the master theorem
@@ -298,6 +332,18 @@ implements \code{pause}/\code{resume}. After the four original phases, a repair 
 definitions, a Mathlib migration followed, the open leaves were reduced from 45 to 11 and then
 converted into certificates, and finally the certificates were audited.
 
+\paragraph{Blueprint.} Following the \code{leanblueprint} workflow used for the PFR project
+\cite{TaoPFR}, the repository contains a blueprint (\code{blueprint/src/content.tex}) with one node
+per definition, certificate and contributed result: 72 nodes, each linked to its Lean declarations
+(82 names, all checked to exist) and to its dependencies via \verb|\uses|. A statement carries
+\verb|\leanok| when it is formalized; a proof carries \verb|\leanok| only when it is formalized without
+\code{sorry}. Certificates are entered as propositions whose statements are formalized but whose
+proofs are not. In the generated dependency graph every conditional theorem is therefore shown as
+proved but not fully proved, and its unproved ancestors are exactly the certificates of
+Table~\ref{tab:certificates}. Planned work (milestones N1--N3 and realized bubble trees) is marked
+\verb|\notready|. The blueprint is built to HTML with its dependency graph, and to PDF, by a
+GitHub Actions workflow.
+
 \paragraph{Local compute with Gemma.} A stdlib-only Python client exposes \code{autoformalize},
 \code{suggest-tactic} and \code{repair} commands against Ollama. The model \code{gemma-lean4} is
 Gemma~2 9B~\cite{Gemma2} with a Lean-oriented system prompt, on a laptop with 24\,GB of unified
@@ -379,7 +425,7 @@ against Lean kernel output at commit \code{b78e3d4}; the statement that $\CP$ ha
 $J$-holomorphic sphere with energy in $(0,4\pi)\cup(4\pi,8\pi)$ is standard mathematics but not yet
 formalized.
 
-\begin{thebibliography}{99}\small
+\begin{thebibliography}{99}\small\sloppy
 \bibitem{Gromov85} M.~Gromov, Pseudo holomorphic curves in symplectic manifolds,
   \emph{Invent. Math.} \textbf{82} (1985), 307--347.
 \bibitem{IvashkovichShevchishin} S.~Ivashkovich, V.~Shevchishin, Complex curves in almost-complex
@@ -394,6 +440,8 @@ formalized.
   \emph{Proc. CADE-28}, LNCS \textbf{12699} (2021), 625--635.
 \bibitem{TauCeti} TauCeti Project, Symplectic geometry roadmap,
   \url{https://github.com/TauCetiProject/TauCetiRoadmap}.
+\bibitem{TaoPFR} T.~Tao, Formalizing the proof of PFR in Lean4 using Blueprint: a short tour,
+  \emph{What's new} (blog), 18 November 2023, \href{https://terrytao.wordpress.com/2023/11/18/formalizing-the-proof-of-pfr-in-lean4-using-blueprint-a-short-tour/}{terrytao.wordpress.com}.
 \bibitem{Gemma2} Gemma Team, Gemma 2: Improving open language models at a practical size,
   arXiv:2408.00118 (2024).
 \end{thebibliography}
