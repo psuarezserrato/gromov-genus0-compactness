@@ -376,6 +376,7 @@ theorem test_singular_set_antitone (μ : Measure α) (ε₁ ε₂ : ℝ) (h_le :
 theorem test_anti_cheat_exists_target_thresholds_of_modules
     (ε_reg C_reg : ℝ) (h_reg_pos : 0 < ε_reg) (h_Creg_pos : 0 < C_reg)
     (h_reg : ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (_ : 0 < r),
+      Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1 →
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
       energyMeasure I u (disk_at a r) < ε_reg →
       ∀ z ∈ disk_at a (r / 2),

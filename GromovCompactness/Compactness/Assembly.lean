@@ -1099,7 +1099,11 @@ theorem extract_grafted_tree_rescaling_and_conv_of_eventually_nonpos_energy
     (fun n hn => (h_ev n hn).trans_lt th.ε_sph_pos)
 
 private theorem extract_grafted_tree_rescaling_and_conv_aux
-    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (_h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (_h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
+    (th : Bubbling.TargetThresholds I M)
     (cdata : Compactness.ConcentrationData I u_seq B th)
     (m_defect : CP1 → ℝ)
     (P : PartialRootGraftedTree I u_seq B th cdata m_defect cdata.S) :
@@ -2009,13 +2013,13 @@ theorem assemble_prestable_limit
     · have hB : 0 ≤ B := (energy_nonneg I (u_seq 0) Set.univ).trans (h_energy 0)
       obtain ⟨cdata⟩ := Compactness.exists_concentration_data I u_seq h_jhol B hB h_energy h_fin th
       obtain ⟨m_defect, hm_sph, _hm_zero, _h_decomp, h_tendsto_energy⟩ :=
-        Compactness.defect_measure_identity I u_seq B th cdata
+        Compactness.defect_measure_identity I u_seq B h_jhol h_energy h_fin th cdata
       let defect_trees : (p : CP1) → p ∈ cdata.S → Bubbling.LocalDefectTree I th (m_defect p) (cdata.u₀ p) :=
         fun p hp =>
           have h_pos : 0 < m_defect p := th.ε_sph_pos.trans_le (hm_sph p hp)
-          Classical.choice (Bubbling.resolve_single_defect_tree I th (m_defect p) h_pos (cdata.u₀ p))
+          Classical.choice (Bubbling.resolve_single_defect_tree I u_seq h_jhol B h_energy h_fin th (m_defect p) h_pos (cdata.u₀ p))
       exact assemble_prestable_limit_of_components I th u_seq B h_energy cdata m_defect hm_sph h_tendsto_energy
-        defect_trees (extract_grafted_tree_rescaling_and_conv_aux I u_seq B th cdata m_defect)
+        defect_trees (extract_grafted_tree_rescaling_and_conv_aux I u_seq B h_jhol h_energy h_fin th cdata m_defect)
 
 #print axioms frame_comp_id_left
 #print axioms frame_comp_id_right

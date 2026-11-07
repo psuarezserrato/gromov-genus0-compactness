@@ -1142,7 +1142,7 @@ private theorem extract_bounded_marked_stable_subseq (k : ℕ) (B : ℝ)
             (MarkedStableTreeLimit.of_markedSphere I (u_seq n) (h_jhol n) (h_stab n))
       · rcases h_ms with ⟨τ, u_seq, h_jhol, h_stab, h_fin, h_reps_eq⟩
         obtain ⟨th⟩ := Bubbling.exists_target_thresholds I (M := M)
-        obtain ⟨u_lim, ⟨wit⟩⟩ := marked_gromov_compactness I th u_seq B h_jhol
+        obtain ⟨u_lim, ⟨wit⟩⟩ := marked_gromov_compactness I th u_seq B h_jhol h_stab
           (totalEnergy_markedSphere_le_of_boundedMarkedStableMap I k B (fun n => reps (τ.1 n)) u_seq h_jhol h_stab h_reps_eq) h_fin
         exact extract_bounded_marked_stable_subseq_of_marked_spheres_subseq I k B reps τ u_seq h_jhol h_stab h_reps_eq u_lim wit
       · sorry

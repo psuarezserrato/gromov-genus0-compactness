@@ -85,6 +85,7 @@ theorem challenge_query_A02 :
 theorem challenge_query_A03 :
     ∃ (ε_reg C_reg : ℝ), 0 < ε_reg ∧ 0 < C_reg ∧
     ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (hr : 0 < r),
+      Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1 →
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
       energyMeasure I u (disk_at a r) < ε_reg →
       ∀ z ∈ disk_at a (r / 2),
@@ -218,6 +219,7 @@ theorem challenge_query_A12 (u : CP1 → M) (p : CP1)
 theorem challenge_query_B01_reduction
     (ε_reg C_reg : ℝ) (h_reg_pos : 0 < ε_reg) (h_Creg_pos : 0 < C_reg)
     (h_reg : ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (_ : 0 < r),
+      Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1 →
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
       energyMeasure I u (disk_at a r) < ε_reg →
       ∀ z ∈ disk_at a (r / 2),

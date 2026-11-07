@@ -279,6 +279,11 @@ theorem exists_one_level_decomp
   extract_rescaled_bubble_and_children I thresh m_defect hm base_val h_disk
 
 private theorem exists_one_level_decomp_aux
+    (u_seq : ℕ → (CP1 → M))
+    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (B : ℝ)
+    (_h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (_h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (thresh : TargetThresholds I M) (m_defect : ℝ)
     (hm : thresh.h ≤ m_defect) (base_val : M) :
     Nonempty (OneLevelDecomposition I thresh m_defect base_val) := by
@@ -1067,12 +1072,17 @@ theorem resolve_single_defect_tree_of_calibrated_of_all_jhol_eq_north_pole
 /-- Resolution of a Single Defect into a Finite Rooted Bubble Tree (Contract B07).
 Proved with zero direct sorry via energy_rank_induction and B04/B06. -/
 theorem resolve_single_defect_tree
+    (u_seq : ℕ → (CP1 → M))
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (B : ℝ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (thresh : TargetThresholds I M) (m_defect : ℝ) (hm : 0 < m_defect) (base_val : M) :
     Nonempty (LocalDefectTree I thresh m_defect base_val) := by
   by_cases hm_lt : m_defect < thresh.h
   · exact local_defect_tree_of_subthreshold I thresh m_defect hm hm_lt base_val
   · exact resolve_single_defect_tree_of_one_level I thresh
-      (fun m h_ge b => exists_one_level_decomp_aux I thresh m h_ge b) m_defect hm base_val
+      (fun m h_ge b => exists_one_level_decomp_aux I u_seq h_jhol B h_energy h_fin thresh m h_ge b) m_defect hm base_val
 
 #print axioms energy_rank_wf
 #print axioms energy_rank_induction

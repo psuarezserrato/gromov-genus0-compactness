@@ -1111,23 +1111,32 @@ private lemma satisfiesCylinderEnergyDecay_of_jhol_aux
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
     {M : Type*} [MetricSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
-    (u : CP1 → M) (center : ℂ) (r R : ℝ)
-    (hr : 0 < r) (h2rR : 2 * r < R)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ)
-    (h_en : energyMeasure I u (annulus_at center r R) < 1) :
-    SatisfiesCylinderEnergyDecay I u center r R := by
-  by_cases h_cases : (∃ c : M, u = fun _ => c) ∨
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] :
+    ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+      0 < r → 2 * r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r R) < ε_neck →
       ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) = 0 ∨
         energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁) ^ (1 : ℝ) + (r₂ / R) ^ (1 : ℝ)) * energyMeasure I u (annulus_at center r R) ∨
-        (0 < energyMeasure I u (annulus_at center r R) ∧ 1 ≤ (r / r₁) ^ (1 : ℝ) + (r₂ / R) ^ (1 : ℝ)) ∨
-        (energyMeasure I u (annulus_at center r₁ r₂) ≠ 0 ∧
-          ¬ 0 < energyMeasure I u (annulus_at center r R) ∧
-          (energyMeasureExtended I u (annulus_at center r R) ≠ ⊤ ∨
-            Continuous (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w))))
-  · exact satisfiesCylinderEnergyDecay_of_jhol I u center r R hr h2rR hu h_en h_cases
+          C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R) := by
+  by_cases h_all : ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+      0 < r → 2 * r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r R) < 1 →
+      ((∃ c : M, u = fun _ => c) ∨
+        ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
+          energyMeasure I u (annulus_at center r₁ r₂) = 0 ∨
+          energyMeasure I u (annulus_at center r₁ r₂) ≤
+            1 * ((r / r₁) ^ (1 : ℝ) + (r₂ / R) ^ (1 : ℝ)) * energyMeasure I u (annulus_at center r R) ∨
+          (0 < energyMeasure I u (annulus_at center r R) ∧ 1 ≤ (r / r₁) ^ (1 : ℝ) + (r₂ / R) ^ (1 : ℝ)) ∨
+          (energyMeasure I u (annulus_at center r₁ r₂) ≠ 0 ∧
+            ¬ 0 < energyMeasure I u (annulus_at center r R) ∧
+            (energyMeasureExtended I u (annulus_at center r R) ≠ ⊤ ∨
+              Continuous (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))))
+  · refine ⟨1, 1, 1, by norm_num, by norm_num, by norm_num, fun u center r R hr h2rR hu h_en r₁ r₂ hr₁ hr₁₂ hr₂ => ?_⟩
+    exact satisfiesCylinderEnergyDecay_of_jhol I u center r R hr h2rR hu h_en
+      (h_all u center r R hr h2rR hu h_en) r₁ r₂ hr₁ hr₁₂ hr₂
   · sorry
 
 /-- Unconditional cylindrical energy decay `SatisfiesCylinderEnergyDecay` on subsingleton targets (`0 sorryAx`). -/
@@ -1271,10 +1280,8 @@ theorem cylinder_exponential_decay
       energyMeasure I u (annulus_at center r R) < ε_neck →
       ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
         energyMeasure I u (annulus_at center r₁ r₂) ≤
-          C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R) := by
-  refine ⟨1, 1, 1, by norm_num, by norm_num, by norm_num, ?_⟩
-  intro u center r R hr h2rR hu h_en r₁ r₂ hr₁ hr₁₂ hr₂
-  exact satisfiesCylinderEnergyDecay_of_jhol_aux I u center r R hr h2rR hu h_en r₁ r₂ hr₁ hr₁₂ hr₂
+          C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R) :=
+  satisfiesCylinderEnergyDecay_of_jhol_aux I
 
 instance nontrivial_CP1 : Nontrivial CP1 :=
   ⟨⟨north_pole, south_pole, north_pole_ne_south_pole⟩⟩

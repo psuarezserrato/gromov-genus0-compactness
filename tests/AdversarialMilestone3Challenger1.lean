@@ -264,9 +264,14 @@ theorem test_assemble_prestable_limit_invocation
 
 /-- Test 4.5: Invocation of Single Defect Tree Resolution (Contract B07). -/
 theorem test_resolve_single_defect_tree_invocation
+    (u_seq : ℕ → (CP1 → M))
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (B : ℝ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (th : Bubbling.TargetThresholds I M) (m_defect : ℝ) (hm : 0 < m_defect) (base_val : M) :
     Nonempty (Bubbling.LocalDefectTree I th m_defect base_val) :=
-  Bubbling.resolve_single_defect_tree I th m_defect hm base_val
+  Bubbling.resolve_single_defect_tree I u_seq h_jhol B h_energy h_fin th m_defect hm base_val
 
 /-- Test 4.6: Invocation of Weak Energy Measure Compactness (Contract C01). -/
 theorem test_weak_energy_measure_compactness_invocation

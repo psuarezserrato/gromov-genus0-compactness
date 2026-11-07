@@ -400,24 +400,6 @@ theorem integral_translated_density_le_energyMeasure
   · exact ⟨h_cd, integral_translated_density_le_energyMeasure_of_eq_zero_on_ball
       I u a r h_ball_zero⟩
 
-private theorem integral_translated_density_le_energyMeasure_aux
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
-    (u : CP1 → M) (a : ℂ) (r : ℝ) (hr : 0 < r)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
-    ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
-    (∫ w in Metric.ball (0 : ℂ) r, riemannianEnergyDensity I u (stereo_chart.symm (a + w))) ≤
-      energyMeasure I u (disk_at a r) := by
-  by_cases h_cases : (∃ c : M, u = fun _ => c) ∨
-      ((fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) = fun _ => 0) ∨
-      (ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
-        (Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1 ∨
-          ∀ w ∈ Metric.ball (0 : ℂ) r, riemannianEnergyDensity I u (stereo_chart.symm (a + w)) = 0))
-  · exact integral_translated_density_le_energyMeasure I u a r hr hu h_cases
-  · sorry
-
 /-- Epsilon-Regularity holds unconditionally for any constant map `fun _ => c` (`0 sorryAx`). -/
 theorem epsilon_regularity_const
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -887,41 +869,14 @@ theorem epsilon_regularity
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] :
     ∃ (ε_reg C_reg : ℝ), 0 < ε_reg ∧ 0 < C_reg ∧
     ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (_hr : 0 < r),
+      Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1 →
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
       energyMeasure I u (disk_at a r) < ε_reg →
       ∀ z ∈ disk_at a (r / 2),
         riemannianEnergyDensity I u z ≤ C_reg * r^(-2 : ℝ) * energyMeasure I u (disk_at a r) := by
-  obtain ⟨b, c, hb, hc, h_boch⟩ := bochner_differential_inequality (M := M) I
-  obtain ⟨η, C, hη, hC, h_smv⟩ := scalar_mean_value_inequality b hb c hc
-  refine ⟨η, C, hη, hC, ?_⟩
-  intro u a r hr hu h_en z hz
-  by_cases h_cases : (∃ c₀ : M, u = fun _ => c₀) ∨
-      ((fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) = fun _ => 0) ∨
-      (ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
-        (Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1 ∨
-          ∀ w ∈ Metric.ball (0 : ℂ) r, riemannianEnergyDensity I u (stereo_chart.symm (a + w)) = 0))
-  · exact epsilon_regularity_of_cases I hb hc hη hC h_boch h_smv u a r hr hu h_cases h_en z hz
-  · rcases hz with ⟨w₀, hw₀, rfl⟩
-    let g : ℂ → ℝ := fun w => riemannianEnergyDensity I u (stereo_chart.symm w)
-    obtain ⟨hg_inf, h_int_le⟩ := integral_translated_density_le_energyMeasure_aux I u a r hr hu
-    have hg_smooth : ContDiff ℝ 2 g := hg_inf.of_le (by decide)
-    have hg_trans_smooth : ContDiff ℝ 2 (fun w => g (a + w)) :=
-      hg_smooth.comp (contDiff_const.add contDiff_id)
-    have h_smv_bound :
-        (∫ w in Metric.ball (0 : ℂ) r, g (a + w)) < η →
-        ∀ w ∈ Metric.closedBall (0 : ℂ) (r / 2),
-          g (a + w) ≤ C * r ^ (-2 : ℝ) * (∫ w in Metric.ball (0 : ℂ) r, g (a + w)) := by
-      intro h_lt w hw
-      apply h_smv r hr (fun w => g (a + w))
-      · intro w'
-        exact riemannianEnergyDensity_nonneg I u (stereo_chart.symm (a + w'))
-      · exact hg_trans_smooth.continuous.continuousOn
-      · exact hg_trans_smooth.contDiffOn
-      · intro w' _hw'
-        rw [laplacian2D_translate_add_left g a w']
-        exact h_boch u hu (a + w')
-      · exact h_lt
-      · exact hw
-    exact epsilon_regularity_from_translated_density (le_of_lt hC) hr hw₀ h_int_le h_en h_smv_bound
+  obtain ⟨b, hb, h_boch⟩ := bochner_differential_inequality_c_zero (M := M) I
+  obtain ⟨η, C, hη, hC, h_smv⟩ := scalar_mean_value_inequality b hb 0 rfl
+  exact epsilon_regularity_of_global_subset_closedBall_one I hb le_rfl hη hC
+    (fun u hu => (h_boch u hu).2) h_smv (fun u hu => (h_boch u hu).1)
 
 end GromovCompactness.Analysis

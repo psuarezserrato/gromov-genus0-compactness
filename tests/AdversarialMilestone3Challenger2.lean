@@ -300,9 +300,14 @@ theorem probe_weak_energy_measure_compactness_wiring
 /-- Probe 3.6: B07: resolve_single_defect_tree constructs a finite rooted bubble tree
 with energy rank induction with zero direct sorry. -/
 theorem probe_resolve_single_defect_tree_wiring
+    (u_seq : ℕ → (CP1 → M))
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (B : ℝ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (thresh : Bubbling.TargetThresholds I M) (m_defect : ℝ) (hm : 0 < m_defect) (base_val : M) :
     Nonempty (Bubbling.LocalDefectTree I thresh m_defect base_val) :=
-  Bubbling.resolve_single_defect_tree I thresh m_defect hm base_val
+  Bubbling.resolve_single_defect_tree I u_seq h_jhol B h_energy h_fin thresh m_defect hm base_val
 
 --------------------------------------------------------------------------------
 -- SECTION 4: Axiom Census

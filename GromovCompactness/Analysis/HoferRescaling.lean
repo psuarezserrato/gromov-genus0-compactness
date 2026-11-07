@@ -268,6 +268,7 @@ structure TargetThresholds (I : ModelWithCorners ℝ E H) (M : Type*)
   C_reg : ℝ
   C_reg_pos : 0 < C_reg
   h_reg : ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (_ : 0 < r),
+    Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1 →
     JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
     energyMeasure I u (disk_at a r) < ε_reg →
     ∀ z ∈ disk_at a (r / 2),
@@ -301,6 +302,7 @@ structure TargetThresholds (I : ModelWithCorners ℝ E H) (M : Type*)
 noncomputable def make_target_thresholds
     (ε_reg C_reg : ℝ) (hε_reg : 0 < ε_reg) (hC_reg : 0 < C_reg)
     (h_reg : ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (_ : 0 < r),
+      Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1 →
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
       energyMeasure I u (disk_at a r) < ε_reg →
       ∀ z ∈ disk_at a (r / 2),
@@ -339,6 +341,7 @@ Takes open geometric contract hypotheses and does not count as closing Contract 
 theorem exists_target_thresholds_of_modules
     (ε_reg C_reg : ℝ) (h_reg_pos : 0 < ε_reg) (h_Creg_pos : 0 < C_reg)
     (h_reg : ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (_ : 0 < r),
+      Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1 →
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
       energyMeasure I u (disk_at a r) < ε_reg →
       ∀ z ∈ disk_at a (r / 2),
@@ -368,7 +371,7 @@ theorem exists_target_thresholds_of_subsingleton
     Nonempty (TargetThresholds I M) := by
   refine exists_target_thresholds_of_modules I 1 1 zero_lt_one zero_lt_one ?_
     1 zero_lt_one ?_ 1 1 1 zero_lt_one zero_lt_one zero_lt_one ?_
-  · intro u a r hr _ _ z _
+  · intro u a r hr _ _ _ z _
     have hc : u = fun _ => u north_pole := funext (fun w => h_sub.elim (u w) (u north_pole))
     have hd0 : riemannianEnergyDensity I u z = 0 := by
       rw [hc]
@@ -395,7 +398,8 @@ theorem exists_target_thresholds_of_discrete [DiscreteTopology M] :
   obtain ⟨ε_sph, hε_sph, h_sph⟩ := sphere_energy_gap_of_discrete (M := M) I
   obtain ⟨C_neck, a_decay, ε_neck, hC_neck, ha_decay, hε_neck, h_neck⟩ :=
     cylinder_exponential_decay_of_discrete (M := M) I
-  exact exists_target_thresholds_of_modules I ε_reg C_reg hε_reg hC_reg h_reg
+  exact exists_target_thresholds_of_modules I ε_reg C_reg hε_reg hC_reg
+    (fun u a r hr _ => h_reg u a r hr)
     ε_sph hε_sph h_sph C_neck a_decay ε_neck hC_neck ha_decay hε_neck h_neck
 
 /-- Conditional reduction of `exists_target_thresholds` from existentially packaged geometric
@@ -403,6 +407,7 @@ estimates (`epsilon_regularity`, `sphere_energy_gap`, `cylinder_exponential_deca
 theorem exists_target_thresholds_of_existentials
     (h_reg_ex : ∃ (ε_reg C_reg : ℝ), 0 < ε_reg ∧ 0 < C_reg ∧
       ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (_ : 0 < r),
+        Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1 →
         JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
         energyMeasure I u (disk_at a r) < ε_reg →
         ∀ z ∈ disk_at a (r / 2),
@@ -433,8 +438,9 @@ theorem exists_target_thresholds_of_all_jhol_const
     (h_all_const : ∀ u : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ → ∃ c : M, ∀ z, u z = c) :
     Nonempty (TargetThresholds I M) :=
   exists_target_thresholds_of_existentials I
-    (epsilon_regularity_of_all_jhol_const (M := M) I
-      (fun u hu => let ⟨c, hc⟩ := h_all_const u hu; ⟨c, funext hc⟩))
+    (let ⟨ε_reg, C_reg, hε, hC, h_reg⟩ := epsilon_regularity_of_all_jhol_const (M := M) I
+      (fun u hu => let ⟨c, hc⟩ := h_all_const u hu; ⟨c, funext hc⟩)
+     ⟨ε_reg, C_reg, hε, hC, fun u a r hr _ => h_reg u a r hr⟩)
     (sphere_energy_gap_of_all_jhol_const (M := M) I h_all_const)
     (cylinder_exponential_decay_of_all_jhol_const (M := M) I
       (fun v hv => let ⟨_, hc⟩ := h_all_const v hv; funext (fun x => (hc x).trans (hc north_pole).symm)))

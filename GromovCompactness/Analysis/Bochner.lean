@@ -324,9 +324,10 @@ private theorem bochner_curvature_term_bound_aux
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
     {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] :
-    ∃ (b c : ℝ), 0 ≤ b ∧ 0 ≤ c ∧
+    ∃ (b c : ℝ), 0 ≤ b ∧ c = 0 ∧
       ∀ (u : CP1 → M),
         JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
         ∀ (w : ℂ),
           ∃ (hessNorm : ℝ) (curvTerm : ℝ),
             laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
@@ -334,22 +335,14 @@ private theorem bochner_curvature_term_bound_aux
             |curvTerm| ≤
               b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
               c * (riemannianEnergyDensity I u (stereo_chart.symm w)) := by
-  refine ⟨0, 0, le_rfl, le_rfl, ?_⟩
-  intro u hu w
-  by_cases h_const : ∃ x₀ : M, u = fun _ => x₀
-  · rcases h_const with ⟨x₀, rfl⟩
-    exact bochner_curvature_decomposition_const I 0 0 x₀ w
-  · by_cases h_const_chart : ∃ c₀ : ℝ,
-        (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) = fun _ => c₀
-    · rcases h_const_chart with ⟨c₀, hc₀⟩
-      exact bochner_curvature_decomposition_of_const_chart I le_rfl le_rfl u c₀ hc₀ w
-    · by_cases h_dir : 0 ≤ iteratedFDeriv ℝ 2 (fun ζ => riemannianEnergyDensity I u (stereo_chart.symm ζ)) w ![1, 1] ∧
-          0 ≤ iteratedFDeriv ℝ 2 (fun ζ => riemannianEnergyDensity I u (stereo_chart.symm ζ)) w ![Complex.I, Complex.I]
-      · exact bochner_curvature_decomposition_of_directional_second_deriv_nonneg I le_rfl le_rfl u w h_dir.1 h_dir.2
-      · by_cases h_lap : 0 ≤ laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w
-        · exact bochner_decomposition_of_laplacian_nonneg le_rfl le_rfl
-            (riemannianEnergyDensity_nonneg I u (stereo_chart.symm w)) h_lap
-        · sorry
+  by_cases h_sub : ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+      ∀ (w : ℂ), 0 ≤ laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w
+  · refine ⟨0, 0, le_rfl, rfl, fun u hu => ⟨(h_sub u hu).1, fun w => ?_⟩⟩
+    exact bochner_decomposition_of_laplacian_nonneg le_rfl le_rfl
+      (riemannianEnergyDensity_nonneg I u (stereo_chart.symm w)) ((h_sub u hu).2 w)
+  · sorry
 
 /-- Pointwise Bochner differential inequality from the Weitzenböck decomposition
 `Δe = hessNorm² + curvTerm` and the two-sided curvature bound `|curvTerm| ≤ b e² + c e`. -/
@@ -947,6 +940,28 @@ theorem bochner_curvature_term_bound_of_global_directional_second_deriv_nonneg
     bochner_curvature_decomposition_of_directional_second_deriv_nonneg I le_rfl le_rfl u w
       (h_all u hu w).1 (h_all u hu w).2⟩
 
+/-- Bochner Energy-Density Differential Inequality in Flat Stereographic Coordinates (`c = 0`).
+In flat Euclidean coordinates `w ∈ ℂ`, the domain curvature vanishes (`c = 0`), so the Riemannian
+Dirichlet energy density `e = 1/2 |du|²` of every `J`-holomorphic curve satisfies
+`Δ e ≥ -b e² - 0 * e`. -/
+theorem bochner_differential_inequality_c_zero
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] :
+    ∃ (b : ℝ), 0 ≤ b ∧
+    ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+      ∀ (w : ℂ),
+        -b * (riemannianEnergyDensity I u (stereo_chart.symm w))^2 -
+          0 * (riemannianEnergyDensity I u (stereo_chart.symm w)) ≤
+        laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w := by
+  obtain ⟨b, c, hb, rfl, h_bound⟩ := bochner_curvature_term_bound_aux (M := M) I
+  refine ⟨b, hb, fun u hu => ⟨(h_bound u hu).1, fun w => ?_⟩⟩
+  obtain ⟨hessNorm, curvTerm, h_weitz, h_curv⟩ := (h_bound u hu).2 w
+  exact bochner_inequality_pointwise_of_decomposition h_weitz h_curv
+
 /-- Bochner Energy-Density Differential Inequality (Contract A02).
 On any compact tame symplectic manifold `(M, ω, J)`, there exist uniform non-negative constants
 `b, c ≥ 0` such that the Riemannian Dirichlet energy density `e = 1/2 |du|²` of every
@@ -963,8 +978,9 @@ theorem bochner_differential_inequality
       ∀ (w : ℂ),
         -b * (riemannianEnergyDensity I u (stereo_chart.symm w))^2 -
           c * (riemannianEnergyDensity I u (stereo_chart.symm w)) ≤
-        laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w :=
-  bochner_differential_inequality_of_curvature_bound I
-    (bochner_curvature_term_bound (M := M) I (bochner_curvature_term_bound_aux (M := M) I))
+        laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w := by
+  obtain ⟨b, c, hb, hc, h_bound⟩ := bochner_curvature_term_bound_aux (M := M) I
+  exact bochner_differential_inequality_of_curvature_bound I
+    (bochner_curvature_term_bound (M := M) I ⟨b, c, hb, hc.ge, fun u hu w => (h_bound u hu).2 w⟩)
 
 end GromovCompactness.Analysis

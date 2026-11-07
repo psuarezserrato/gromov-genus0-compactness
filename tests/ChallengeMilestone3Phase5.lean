@@ -306,9 +306,14 @@ theorem test_assemble_prestable_limit_composite
 Proved with ZERO direct sorry in `resolve_single_defect_tree` via energy rank induction.
 CONDITIONAL STATUS: Transitively depends on `sorryAx` via child defect tree grafting helper. -/
 theorem test_resolve_single_defect_tree_composite
+    (u_seq : ℕ → (CP1 → M))
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (B : ℝ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (thresh : Bubbling.TargetThresholds I M) (m_defect : ℝ) (hm : 0 < m_defect) (base_val : M) :
     Nonempty (Bubbling.LocalDefectTree I thresh m_defect base_val) :=
-  Bubbling.resolve_single_defect_tree I thresh m_defect hm base_val
+  Bubbling.resolve_single_defect_tree I u_seq h_jhol B h_energy h_fin thresh m_defect hm base_val
 
 /-- Test B.3.4: Weak energy measure compactness (Contract C01).
 Proved with ZERO direct sorry in `weak_energy_measure_compactness`.

@@ -596,6 +596,8 @@ lemma smooth_local_upgrade_at_zero_defect_point
       hv_jhol.1 h_conv_punct h_pt
 
 private lemma smooth_local_upgrade_at_zero_defect_point_aux
+    (u_seq : ℕ → (CP1 → M))
+    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
     (v_seq : ℕ → (CP1 → M)) (v_lim : CP1 → M)
     (hv_jhol : JHolomorphicOn I I_CP1 v_lim Set.univ)
     (Ω : Set CP1) (p : CP1)
@@ -933,6 +935,7 @@ At an interior smooth point attached to a degree-1 constant root with zero limit
 convergence upgrades smoothly across the point. -/
 theorem upgrade_convergence_across_deleted_node
     (u_seq : ℕ → (CP1 → M))
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
     (pdata : PrestableLimitData I u_seq)
     (w₀ : pdata.tree.V)
     (hw₀_adj : pdata.tree.adj.Adj pdata.root w₀)
@@ -948,7 +951,7 @@ theorem upgrade_convergence_across_deleted_node
     SmoothLocalConvergesOn I
       (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
       (pdata.map w₀) Ω :=
-  smooth_local_upgrade_at_zero_defect_point_aux I
+  smooth_local_upgrade_at_zero_defect_point_aux I u_seq h_jhol
     (fun n => (u_seq (pdata.σ.1 n)) ∘ (pdata.frames w₀ n).toHomeo)
     (pdata.map w₀) (pdata.is_jhol w₀) Ω
     (pdata.tree.node_point w₀ pdata.root (pdata.tree.adj.adj_symm hw₀_adj))
@@ -1358,6 +1361,7 @@ theorem prune_degree_one_root_of_nonpos_B
 `card_subtype_ne_root_add_one`, and `sum_subtype_ne_root_eq_sum_univ_of_zero`). -/
 theorem prune_degree_one_root
     (u_seq : ℕ → (CP1 → M))
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
     (pdata : PrestableLimitData I u_seq)
     (h_deg1 : pdata.tree.adj.degree pdata.root = 1)
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c) :
@@ -1375,7 +1379,7 @@ theorem prune_degree_one_root
   rw [punctured_sphere_root_neighbor_eq_diff pdata.tree pdata.root root' hw₀_adj] at h_conv
   obtain ⟨frames', h_root_id, h_collapse, h_smooth⟩ :=
     pruned_tree_frames_and_conv I u_seq pdata root' hw₀_adj hw₀_uniq
-      (upgrade_convergence_across_deleted_node I u_seq pdata root'.1 hw₀_adj h_deg1 h_const _ h_open hp h_conv)
+      (upgrade_convergence_across_deleted_node I u_seq h_jhol pdata root'.1 hw₀_adj h_deg1 h_const _ h_open hp h_conv)
   have h_sum_eq : (∑ v : {v : pdata.tree.V // v ≠ pdata.root}, totalEnergy I (pdata.map v.1)) =
       ∑ v : pdata.tree.V, totalEnergy I (pdata.map v) :=
     sum_subtype_ne_root_eq_sum_univ_of_zero pdata.root
@@ -2793,7 +2797,7 @@ theorem stabilize_prestable_tree
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
         Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
           (𝓝 (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v))) :=
-  stabilize_prestable_tree_aux I u_seq (prune_degree_one_root I u_seq)
+  stabilize_prestable_tree_aux I u_seq (prune_degree_one_root I u_seq h_jhol)
     (fun σ => not_tendsto_zero_totalEnergy_of_nonconst_aux I u_seq σ h_nonconst_input h_jhol)
     (Fintype.card pdata.tree.V) pdata le_rfl
 

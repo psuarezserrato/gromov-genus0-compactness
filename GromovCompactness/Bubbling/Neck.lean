@@ -201,8 +201,16 @@ lemma neck_annular_energy_and_diam_eventually_small
   · exact neck_annular_energy_and_diam_of_eventually_lt I u_seq thresh m_defect res η h_lt
 
 private lemma neck_annular_energy_and_diam_eventually_small_aux
-    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (u_seq : ℕ → (CP1 → M))
+    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (B : ℝ)
+    (_h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (_h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
+    (thresh : TargetThresholds I M) (m_defect : ℝ)
     (res : CalibratedRescaling I u_seq thresh m_defect)
+    (_h_isol_neck : ∀ R > (1 : ℝ), ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
+      ∃ N₀ : ℕ, ∀ n ≥ N₀,
+        energyMeasure I (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ) < thresh.ε_neck)
     (η : ℝ) (hη : 0 < η) :
     ∃ R₀ > (1 : ℝ), ∀ R ≥ R₀,
       ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
@@ -509,8 +517,16 @@ For every target margin `η > 0`, there exist a scaling ratio threshold `R₀ > 
 such that for any `R ≥ R₀` and `δ ∈ (0, δ₀)`, the annular neck `A(Rλ_n, δ; a_n)` asymptotically has
 symplectic energy `< η` and image diameter `< η`. -/
 theorem neck_vanishing_quantified
-    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (u_seq : ℕ → (CP1 → M))
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (B : ℝ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
+    (thresh : TargetThresholds I M) (m_defect : ℝ)
     (res : CalibratedRescaling I u_seq thresh m_defect)
+    (h_isol_neck : ∀ R > (1 : ℝ), ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
+      ∃ N₀ : ℕ, ∀ n ≥ N₀,
+        energyMeasure I (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ) < thresh.ε_neck)
     (η : ℝ) (hη : 0 < η) :
     ∃ R₀ > (1 : ℝ), ∀ R ≥ R₀,
       ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
@@ -530,7 +546,7 @@ theorem neck_vanishing_quantified
         Metric.diam (Set.image (u_seq n) (annulus_at a r₁ r₂)) < η)
   · exact neck_vanishing_quantified_of_cases I u_seq thresh m_defect res η hη h_cases
   · exact neck_vanishing_quantified_of_eventually_small I u_seq thresh m_defect res η hη
-      (neck_annular_energy_and_diam_eventually_small_aux I u_seq thresh m_defect res η hη)
+      (neck_annular_energy_and_diam_eventually_small_aux I u_seq h_jhol B h_energy h_fin thresh m_defect res h_isol_neck η hη)
 
 /-- Pointwise distance oscillation bound from diameter bound on an annulus (Zero-sorry Foundation). -/
 lemma neck_pointwise_oscillation_of_diam_bound

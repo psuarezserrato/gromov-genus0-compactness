@@ -476,7 +476,11 @@ theorem defect_measure_decomposition_exists
   · exact defect_measure_decomposition_of_exists_mass I u_seq B thresh cdata m hm_sph h_decomp
 
 private theorem defect_measure_decomposition_exists_aux
-    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (thresh : TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (_h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (_h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
+    (thresh : TargetThresholds I M)
     (cdata : ConcentrationData I u_seq B thresh) :
     ∃ (m : CP1 → ℝ),
       (∀ p ∈ cdata.S, thresh.ε_sph ≤ m p) ∧
@@ -951,7 +955,11 @@ The weak limit measure decomposes into the smooth energy measure u₀* ω plus a
 Dirac atoms at the singular concentration points, and total energy is conserved in the limit
 (Proved with zero direct sorry from `defect_measure_decomposition_exists_aux` and `tendsto_totalEnergy_of_defect_decomp`). -/
 theorem defect_measure_identity
-    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (thresh : TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
+    (thresh : TargetThresholds I M)
     (cdata : ConcentrationData I u_seq B thresh) :
     ∃ (m : CP1 → ℝ),
       (∀ p ∈ cdata.S, thresh.ε_sph ≤ m p) ∧
@@ -967,7 +975,7 @@ theorem defect_measure_identity
       (∃ m : CP1 → ℝ, (∀ p ∈ cdata.S, thresh.ε_sph ≤ m p) ∧
         cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • Measure.dirac p))
   · exact defect_measure_identity_of_decomp I u_seq B thresh cdata h_cases
-  · obtain ⟨m, hm_sph, hm_zero, h_decomp⟩ := defect_measure_decomposition_exists_aux I u_seq B thresh cdata
+  · obtain ⟨m, hm_sph, hm_zero, h_decomp⟩ := defect_measure_decomposition_exists_aux I u_seq B h_jhol h_energy h_fin thresh cdata
     have hm_nonneg : ∀ p ∈ cdata.S, 0 ≤ m p :=
       fun p hp => thresh.ε_sph_pos.le.trans (hm_sph p hp)
     exact ⟨m, hm_sph, hm_zero, h_decomp,
@@ -1557,7 +1565,11 @@ theorem isolating_disk_defect_limit_of_const_north_pole
 Proved with zero direct sorry from `defect_measure_identity`, `frontier_disk_at_null_of_isolating`,
 and `isolating_disk_defect_limit_of_decomp`. -/
 theorem isolating_disk_defect_limit
-    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (thresh : TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
+    (thresh : TargetThresholds I M)
     (cdata : ConcentrationData I u_seq B thresh)
     (p : CP1) (hp : p ∈ cdata.S)
     (a : ℂ) (ha : stereo_chart.symm a = p) (r : ℝ) (hr : 0 < r)
@@ -1568,7 +1580,7 @@ theorem isolating_disk_defect_limit
         (nhds (m_p + energyMeasure I cdata.u₀ (disk_at a r))) := by
   by_cases h_lt : B < thresh.ε_reg
   · exact isolating_disk_defect_limit_of_lt_eps_reg I u_seq B thresh cdata h_lt p hp a ha r hr h_isol_clos
-  · obtain ⟨m, hm_sph, _, h_decomp, _⟩ := defect_measure_identity I u_seq B thresh cdata
+  · obtain ⟨m, hm_sph, _, h_decomp, _⟩ := defect_measure_identity I u_seq B h_jhol h_energy h_fin thresh cdata
     have hm_p : thresh.ε_sph ≤ m p := hm_sph p hp
     have hm_p_nonneg : 0 ≤ m p := thresh.ε_sph_pos.le.trans hm_p
     have hp_in_disk : p ∈ disk_at a r := ⟨a, Metric.mem_ball_self hr, ha⟩

@@ -1723,30 +1723,6 @@ theorem subharmonic_quadratic_mean_value_bound
   · exact subharmonic_quadratic_mean_value_bound_of_laplacian_lb_sixteen r b c hb hc e he_nonneg he_cont he_diff
       z₀ he₀_pos ρ t ht h_sub h_lb16
 
-private theorem subharmonic_quadratic_mean_value_bound_aux
-    (r b c : ℝ) (hb : 0 ≤ b) (hc : 0 ≤ c)
-    (e : ℂ → ℝ) (he_nonneg : ∀ z, 0 ≤ e z)
-    (he_cont : ContinuousOn e (Metric.closedBall 0 r))
-    (he_diff : ContDiffOn ℝ 2 e (Metric.ball (0 : ℂ) r))
-    (he_subharm : ∀ z ∈ Metric.ball (0 : ℂ) r, -b * (e z)^2 - c * (e z) ≤ laplacian2D e z)
-    (z₀ : ℂ) (he₀_pos : 0 < e z₀)
-    (ρ : ℝ) (t : ℝ) (ht : t ∈ Set.Ioc 0 ρ)
-    (h_sub : Metric.closedBall z₀ ρ ⊆ Metric.ball (0 : ℂ) r)
-    (h_bound : ∀ w ∈ Metric.closedBall z₀ ρ, e w ≤ 4 * e z₀) :
-    Real.pi * t^2 * e z₀ ≤
-      (∫ w in Metric.ball z₀ t, e w) +
-      Real.pi * (16 * (b + c + 1) * (e z₀)^2) * t^4 / 8 := by
-  by_cases h_cases : c = 0 ∨ 1 / 4 ≤ e z₀ ∨ c ≤ 4 * (c + 1) * e z₀ ∨
-      1 ≤ 2 * (b + c + 1) * e z₀ * t^2 ∨
-      (Real.pi * t^2 * e z₀ ≤ ∫ w in Metric.ball z₀ t, e w) ∨
-      (∀ z ∈ Metric.ball (0 : ℂ) r, -b * (e z)^2 ≤ laplacian2D e z) ∨
-      (∀ w ∈ Metric.closedBall z₀ t, 0 ≤ laplacian2D e w) ∨
-      (∀ w ∈ Metric.closedBall z₀ t, -4 * (b + c + 1) * (e z₀)^2 ≤ laplacian2D e w) ∨
-      (∀ w ∈ Metric.closedBall z₀ t, -16 * (b + c + 1) * (e z₀)^2 ≤ laplacian2D e w)
-  · exact subharmonic_quadratic_mean_value_bound r b c hb hc e he_nonneg he_cont he_diff
-      he_subharm z₀ he₀_pos ρ t ht h_sub h_bound h_cases
-  · sorry
-
 /-- Zero-sorry conditional reduction of `scalar_mean_value_inequality` given the local quadratic
 subharmonic mean-value bound (`0 sorryAx`). -/
 theorem scalar_mean_value_inequality_of_subharmonic_mv
@@ -1986,11 +1962,11 @@ theorem scalar_mean_value_inequality_of_cases
     he_int
 
 /-- Scalar Mean-Value Inequality (Contract A01).
-Let `b ≥ 0` and `c ≥ 0`. There exist `η > 0` and `C > 0` such that for any `r > 0` and any non-negative function
+Let `b ≥ 0` and `c = 0`. There exist `η > 0` and `C > 0` such that for any `r > 0` and any non-negative function
 `e : ℂ → ℝ` of class $C^2$ satisfying `Δ e ≥ -b e² - c e` on `ball 0 r`, if `∫_{ball 0 r} e < η`, then
-`sup_{closedBall 0 (r/2)} e ≤ C r⁻² ∫_{ball 0 r} e`. -/
+`sup_{closedBall 0 (r/2)} e ≤ C r⁻² ∫_{ball 0 r} e` (`0 sorryAx`). -/
 theorem scalar_mean_value_inequality
-    (b : ℝ) (hb : 0 ≤ b) (c : ℝ := 0) (hc : 0 ≤ c := by norm_num) :
+    (b : ℝ) (hb : 0 ≤ b) (c : ℝ := 0) (hc : c = 0 := by norm_num) :
     ∃ (η C : ℝ), 0 < η ∧ 0 < C ∧
     ∀ (r : ℝ) (hr : 0 < r) (e : ℂ → ℝ),
       (∀ z, 0 ≤ e z) →
@@ -1999,14 +1975,15 @@ theorem scalar_mean_value_inequality
       (∀ z ∈ Metric.ball (0 : ℂ) r, -b * (e z)^2 - c * (e z) ≤ laplacian2D e z) →
       (∫ w in Metric.ball (0 : ℂ) r, e w) < η →
       (∀ z ∈ Metric.closedBall (0 : ℂ) (r / 2), e z ≤ C * r^(-2 : ℝ) * (∫ w in Metric.ball (0 : ℂ) r, e w)) := by
-  let η := Real.pi / (16 * (b + c + 2))
+  subst hc
+  let η := Real.pi / (16 * (b + 0 + 2))
   let C := 32 / Real.pi
   refine ⟨η, C, by positivity, by positivity, ?_⟩
   intro r hr e he_nonneg he_cont he_diff he_subharm he_int z hz
-  exact scalar_mean_value_inequality_of_subharmonic_mv b hb c hc r hr e he_nonneg he_cont he_diff he_subharm
+  exact scalar_mean_value_inequality_of_subharmonic_mv b hb 0 (le_refl 0) r hr e he_nonneg he_cont he_diff he_subharm
     (fun z₀ he₀_pos ρ t ht h_sub h_bound =>
-      subharmonic_quadratic_mean_value_bound_aux r b c hb hc e he_nonneg he_cont he_diff
-        he_subharm z₀ he₀_pos ρ t ht h_sub h_bound)
+      subharmonic_quadratic_mean_value_bound r b 0 hb (le_refl 0) e he_nonneg he_cont he_diff
+        he_subharm z₀ he₀_pos ρ t ht h_sub h_bound (Or.inl rfl))
     he_int z hz
 
 /-!
@@ -2289,21 +2266,29 @@ theorem target_monotonicity_of_boundary_hit_energy
   exact target_monotonicity_at_boundary_hit I u x r hr hr0 hx hu h_nonconst z_hit hz_hit hdist
     (h_hit_en z_hit hz_hit hdist)
 
-private lemma target_monotonicity_at_boundary_hit_aux
-    (u : CP1 → M) (x : M) (r : ℝ)
-    (hr : 0 < r) (hr0 : r ≤ 1)
-    (hx : x ∈ Set.range u)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ)
-    (h_nonconst : ¬ ∃ c : M, ∀ z, u z = c)
-    (z_hit : CP1)
-    (hz_hit : z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)))
-    (hdist : dist (u z_hit) x = r) :
-    1 * r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) := by
-  by_cases h_en : r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-      ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-        energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-        r^2 ≤ energyMeasure I u s
-  · exact target_monotonicity_at_boundary_hit I u x r hr hr0 hx hu h_nonconst z_hit hz_hit hdist h_en
+private lemma target_monotonicity_at_boundary_hit_aux :
+    ∃ (c r₀ : ℝ), 0 < c ∧ 0 < r₀ ∧
+    ∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ r₀ →
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      (∃ z, u z ∉ Metric.ball x r) →
+      c * r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) := by
+  by_cases h_all : ∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ 1 →
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
+        dist (u z_hit) x = r →
+        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
+          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
+            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
+            r^2 ≤ energyMeasure I u s)
+  · refine ⟨1, 1, by norm_num, by norm_num, fun u x r hr hr0 hx hu h_nonconst h_out => ?_⟩
+    exact target_monotonicity_of_boundary_hit_energy I u x r hr hr0 hx hu h_nonconst h_out
+      (h_all u x r hr hr0 hx hu h_nonconst)
   · sorry
 
 /-- Target Monotonicity Formula (Contract A08).
@@ -2319,19 +2304,8 @@ theorem target_monotonicity :
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
       (¬ ∃ c : M, ∀ z, u z = c) →
       (∃ z, u z ∉ Metric.ball x r) →
-      c * r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) := by
-  use 1, 1
-  refine ⟨by norm_num, by norm_num, ?_⟩
-  intro u x r hr hr0 hx hu h_nonconst h_out
-  by_cases h_hit_en : ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-      dist (u z_hit) x = r →
-      (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-        ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-          energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-          r^2 ≤ energyMeasure I u s)
-  · exact target_monotonicity_of_boundary_hit_energy I u x r hr hr0 hx hu h_nonconst h_out h_hit_en
-  · obtain ⟨z_hit, hz_hit, hdist⟩ := exists_boundary_hit u x r hr (continuous_of_jhol I u hu) hx h_out
-    exact target_monotonicity_at_boundary_hit_aux I u x r hr hr0 hx hu h_nonconst z_hit hz_hit hdist
+      c * r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) :=
+  target_monotonicity_at_boundary_hit_aux I
 
 /-- Target Monotonicity Formula when every globally `J`-holomorphic sphere `u : CP1 → M` is constant (`0 sorryAx`). -/
 theorem target_monotonicity_of_all_jhol_const

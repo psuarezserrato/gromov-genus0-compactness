@@ -143,12 +143,14 @@ theorem challenge_stress_case_3_ghost_degree_ge_three
 /-- Challenge 3.3: Verify that `prune_degree_one_root` and `suppress_degree_two_root` exist
 and contract unstable ghost root vertices. -/
 theorem challenge_stress_case_3_root_pruning_and_suppression
-    (u_seq : ℕ → (CP1 → M)) (pdata : PrestableLimitData I u_seq)
+    (u_seq : ℕ → (CP1 → M))
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (pdata : PrestableLimitData I u_seq)
     (h_deg1 : pdata.tree.adj.degree pdata.root = 1)
     (h_const : ∃ c : M, ∀ z, pdata.map pdata.root z = c) :
     ∃ (pdata' : PrestableLimitData I u_seq),
       Fintype.card pdata'.tree.V + 1 = Fintype.card pdata.tree.V := by
-  obtain ⟨pdata', hcard, _⟩ := prune_degree_one_root I u_seq pdata h_deg1 h_const
+  obtain ⟨pdata', hcard, _⟩ := prune_degree_one_root I u_seq h_jhol pdata h_deg1 h_const
   exact ⟨pdata', hcard⟩
 
 /-- Challenge 3.4: Verify `stabilize_prestable_tree` yields a stable sphere tree limit. -/
