@@ -9,8 +9,16 @@
 \usepackage{enumitem}
 \usepackage{xcolor}
 \usepackage{listings}
+\usepackage{graphicx}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning}
+\usepackage{pdflscape}
+\definecolor{bpgreen}{HTML}{1CAC78}
+\definecolor{bpblue}{HTML}{1F5FD6}
+\definecolor{bporange}{HTML}{FFAA33}
+\definecolor{bpdark}{HTML}{1CAC78}
+\definecolor{bplight}{HTML}{9CEC8B}
+\definecolor{bpcan}{HTML}{A3D6FF}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
 \usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
 
 \setlist{itemsep=2pt,topsep=4pt}
@@ -424,6 +432,28 @@ note were produced with AI agents as described above. The formal-status numbers 
 against Lean kernel output at commit \code{b78e3d4}; the statement that $\CP$ has no
 $J$-holomorphic sphere with energy in $(0,4\pi)\cup(4\pi,8\pi)$ is standard mathematics but not yet
 formalized.
+
+
+\appendix
+\begin{landscape}
+\section{Blueprint dependency graph}\label{app:graph}
+\begin{center}
+\includegraphics[width=\linewidth,height=0.70\textheight,keepaspectratio]{blueprint_dep_graph.pdf}
+\end{center}
+\noindent\footnotesize
+Dependency graph produced by \code{leanblueprint} (with graphviz) from \code{blueprint/src/content.tex}
+and exported by \code{blueprint/export\_dep\_graph.sh}; the interactive version, in which each node
+opens its statement, proof sketch and Lean declarations, is \code{blueprint/web/dep\_graph\_document.html}
+\cite{TaoPFR}. Arrows point from a dependency to the node that uses it.
+\textbf{Shape:} rectangle = definition, ellipse = theorem, lemma or proposition.
+\textbf{Border:} green = statement formalized in Lean; blue = ready to be stated; orange = not ready
+(milestones N1--N3 and the realized bubble trees).
+\textbf{Fill:} dark green = fully proved (the node and all its ancestors are proved); light green =
+proved in Lean, but some ancestor is not; light blue = statement formalized and dependencies proved,
+proof not formalized. Certificates (\texttt{cert\_}) are formalized statements without proofs, so they
+are light blue, and every theorem that uses one is light green rather than dark green. This includes
+the main theorem (\texttt{thm\_main}): the graph makes visible that it is a reduction.
+\end{landscape}
 
 \begin{thebibliography}{99}\small\sloppy
 \bibitem{Gromov85} M.~Gromov, Pseudo holomorphic curves in symplectic manifolds,

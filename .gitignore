@@ -11,3 +11,7 @@ build/
 # OS files
 .DS_Store
 Thumbs.db
+
+# generated blueprint outputs
+blueprint/web/
+blueprint/dep_graph.dot

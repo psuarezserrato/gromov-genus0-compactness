@@ -15,19 +15,19 @@
 % =========================================================================
 \chapter{Status and conventions}
 
-The master theorem \cref{thm:main} is a machine-checked \emph{reduction}: it is proved in Lean with
-no \texttt{sorry}, from explicit hypotheses called certificates (\cref{chap:certificates}).
+The master theorem \cref{thm_main} is a machine-checked \emph{reduction}: it is proved in Lean with
+no \texttt{sorry}, from explicit hypotheses called certificates (\cref{chap_certificates}).
 All library declarations depend only on \texttt{propext}, \texttt{Classical.choice} and
 \texttt{Quot.sound} (census: \texttt{tests/PhaseAxiomCensus.lean}). Certificates were audited for
 satisfiability in \texttt{tests/CertificateSanity.lean}; two earlier certificates were shown to be
-too strong and replaced (\cref{chap:audit}). Several certificates are close to, or identical to,
+too strong and replaced (\cref{chap_audit}). Several certificates are close to, or identical to,
 the conclusion of the theorem they serve; this is recorded in each node.
 
 % =========================================================================
 \chapter{Foundations}
 
 \begin{definition}[Closed tame target]
-\label{def:target}
+\label{def_target}
 \lean{GromovCompactness.ClosedTameTarget}
 \leanok
 A compact boundaryless smooth manifold $M$ with pointwise nondegenerate skew forms $\omega_x$,
@@ -36,101 +36,101 @@ $\omega_x(v,J_xv)>0$ for $v\ne0$.
 \end{definition}
 
 \begin{definition}[Compatible metric]
-\label{def:metric}
+\label{def_metric}
 \lean{GromovCompactness.ClosedTameTarget.metric}
 \leanok
-\uses{def:target}
+\uses{def_target}
 $g_x(v,w)=\tfrac12(\omega_x(v,J_xw)+\omega_x(w,J_xv))$.
 \end{definition}
 
 \begin{lemma}[Metric properties]
-\label{lem:metric}
+\label{lem_metric}
 \lean{GromovCompactness.metric_pos_def}
 \leanok
-\uses{def:metric}
+\uses{def_metric}
 $g$ is symmetric, positive definite and $J$-invariant.
 \end{lemma}
 \begin{proof}\leanok Algebra from tameness and $J^2=-1$.\end{proof}
 
 \begin{definition}[$J$-holomorphic map]
-\label{def:jhol}
+\label{def_jhol}
 \lean{GromovCompactness.JHolomorphicOn}
 \leanok
-\uses{def:target}
+\uses{def_target}
 $u$ is smooth on $s$ and $du\circ j=J\circ du$ at every point of $s$.
 \end{definition}
 
 \begin{lemma}[Reparametrization invariance]
-\label{lem:jhol_invariance}
+\label{lem_jhol_invariance}
 \lean{GromovCompactness.jholomorphic_coordinate_invariance}
 \leanok
-\uses{def:jhol}
+\uses{def_jhol}
 $J$-holomorphicity is preserved by biholomorphic reparametrization of the domain.
 \end{lemma}
 \begin{proof}\leanok Chain rule for \texttt{mfderiv}.\end{proof}
 
 \begin{definition}[M\"obius frames]
-\label{def:moebius}
+\label{def_moebius}
 \lean{GromovCompactness.MoebiusFrame}
 \leanok
 M\"obius transformations of $\CP$, with composition and inverse.
 \end{definition}
 
 \begin{theorem}[Three-point transitivity]
-\label{thm:three_points}
+\label{thm_three_points}
 \lean{GromovCompactness.exists_unique_moebius_three_points}
 \leanok
-\uses{def:moebius}
+\uses{def_moebius}
 Any triple of distinct points of $\CP$ can be sent to any other by a unique M\"obius map.
 \end{theorem}
 \begin{proof}\leanok Adjugate matrices.\end{proof}
 
 \begin{definition}[Energy measure and total energy]
-\label{def:energy}
+\label{def_energy}
 \lean{GromovCompactness.energyMeasure, GromovCompactness.energyMeasureExtended, GromovCompactness.totalEnergy}
 \leanok
-\uses{def:metric}
+\uses{def_metric}
 The push-forward from the stereographic chart of Lebesgue measure with density
 $\tfrac12|du|_g^2\cdot 4/(1+|w|^2)^2$; $E(u)$ is its real total.
 \end{definition}
 
 \begin{theorem}[Conformal invariance of energy]
-\label{thm:energy_conformal}
+\label{thm_energy_conformal}
 \lean{GromovCompactness.energy_conformal_invariant}
 \leanok
-\uses{def:energy, def:moebius}
+\uses{def_energy, def_moebius}
 Energy is invariant under M\"obius reparametrization.
 \end{theorem}
 \begin{proof}\leanok Change of variables with the spherical Jacobian.\end{proof}
 
 \begin{lemma}[A nonconstant sphere of finite positive energy]
-\label{lem:id_energy}
+\label{lem_id_energy}
 \lean{GromovCompactness.concrete_nonconstant_map_positive_energy, GromovCompactness.concrete_nonconstant_map_finite_energy}
 \leanok
-\uses{def:energy, def:jhol}
+\uses{def_energy, def_jhol}
 $\mathrm{id}:\CP\to\CP$ is $J$-holomorphic with $0<E(\mathrm{id})<\infty$.
 \end{lemma}
 \begin{proof}\leanok Energy density of the identity is identically $1$.\end{proof}
 
 \begin{definition}[Smooth local convergence]
-\label{def:cinf_loc}
+\label{def_cinf_loc}
 \lean{GromovCompactness.SmoothLocalConvergesOn}
 \leanok
-\uses{def:jhol}
+\uses{def_jhol}
 $C^\infty_{\mathrm{loc}}$ convergence on an open subset of $\CP$.
 \end{definition}
 
 \begin{lemma}[Closedness of $J$-holomorphicity]
-\label{lem:jhol_closure}
+\label{lem_jhol_closure}
 \lean{GromovCompactness.smooth_local_jhol_closure}
 \leanok
-\uses{def:cinf_loc}
+\uses{def_cinf_loc}
 $C^\infty_{\mathrm{loc}}$ limits of $J$-holomorphic maps are $J$-holomorphic.
 \end{lemma}
 \begin{proof}\leanok Pass to the limit in $du\circ j=J\circ du$.\end{proof}
 
 \begin{lemma}[Diagonal extraction]
-\label{lem:diagonal}
+\label{lem_diagonal}
 \lean{GromovCompactness.Bookkeeping.countable_diagonal_extraction}
 \leanok
 A nested sequence of subsequences has a diagonal subsequence eventually inside each.
@@ -138,171 +138,171 @@ A nested sequence of subsequences has a diagonal subsequence eventually inside e
 \begin{proof}\leanok Cantor diagonal argument.\end{proof}
 
 \begin{definition}[Stable sphere tree limit and compactness witness]
-\label{def:limit}
+\label{def_limit}
 \lean{GromovCompactness.StableSphereTreeLimit, GromovCompactness.CompactnessWitness}
 \leanok
-\uses{def:jhol, def:cinf_loc, def:moebius, def:energy}
+\uses{def_jhol, def_cinf_loc, def_moebius, def_energy}
 A finite tree of $J$-holomorphic spheres with nodal matching and stable ghosts; a witness records a
 subsequence, frames, $C^\infty_{\mathrm{loc}}$ convergence, frame collapse and energy convergence.
 \end{definition}
 
 \begin{theorem}[Component bounds]
-\label{thm:component_bounds}
+\label{thm_component_bounds}
 \lean{GromovCompactness.Topology.component_count_bounds, GromovCompactness.ghost_components_bound}
 \leanok
-\uses{def:limit, def:thresholds}
+\uses{def_limit, def_thresholds}
 $Ph\le B$; for $|V|>1$, $G\le P-2$ and $|V|\le2P-2$; $|V|\le\max(1,2\lfloor B/h\rfloor-2)$.
 \end{theorem}
 \begin{proof}\leanok Handshake lemma and the energy gap packaged in \texttt{TargetThresholds}.\end{proof}
 
 % =========================================================================
 \chapter{Certificates (assumed hypotheses)}
-\label{chap:certificates}
+\label{chap_certificates}
 
 \begin{proposition}[Certificate \texttt{h\_fin}: finite energy]
-\label{cert:fin}
+\label{cert_fin}
 \leanok
-\uses{def:energy}
+\uses{def_energy}
 Each $u_n$ has finite extended energy. (Needed because $E$ is a \texttt{toReal}; to be discharged
 in milestone N1.)
 \end{proposition}
-\begin{proof} Not formalized (planned: \cref{n1:hfin}). \end{proof}
+\begin{proof} Not formalized (planned: \cref{n1_hfin}). \end{proof}
 
 \begin{definition}[Universal thresholds]
-\label{def:thresholds}
+\label{def_thresholds}
 \lean{GromovCompactness.Bubbling.TargetThresholds}
 \leanok
-\uses{def:energy, def:jhol}
+\uses{def_energy, def_jhol}
 A bundle of constants $\eps_{\mathrm{reg}},C_{\mathrm{reg}},\eps_{\mathrm{sph}},\eps_{\mathrm{neck}},
 C_{\mathrm{neck}},a,h$ together with the estimates they satisfy ($\eps$-regularity, energy gap,
 neck decay).
 \end{definition}
 
 \begin{proposition}[Certificate: existence of thresholds]
-\label{cert:thresholds}
+\label{cert_thresholds}
 \leanok
-\uses{def:thresholds}
+\uses{def_thresholds}
 For the given target, \texttt{TargetThresholds} is inhabited. The master theorem takes a threshold
-bundle as a parameter. \cref{thm:thresholds} constructs one from \cref{cert:weitz,cert:hit,cert:decay}.
+bundle as a parameter. \cref{thm_thresholds} constructs one from \cref{cert_weitz,cert_hit,cert_decay}.
 \end{proposition}
 \begin{proof} Not formalized unconditionally. \end{proof}
 
 \begin{proposition}[Certificate \texttt{h\_weitz}: Weitzenb\"ock decomposition]
-\label{cert:weitz}
+\label{cert_weitz}
 \leanok
-\uses{def:energy, def:jhol}
+\uses{def_energy, def_jhol}
 In stereographic coordinates the energy density $e$ of a $J$-holomorphic sphere is smooth and
 $\Delta e=|\cdot|^2+K$ with $|K|\le be^2$. Essentially equivalent to the conclusion of
-\cref{a02:bochner}.
+\cref{a02_bochner}.
 \end{proposition}
 \begin{proof} Not formalized (planned: N3, normal charts). \end{proof}
 
 \begin{proposition}[Certificate \texttt{h\_hit} / \texttt{h\_hit\_exit}: isoperimetric bound and ball exit]
-\label{cert:hit}
+\label{cert_hit}
 \leanok
-\uses{def:energy, def:jhol}
+\uses{def_energy, def_jhol}
 $r^2\le E(u;u^{-1}B_r(x))$ at boundary-hit radii, and nonconstant spheres exit small balls. Close
-to the conclusion of \cref{a08:monotonicity}.
+to the conclusion of \cref{a08_monotonicity}.
 \end{proposition}
 \begin{proof} Not formalized (planned: N3). \end{proof}
 
 \begin{proposition}[Certificate \texttt{h\_osc}: collar oscillation]
-\label{cert:osc}
+\label{cert_osc}
 \lean{GromovCompactness.Analysis.SatisfiesCylinderCollarOscillation}
 \leanok
-\uses{def:energy}
+\uses{def_energy}
 On the collar $A(2r,R/2)$ the oscillation of $u$ is at most $4\sqrt{E(u;A(r,R))}$.
 \end{proposition}
 \begin{proof} Not formalized (planned: N3). \end{proof}
 
 \begin{proposition}[Certificate \texttt{h\_decay}: exponential decay on cylinders]
-\label{cert:decay}
+\label{cert_decay}
 \lean{GromovCompactness.Analysis.SatisfiesCylinderEnergyDecay}
 \leanok
-\uses{def:energy}
+\uses{def_energy}
 $E(u;A(r_1,r_2))\le C_0((r/r_1)^a+(r_2/R)^a)E(u;A(r,R))$ below $\eps_{\mathrm{neck}}$.
-Identical to the conclusion of \cref{a10:decay}.
+Identical to the conclusion of \cref{a10_decay}.
 \end{proposition}
 \begin{proof} Not formalized (planned: N3). \end{proof}
 
 \begin{proposition}[Certificate \texttt{h\_ext}: extension across a puncture]
-\label{cert:punc}
+\label{cert_punc}
 \lean{GromovCompactness.Analysis.SatisfiesPunctureSobolevExtension}
 \leanok
-\uses{def:jhol}
+\uses{def_jhol}
 A finite-energy punctured $J$-holomorphic sphere has a continuous weak $J$-holomorphic extension.
-Identical to the conclusion of \cref{a11:puncture}.
+Identical to the conclusion of \cref{a11_puncture}.
 \end{proposition}
 \begin{proof} Not formalized (planned: N3). \end{proof}
 
 \begin{proposition}[Certificate \texttt{h\_tower}: regularity tower]
-\label{cert:tower}
+\label{cert_tower}
 \leanok
-\uses{def:jhol}
-Weak $J$-holomorphic maps are $C^n$ for every $n$. Implies the conclusion of \cref{a05:bootstrap}
+\uses{def_jhol}
+Weak $J$-holomorphic maps are $C^n$ for every $n$. Implies the conclusion of \cref{a05_bootstrap}
 trivially.
 \end{proposition}
 \begin{proof} Not formalized (planned: N3, Schauder in normal charts). \end{proof}
 
 \begin{proposition}[Certificate \texttt{h\_aa}: Arzel\`a--Ascoli extraction]
-\label{cert:aa}
+\label{cert_aa}
 \leanok
-\uses{def:cinf_loc}
+\uses{def_cinf_loc}
 Under local gradient bounds, a subsequence converges in $C^\infty_{\mathrm{loc}}$. Identical to the
-existence part of \cref{a06:local_compactness}.
+existence part of \cref{a06_local_compactness}.
 \end{proposition}
 \begin{proof} Not formalized (planned: N3). \end{proof}
 
 \begin{proposition}[Certificate \texttt{h\_conc\_extract}: smooth extraction off the singular set]
-\label{cert:conc}
+\label{cert_conc}
 \leanok
-\uses{def:cinf_loc, def:energy}
+\uses{def_cinf_loc, def_energy}
 Along a further subsequence the maps converge in $C^\infty_{\mathrm{loc}}$ off $S$ to a
 $J$-holomorphic $u_0$, and $\mu=\mu_{u_0}+\sum_{p\in S}\mu\{p\}\delta_p$.
 \end{proposition}
 \begin{proof} Not formalized. \end{proof}
 
 \begin{definition}[Genuine defect of a sequence]
-\label{def:defect_seq}
+\label{def_defect_seq}
 \lean{GromovCompactness.Bubbling.IsDefectSeq}
 \leanok
-\uses{def:jhol, def:energy}
+\uses{def_jhol, def_energy}
 $f$ is $J$-holomorphic with bounded finite energy, $\lim_{r\to0}\lim_nE(f_n;D_r(a))=m$, and near $a$
 the maps eventually stay close to $b$.
 \end{definition}
 
 \begin{proposition}[Certificate \texttt{OneLevelCertificate} (Contract B04, sequence-relative)]
-\label{cert:onelevel}
+\label{cert_onelevel}
 \lean{GromovCompactness.Bubbling.OneLevelCertificate, GromovCompactness.Bubbling.SeqOneLevelDecomposition}
 \leanok
-\uses{def:defect_seq, def:onelevel}
+\uses{def_defect_seq, def_onelevel}
 Every genuine defect of mass $m\ge h$ admits a one-level decomposition whose children are genuine
 defects.
 \end{proposition}
 \begin{proof} Not formalized (this is the analytic core of bubbling). \end{proof}
 
 \begin{proposition}[Certificate \texttt{ConcDefectCertificate}]
-\label{cert:concdefect}
+\label{cert_concdefect}
 \lean{GromovCompactness.Assembly.ConcDefectCertificate}
 \leanok
-\uses{def:defect_seq, def:concentration}
+\uses{def_defect_seq, def_concentration}
 Every atom of the concentration measure is a genuine defect, with its true mass and base value
 $u_0(p)$.
 \end{proposition}
 \begin{proof} Not formalized. \end{proof}
 
 \begin{proposition}[Certificate \texttt{GraftCertificate}]
-\label{cert:graft}
+\label{cert_graft}
 \lean{GromovCompactness.Assembly.GraftCertificate}
 \leanok
-\uses{def:concentration, def:grafted_tree}
+\uses{def_concentration, def_grafted_tree}
 For the genuine defect masses, some grafted sphere tree rooted at $u_0$ is the limit of the sequence
-along a subsequence and rescaling data. (Being replaced by a theorem; see \cref{chap:remaining}.)
+along a subsequence and rescaling data. (Being replaced by a theorem; see \cref{chap_remaining}.)
 \end{proposition}
 \begin{proof} Not formalized. \end{proof}
 
 \begin{proposition}[Extension certificates]
-\label{cert:extensions}
+\label{cert_extensions}
 \leanok
 Three-point rigidity of homeomorphisms (\texttt{h\_rigidity}), finiteness of component symmetries
 (\texttt{h\_finite\_symm}), metrizability of the moduli space (\texttt{h\_metr}), and the limit
@@ -314,7 +314,7 @@ extraction certificates for marked curves, moduli space and varying $J$ (\texttt
 \chapter{Local analysis}
 
 \begin{lemma}[Scalar mean-value inequality (A01)]
-\label{a01:mean_value}
+\label{a01_mean_value}
 \lean{GromovCompactness.Analysis.scalar_mean_value_inequality}
 \leanok
 If $e\ge0$ is $C^2$ with $\Delta e\ge-be^2$ on $D_r$ and $\int_{D_r}e<\eta$, then
@@ -323,25 +323,25 @@ $\sup_{D_{r/2}}e\le Cr^{-2}\int_{D_r}e$.
 \begin{proof}\leanok Heinz-type argument in flat coordinates.\end{proof}
 
 \begin{lemma}[Bochner inequality (A02)]
-\label{a02:bochner}
+\label{a02_bochner}
 \lean{GromovCompactness.Analysis.bochner_differential_inequality}
 \leanok
-\uses{cert:weitz}
+\uses{cert_weitz}
 $\Delta e\ge-be^2-ce$ for the energy density of a $J$-holomorphic sphere.
 \end{lemma}
-\begin{proof}\leanok Algebra from \cref{cert:weitz}.\end{proof}
+\begin{proof}\leanok Algebra from \cref{cert_weitz}.\end{proof}
 
 \begin{theorem}[$\eps$-regularity (A03)]
-\label{a03:eps_regularity}
+\label{a03_eps_regularity}
 \lean{GromovCompactness.Analysis.epsilon_regularity}
 \leanok
-\uses{a01:mean_value, a02:bochner}
+\uses{a01_mean_value, a02_bochner}
 Small energy on a disk bounds the energy density on the half disk.
 \end{theorem}
 \begin{proof}\leanok Mean-value inequality applied to the Bochner inequality.\end{proof}
 
 \begin{lemma}[Flat elliptic estimates (A04)]
-\label{a04:elliptic}
+\label{a04_elliptic}
 \lean{GromovCompactness.Analysis.interior_cauchy_riemann_estimate, GromovCompactness.Analysis.morrey_sobolev_embedding, GromovCompactness.Analysis.cauchy_pompeiu_holder_gain, GromovCompactness.Analysis.elliptic_bootstrap_holder}
 \leanok
 Interior Cauchy--Riemann estimates, 2D Morrey--Sobolev embedding, Cauchy--Pompeiu H\"older gain and
@@ -350,84 +350,84 @@ one H\"older bootstrap step, in flat coordinates.
 \begin{proof}\leanok Mathlib's Cauchy integral formula and a near/far splitting.\end{proof}
 
 \begin{theorem}[Nonlinear bootstrap (A05)]
-\label{a05:bootstrap}
+\label{a05_bootstrap}
 \lean{GromovCompactness.Analysis.nonlinear_elliptic_bootstrap}
 \leanok
-\uses{cert:tower}
+\uses{cert_tower}
 Weak $J$-holomorphic maps are smooth.
 \end{theorem}
-\begin{proof}\leanok Immediate from \cref{cert:tower}.\end{proof}
+\begin{proof}\leanok Immediate from \cref{cert_tower}.\end{proof}
 
 \begin{theorem}[Local smooth compactness (A06)]
-\label{a06:local_compactness}
+\label{a06_local_compactness}
 \lean{GromovCompactness.Analysis.local_smooth_compactness}
 \leanok
-\uses{cert:aa, lem:jhol_closure}
+\uses{cert_aa, lem_jhol_closure}
 Under local gradient bounds a subsequence converges in $C^\infty_{\mathrm{loc}}$ to a
 $J$-holomorphic limit.
 \end{theorem}
-\begin{proof}\leanok Extraction from \cref{cert:aa}; limit is $J$-holomorphic by \cref{lem:jhol_closure}.\end{proof}
+\begin{proof}\leanok Extraction from \cref{cert_aa}; limit is $J$-holomorphic by \cref{lem_jhol_closure}.\end{proof}
 
 \begin{theorem}[Target monotonicity (A08)]
-\label{a08:monotonicity}
+\label{a08_monotonicity}
 \lean{GromovCompactness.Analysis.target_monotonicity}
 \leanok
-\uses{cert:hit}
+\uses{cert_hit}
 $c\,r^2\le E(u;u^{-1}B_r(x))$ for small $r$ when $u$ leaves $B_r(x)$.
 \end{theorem}
-\begin{proof}\leanok From \cref{cert:hit}.\end{proof}
+\begin{proof}\leanok From \cref{cert_hit}.\end{proof}
 
 \begin{theorem}[Sphere energy gap (A07)]
-\label{a07:gap}
+\label{a07_gap}
 \lean{GromovCompactness.Analysis.sphere_energy_gap}
 \leanok
-\uses{a08:monotonicity, cert:hit}
+\uses{a08_monotonicity, cert_hit}
 Nonconstant $J$-holomorphic spheres have energy at least $\eps_{\mathrm{sph}}>0$.
 \end{theorem}
 \begin{proof}\leanok Monotonicity at a ball the sphere must exit.\end{proof}
 
 \begin{theorem}[Cylinder localization (A09)]
-\label{a09:localization}
+\label{a09_localization}
 \lean{GromovCompactness.Analysis.cylinder_localization}
 \leanok
-\uses{cert:osc}
+\uses{cert_osc}
 Small annular energy confines the collar image to a small ball.
 \end{theorem}
-\begin{proof}\leanok From \cref{cert:osc}.\end{proof}
+\begin{proof}\leanok From \cref{cert_osc}.\end{proof}
 
 \begin{theorem}[Exponential decay on cylinders (A10)]
-\label{a10:decay}
+\label{a10_decay}
 \lean{GromovCompactness.Analysis.cylinder_exponential_decay}
 \leanok
-\uses{cert:decay}
+\uses{cert_decay}
 Annular energy decays exponentially away from the collars.
 \end{theorem}
-\begin{proof}\leanok Restates \cref{cert:decay}.\end{proof}
+\begin{proof}\leanok Restates \cref{cert_decay}.\end{proof}
 
 \begin{theorem}[Extension across a puncture (A11)]
-\label{a11:puncture}
+\label{a11_puncture}
 \lean{GromovCompactness.Analysis.puncture_sobolev_extension}
 \leanok
-\uses{cert:punc}
+\uses{cert_punc}
 A finite-energy punctured $J$-holomorphic sphere extends continuously and weakly $J$-holomorphically.
 \end{theorem}
-\begin{proof}\leanok Restates \cref{cert:punc}.\end{proof}
+\begin{proof}\leanok Restates \cref{cert_punc}.\end{proof}
 
 \begin{theorem}[Removal of singularities (A12)]
-\label{a12:removal}
+\label{a12_removal}
 \lean{GromovCompactness.Analysis.removal_of_singularities}
 \leanok
-\uses{a11:puncture, a05:bootstrap}
+\uses{a11_puncture, a05_bootstrap}
 The extension is a unique smooth $J$-holomorphic sphere.
 \end{theorem}
 \begin{proof}\leanok Bootstrap of the extension; uniqueness by density of the punctured sphere.\end{proof}
 
 \begin{theorem}[Thresholds from analytic certificates (B01)]
-\label{thm:thresholds}
+\label{thm_thresholds}
 \lean{GromovCompactness.Bubbling.exists_target_thresholds}
 \leanok
-\uses{def:thresholds, a03:eps_regularity, a07:gap, a10:decay}
-\cref{cert:weitz,cert:hit,cert:decay} yield a threshold bundle with
+\uses{def_thresholds, a03_eps_regularity, a07_gap, a10_decay}
+\cref{cert_weitz,cert_hit,cert_decay} yield a threshold bundle with
 $0<h\le\min(\eps_{\mathrm{reg}}/2,\eps_{\mathrm{sph}},\eps_{\mathrm{neck}}/2)$.
 \end{theorem}
 \begin{proof}\leanok Take minima of the constants.\end{proof}
@@ -436,7 +436,7 @@ $0<h\le\min(\eps_{\mathrm{reg}}/2,\eps_{\mathrm{sph}},\eps_{\mathrm{neck}}/2)$.
 \chapter{Concentration and bubbling}
 
 \begin{theorem}[Prokhorov compactness on $\CP$]
-\label{c01:prokhorov}
+\label{c01_prokhorov}
 \lean{GromovCompactness.Topology.RMK.prokhorov_seq_compact}
 \leanok
 Bounded sequences of finite measures on $\CP$ have weakly convergent subsequences.
@@ -445,100 +445,100 @@ Bounded sequences of finite measures on $\CP$ have weakly convergent subsequence
 \texttt{RealRMK.rieszMeasure}.\end{proof}
 
 \begin{theorem}[Weak compactness of energy measures (C01)]
-\label{c01:weak}
+\label{c01_weak}
 \lean{GromovCompactness.Compactness.weak_measure_compactness, GromovCompactness.Compactness.weak_energy_measure_compactness}
 \leanok
-\uses{c01:prokhorov, cert:fin, def:energy}
+\uses{c01_prokhorov, cert_fin, def_energy}
 Energy measures of a bounded-energy sequence have a weakly convergent subsequence.
 \end{theorem}
-\begin{proof}\leanok From \cref{c01:prokhorov}.\end{proof}
+\begin{proof}\leanok From \cref{c01_prokhorov}.\end{proof}
 
 \begin{definition}[Concentration data]
-\label{def:concentration}
+\label{def_concentration}
 \lean{GromovCompactness.Compactness.ConcentrationData}
 \leanok
-\uses{def:cinf_loc, def:energy, def:thresholds}
+\uses{def_cinf_loc, def_energy, def_thresholds}
 A subsequence, a limit measure $\mu$, a finite singular set $S$ and a $J$-holomorphic limit $u_0$
 off $S$.
 \end{definition}
 
 \begin{theorem}[Existence of concentration data (C02)]
-\label{c02:concentration}
+\label{c02_concentration}
 \lean{GromovCompactness.Compactness.exists_concentration_data}
 \leanok
-\uses{c01:weak, cert:conc, def:concentration}
+\uses{c01_weak, cert_conc, def_concentration}
 Every bounded-energy sequence admits concentration data.
 \end{theorem}
-\begin{proof}\leanok Weak compactness, finiteness of $S$, and \cref{cert:conc}.\end{proof}
+\begin{proof}\leanok Weak compactness, finiteness of $S$, and \cref{cert_conc}.\end{proof}
 
 \begin{theorem}[Defect identity (C03)]
-\label{c03:defect}
+\label{c03_defect}
 \lean{GromovCompactness.Compactness.defect_measure_identity, GromovCompactness.Compactness.isolating_disk_defect_limit}
 \leanok
-\uses{def:concentration, def:thresholds}
+\uses{def_concentration, def_thresholds}
 $\mu=\mu_{u_0}+\sum_{p\in S}m_p\delta_p$ with $m_p\ge\eps_{\mathrm{sph}}$, and
 $E(u_{\sigma(n)})\to E(u_0)+\sum m_p$.
 \end{theorem}
 \begin{proof}\leanok Finite-measure Portmanteau.\end{proof}
 
 \begin{lemma}[Calibrated rescaling (B02)]
-\label{b02:calibrated}
+\label{b02_calibrated}
 \lean{GromovCompactness.Bubbling.exists_calibrated_rescaling}
 \leanok
-\uses{def:thresholds}
+\uses{def_thresholds}
 Hofer's lemma specialized to the plane gives centers and scales with
 $E(f_n;D_{\lambda_n}(a_n))=m-h/2$.
 \end{lemma}
 \begin{proof}\leanok From \texttt{Mathlib.Analysis.Hofer}.\end{proof}
 
 \begin{theorem}[Neck vanishing (B03)]
-\label{b03:neck}
+\label{b03_neck}
 \lean{GromovCompactness.Bubbling.neck_vanishing_quantified}
 \leanok
-\uses{a09:localization, cert:osc}
+\uses{a09_localization, cert_osc}
 Neck energy and neck diameter tend to zero with the stated quantifier order.
 \end{theorem}
-\begin{proof}\leanok From cylinder localization and \cref{cert:osc}.\end{proof}
+\begin{proof}\leanok From cylinder localization and \cref{cert_osc}.\end{proof}
 
 \begin{definition}[One-level decomposition]
-\label{def:onelevel}
+\label{def_onelevel}
 \lean{GromovCompactness.Bubbling.OneLevelDecomposition}
 \leanok
-\uses{def:jhol, def:energy, def:thresholds}
+\uses{def_jhol, def_energy, def_thresholds}
 A bubble $v$, child points $q$ and masses with $m=E(v)+\sum m_i$, $v(\infty)=b$, and calibration.
 \end{definition}
 
 \begin{lemma}[Ghost branching (B05)]
-\label{b05:ghost}
+\label{b05_ghost}
 \lean{GromovCompactness.Bubbling.ghost_component_branches_of_const}
 \leanok
-\uses{def:onelevel}
+\uses{def_onelevel}
 A constant bubble has at least two children.
 \end{lemma}
 \begin{proof}\leanok Calibration arithmetic.\end{proof}
 
 \begin{lemma}[Strict rank decrease (B06)]
-\label{b06:rank}
+\label{b06_rank}
 \lean{GromovCompactness.Bubbling.child_rank_strict_decrease, GromovCompactness.Bubbling.energy_rank_induction}
 \leanok
-\uses{def:onelevel}
+\uses{def_onelevel}
 $\lfloor m_i/h\rfloor<\lfloor m/h\rfloor$; well-founded induction on this rank.
 \end{lemma}
 \begin{proof}\leanok Children have mass at most $m-h$.\end{proof}
 
 \begin{definition}[Local defect tree]
-\label{def:local_tree}
+\label{def_local_tree}
 \lean{GromovCompactness.Bubbling.LocalDefectTree}
 \leanok
-\uses{def:onelevel}
+\uses{def_onelevel}
 A finite stable tree of $J$-holomorphic spheres of total energy $m$ attached at $b$.
 \end{definition}
 
 \begin{theorem}[Resolution of a genuine defect (B07)]
-\label{b07:resolve}
+\label{b07_resolve}
 \lean{GromovCompactness.Bubbling.resolve_single_defect_tree_of_certificate, GromovCompactness.Bubbling.resolve_single_defect_tree}
 \leanok
-\uses{cert:onelevel, b06:rank, b05:ghost, def:local_tree, def:defect_seq}
+\uses{cert_onelevel, b06_rank, b05_ghost, def_local_tree, def_defect_seq}
 Every genuine defect of mass $m>0$ is resolved by a local defect tree.
 \end{theorem}
 \begin{proof}\leanok Energy-rank induction; children are grafted
@@ -548,65 +548,65 @@ Every genuine defect of mass $m>0$ is resolved by a local defect tree.
 \chapter{Assembly and the master theorem}
 
 \begin{lemma}[Global frames (G01)]
-\label{g01:frames}
+\label{g01_frames}
 \lean{GromovCompactness.Assembly.assemble_global_frames}
 \leanok
-\uses{def:moebius}
+\uses{def_moebius}
 Rescaling data on a rooted tree determine global M\"obius frames with the transition relations.
 \end{lemma}
 \begin{proof}\leanok Well-founded recursion on depth.\end{proof}
 
 \begin{definition}[Grafted tree and prestable limit data]
-\label{def:grafted_tree}
+\label{def_grafted_tree}
 \lean{GromovCompactness.Assembly.PartialRootGraftedTree, GromovCompactness.Assembly.PrestableLimitData}
 \leanok
-\uses{def:concentration, def:local_tree, def:limit}
+\uses{def_concentration, def_local_tree, def_limit}
 A tree rooted at $u_0$ with defect trees attached at $S$; prestable limit data add the subsequence,
 frames and convergence.
 \end{definition}
 
 \begin{lemma}[Prestable data from a convergent grafted tree]
-\label{g01:grafted}
+\label{g01_grafted}
 \lean{GromovCompactness.Assembly.prestable_limit_of_grafted_tree}
 \leanok
-\uses{def:grafted_tree, g01:frames}
+\uses{def_grafted_tree, g01_frames}
 A grafted tree that is the limit of the sequence yields prestable limit data.
 \end{lemma}
-\begin{proof}\leanok Frames from \cref{g01:frames}; energy identity from the tree.\end{proof}
+\begin{proof}\leanok Frames from \cref{g01_frames}; energy identity from the tree.\end{proof}
 
 \begin{theorem}[Prestable limit (G01)]
-\label{g01:assemble}
+\label{g01_assemble}
 \lean{GromovCompactness.Assembly.assemble_prestable_limit}
 \leanok
-\uses{c02:concentration, c03:defect, cert:graft, g01:grafted}
+\uses{c02_concentration, c03_defect, cert_graft, g01_grafted}
 Every bounded-energy sequence of $J$-holomorphic spheres has prestable limit data.
 \end{theorem}
-\begin{proof}\leanok Concentration data, defect identity, and \cref{cert:graft}.\end{proof}
+\begin{proof}\leanok Concentration data, defect identity, and \cref{cert_graft}.\end{proof}
 
 \begin{theorem}[Stabilization (G02)]
-\label{g02:stabilize}
+\label{g02_stabilize}
 \lean{GromovCompactness.Assembly.stabilize_prestable_tree, GromovCompactness.Assembly.prune_degree_one_root, GromovCompactness.Assembly.suppress_degree_two_root, GromovCompactness.Assembly.upgrade_convergence_across_deleted_node}
 \leanok
-\uses{def:grafted_tree, def:thresholds}
+\uses{def_grafted_tree, def_thresholds}
 Unstable ghost roots can be pruned or suppressed, yielding a stable limit.
 \end{theorem}
 \begin{proof}\leanok Strong induction on $|V|$.\end{proof}
 
 \begin{theorem}[Core compactness (G03)]
-\label{g03:core}
+\label{g03_core}
 \lean{GromovCompactness.gromov_compactness_core, GromovCompactness.gromov_subsequence_alternative}
 \leanok
-\uses{g01:assemble, g02:stabilize, cert:fin, cert:conc, cert:graft}
+\uses{g01_assemble, g02_stabilize, cert_fin, cert_conc, cert_graft}
 A subsequence converges to a stable sphere tree limit.
 \end{theorem}
 \begin{proof}\leanok Assembly followed by stabilization.\end{proof}
 
 \begin{theorem}[Genus-zero Gromov compactness]
-\label{thm:main}
+\label{thm_main}
 \lean{GromovCompactness.gromov_compactness_genus_zero}
 \leanok
-\uses{g03:core, thm:component_bounds, cert:thresholds}
-Main theorem of the project, as a reduction to the certificates of \cref{chap:certificates}.
+\uses{g03_core, thm_component_bounds, cert_thresholds}
+Main theorem of the project, as a reduction to the certificates of \cref{chap_certificates}.
 \end{theorem}
 \begin{proof}\leanok Core compactness plus component bounds.\end{proof}
 
@@ -614,46 +614,46 @@ Main theorem of the project, as a reduction to the certificates of \cref{chap:ce
 \chapter{Extensions}
 
 \begin{theorem}[Varying almost-complex structures (E01)]
-\label{e01:varying}
+\label{e01_varying}
 \lean{GromovCompactness.Extensions.jholomorphic_limit_of_varying_J, GromovCompactness.Extensions.gromov_compactness_varying_J}
 \leanok
-\uses{g03:core, cert:extensions}
+\uses{g03_core, cert_extensions}
 Limits of $J_n$-holomorphic maps with $J_n\to J$ are $J$-holomorphic (unconditional); compactness for
-varying $J$ (from \cref{cert:extensions}).
+varying $J$ (from \cref{cert_extensions}).
 \end{theorem}
 \begin{proof}\leanok Operator-norm squeeze; extraction certificate.\end{proof}
 
 \begin{theorem}[Marked compactness (E02)]
-\label{e02:marked}
+\label{e02_marked}
 \lean{GromovCompactness.Extensions.marked_gromov_compactness}
 \leanok
-\uses{g03:core, cert:extensions}
+\uses{g03_core, cert_extensions}
 Compactness for marked stable maps.
 \end{theorem}
 \begin{proof}\leanok From the marked extraction certificate.\end{proof}
 
 \begin{theorem}[Automorphisms (E04)]
-\label{e04:aut}
+\label{e04_aut}
 \lean{GromovCompactness.Extensions.moebius_three_point_rigidity, GromovCompactness.Extensions.full_automorphisms_finite_iff_pure_finite, GromovCompactness.Extensions.stability_iff_finite_automorphisms}
 \leanok
-\uses{thm:three_points, cert:extensions}
+\uses{thm_three_points, cert_extensions}
 M\"obius three-point rigidity (unconditional); stability iff finite automorphisms (from
-\cref{cert:extensions}).
+\cref{cert_extensions}).
 \end{theorem}
 \begin{proof}\leanok Fibrewise finiteness.\end{proof}
 
 \begin{theorem}[Moduli space (E05)]
-\label{e05:moduli}
+\label{e05_moduli}
 \lean{GromovCompactness.Extensions.moduli_space_compact, GromovCompactness.Extensions.moduli_space_in_class_compact_hausdorff}
 \leanok
-\uses{e02:marked, cert:extensions}
+\uses{e02_marked, cert_extensions}
 $\overline{\mathcal M}_{0,k}(M,J,\le B)$ and its class-$A$ part are compact Hausdorff.
 \end{theorem}
 \begin{proof}\leanok Sequential compactness plus metrizability certificate.\end{proof}
 
 % =========================================================================
 \chapter{Certificate audit}
-\label{chap:audit}
+\label{chap_audit}
 
 \begin{remark}[Withdrawn certificates]
 Up to commit \texttt{0a3de26} the master theorem assumed \texttt{h\_one\_level} (a decomposition
@@ -662,48 +662,48 @@ tree with arbitrary masses). \texttt{tests/CertificateSanity.lean} proves: S2, t
 sphere of energy exactly $m$ for each $m\in[h,2h)$ and so fails on any target missing one such
 value (e.g.\ $\CP$); S4, the latter is contradictory for sequences with convergent energies and two
 admissible trees. S1 checks that $u_n=\mathrm{id}_{\CP}$ satisfies the non-certificate hypotheses,
-and S3 that \cref{def:defect_seq} fails without energy concentration. Both certificates were
-replaced by \cref{cert:onelevel,cert:concdefect,cert:graft}.
+and S3 that \cref{def_defect_seq} fails without energy concentration. Both certificates were
+replaced by \cref{cert_onelevel,cert_concdefect,cert_graft}.
 \end{remark}
 
 % =========================================================================
 \chapter{Remaining work}
-\label{chap:remaining}
+\label{chap_remaining}
 
 \begin{theorem}[Finite good atlas (N1)]
-\label{n1:atlas}
+\label{n1_atlas}
 \notready
 A compact manifold has a finite atlas with a positive Lebesgue radius, and \texttt{mfderiv}
 factors through its charts via \texttt{tangentCoordChange}.
 \end{theorem}
 
 \begin{theorem}[Finite energy of $J$-holomorphic spheres (N1)]
-\label{n1:hfin}
+\label{n1_hfin}
 \notready
-\uses{n1:atlas}
-The energy density of a smooth map $\CP\to M$ is bounded; hence \cref{cert:fin}.
+\uses{n1_atlas}
+The energy density of a smooth map $\CP\to M$ is bounded; hence \cref{cert_fin}.
 \end{theorem}
 
 \begin{theorem}[Centered normal charts (N2)]
-\label{n2:normal}
+\label{n2_normal}
 \notready
-\uses{n1:atlas}
+\uses{n1_atlas}
 Charts $\Psi_p$ with $\Psi_p(0)=p$, $d\Psi_p(0)=\mathrm{id}$, vanishing Christoffel symbols at $0$,
 uniform radius and $C^3$ bounds.
 \end{theorem}
 
 \begin{theorem}[Local-chart certificates (N3)]
-\label{n3:certs}
+\label{n3_certs}
 \notready
-\uses{n2:normal}
-\cref{cert:weitz,cert:hit,cert:osc,cert:decay,cert:punc,cert:tower,cert:aa} hold in normal charts.
+\uses{n2_normal}
+\cref{cert_weitz,cert_hit,cert_osc,cert_decay,cert_punc,cert_tower,cert_aa} hold in normal charts.
 \end{theorem}
 
 \begin{theorem}[Realized bubble trees and the graft theorem]
-\label{rt:graft}
+\label{rt_graft}
 \notready
-\uses{b07:resolve, cert:onelevel, cert:concdefect}
+\uses{b07_resolve, cert_onelevel, cert_concdefect}
 Local defect trees carry their rescaling, subsequence and convergence data through the
-energy-rank induction, so that \cref{cert:graft} becomes a theorem and B04/B07 are load-bearing for
-\cref{thm:main}.
+energy-rank induction, so that \cref{cert_graft} becomes a theorem and B04/B07 are load-bearing for
+\cref{thm_main}.
 \end{theorem}
