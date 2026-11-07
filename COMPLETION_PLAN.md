@@ -45,7 +45,7 @@
 > [!CAUTION]
 > **Route 1 claim WITHDRAWN (7 Nov 2026).** Commit `dbb1782` obtained "canonical, unconditional" proofs by adding the conjunct `∀ z₀ ∈ s, ∀ z₁ z₂, u z₁ = u z₂` to `JHolomorphicOn` (Target.lean:154), which forces every J-holomorphic map to be constant and makes the analytic theorems vacuous. The census numbers reported for `dbb1782` (3,253 clean) are meaningless, and the table above describing "42 / 45 unconditional" is void. `main` was reset to `2ee4331` (based on `0a3de26`: 19/45 unconditional, 26/45 certificate-parameterized, 0 sorryAx).
 >
-> **Certificate satisfiability (7 Nov).** `2ee4331` replaces the over-quantified `h_one_level` with the sequence-relative `Bubbling.IsDefectSeq` / `Bubbling.OneLevelCertificate` / `Assembly.ConcDefectCertificate`; B07 re-proved by energy-rank induction. `tests/CertificateSanity.lean` (standard axioms only): S1 non-certificate hypotheses satisfiable by `u_n = id : CP1 → CP1`; S2 old `h_one_level` forces a sphere of energy exactly `m` for every `m ∈ [h, 2h)`, hence refuted on any target missing one such value (e.g. `CP1`); S3 `IsDefectSeq` fails without concentration. Census 3,258 decls / 2,564 theorems, 0 sorryAx. In progress: same restatement for `h_graft_extract` (branch `fix/certificate-satisfiability`). Wiring audit reports A05/A11 outside the master theorem's closure (previously linked only via unused `have`s; deliberately not re-faked).
+> **Certificate satisfiability (7 Nov).** `2ee4331` replaces the over-quantified `h_one_level` with the sequence-relative `Bubbling.IsDefectSeq` / `Bubbling.OneLevelCertificate` / `Assembly.ConcDefectCertificate`; B07 re-proved by energy-rank induction. `tests/CertificateSanity.lean` (standard axioms only): S1 non-certificate hypotheses satisfiable by `u_n = id : CP1 → CP1`; S2 old `h_one_level` forces a sphere of energy exactly `m` for every `m ∈ [h, 2h)`, hence refuted on any target missing one such value (e.g. `CP1`); S3 `IsDefectSeq` fails without concentration. `cbaf551` (merged into `main` as `b78e3d4`) also replaces the over-quantified `h_graft_extract` by the existential, sequence-relative `Assembly.GraftCertificate`; S4 proves the old version contradictory for sequences with convergent energies and two admissible trees. Census 3,260 decls / 2,565 theorems, 0 sorryAx. Consequence: B07, A05, A11 are no longer in the master theorem's closure (wiring audit fails on these 3, deliberately not re-faked). Next structural step: bubble trees must carry rescaling/convergence data so the graft step is proved, making B04/B07 load-bearing. Wiring audit reports A05/A11 outside the master theorem's closure (previously linked only via unused `have`s; deliberately not re-faked).
 
 > [!WARNING]
 > **Statement change with user sign-off (6–7 Nov 2026) — finiteness hypothesis `h_fin` and local-chart certificate parameters.**
@@ -212,7 +212,7 @@ Status legend:
 flowchart LR
   P0["Phase 5: P0-1..P0-11 ✅ Done"] --> R["0a3de26: 0 sorryAx reduction (19/45 unconditional + 26/45 certificates)"]
   R --> S["2ee4331: sequence-relative OneLevelCertificate (h_one_level fixed)"]
-  S --> GX["h_graft_extract restatement (in progress)"]
+  S --> GX["b78e3d4: GraftCertificate (h_graft_extract fixed)"]
   S --> N1["N1 (active, on 2ee4331): FiniteGoodAtlas & h_fin"]
   N1 --> N2["N2: centered normal charts Ψ_p"]
   N2 --> N3["N3: discharge h_weitz, h_hit_exit, h_osc, h_decay, h_punc, h_tower, h_aa"]

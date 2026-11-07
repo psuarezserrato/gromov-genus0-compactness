@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1793827947 "gromov_lean_report.tex" "gromov_lean_report.pdf" "gromov_lean_report" 1793827948
+["pdflatex"] 1794089789 "gromov_lean_report.tex" "gromov_lean_report.pdf" "gromov_lean_report" 1794089790
   "/usr/local/texlive/2018/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc" 1480098668 2375 baa924870cfb487815765f9094cf3728 ""
   "/usr/local/texlive/2018/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc" 1480098668 3486 c7eadf5dcc57b3b2d11736679f6636ba ""
   "/usr/local/texlive/2018/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc" 1480098668 2405 5dcf2c1b967ee25cc46c58cd52244aed ""
@@ -50,8 +50,8 @@
   "/usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmbx12.pfb" 1480098742 116908 1fca96723793882c2e0160350c192fc8 ""
   "/usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmex10.pfb" 1480098742 23055 2e5b42921de910eaa97b85df04ca4891 ""
   "/usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmmi10.pfb" 1480098742 30388 702fae6a5f0e6e9c48a1d872b442ffcf ""
-  "/usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmmi6.pfb" 1480098742 31113 04b711c9a4c7f8cb4ed784c6fc4cc1c5 ""
   "/usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmmi8.pfb" 1480098742 30635 833ec815d446ec453a4913fc26d24cbc ""
+  "/usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmmi9.pfb" 1480098742 30698 e53a423459271d6c5cdd91f7559396af ""
   "/usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmr10.pfb" 1480098742 119235 f35b44530a1d90eb90fe15d9cba67ea0 ""
   "/usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmr12.pfb" 1480098742 113634 f99c44d58bae0863375faf0e1d74d612 ""
   "/usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmr17.pfb" 1480098742 119752 1bd8d06e4079df624bf59ce3ad7c9aa6 ""
@@ -191,11 +191,11 @@
   "/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1523934492 2717033 f61a5287d9c22a39a74f1979fe3f905c ""
   "/usr/local/texlive/2018/texmf-var/web2c/pdftex/pdflatex.fmt" 1523934516 4220280 10cab8fbd7c5a7c52aba9917e190d018 ""
   "/usr/local/texlive/2018/texmf.cnf" 1523934483 577 0b39adfd7c93507ff20c9c14c2f1a33f ""
-  "gromov_lean_report.aux" 1793827948 3105 ab3c185ca7c46fe9687cebb941569bde ""
-  "gromov_lean_report.out" 1793827948 397 bf00f18b2834a06b993acb9b6a64b5df ""
-  "gromov_lean_report.tex" 1793827947 25946 9b52e85fb3b6850ca4c0b7826afaffa1 ""
+  "gromov_lean_report.aux" 1794089790 3334 2fcac0183443ce4caa140765e08976f6 ""
+  "gromov_lean_report.out" 1794089790 397 bf00f18b2834a06b993acb9b6a64b5df ""
+  "gromov_lean_report.tex" 1794089789 27675 78f7893599690f29a723615f8169d401 ""
   (generated)
-  "gromov_lean_report.pdf"
-  "gromov_lean_report.out"
-  "gromov_lean_report.aux"
   "gromov_lean_report.log"
+  "gromov_lean_report.pdf"
+  "gromov_lean_report.aux"
+  "gromov_lean_report.out"
