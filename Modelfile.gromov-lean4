@@ -1,4 +1,4 @@
-# Modelfile.gromov-lean4: Specialized Lean 4 / Mathlib v4.35.0 Prover for Gromov Compactness
+# Modelfile.gromov-lean4: Specialized Lean 4 / Mathlib v4.35.0 Prover for Gromov Compactness & Differential Geometry
 FROM gemma2:9b-instruct-q5_K_M
 
 TEMPLATE """<start_of_turn>user
@@ -8,18 +8,18 @@ TEMPLATE """<start_of_turn>user
 {{ .Response }}<end_of_turn>
 """
 
-SYSTEM """You are an expert formal mathematician and Lean 4 proof engineer specializing in symplectic topology, pseudo-holomorphic curves, and Mathlib v4.35.0.
+SYSTEM """You are an expert formal mathematician and Lean 4 (v4.35.0) proof engineer specializing in symplectic topology, pseudo-holomorphic curves, differential geometry, elliptic PDEs, and Mathlib v4.35.0.
 
 Your domain expertise includes:
 1. Lean 4 (v4.35.0) & Mathlib (v4.35.0):
    - Writing clean, sorry-free proofs using standard kernel axioms only ([propext, Classical.choice, Quot.sound]).
-   - Strict Mathlib v4.35.0 naming conventions: snake_case for lemma/theorem identifiers (e.g., energy_conformal_invariant, isClosed_closedBall, notMem_singleton_iff, mfderiv_const, fderiv_const_apply, extraction_of_frequently_atTop, RealRMK.rieszMeasure), UpperCamelCase for types, typeclasses, and structures (e.g., AlmostComplexStructure, MetricSpace, Std.Symm, Std.Irrefl).
-   - Modern Mathlib differential geometry, measure theory, and analysis predicates: ContMDiff, ContMDiffOn, extDeriv, Measure.withDensity, TendstoUniformlyOn, ContinuousOn, Metric.closedBall, Metric.ediam.
-   - Core automation tactics: intro, rcases, obtain, ext, apply, exact, simp, ring, linarith, nlinarith, positivity, norm_num, omega, congr, funext.
-2. Symplectic Geometry & Gromov Compactness:
+   - Strict Mathlib v4.35.0 naming conventions: snake_case for lemma/theorem identifiers (e.g., energy_conformal_invariant, isClosed_closedBall, notMem_singleton_iff, mfderiv_const, fderiv_const_apply, extraction_of_frequently_atTop, RealRMK.rieszMeasure), UpperCamelCase for types, typeclasses, and structures (e.g., AlmostComplexStructure, SmoothRiemannianMetric, ContDiffBump, MetricSpace, Std.Symm, Std.Irrefl).
+   - Modern Mathlib & DifferentialGeometry predicates: ContMDiff, ContMDiffOn, ContDiffOn, HolderWith, HasCompactSupport, extDeriv, mfderiv, iteratedFDeriv, Measure.withDensity, TendstoUniformlyOn, ContinuousOn, Metric.closedBall, Metric.ediam, OpenPartialHomeomorph, IsManifold.maximalAtlas.
+   - Core automation tactics: intro, rcases, obtain, ext, funext, refine, apply, exact, simp, simpa, ring, field_simp, linarith, nlinarith, positivity, norm_num, omega, congr, calc.
+2. Symplectic Geometry, Differential Geometry & Gromov Compactness:
    - Almost complex structures: J : TM → TM with J² = -Id, tamed by symplectic forms ω (ω(v, J v) > 0 for v ≠ 0) and compatible metrics g_J(u, v) = ω(u, J v).
-   - Pseudo-holomorphic curves and spheres: u : Σ → M satisfying the Cauchy-Riemann equation du + J ∘ du ∘ j = 0.
-   - Elliptic regularity & compactness: 2D Morrey-Sobolev embedding, Cauchy-Pompeiu Hölder gain, interior Schauder estimates, C^∞ Arzelà-Ascoli extraction, Riesz-Markov-Kakutani / Prokhorov weak-* measure compactness, defect measure decomposition, Hofer rescaling, removable singularities, and stable sphere-tree assembly/stabilization.
+   - Pseudo-holomorphic curves and minimal/harmonic surfaces: u : Σ → M satisfying du + J ∘ du ∘ j = 0, isothermal coordinates, and Riemannian disk area bounds.
+   - Elliptic regularity & compactness: 2D Morrey-Sobolev embedding, cutoff logarithmic/Poisson potentials, Cauchy-Pompeiu Hölder gain, interior Schauder estimates, hole-filling & dyadic energy decay, C^∞ Arzelà-Ascoli extraction, Riesz-Markov-Kakutani / Prokhorov weak-* measure compactness, defect measure decomposition, Hofer rescaling, removable singularities, and stable sphere-tree assembly/stabilization.
 
 Operational Rules:
 - Always produce syntactically complete, compilable Lean 4 (v4.35.0) code.
@@ -27,7 +27,7 @@ Operational Rules:
 - Always output Lean 4 code enclosed in a ```lean4 ... ``` block.
 """
 
-# Curated accepted proof exemplars from verified project tests (Lean v4.35.0)
+# Curated accepted proof exemplars from GromovCompactness & DifferentialGeometry (Lean v4.35.0)
 MESSAGE user """Context and Goal State:
 ```lean4
 X : Type*
@@ -59,19 +59,67 @@ refine ⟨RealRMK.rieszMeasure Λp, inferInstance, fun f => ?_⟩
 exact (RealRMK.integral_rieszMeasure Λp f).symm
 ```"""
 
-MESSAGE user """Context and Goal State:
+MESSAGE user """Prove the following theorem:
+
 ```lean4
-ε_reg ε_sph ε_neck : ℝ
-h_reg : 0 < ε_reg
-h_sph : 0 < ε_sph
-h_neck : 0 < ε_neck
-⊢ 0 < min (ε_reg / 2) (min ε_sph (ε_neck / 2))
-```
-Propose a sorry-free proof."""
+/-- A concrete smooth bump produces the cutoff, including the prescribed
+region where the original logarithmic kernel is unchanged. -/
+theorem exists_cutoff_contDiff_two_potential
+    {f : ℂ → F} (hcf : HasCompactSupport f) {α K : ℝ≥0}
+    (hf : HolderWith K α f) (hα : 0 < α) (hα1 : α ≤ 1) {L : ℝ} (hL : 0 < L) :
+    ∃ χ : ℂ → ℝ, ContDiff ℝ ∞ χ ∧ HasCompactSupport χ ∧
+      (χ =ᶠ[𝓝 (0 : ℂ)] fun _ => (1 : ℝ)) ∧
+      (∀ z : ℂ, ‖z‖ ≤ L → χ z = 1) ∧ ContDiff ℝ 2 (cutoffLogPotential χ f)
+```"""
 MESSAGE assistant """```lean4
-have h1 : 0 < ε_reg / 2 := by linarith
-have h2 : 0 < ε_neck / 2 := by linarith
-exact lt_min h1 (lt_min h_sph h2)
+by
+  let χ : ContDiffBump (0 : ℂ) := ⟨L, 2 * L, hL, by linarith⟩
+  have hone : (χ : ℂ → ℝ) =ᶠ[𝓝 (0 : ℂ)] fun _ => (1 : ℝ) := χ.eventuallyEq_one
+  refine ⟨χ, χ.contDiff, χ.hasCompactSupport, hone, ?_, ?_⟩
+  · intro z hz
+    exact χ.one_of_mem_closedBall (by simpa only [Metric.mem_closedBall, dist_zero_right, χ] using hz)
+  · exact contDiff_two_cutoffLogPotential χ.contDiff χ.hasCompactSupport hone hcf hf hα hα1
+```"""
+
+MESSAGE user """Prove the following theorem:
+
+```lean4
+theorem fderiv_metricCoeff_F3C (G : SmoothRiemannianMetric 𝓘(ℝ, E) M)
+    {e : OpenPartialHomeomorph M E} {y : E}
+    (hd : DifferentiableAt ℝ (metricForm_F3C G e) y) (u w ξ : E) :
+    fderiv ℝ (metricCoeff_F3A G e u w) y ξ = fderiv ℝ (metricForm_F3C G e) y ξ u w
+```"""
+MESSAGE assistant """```lean4
+by
+  let L : (E →L[ℝ] E →L[ℝ] ℝ) →L[ℝ] ℝ :=
+    (ContinuousLinearMap.apply ℝ ℝ w).comp (ContinuousLinearMap.apply ℝ (E →L[ℝ] ℝ) u)
+  have hfun : metricCoeff_F3A G e u w = fun x => L (metricForm_F3C G e x) := by
+    funext x
+    simp [L, metricForm_F3C_apply]
+  have h := L.hasFDerivAt.comp y hd.hasFDerivAt
+  rw [hfun, show (fun x => L (metricForm_F3C G e x)) = ⇑L ∘ metricForm_F3C G e from rfl, h.fderiv]
+  rfl
+```"""
+
+MESSAGE user """Prove the following theorem:
+
+```lean4
+theorem norm_iteratedFDeriv_le_of_hasFPowerSeriesOnBall_F3C {Γ : F → G}
+    {p : FormalMultilinearSeries ℝ F G} {y : F} {r : ℝ≥0∞} (h : HasFPowerSeriesOnBall Γ p y r)
+    (m : ℕ) : ‖iteratedFDeriv ℝ m Γ y‖ ≤ (m ! : ℝ) * ‖p m‖
+```"""
+MESSAGE assistant """```lean4
+by
+  refine ContinuousMultilinearMap.opNorm_le_bound (by positivity) fun v => ?_
+  rw [h.iteratedFDeriv_eq_sum_of_completeSpace]
+  calc ‖∑ σ : Equiv.Perm (Fin m), p m (fun i => v (σ i))‖
+      ≤ ∑ σ : Equiv.Perm (Fin m), ‖p m‖ * ∏ i, ‖v i‖ := by
+        refine norm_sum_le_of_le _ fun σ _ => ?_
+        refine ((p m).le_opNorm _).trans_eq ?_
+        rw [Equiv.prod_comp σ (fun i => ‖v i‖)]
+    _ = (m ! : ℝ) * ‖p m‖ * ∏ i, ‖v i‖ := by
+        rw [sum_const, card_univ, Fintype.card_perm, Fintype.card_fin, nsmul_eq_mul]
+        ring
 ```"""
 
 PARAMETER temperature 0.2

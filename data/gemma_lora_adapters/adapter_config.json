@@ -5,8 +5,8 @@
     "data": "data/lora_splits",
     "fine_tune_type": "lora",
     "grad_checkpoint": true,
-    "iters": 200,
-    "learning_rate": 1e-05,
+    "iters": 300,
+    "learning_rate": 0.0001,
     "lora_parameters": {
         "rank": 8,
         "alpha": 16,
@@ -14,16 +14,16 @@
         "scale": 10.0
     },
     "lr_schedule": null,
-    "max_seq_length": 1024,
+    "max_seq_length": 1536,
     "model": "mlx-community/gemma-2-9b-it-4bit",
     "num_layers": 8,
-    "resume_adapter_file": null,
-    "save_every": 50,
+    "resume_adapter_file": "data/gemma_lora_adapters/adapters.safetensors",
+    "save_every": 100,
     "seed": 0,
-    "steps_per_eval": 50,
-    "steps_per_report": 10,
+    "steps_per_eval": 100,
+    "steps_per_report": 25,
     "test": true,
-    "test_batches": 25,
+    "test_batches": 50,
     "train": true,
     "val_batches": 25
 }
