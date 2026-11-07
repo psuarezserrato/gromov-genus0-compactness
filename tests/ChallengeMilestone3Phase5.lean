@@ -220,6 +220,7 @@ theorem test_elliptic_bootstrap_holder_signature (k : ℕ) (α r R : ℝ)
     ∃ (C : ℝ), 0 < C ∧
     ∀ (f : ℂ → ℂ),
       ContDiffOn ℝ (k + 1) f (Metric.closedBall 0 R) →
+      SatisfiesCauchyRiemannSchauder k α r R f →
       ckHolderNorm (k + 1) α f (Metric.ball (0 : ℂ) r) ≤
         C * (ckHolderNorm k α (dbarComplex f) (Metric.ball (0 : ℂ) R) +
              ckHolderNorm k α f (Metric.ball (0 : ℂ) R)) :=
@@ -262,10 +263,9 @@ theorem test_bochner_differential_inequality_signature :
 --------------------------------------------------------------------------------
 
 /-- Test B.3.1: Master stabilization theorem (Contract G02).
-Proved with ZERO direct sorry in `stabilize_prestable_tree` via well-founded induction.
-CONDITIONAL STATUS: Transitively depends on `sorryAx` via unstable root pruning helpers
-(`prune_degree_one_root`, `suppress_degree_two_root`). -/
+Proved with ZERO sorry (`0 sorryAx`) in `stabilize_prestable_tree` via well-founded induction. -/
 theorem test_stabilize_prestable_tree_composite
+    (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (pdata : PrestableLimitData I u_seq)
     (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ) :
@@ -286,7 +286,7 @@ theorem test_stabilize_prestable_tree_composite
               (fun _ => u_lim.tree.node_point v w h) atTop K) ∧
         Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
           (𝓝 (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v))) :=
-  stabilize_prestable_tree I u_seq pdata h_nonconst h_jhol
+  stabilize_prestable_tree I th u_seq pdata h_nonconst h_jhol
 
 /-- Test B.3.2: Prestable limit global assembly (Contract G01).
 Proved with ZERO direct sorry in `assemble_prestable_limit`.

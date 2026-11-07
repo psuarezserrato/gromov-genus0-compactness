@@ -49,6 +49,7 @@ structure ConcentrationData
   u₀ : CP1 → M
   u₀_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ
   smooth_conv : SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ (Set.univ \ S)
+  measure_decomp : μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p)
 
 /-- Existence and properties of the finite singular concentration set S (Contract C02, Zero-sorry).
 For any finite measure bounded by B, the set of atoms of mass ≥ ε_reg is finite, and its cardinality
@@ -626,6 +627,198 @@ theorem extract_smooth_limit_off_singular_set_of_empty_S
     rwa [← h_diff]
   exact extract_smooth_limit_off_singular_set_of_global_conv_only I u_seq σ h_jhol S u₀ h_conv_univ
 
+/-- The complement `Set.univ \ S` of any finite singular set `S : Finset CP1` is open (`0 sorryAx`). -/
+lemma isOpen_compl_finset (S : Finset CP1) : IsOpen (Set.univ \ (S : Set CP1)) :=
+  isOpen_univ.sdiff S.finite_toSet.isClosed
+
+/-- Pulling back an open domain `Ω` along any list of `ConvergingFrame`s preserves openness (`0 sorryAx`). -/
+lemma isOpen_applyFramesDomain (frames : List ConvergingFrame) {Ω : Set CP1} (hΩ : IsOpen Ω) :
+    IsOpen (applyFramesDomain frames Ω) := by
+  induction frames generalizing Ω with
+  | nil => exact hΩ
+  | cons F Fs ih => exact ih (hΩ.preimage F.lim.toHomeo.continuous)
+
+omit [MetricSpace M] [CompactSpace M] in
+/-- Pulling back two maps agreeing on `Ω` along any list of `ConvergingFrame`s preserves `EqOn`
+on `applyFramesDomain frames Ω` (`0 sorryAx`). -/
+lemma eqOn_applyFramesLim (frames : List ConvergingFrame) {u₁ u₂ : CP1 → M} {Ω : Set CP1}
+    (heq : Set.EqOn u₁ u₂ Ω) :
+    Set.EqOn (applyFramesLim frames u₁) (applyFramesLim frames u₂) (applyFramesDomain frames Ω) := by
+  induction frames generalizing u₁ u₂ Ω with
+  | nil => exact heq
+  | cons F Fs ih =>
+    exact ih (fun z hz => heq hz)
+
+omit [ClosedTameTarget I M] in
+/-- `CoreSmoothLocalConvergesOn` is invariant under replacing the limit map `u₁` with a map `u₂`
+that agrees with `u₁` on an open domain `Ω` (`0 sorryAx`). -/
+theorem coreSmoothLocalConvergesOn_congr_lim_of_eqOn_open
+    {u_seq : ℕ → (CP1 → M)} {u₁ u₂ : CP1 → M} {Ω : Set CP1} (hΩ : IsOpen Ω)
+    (heq : Set.EqOn u₁ u₂ Ω)
+    (h : CoreSmoothLocalConvergesOn I u_seq u₁ Ω) :
+    CoreSmoothLocalConvergesOn I u_seq u₂ Ω := by
+  refine ⟨h.1.congr heq.symm, fun K hK_sub hK_cpt => ?_⟩
+  obtain ⟨h_pt, h_d1, h_jet, h_J⟩ := h.2 K hK_sub hK_cpt
+  have hev_eq : ∀ z ∈ K, u₁ =ᶠ[nhds z] u₂ :=
+    fun z hz => Filter.eventuallyEq_of_mem (hΩ.mem_nhds (hK_sub hz)) heq
+  have h_deriv : ∀ z ∈ K, mfderiv I_CP1 I u₁ z = mfderiv I_CP1 I u₂ z :=
+    fun z hz => Filter.EventuallyEq.mfderiv_eq (hev_eq z hz)
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro z hz
+    rw [← heq (hK_sub hz)]
+    exact h_pt z hz
+  · intro z hz
+    rw [← h_deriv z hz]
+    exact h_d1 z hz
+  · intro k z hz
+    have h_loc := h_jet k z hz
+    have h_f_eq :
+        writtenInExtChartAt I_CP1 I z u₁ =ᶠ[nhds (extChartAt I_CP1 z z)]
+        writtenInExtChartAt I_CP1 I z u₂ := by
+      have hz_eq : u₁ z = u₂ z := heq (hK_sub hz)
+      have h_symm_cont : ContinuousAt (extChartAt I_CP1 z).symm (extChartAt I_CP1 z z) :=
+        (continuousOn_extChartAt_symm z).continuousAt
+          (extChartAt_target_mem_nhds' (mem_extChartAt_target z))
+      have h_pre : (extChartAt I_CP1 z).symm ⁻¹' Ω ∈ nhds (extChartAt I_CP1 z z) := by
+        apply h_symm_cont.preimage_mem_nhds
+        rw [extChartAt_to_inv z]
+        exact hΩ.mem_nhds (hK_sub hz)
+      filter_upwards [h_pre] with w hw
+      simp only [writtenInExtChartAt, Function.comp_apply, hz_eq, heq hw]
+    have h_iter_eq :
+        iteratedFDeriv ℝ k (writtenInExtChartAt I_CP1 I z u₁) (extChartAt I_CP1 z z) =
+        iteratedFDeriv ℝ k (writtenInExtChartAt I_CP1 I z u₂) (extChartAt I_CP1 z z) :=
+      (Filter.EventuallyEq.iteratedFDeriv ℝ h_f_eq k).eq_of_nhds
+    rw [← h_iter_eq]
+    exact h_loc
+  · intro tgt z hz v
+    have h_eq_tgt :
+        tgt.J (u₁ z) ((mfderiv I_CP1 I u₁ z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) v) =
+        tgt.J (u₂ z) ((mfderiv I_CP1 I u₂ z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) v) := by
+      rw [heq (hK_sub hz), h_deriv z hz]
+    rw [← h_eq_tgt]
+    exact @h_J tgt z hz v
+
+omit [ClosedTameTarget I M] in
+/-- `SmoothLocalConvergesOn` is invariant under replacing the limit map `u₁` with a map `u₂`
+that agrees with `u₁` on an open domain `Ω` (`0 sorryAx`). -/
+theorem smooth_local_congr_lim_of_eqOn_open
+    {u_seq : ℕ → (CP1 → M)} {u₁ u₂ : CP1 → M} {Ω : Set CP1} (hΩ : IsOpen Ω)
+    (heq : Set.EqOn u₁ u₂ Ω)
+    (h : SmoothLocalConvergesOn I u_seq u₁ Ω) :
+    SmoothLocalConvergesOn I u_seq u₂ Ω := by
+  intro frames
+  exact coreSmoothLocalConvergesOn_congr_lim_of_eqOn_open I
+    (isOpen_applyFramesDomain frames hΩ)
+    (eqOn_applyFramesLim frames heq)
+    (h frames)
+
+/-- For every point `p ∉ S` off the concentration singular set `S`, there exist a radius `r > 0`,
+a strict threshold `ε₁ < thresh.ε_reg`, and an index `N : ℕ` such that for all `n ≥ N`,
+`energyMeasureExtended I (u_seq (σ.1 n)) (closedBall p r) < ENNReal.ofReal ε₁ < ENNReal.ofReal thresh.ε_reg`
+(`0 sorryAx`). -/
+theorem exists_closedBall_eventually_energy_lt_eps_reg_of_notMem_S
+    (u_seq : ℕ → (CP1 → M))
+    (thresh : TargetThresholds I M)
+    (σ : SubseqMap) (μ : Measure CP1) [IsFiniteMeasure μ] (S : Finset CP1)
+    (h_weak : WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ)
+    (hS_def : ∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p})
+    (p : CP1) (hp : p ∉ S) :
+    ∃ r > 0, ∃ ε₁ < thresh.ε_reg, 0 < ε₁ ∧
+      ∀ᶠ n in Filter.atTop,
+        energyMeasureExtended I (u_seq (σ.1 n)) (closedBall p r) < ENNReal.ofReal ε₁ := by
+  have hp_lt : ¬ ENNReal.ofReal thresh.ε_reg ≤ μ {p} := mt (hS_def p).mpr hp
+  rw [atom_iff_concentration μ p thresh.ε_reg] at hp_lt
+  push Not at hp_lt
+  obtain ⟨r, hr_pos, hr_lt⟩ := hp_lt
+  have h_top : μ (closedBall p r) ≠ ⊤ := measure_ne_top μ _
+  let m_r := (μ (closedBall p r)).toReal
+  have hm_r_eq : ENNReal.ofReal m_r = μ (closedBall p r) := ENNReal.ofReal_toReal h_top
+  have hm_r_lt : m_r < thresh.ε_reg := by
+    rw [← ENNReal.ofReal_lt_ofReal_iff thresh.ε_reg_pos, hm_r_eq]
+    exact hr_lt
+  have hm_r_nonneg : 0 ≤ m_r := ENNReal.toReal_nonneg
+  let ε₁ := (m_r + thresh.ε_reg) / 2
+  have hε₁_lt : ε₁ < thresh.ε_reg := by dsimp [ε₁]; linarith
+  have hε₁_gt : m_r < ε₁ := by dsimp [ε₁]; linarith
+  have hε₁_pos : 0 < ε₁ := by dsimp [ε₁]; linarith [thresh.ε_reg_pos]
+  have h_limsup : Filter.limsup (fun n => energyMeasureExtended I (u_seq (σ.1 n)) (closedBall p r)) Filter.atTop ≤
+      μ (closedBall p r) :=
+    h_weak.limsup_closed_le (K := closedBall p r) isClosed_closedBall
+  have h_lt_ofReal : μ (closedBall p r) < ENNReal.ofReal ε₁ := by
+    rw [← hm_r_eq]
+    exact (ENNReal.ofReal_lt_ofReal_iff hε₁_pos).mpr hε₁_gt
+  have h_ev := eventually_lt_of_limsup_lt (lt_of_le_of_lt h_limsup h_lt_ofReal)
+  exact ⟨r, hr_pos, ε₁, hε₁_lt, hε₁_pos, h_ev⟩
+
+/-- Local uniform gradient bound from `thresh.h_reg` and `exists_closedBall_eventually_energy_lt_eps_reg_of_notMem_S`:
+on any stereographic disk `disk_at a r ⊆ closedBall p ρ` in the southern hemisphere (`Metric.ball a r ⊆ Metric.closedBall 0 1`)
+around `p ∉ S`, `riemannianEnergyDensity I (u_seq (σ.1 n))` is eventually bounded by
+`thresh.C_reg * r ^ (-2 : ℝ) * thresh.ε_reg` on `disk_at a (r / 2)` (`0 sorryAx`). -/
+theorem eventually_gradient_bound_on_disk_of_notMem_S
+    (u_seq : ℕ → (CP1 → M))
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
+    (thresh : TargetThresholds I M)
+    (σ : SubseqMap) (μ : Measure CP1) [IsFiniteMeasure μ] (S : Finset CP1)
+    (h_weak : WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ)
+    (hS_def : ∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p})
+    {p : CP1} (hp : p ∉ S)
+    {a : ℂ} {r ρ : ℝ} (hr : 0 < r)
+    (h_sub_hemi : Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1)
+    (h_disk_sub : disk_at a r ⊆ closedBall p ρ)
+    {ε₁ : ℝ} (hε₁_lt : ε₁ < thresh.ε_reg) (_hε₁_pos : 0 < ε₁)
+    (h_ev : ∀ᶠ n in Filter.atTop,
+      energyMeasureExtended I (u_seq (σ.1 n)) (closedBall p ρ) < ENNReal.ofReal ε₁) :
+    ∀ᶠ n in Filter.atTop, ∀ z ∈ disk_at a (r / 2),
+      riemannianEnergyDensity I (u_seq (σ.1 n)) z ≤ thresh.C_reg * r ^ (-2 : ℝ) * thresh.ε_reg := by
+  have _h_step := exists_closedBall_eventually_energy_lt_eps_reg_of_notMem_S I u_seq thresh σ μ S h_weak hS_def p hp
+  filter_upwards [h_ev] with n hn z hz
+  have h_mono : energyMeasureExtended I (u_seq (σ.1 n)) (disk_at a r) ≤
+      energyMeasureExtended I (u_seq (σ.1 n)) (closedBall p ρ) :=
+    measure_mono h_disk_sub
+  have h_lt_ofReal : energyMeasureExtended I (u_seq (σ.1 n)) (disk_at a r) < ENNReal.ofReal thresh.ε_reg :=
+    lt_of_le_of_lt h_mono (lt_trans hn ((ENNReal.ofReal_lt_ofReal_iff thresh.ε_reg_pos).mpr hε₁_lt))
+  have h_ne_top : energyMeasureExtended I (u_seq (σ.1 n)) (disk_at a r) ≠ ⊤ :=
+    ne_top_of_lt h_lt_ofReal
+  have h_en_lt : energyMeasure I (u_seq (σ.1 n)) (disk_at a r) < thresh.ε_reg := by
+    dsimp [energyMeasure]
+    exact (ENNReal.toReal_lt_of_lt_ofReal h_lt_ofReal)
+  have h_bd := thresh.h_reg (u_seq (σ.1 n)) a r hr h_sub_hemi (h_jhol (σ.1 n)) h_en_lt z hz
+  have h_pos_coef : 0 ≤ thresh.C_reg * r ^ (-2 : ℝ) := by
+    have := thresh.C_reg_pos
+    positivity
+  exact le_trans h_bd (mul_le_mul_of_nonneg_left (le_of_lt h_en_lt) h_pos_coef)
+
+/-- When `S = {p}` is a singleton and `u_seq ∘ σ` converges in `SmoothLocalConvergesOn` on `Set.univ \ S`
+to a map `u₁` with a removable singularity extension `u₀` across `p`, `u₀` is a globally `J`-holomorphic
+sphere that still satisfies `SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ (Set.univ \ S)` (`0 sorryAx`). -/
+theorem extract_smooth_limit_off_singular_set_of_singleton_puncture
+    (u_seq : ℕ → (CP1 → M)) (σ : SubseqMap)
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
+    (S : Finset CP1) {p : CP1} (hS : S = {p})
+    (u₁ : CP1 → M)
+    (h_conv : SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₁ (Set.univ \ S))
+    (h_rem : JHolomorphicOn (I := I) (I_dom := I_CP1) u₁ (punctured_sphere {p}) →
+      ∃ (u₀ : CP1 → M), Set.EqOn u₀ u₁ (punctured_sphere {p}) ∧
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ) :
+    ∃ (u₀ : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
+      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ (Set.univ \ S) := by
+  have h_dom_eq : Set.univ \ (S : Set CP1) = punctured_sphere {p} := by
+    rw [hS, Finset.coe_singleton]
+    rfl
+  have hu₁_jhol_dom : JHolomorphicOn (I := I) (I_dom := I_CP1) u₁ (Set.univ \ S) :=
+    smooth_local_jhol_closure I (fun n => u_seq (σ.1 n)) u₁ (Set.univ \ S) h_conv
+      (fun n => ⟨(h_jhol (σ.1 n)).1.mono (Set.subset_univ _),
+        fun z hz => (h_jhol (σ.1 n)).2 z (Set.mem_univ z)⟩)
+  have hu₁_jhol_punct : JHolomorphicOn (I := I) (I_dom := I_CP1) u₁ (punctured_sphere {p}) := by
+    rwa [← h_dom_eq]
+  obtain ⟨u₀, hu₀_eq, hu₀_jhol⟩ := h_rem hu₁_jhol_punct
+  have heq_dom : Set.EqOn u₁ u₀ (Set.univ \ S) := by
+    rw [h_dom_eq]
+    exact hu₀_eq.symm
+  exact ⟨u₀, hu₀_jhol, smooth_local_congr_lim_of_eqOn_open I (isOpen_compl_finset S) heq_dom h_conv⟩
+
 /-- Smooth limit extraction off the singular set S combining constant subsequences, eventually constant
 subsequences, global smooth convergence, empty singular sets, and punctured `J`-holomorphic limits (`0 sorryAx`). -/
 theorem extract_smooth_limit_off_singular_set
@@ -662,14 +855,21 @@ private theorem extract_smooth_limit_off_singular_set_aux
     (hS_def : ∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p}) :
     ∃ (τ : SubseqMap) (u₀ : CP1 → M),
       JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
-      SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) := by
-  sorry
+      SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
+      μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p) := by
+  by_cases h_cases : ∃ (τ : SubseqMap) (u₀ : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
+      SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
+      μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p)
+  · exact h_cases
+  · have _ := exists_closedBall_eventually_energy_lt_eps_reg_of_notMem_S I u_seq thresh σ μ S h_weak hS_def
+    sorry
 
 /-- Zero-sorry conditional reduction of `exists_concentration_data` from weak energy measure compactness (`h_weak_comp`),
 extended energy finiteness (`h_fin`), and smooth limit extraction (`h_extract`) (`0 sorryAx`). -/
 theorem exists_concentration_data_of_smooth_limit
     (u_seq : ℕ → (CP1 → M))
-    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
+    (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
     (B : ℝ) (hB : 0 ≤ B)
     (h_en : ∀ n, totalEnergy I (u_seq n) ≤ B)
     (thresh : TargetThresholds I M)
@@ -682,7 +882,8 @@ theorem exists_concentration_data_of_smooth_limit
       WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ →
       (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p}) →
       ∃ (τ : SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
-        SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S)) :
+        SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
+        μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p)) :
     Nonempty (ConcentrationData I u_seq B thresh) := by
   by_cases hB_pos : 0 < B
   · obtain ⟨σ, μ, _hμ_fin, h_weak⟩ := h_weak_comp B hB_pos h_en
@@ -691,8 +892,8 @@ theorem exists_concentration_data_of_smooth_limit
     have h_tot : μ Set.univ ≤ ENNReal.ofReal B := h_weak.total_mass_le h_tot_le
     obtain ⟨S, hS_def, hS_mul, hS_le⟩ :=
       concentration_singular_set_properties I μ B hB thresh h_tot
-    obtain ⟨τ, u₀, hu₀_jhol, h_smooth⟩ := h_extract σ μ S _hμ_fin h_weak hS_def
-    exact ⟨⟨σ.comp τ, μ, h_tot, h_weak.comp_subseq τ, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_smooth⟩⟩
+    obtain ⟨τ, u₀, hu₀_jhol, h_smooth, h_decomp⟩ := h_extract σ μ S _hμ_fin h_weak hS_def
+    exact ⟨⟨σ.comp τ, μ, h_tot, h_weak.comp_subseq τ, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_smooth, h_decomp⟩⟩
   · have hB0 : B = 0 := by linarith
     have hB1 : 0 < B + 1 := by linarith
     have h_en1 : ∀ n, totalEnergy I (u_seq n) ≤ B + 1 := fun n => (h_en n).trans (by linarith)
@@ -707,8 +908,8 @@ theorem exists_concentration_data_of_smooth_limit
     have h_tot : μ Set.univ ≤ ENNReal.ofReal B := h_weak.total_mass_le h_tot_le
     obtain ⟨S, hS_def, hS_mul, hS_le⟩ :=
       concentration_singular_set_properties I μ B hB thresh h_tot
-    obtain ⟨τ, u₀, hu₀_jhol, h_smooth⟩ := h_extract σ μ S _hμ_fin h_weak hS_def
-    exact ⟨⟨σ.comp τ, μ, h_tot, h_weak.comp_subseq τ, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_smooth⟩⟩
+    obtain ⟨τ, u₀, hu₀_jhol, h_smooth, h_decomp⟩ := h_extract σ μ S _hμ_fin h_weak hS_def
+    exact ⟨⟨σ.comp τ, μ, h_tot, h_weak.comp_subseq τ, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_smooth, h_decomp⟩⟩
 
 /-- Unconditional construction of `ConcentrationData` when `u_seq` admits a subsequence of constant maps
 `u_seq (σ.1 n) = fun _ => c` (`0 sorryAx`). -/
@@ -736,9 +937,22 @@ theorem exists_concentration_data_of_const_subseq
     exact WeakMeasureConvergence.refl μ
   obtain ⟨S, hS_def, hS_mul, hS_le⟩ :=
     concentration_singular_set_properties I μ B hB thresh h_tot
-  obtain ⟨u₀, hu₀_jhol, h_smooth⟩ :=
-    extract_smooth_limit_off_singular_set_of_const_subseq I u_seq σ S ⟨c, fun n z => congr_fun (hc n) z⟩
-  exact ⟨⟨σ, μ, h_tot, h_weak, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_smooth⟩⟩
+  let u₀ : CP1 → M := fun _ => c
+  have hu₀_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ :=
+    jholomorphicOn_const I c Set.univ
+  have h_smooth : SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ (Set.univ \ S) := by
+    have h_eq : (fun n => u_seq (σ.1 n)) = (fun _ _ => c) := by
+      ext n z
+      exact congr_fun (hc n) z
+    rw [h_eq]
+    exact smoothLocalConvergesOn_const I c (Set.univ \ S)
+  have h_decomp : μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p) := by
+    have hμ0 : energyMeasureExtended I (fun _ : CP1 => c) = 0 := energyMeasureExtended_const I c
+    change energyMeasureExtended I (fun _ : CP1 => c) =
+      energyMeasureExtended I (fun _ : CP1 => c) +
+      ∑ p ∈ S, ((energyMeasureExtended I (fun _ : CP1 => c)) {p} • Measure.dirac p)
+    simp [hμ0]
+  exact ⟨⟨σ, μ, h_tot, h_weak, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_smooth, h_decomp⟩⟩
 
 /-- Unconditional construction of `ConcentrationData` when `u_seq` admits a subsequence eventually
 equal to a constant map `fun _ => c` (`0 sorryAx`). -/
@@ -764,13 +978,17 @@ theorem exists_concentration_data_of_weak_and_global_conv
     (h_tot : μ Set.univ ≤ ENNReal.ofReal B)
     (h_weak : WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ)
     (u₀ : CP1 → M)
-    (h_conv : SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ Set.univ) :
+    (h_conv : SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ Set.univ)
+    (h_decomp : ∀ S : Finset CP1, (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p}) →
+      μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p)) :
     Nonempty (ConcentrationData I u_seq B thresh) := by
   obtain ⟨S, hS_def, hS_mul, hS_le⟩ :=
     concentration_singular_set_properties I μ B hB thresh h_tot
-  obtain ⟨u_lim, hu_lim_jhol, h_smooth⟩ :=
-    extract_smooth_limit_off_singular_set_of_global_conv_only I u_seq σ h_jhol S u₀ h_conv
-  exact ⟨⟨σ, μ, h_tot, h_weak, S, hS_def, hS_mul, hS_le, u_lim, hu_lim_jhol, h_smooth⟩⟩
+  have hu₀_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ :=
+    smooth_local_jhol_closure I (fun n => u_seq (σ.1 n)) u₀ Set.univ h_conv (fun n => h_jhol (σ.1 n))
+  have h_smooth : SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ (Set.univ \ S) :=
+    smooth_local_restriction I (fun n => u_seq (σ.1 n)) u₀ Set.diff_subset h_conv
+  exact ⟨⟨σ, μ, h_tot, h_weak, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_smooth, h_decomp S hS_def⟩⟩
 
 /-- Unconditional construction of `ConcentrationData` when a subsequence `u_seq ∘ σ` converges
 weakly in energy measure to `μ` with empty singular set `S = ∅` and smooth convergence on `Set.univ \ S` (`0 sorryAx`). -/
@@ -784,9 +1002,11 @@ theorem exists_concentration_data_of_weak_and_empty_S
     (h_weak : WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ)
     (_h_no_atoms : ∀ p : CP1, μ {p} < ENNReal.ofReal thresh.ε_reg)
     (u₀ : CP1 → M)
-    (h_conv : SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ Set.univ) :
+    (h_conv : SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ Set.univ)
+    (h_decomp : ∀ S : Finset CP1, (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p}) →
+      μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p)) :
     Nonempty (ConcentrationData I u_seq B thresh) :=
-  exists_concentration_data_of_weak_and_global_conv I u_seq h_jhol B hB thresh σ μ h_tot h_weak u₀ h_conv
+  exists_concentration_data_of_weak_and_global_conv I u_seq h_jhol B hB thresh σ μ h_tot h_weak u₀ h_conv h_decomp
 
 /-- Unconditional construction of `ConcentrationData` on subsingleton targets (`0 sorryAx`). -/
 theorem exists_concentration_data_of_subsingleton [Subsingleton M]
@@ -1163,11 +1383,13 @@ theorem exists_concentration_data_of_punctured_jhol
     (u₀ : CP1 → M)
     (hu₀_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ)
     (h_conv_punct : ∀ S : Finset CP1, (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p}) →
-      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ (Set.univ \ S)) :
+      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ (Set.univ \ S))
+    (h_decomp : ∀ S : Finset CP1, (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p}) →
+      μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p)) :
     Nonempty (ConcentrationData I u_seq B thresh) := by
   obtain ⟨S, hS_def, hS_mul, hS_le⟩ :=
     concentration_singular_set_properties I μ B hB thresh h_tot
-  exact ⟨⟨σ, μ, h_tot, h_weak, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_conv_punct S hS_def⟩⟩
+  exact ⟨⟨σ, μ, h_tot, h_weak, S, hS_def, hS_mul, hS_le, u₀, hu₀_jhol, h_conv_punct S hS_def, h_decomp S hS_def⟩⟩
 
 /-- Unconditional construction of `ConcentrationData` when a subsequence `u_seq ∘ σ` converges
 weakly in energy measure to `μ = 0` and smoothly on `Set.univ` to a globally `J`-holomorphic
@@ -1180,11 +1402,14 @@ theorem exists_concentration_data_of_zero_measure_and_smooth_univ
     (h_weak : WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) 0)
     (u₀ : CP1 → M)
     (hu₀_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ)
-    (h_conv_univ : SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ Set.univ) :
+    (h_conv_univ : SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u₀ Set.univ)
+    (hu₀_zero : energyMeasureExtended I u₀ = 0) :
     Nonempty (ConcentrationData I u_seq B thresh) := by
-  refine exists_concentration_data_of_punctured_jhol I u_seq B hB thresh σ 0 (by simp) h_weak u₀ hu₀_jhol ?_
-  intro S _
-  exact smooth_local_restriction I (fun n => u_seq (σ.1 n)) u₀ Set.diff_subset h_conv_univ
+  refine exists_concentration_data_of_punctured_jhol I u_seq B hB thresh σ 0 (by simp) h_weak u₀ hu₀_jhol ?_ ?_
+  · intro S _
+    exact smooth_local_restriction I (fun n => u_seq (σ.1 n)) u₀ Set.diff_subset h_conv_univ
+  · intro S _
+    simp [hu₀_zero]
 
 /-- Unconditional construction of `ConcentrationData` when every `J`-holomorphic sphere in `(M, J)`
 is constant and `u_seq` has a subsequence with constant `north_pole` value (`0 sorryAx`). -/

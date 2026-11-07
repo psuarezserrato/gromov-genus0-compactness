@@ -155,13 +155,14 @@ theorem challenge_stress_case_3_root_pruning_and_suppression
 
 /-- Challenge 3.4: Verify `stabilize_prestable_tree` yields a stable sphere tree limit. -/
 theorem challenge_stress_case_3_master_stabilization
+    (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (pdata : PrestableLimitData I u_seq)
     (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v) =
         ∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) := by
-  obtain ⟨u_lim, heq, _⟩ := stabilize_prestable_tree I u_seq pdata h_nonconst h_jhol
+  obtain ⟨u_lim, heq, _⟩ := stabilize_prestable_tree I th u_seq pdata h_nonconst h_jhol
   exact ⟨u_lim, heq⟩
 
 --------------------------------------------------------------------------------

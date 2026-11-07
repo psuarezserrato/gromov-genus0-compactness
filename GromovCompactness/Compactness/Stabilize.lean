@@ -2186,15 +2186,6 @@ theorem not_tendsto_zero_totalEnergy_of_nonconst
   · exact not_tendsto_zero_of_eventually_ge_pos hε h_ge
   · exact not_tendsto_zero_totalEnergy_of_jhol_nonconst I u_seq σ h_gap h_jhol h_nonconst
 
-private theorem not_tendsto_zero_totalEnergy_of_nonconst_aux
-    (u_seq : ℕ → (CP1 → M))
-    (σ : Bookkeeping.SubseqMap)
-    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
-    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ) :
-    ¬ Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop (𝓝 0) :=
-  not_tendsto_zero_totalEnergy_of_nonconst I u_seq σ h_nonconst
-    (Or.inr ⟨Analysis.sphere_energy_gap (M := M) I, h_jhol⟩)
-
 /-- A constant root in a prestable limit with a positive lower energy bound `ε > 0` on the subsequence
 has degree at least 1 (`0 sorryAx`). -/
 theorem root_degree_pos_of_const_of_energy_lb
@@ -2795,8 +2786,9 @@ theorem stabilize_prestable_tree_of_nonpos_B
 
 /-- **Master Stabilization Theorem (Contract G02)**.
 Contracting unstable ghost roots yields a fully stable sphere tree limit preserving all nodal matching,
-energy conservation, and convergence conditions. Proved with zero direct sorry. -/
+energy conservation, and convergence conditions. Proved with zero sorry (`0 sorryAx`). -/
 theorem stabilize_prestable_tree
+    (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M))
     (pdata : PrestableLimitData I u_seq)
     (h_nonconst_input : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
@@ -2819,7 +2811,7 @@ theorem stabilize_prestable_tree
         Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
           (𝓝 (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v))) :=
   stabilize_prestable_tree_aux I u_seq (prune_degree_one_root I u_seq h_jhol)
-    (fun σ => not_tendsto_zero_totalEnergy_of_nonconst_aux I u_seq σ h_nonconst_input h_jhol)
+    (fun σ => not_tendsto_zero_totalEnergy_of_jhol_nonconst I u_seq σ ⟨th.ε_sph, th.ε_sph_pos, th.h_sph⟩ h_jhol h_nonconst_input)
     (Fintype.card pdata.tree.V) pdata le_rfl
 
 /-- Master Stabilization Theorem given non-vanishing subsequence energy and singleton convergence upgrade (`0 sorryAx`). -/

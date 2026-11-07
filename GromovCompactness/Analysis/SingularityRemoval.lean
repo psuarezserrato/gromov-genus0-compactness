@@ -911,6 +911,25 @@ lemma satisfiesCylinderCollarOscillation_of_jhol
   · exact satisfiesCylinderCollarOscillation_of_ball_subset I u a r R x₀ h_ball
   · exact satisfiesCylinderCollarOscillation_of_diam_image_le I u a r R h_diam
 
+private lemma cylinder_neck_estimates_of_jhol_aux
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] :
+    (∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+      0 < r → r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      SatisfiesCylinderCollarOscillation I u a r R) ∧
+    (∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+      ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        energyMeasure I u (annulus_at center r R) < ε_neck →
+        ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
+          energyMeasure I u (annulus_at center r₁ r₂) ≤
+            C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R)) := by
+  sorry
+
 private lemma satisfiesCylinderCollarOscillation_of_jhol_aux
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
@@ -936,7 +955,7 @@ private lemma satisfiesCylinderCollarOscillation_of_jhol_aux
             Metric.diam (u '' annulus_at a (2 * r) (R / 2)) ≤
               4 * Real.sqrt (energyMeasure I u (annulus_at a r R))
         · exact satisfiesCylinderCollarOscillation_of_jhol I u a r R hr hrR hu h_cases
-        · sorry
+        · exact (cylinder_neck_estimates_of_jhol_aux I).1 u a r R hr hrR hu
 
 /-- Zero-sorry conditional reduction of `cylinder_localization` under any of the 5 collar
 oscillation cases (`0 sorryAx`). -/
@@ -1556,7 +1575,7 @@ private lemma satisfiesCylinderEnergyDecay_of_jhol_aux
     · refine ⟨1, 1, 1, by norm_num, by norm_num, by norm_num, fun u center r R hr h2rR hu h_en r₁ r₂ hr₁ hr₁₂ hr₂ => ?_⟩
       exact satisfiesCylinderEnergyDecay_of_jhol I u center r R hr h2rR hu h_en
         (h_all u center r R hr h2rR hu h_en) r₁ r₂ hr₁ hr₁₂ hr₂
-    · sorry
+    · exact (cylinder_neck_estimates_of_jhol_aux I).2
 
 /-- Unconditional cylindrical energy decay `SatisfiesCylinderEnergyDecay` on subsingleton targets (`0 sorryAx`). -/
 theorem satisfiesCylinderEnergyDecay_of_subsingleton

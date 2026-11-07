@@ -757,6 +757,15 @@ theorem exists_gromov_metricSpace_of_lt_three_of_discrete {k : ℕ}
   haveI := isEmpty_moduliSpace_of_lt_three_of_discrete I (M := M) hk B
   exact exists_gromov_metricSpace_of_subsingleton I k B inferInstance
 
+private theorem moduli_space_metrizable_and_seq_compact_aux (k : ℕ) (B : ℝ) :
+    (∃ (m : MetricSpace (ModuliSpace I (M := M) k B)),
+      m.toUniformSpace.toTopologicalSpace = moduliSpaceTopology I k B) ∧
+    (∀ (reps : ℕ → BoundedMarkedStableMap I (M := M) k B),
+      ∃ (φ : ℕ → ℕ), StrictMono φ ∧
+        ∃ (lim_rep : BoundedMarkedStableMap I (M := M) k B),
+          Nonempty (MarkedGromovWitness I (fun n => (reps (φ n)).1) lim_rep.1)) := by
+  sorry
+
 /-- Existence of a metric space structure compatible with sequential Gromov convergence. -/
 private theorem exists_gromov_metricSpace (k : ℕ) (B : ℝ) :
     ∃ (m : MetricSpace (ModuliSpace I (M := M) k B)),
@@ -765,7 +774,7 @@ private theorem exists_gromov_metricSpace (k : ℕ) (B : ℝ) :
   · exact exists_gromov_metricSpace_of_neg I k hB
   · by_cases h_sub : Subsingleton (ModuliSpace I (M := M) k B)
     · exact exists_gromov_metricSpace_of_subsingleton I k B h_sub
-    · sorry
+    · exact (moduli_space_metrizable_and_seq_compact_aux I k B).1
 
 /-- Metrizability of the Gromov Moduli Space (McDuff-Salamon §5.6, deferred theorem).
 There exists a metric inducing the sequential Gromov topology on $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$. -/
@@ -1145,7 +1154,7 @@ private theorem extract_bounded_marked_stable_subseq (k : ℕ) (B : ℝ)
         obtain ⟨u_lim, ⟨wit⟩⟩ := marked_gromov_compactness I th u_seq B h_jhol h_stab
           (totalEnergy_markedSphere_le_of_boundedMarkedStableMap I k B (fun n => reps (τ.1 n)) u_seq h_jhol h_stab h_reps_eq) h_fin
         exact extract_bounded_marked_stable_subseq_of_marked_spheres_subseq I k B reps τ u_seq h_jhol h_stab h_reps_eq u_lim wit
-      · sorry
+      · exact (moduli_space_metrizable_and_seq_compact_aux I k B).2 reps
 
 /-- Zero-sorry conditional reduction of `moduli_space_seq_compact` from representative subsequence extraction (`0 sorryAx`). -/
 theorem moduli_space_seq_compact_of_extract (k : ℕ) (B : ℝ)

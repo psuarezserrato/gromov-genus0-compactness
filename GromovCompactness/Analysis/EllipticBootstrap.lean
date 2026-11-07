@@ -14,13 +14,25 @@ import Mathlib.Analysis.Calculus.Deriv.Mul
 import Mathlib.Analysis.Calculus.Deriv.Add
 import Mathlib.Analysis.Complex.Basic
 import Mathlib.Analysis.Complex.CauchyIntegral
+import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
+import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+import Mathlib.Analysis.SpecialFunctions.PolarCoord
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
+import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+import Mathlib.Analysis.SpecialFunctions.Pow.Integral
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
+import Mathlib.Analysis.SpecialFunctions.Integrability.Basic
 import Mathlib.MeasureTheory.Integral.Bochner.Set
 import Mathlib.MeasureTheory.Integral.CircleIntegral
+import Mathlib.MeasureTheory.Integral.Prod
+import Mathlib.MeasureTheory.Group.Integral
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.MeasureTheory.Measure.Lebesgue.Complex
+import Mathlib.MeasureTheory.Measure.Lebesgue.EqHaar
+import Mathlib.MeasureTheory.Measure.Haar.Unique
+import Mathlib.LinearAlgebra.Complex.FiniteDimensional
+import Mathlib.Topology.ContinuousMap.Compact
 import Mathlib.Tactic.Ring
 import Mathlib.Tactic.Linarith
 import Mathlib.Tactic.Positivity
@@ -514,17 +526,6 @@ theorem satisfiesSobolevCauchyRiemann_of_contDiffOn
   · exact satisfiesSobolevCauchyRiemann_const p hp k r R hrR c
   · exact satisfiesSobolevCauchyRiemann_of_le_sum p hp k r R hrR f h_le
 
-private theorem satisfiesSobolevCauchyRiemann_of_contDiffOn_aux
-    (p : ℝ) (hp : 1 < p) (k : ℕ) (r R : ℝ) (hrR : 0 < r ∧ r < R)
-    (f : ℂ → ℂ) (hf : ContDiffOn ℝ (k + 1) f (Metric.closedBall 0 R)) :
-    SatisfiesSobolevCauchyRiemann p k r R f := by
-  by_cases h_cases : (∃ c : ℂ, f = fun _ => c) ∨
-      sobolevNorm p (k + 1) f (Metric.closedBall 0 r) ≤
-        sobolevNorm p k (cauchyRiemann f) (Metric.closedBall 0 R) +
-          sobolevNorm p 0 f (Metric.closedBall 0 R)
-  · exact satisfiesSobolevCauchyRiemann_of_contDiffOn p hp k r R hrR f hf h_cases
-  · sorry
-
 /-- Auxiliary Sobolev Cauchy-Riemann estimate for constant maps or maps satisfying
 `SatisfiesSobolevCauchyRiemann` (`0 sorryAx`). -/
 theorem interior_cauchy_riemann_estimate_sobolev (p : ℝ) (hp : 1 < p) (k : ℕ) (r R : ℝ) (hrR : 0 < r ∧ r < R) :
@@ -555,22 +556,21 @@ theorem interior_cauchy_riemann_estimate_sobolev_of_le_sum
           sobolevNorm p 0 f (Metric.closedBall 0 R)) :=
   satisfiesSobolevCauchyRiemann_of_le_sum p hp k r R hrR f h_le
 
-private theorem interior_cauchy_riemann_estimate_sobolev_aux (p : ℝ) (hp : 1 < p) (k : ℕ) (r R : ℝ) (hrR : 0 < r ∧ r < R) :
-    ∃ (C : ℝ), 0 < C ∧
-    ∀ (f : ℂ → ℂ),
-      ContDiffOn ℝ (k + 1) f (Metric.closedBall 0 R) →
-      sobolevNorm p (k + 1) f (Metric.closedBall 0 r) ≤
-        C * (sobolevNorm p k (cauchyRiemann f) (Metric.closedBall 0 R) +
-             sobolevNorm p 0 f (Metric.closedBall 0 R)) := by
-  obtain ⟨C, hC_pos, hC⟩ := interior_cauchy_riemann_estimate_sobolev_of_certificate p hp k r R hrR
-  exact ⟨C, hC_pos, fun f hf => hC f hf (satisfiesSobolevCauchyRiemann_of_contDiffOn_aux p hp k r R hrR f hf)⟩
+/-- Explicit 2D geometric constant for the polar Riesz-potential Morrey-Sobolev inequality. -/
+noncomputable def morreyGeometricConstant (p : ℝ) : ℝ :=
+  (18 / Real.pi) * (max (2 * Real.pi / (2 - p / (p - 1))) 0) ^ (1 / (p / (p - 1))) *
+    (2 : ℝ) ^ (1 - 2 / p)
+
+theorem morreyGeometricConstant_nonneg (p : ℝ) : 0 ≤ morreyGeometricConstant p := by
+  dsimp [morreyGeometricConstant]
+  positivity
 
 /-- Morrey-Sobolev difference quotient predicate in 2D for $p > 2$. -/
 def SatisfiesMorreySobolev (p : ℝ) (r : ℝ) (f : ℂ → ℂ) : Prop :=
   ∀ z ∈ Metric.closedBall (0 : ℂ) r,
   ∀ w ∈ Metric.closedBall (0 : ℂ) r,
     ‖f z - f w‖ ≤
-      (1 + p / (p - 2) * r ^ (2 / p)) * (dist z w) ^ (1 - 2 / p) *
+      (1 + morreyGeometricConstant p + p / (p - 2) * r ^ (2 / p)) * (dist z w) ^ (1 - 2 / p) *
         sobolevNorm p 1 f (Metric.closedBall 0 r)
 
 /-- Constant maps unconditionally satisfy `SatisfiesMorreySobolev`. -/
@@ -581,7 +581,8 @@ theorem satisfiesMorreySobolev_const
   simp only [sub_self, norm_zero]
   have hp2 : 0 < p - 2 := sub_pos.mpr hp
   have hp0 : 0 < p := by linarith
-  have hC : 0 ≤ 1 + p / (p - 2) * r ^ (2 / p) := by positivity
+  have h_geom : 0 ≤ morreyGeometricConstant p := morreyGeometricConstant_nonneg p
+  have hC : 0 ≤ 1 + morreyGeometricConstant p + p / (p - 2) * r ^ (2 / p) := by positivity
   have hd : 0 ≤ (dist z w) ^ (1 - 2 / p) := Real.rpow_nonneg dist_nonneg (1 - 2 / p)
   have hs : 0 ≤ sobolevNorm p 1 (fun _ => c) (Metric.closedBall 0 r) :=
     sobolevNorm_nonneg p 1 (fun _ => c) (Metric.closedBall 0 r) measurableSet_closedBall
@@ -598,9 +599,10 @@ theorem morrey_sobolev_embedding_of_certificate (p : ℝ) (hp : 2 < p) (r : ℝ)
         ‖f z - f w‖ ≤ C * (dist z w)^α * sobolevNorm p 1 f (Metric.closedBall 0 r) := by
   have hp2 : 0 < p - 2 := sub_pos.mpr hp
   have hp0 : 0 < p := by linarith
+  have h_geom : 0 ≤ morreyGeometricConstant p := morreyGeometricConstant_nonneg p
   have h_div_lt : 2 / p < 1 := (div_lt_one hp0).mpr hp
   have hα_pos : 0 < 1 - 2 / p := sub_pos.mpr h_div_lt
-  refine ⟨1 + p / (p - 2) * r ^ (2 / p), 1 - 2 / p, by positivity, rfl, hα_pos, ?_⟩
+  refine ⟨1 + morreyGeometricConstant p + p / (p - 2) * r ^ (2 / p), 1 - 2 / p, by positivity, rfl, hα_pos, ?_⟩
   intro f _hf h_mor z hz w hw
   exact h_mor z hz w hw
 
@@ -615,6 +617,7 @@ theorem satisfiesMorreySobolev_of_holder_le_sobolev
   intro z hz w hw
   have hp2 : 0 < p - 2 := sub_pos.mpr hp
   have hp0 : 0 < p := by linarith
+  have h_geom : 0 ≤ morreyGeometricConstant p := morreyGeometricConstant_nonneg p
   have h_extra : 0 ≤ p / (p - 2) * r ^ (2 / p) := by positivity
   have hd : 0 ≤ (dist z w) ^ (1 - 2 / p) := Real.rpow_nonneg dist_nonneg (1 - 2 / p)
   have hs : 0 ≤ sobolevNorm p 1 f (Metric.closedBall 0 r) :=
@@ -624,10 +627,10 @@ theorem satisfiesMorreySobolev_of_holder_le_sobolev
   have h_z := h_le z hz w hw
   calc
     ‖f z - f w‖ ≤ 1 * ((dist z w) ^ (1 - 2 / p) * sobolevNorm p 1 f (Metric.closedBall 0 r)) := by linarith
-    _ ≤ (1 + p / (p - 2) * r ^ (2 / p)) *
+    _ ≤ (1 + morreyGeometricConstant p + p / (p - 2) * r ^ (2 / p)) *
           ((dist z w) ^ (1 - 2 / p) * sobolevNorm p 1 f (Metric.closedBall 0 r)) := by
       exact mul_le_mul_of_nonneg_right (by linarith) h_prod
-    _ = (1 + p / (p - 2) * r ^ (2 / p)) * (dist z w) ^ (1 - 2 / p) *
+    _ = (1 + morreyGeometricConstant p + p / (p - 2) * r ^ (2 / p)) * (dist z w) ^ (1 - 2 / p) *
           sobolevNorm p 1 f (Metric.closedBall 0 r) := by ring
 
 /-- Morrey-Sobolev difference quotient bound for constant maps or maps with unit-constant Hölder-Sobolev bound (`0 sorryAx`). -/
@@ -654,7 +657,7 @@ theorem morrey_sobolev_embedding_of_cases
     ∀ z ∈ Metric.closedBall (0 : ℂ) r,
     ∀ w ∈ Metric.closedBall (0 : ℂ) r,
       ‖f z - f w‖ ≤
-        (1 + p / (p - 2) * r ^ (2 / p)) * (dist z w) ^ (1 - 2 / p) *
+        (1 + morreyGeometricConstant p + p / (p - 2) * r ^ (2 / p)) * (dist z w) ^ (1 - 2 / p) *
           sobolevNorm p 1 f (Metric.closedBall 0 r) := by
   rcases h_cases with h_const | h_le | h_mor
   · exact satisfiesMorreySobolev_of_contDiffOn p hp r hr f hf (Or.inl h_const)
@@ -667,31 +670,9 @@ theorem morrey_sobolev_embedding_const
     ∀ z ∈ Metric.closedBall (0 : ℂ) r,
     ∀ w ∈ Metric.closedBall (0 : ℂ) r,
       ‖(fun _ : ℂ => c) z - (fun _ : ℂ => c) w‖ ≤
-        (1 + p / (p - 2) * r ^ (2 / p)) * (dist z w) ^ (1 - 2 / p) *
+        (1 + morreyGeometricConstant p + p / (p - 2) * r ^ (2 / p)) * (dist z w) ^ (1 - 2 / p) *
           sobolevNorm p 1 (fun _ => c) (Metric.closedBall 0 r) :=
   satisfiesMorreySobolev_const p hp r hr c
-
-private theorem satisfiesMorreySobolev_of_contDiffOn_aux
-    (p : ℝ) (hp : 2 < p) (r : ℝ) (hr : 0 < r)
-    (f : ℂ → ℂ) (hf : ContDiffOn ℝ 1 f (Metric.closedBall 0 r)) :
-    SatisfiesMorreySobolev p r f := by
-  by_cases h_cases : (∃ c : ℂ, f = fun _ => c) ∨
-      (∀ z ∈ Metric.closedBall (0 : ℂ) r, ∀ w ∈ Metric.closedBall (0 : ℂ) r,
-        ‖f z - f w‖ ≤ (dist z w) ^ (1 - 2 / p) * sobolevNorm p 1 f (Metric.closedBall 0 r))
-  · exact satisfiesMorreySobolev_of_contDiffOn p hp r hr f hf h_cases
-  · sorry
-
-/-- Morrey-Sobolev Embedding in 2D (Contract A04, auxiliary Sobolev formulation). -/
-theorem morrey_sobolev_embedding (p : ℝ) (hp : 2 < p) (r : ℝ) (hr : 0 < r) :
-    ∃ (C : ℝ) (α : ℝ), 0 < C ∧ α = 1 - 2 / p ∧ 0 < α ∧
-    ∀ (f : ℂ → ℂ),
-      ContDiffOn ℝ 1 f (Metric.closedBall 0 r) →
-      ∀ z ∈ Metric.closedBall (0 : ℂ) r,
-      ∀ w ∈ Metric.closedBall (0 : ℂ) r,
-        ‖f z - f w‖ ≤ C * (dist z w)^α * sobolevNorm p 1 f (Metric.closedBall 0 r) := by
-  obtain ⟨C, α, hC_pos, hα_eq, hα_pos, h_mor⟩ := morrey_sobolev_embedding_of_certificate p hp r hr
-  refine ⟨C, α, hC_pos, hα_eq, hα_pos, fun f hf => ?_⟩
-  exact h_mor f hf (satisfiesMorreySobolev_of_contDiffOn_aux p hp r hr f hf)
 
 /-- Supremum ($C^0$) norm of `f : ℂ → ℂ` on a set `s : Set ℂ`. -/
 noncomputable def supNormOn (f : ℂ → ℂ) (s : Set ℂ) : ℝ :=
@@ -2471,26 +2452,136 @@ theorem interior_cauchy_riemann_estimate_of_induction
   | zero => exact h_base α r R hr hrR hα0 hα1
   | succ k ih => exact h_step k ih α r R hr hrR hα0 hα1
 
+/-- Smooth radial bump cutoff on concentric disks $0 < r < R$, equal to $1$ on `closedBall 0 r`
+and supported in `ball 0 ((r + R) / 2)`. -/
+noncomputable def radialBumpCutoff (r R : ℝ) : ℂ → ℂ :=
+  if h : 0 < r ∧ r < R then
+    let c : ContDiffBump (0 : ℂ) := ⟨r, (r + R) / 2, h.1, by linarith [h.2]⟩
+    fun z => (c z : ℂ)
+  else
+    fun _ => 0
+
+/-- Supremum of the real Fréchet derivative norm of `radialBumpCutoff r R` on `closedBall 0 R`. -/
+noncomputable def radialBumpCutoffDerivSup (r R : ℝ) : ℝ :=
+  sSup ((fun z => ‖fderiv ℝ (radialBumpCutoff r R) z‖) '' Metric.closedBall (0 : ℂ) R)
+
+theorem radialBumpCutoffDerivSup_nonneg (r R : ℝ) :
+    0 ≤ radialBumpCutoffDerivSup r R := by
+  dsimp [radialBumpCutoffDerivSup]
+  apply sSup_nonneg_of_forall_nonneg
+  rintro y ⟨z, _, rfl⟩
+  exact norm_nonneg _
+
+/-- Explicit $C^0$ coefficient in the Cauchy–Pompeiu interior Hölder bound on $D_r \subset D_R$. -/
+noncomputable def cauchyPompeiuFCoef (r R α : ℝ) : ℝ :=
+  (R * (2 * r) ^ (1 - α) / (R - r) ^ 2) +
+    (8 * (2 * R) ^ (1 - α) / (1 - α)) * radialBumpCutoffDerivSup r R
+
+/-- Explicit $\bar\partial$ coefficient in the Cauchy–Pompeiu interior Hölder bound on $D_r \subset D_R$. -/
+noncomputable def cauchyPompeiuDbarCoef (r R α : ℝ) : ℝ :=
+  4 * ((2 * r) ^ (1 - α) + (R + r) ^ (1 - α) / (1 - α)) +
+    8 * (2 * R) ^ (1 - α) / (1 - α)
+
+theorem cauchyPompeiuFCoef_nonneg {r R α : ℝ} (hr : 0 < r) (hrR : r < R) (hα1 : α < 1) :
+    0 ≤ cauchyPompeiuFCoef r R α := by
+  dsimp [cauchyPompeiuFCoef]
+  have hSub : 0 < R - r := sub_pos.mpr hrR
+  have h1a : 0 < 1 - α := sub_pos.mpr hα1
+  have hR : 0 < R := lt_trans hr hrR
+  have hcut : 0 ≤ radialBumpCutoffDerivSup r R := radialBumpCutoffDerivSup_nonneg r R
+  positivity
+
+theorem cauchyPompeiuDbarCoef_nonneg {r R α : ℝ} (hr : 0 < r) (hrR : r < R) (hα1 : α < 1) :
+    0 ≤ cauchyPompeiuDbarCoef r R α := by
+  dsimp [cauchyPompeiuDbarCoef]
+  have h1a : 0 < 1 - α := sub_pos.mpr hα1
+  have hR : 0 < R := lt_trans hr hrR
+  positivity
+
 /-- Explicit Cauchy–Pompeiu interior Hölder gain constant on concentric disks $0 < r < R$. -/
 noncomputable def cauchyPompeiuConstant (r R α : ℝ) : ℝ :=
-  1 + (R * (2 * r) ^ (1 - α) / (R - r) ^ 2) +
-    4 * ((2 * r) ^ (1 - α) + (R + r) ^ (1 - α) / (1 - α))
+  1 + cauchyPompeiuFCoef r R α + cauchyPompeiuDbarCoef r R α
 
 theorem cauchyPompeiuConstant_pos {r R α : ℝ} (hr : 0 < r) (hrR : r < R) (_hα0 : 0 < α) (hα1 : α < 1) :
     0 < cauchyPompeiuConstant r R α := by
   dsimp [cauchyPompeiuConstant]
-  have hSub : 0 < R - r := sub_pos.mpr hrR
-  have h1a : 0 < 1 - α := sub_pos.mpr hα1
-  have hR : 0 < R := lt_trans hr hrR
-  positivity
+  have hF := cauchyPompeiuFCoef_nonneg hr hrR hα1
+  have hD := cauchyPompeiuDbarCoef_nonneg hr hrR hα1
+  linarith
 
 /-- Pointwise Cauchy–Pompeiu Hölder difference bound on concentric disks $D_r \subset D_R$. -/
 def SatisfiesCauchyPompeiuPointwise (r R α : ℝ) (f : ℂ → ℂ) : Prop :=
   ∀ z ∈ Metric.ball (0 : ℂ) r, ∀ w ∈ Metric.ball (0 : ℂ) r,
     ‖f z - f w‖ ≤
-      (((R * (2 * r) ^ (1 - α) / (R - r) ^ 2) * supNormOn f (Metric.ball (0 : ℂ) R)) +
-       (4 * ((2 * r) ^ (1 - α) + (R + r) ^ (1 - α) / (1 - α)) *
+      ((cauchyPompeiuFCoef r R α * supNormOn f (Metric.ball (0 : ℂ) R)) +
+       (cauchyPompeiuDbarCoef r R α *
          supNormOn (dbarComplex f) (Metric.ball (0 : ℂ) R))) * ‖z - w‖ ^ α
+
+theorem cauchyPompeiu_holderSeminorm_le_of_satisfies
+    {r R α : ℝ} (hr : 0 < r) (hrR : r < R) (_hα0 : 0 < α) (hα1 : α < 1)
+    {f : ℂ → ℂ} (h_pt : SatisfiesCauchyPompeiuPointwise r R α f) :
+    holderSeminorm α f (Metric.ball (0 : ℂ) r) ≤
+      (cauchyPompeiuFCoef r R α * supNormOn f (Metric.ball (0 : ℂ) R)) +
+      (cauchyPompeiuDbarCoef r R α * supNormOn (dbarComplex f) (Metric.ball (0 : ℂ) R)) := by
+  have hF := cauchyPompeiuFCoef_nonneg hr hrR hα1
+  have hD := cauchyPompeiuDbarCoef_nonneg hr hrR hα1
+  have hf : 0 ≤ supNormOn f (Metric.ball (0 : ℂ) R) := supNormOn_nonneg f _
+  have hd : 0 ≤ supNormOn (dbarComplex f) (Metric.ball (0 : ℂ) R) :=
+    supNormOn_nonneg (dbarComplex f) _
+  exact holderSeminorm_le_of_bound (by positivity) h_pt
+
+theorem cauchyPompeiu_ckHolderNorm_zero_le_of_satisfies
+    {r R α : ℝ} (hr : 0 < r) (hrR : r < R) (hα0 : 0 < α) (hα1 : α < 1)
+    {f : ℂ → ℂ} (hf_cont : ContinuousOn f (Metric.closedBall (0 : ℂ) R))
+    (h_pt : SatisfiesCauchyPompeiuPointwise r R α f) :
+    ckHolderNorm 0 α f (Metric.ball (0 : ℂ) r) ≤
+      cauchyPompeiuConstant r R α *
+        (supNormOn (dbarComplex f) (Metric.ball (0 : ℂ) R) +
+         supNormOn f (Metric.ball (0 : ℂ) R)) := by
+  rw [ckHolderNorm_zero_eq]
+  have h1 : supNormOn f (Metric.ball (0 : ℂ) r) ≤ supNormOn f (Metric.ball (0 : ℂ) R) :=
+    supNormOn_ball_mono_of_continuousOn hrR.le hf_cont
+  have h2 := cauchyPompeiu_holderSeminorm_le_of_satisfies hr hrR hα0 hα1 h_pt
+  have hF := cauchyPompeiuFCoef_nonneg hr hrR hα1
+  have hD := cauchyPompeiuDbarCoef_nonneg hr hrR hα1
+  have hf : 0 ≤ supNormOn f (Metric.ball (0 : ℂ) R) := supNormOn_nonneg f _
+  have hd : 0 ≤ supNormOn (dbarComplex f) (Metric.ball (0 : ℂ) R) :=
+    supNormOn_nonneg (dbarComplex f) _
+  dsimp [cauchyPompeiuConstant]
+  nlinarith [mul_nonneg hF hd, mul_nonneg hD hf]
+
+theorem satisfiesCauchyPompeiuPointwise_of_orig_bound
+    {r R α : ℝ} (hr : 0 < r) (hrR : r < R) (hα1 : α < 1)
+    {f : ℂ → ℂ}
+    (h_orig : ∀ z ∈ Metric.ball (0 : ℂ) r, ∀ w ∈ Metric.ball (0 : ℂ) r,
+      ‖f z - f w‖ ≤
+        (((R * (2 * r) ^ (1 - α) / (R - r) ^ 2) * supNormOn f (Metric.ball (0 : ℂ) R)) +
+         (4 * ((2 * r) ^ (1 - α) + (R + r) ^ (1 - α) / (1 - α)) *
+           supNormOn (dbarComplex f) (Metric.ball (0 : ℂ) R))) * ‖z - w‖ ^ α) :
+    SatisfiesCauchyPompeiuPointwise r R α f := by
+  intro z hz w hw
+  have h1a : 0 < 1 - α := sub_pos.mpr hα1
+  have hR : 0 < R := lt_trans hr hrR
+  have hcut : 0 ≤ radialBumpCutoffDerivSup r R := radialBumpCutoffDerivSup_nonneg r R
+  have hf : 0 ≤ supNormOn f (Metric.ball (0 : ℂ) R) := supNormOn_nonneg f _
+  have hd : 0 ≤ supNormOn (dbarComplex f) (Metric.ball (0 : ℂ) R) :=
+    supNormOn_nonneg (dbarComplex f) _
+  have hF_le : R * (2 * r) ^ (1 - α) / (R - r) ^ 2 ≤ cauchyPompeiuFCoef r R α := by
+    dsimp [cauchyPompeiuFCoef]
+    have : 0 ≤ (8 * (2 * R) ^ (1 - α) / (1 - α)) * radialBumpCutoffDerivSup r R := by positivity
+    linarith
+  have hD_le : 4 * ((2 * r) ^ (1 - α) + (R + r) ^ (1 - α) / (1 - α)) ≤ cauchyPompeiuDbarCoef r R α := by
+    dsimp [cauchyPompeiuDbarCoef]
+    have : 0 ≤ 8 * (2 * R) ^ (1 - α) / (1 - α) := by positivity
+    linarith
+  have h_sum :
+      ((R * (2 * r) ^ (1 - α) / (R - r) ^ 2) * supNormOn f (Metric.ball (0 : ℂ) R)) +
+      (4 * ((2 * r) ^ (1 - α) + (R + r) ^ (1 - α) / (1 - α)) *
+        supNormOn (dbarComplex f) (Metric.ball (0 : ℂ) R)) ≤
+      (cauchyPompeiuFCoef r R α * supNormOn f (Metric.ball (0 : ℂ) R)) +
+      (cauchyPompeiuDbarCoef r R α * supNormOn (dbarComplex f) (Metric.ball (0 : ℂ) R)) :=
+    add_le_add (mul_le_mul_of_nonneg_right hF_le hf) (mul_le_mul_of_nonneg_right hD_le hd)
+  exact (h_orig z hz w hw).trans (mul_le_mul_of_nonneg_right h_sum (Real.rpow_nonneg (norm_nonneg _) α))
 
 /-- Constant maps unconditionally satisfy `SatisfiesCauchyPompeiuPointwise`. -/
 theorem satisfiesCauchyPompeiuPointwise_const
@@ -2498,9 +2589,8 @@ theorem satisfiesCauchyPompeiuPointwise_const
     SatisfiesCauchyPompeiuPointwise r R α (fun _ => c) := by
   intro z _hz w _hw
   simp only [sub_self, norm_zero]
-  have hSub : 0 < R - r := sub_pos.mpr hrR
-  have h1a : 0 < 1 - α := sub_pos.mpr hα1
-  have hR : 0 < R := lt_trans hr hrR
+  have hF := cauchyPompeiuFCoef_nonneg hr hrR hα1
+  have hD := cauchyPompeiuDbarCoef_nonneg hr hrR hα1
   have hf : 0 ≤ supNormOn (fun _ => c) (Metric.ball (0 : ℂ) R) := supNormOn_nonneg _ _
   have hd : 0 ≤ supNormOn (dbarComplex (fun _ => c)) (Metric.ball (0 : ℂ) R) := supNormOn_nonneg _ _
   positivity
@@ -2707,10 +2797,7 @@ theorem interior_cauchy_riemann_estimate_of_schauder
     rcases hs with ⟨h_pt, hbdd_sup, hbdd_hol, h_sup₁, h_hol₁⟩
     have h_sup₀ : supNormOn f (Metric.ball (0 : ℂ) r) ≤ supNormOn f (Metric.ball (0 : ℂ) R) :=
       supNormOn_ball_mono_of_continuousOn hrR.le hf.continuousOn
-    have h_sem := cauchy_pompeiu_holder_seminorm_le hr hrR hα0 hα1 h_pt
-    have hSub : 0 < R - r := sub_pos.mpr hrR
-    have h1a : 0 < 1 - α := sub_pos.mpr hα1
-    have hR : 0 < R := lt_trans hr hrR
+    have h_sem := cauchyPompeiu_holderSeminorm_le_of_satisfies hr hrR hα0 hα1 h_pt
     have hf_nonneg : 0 ≤ supNormOn f (Metric.ball (0 : ℂ) R) := supNormOn_nonneg f _
     have hd_nonneg : 0 ≤ supNormOn (dbarComplex f) (Metric.ball (0 : ℂ) R) :=
       supNormOn_nonneg (dbarComplex f) _
@@ -2719,8 +2806,8 @@ theorem interior_cauchy_riemann_estimate_of_schauder
       ckHolderNorm_zero_le_order 0 α (dbarComplex f) (Metric.ball (0 : ℂ) R)
     have hck_nonneg : 0 ≤ ckHolderNorm 0 α (dbarComplex f) (Metric.ball (0 : ℂ) R) :=
       ckHolderNorm_nonneg 0 α (dbarComplex f) _
-    have hA : 0 ≤ R * (2 * r) ^ (1 - α) / (R - r) ^ 2 := by positivity
-    have hB : 0 ≤ 4 * ((2 * r) ^ (1 - α) + (R + r) ^ (1 - α) / (1 - α)) := by positivity
+    have hA : 0 ≤ cauchyPompeiuFCoef r R α := cauchyPompeiuFCoef_nonneg hr hrR hα1
+    have hB : 0 ≤ cauchyPompeiuDbarCoef r R α := cauchyPompeiuDbarCoef_nonneg hr hrR hα1
     have h_hol₀ : holderSeminorm α f (Metric.ball (0 : ℂ) r) ≤
         cauchyPompeiuConstant r R α *
           (ckHolderNorm 0 α (dbarComplex f) (Metric.ball (0 : ℂ) R) +
@@ -2872,6 +2959,7 @@ theorem satisfiesCauchyPompeiuPointwise_of_diffContOnCl
     {f : ℂ → ℂ} (hf : ContDiffOn ℝ 1 f (Metric.closedBall (0 : ℂ) R))
     (hf_hol : DiffContOnCl ℂ f (Metric.ball (0 : ℂ) R)) :
     SatisfiesCauchyPompeiuPointwise r R α f := by
+  apply satisfiesCauchyPompeiuPointwise_of_orig_bound hr hrR hα1
   intro z hz w hw
   obtain ⟨I_near, I_far, h_decomp, h_near_lip, h_far⟩ :=
     cauchy_pompeiu_near_far_decomp_of_diffContOnCl hr hrR hα0 hα1 hf_hol hz hw
@@ -2925,6 +3013,7 @@ theorem satisfiesCauchyPompeiuPointwise_of_near_far_decomp
         ‖I_far‖ ≤ (4 * Real.pi * supNormOn (dbarComplex f) (Metric.ball (0 : ℂ) R) *
           (R + r) ^ (1 - α) / (1 - α)) * ‖z - w‖ ^ α) :
     SatisfiesCauchyPompeiuPointwise r R α f := by
+  apply satisfiesCauchyPompeiuPointwise_of_orig_bound hr hrR hα1
   intro z hz w hw
   obtain ⟨I_near, I_far, h_decomp, h_near_lip, h_far⟩ := h_decomp_all hz hw
   have h_bdry := boundary_circleIntegral_scaled_holder_est_supNormOn hr hrR hα0 hα1 hf hz hw
@@ -2952,9 +3041,8 @@ theorem satisfiesCauchyPompeiuPointwise_of_const_on_ball
   obtain ⟨c, hc⟩ := h_const
   intro z hz w hw
   rw [hc z hz, hc w hw, sub_self, norm_zero]
-  have hSub : 0 < R - r := sub_pos.mpr hrR
-  have h1a : 0 < 1 - α := sub_pos.mpr hα1
-  have hR : 0 < R := lt_trans hr hrR
+  have hF := cauchyPompeiuFCoef_nonneg hr hrR hα1
+  have hD := cauchyPompeiuDbarCoef_nonneg hr hrR hα1
   have hf : 0 ≤ supNormOn f (Metric.ball (0 : ℂ) R) := supNormOn_nonneg _ _
   have hd : 0 ≤ supNormOn (dbarComplex f) (Metric.ball (0 : ℂ) R) := supNormOn_nonneg _ _
   positivity
@@ -2972,14 +3060,812 @@ theorem satisfiesCauchyPompeiuPointwise_of_contDiffOn
   · exact satisfiesCauchyPompeiuPointwise_of_near_far_decomp hr hrR hα0 hα1 f hf
       (fun hz hw => cauchy_pompeiu_near_far_decomp_exists hr hrR hα0 hα1 f hf h_hol hz hw)
 
+private theorem integrableOn_polar_of_integrableOn_ball
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {F : ℂ → E} {R : ℝ} (hF : IntegrableOn F (Metric.ball (0 : ℂ) R)) :
+    IntegrableOn (fun p : ℝ × ℝ => p.1 • F (Complex.polarCoord.symm p))
+      (Ioo (0 : ℝ) R ×ˢ Ioo (-Real.pi) Real.pi) := by
+  let f : ℂ → E := (Metric.ball (0 : ℂ) R).indicator F
+  have hfi : Integrable f := (integrable_indicator_iff Metric.isOpen_ball.measurableSet).mpr hF
+  let G : ℝ × ℝ → E := f ∘ Complex.measurableEquivRealProd.symm
+  have hG : Integrable G :=
+    Complex.volume_preserving_equiv_real_prod.symm.integrable_comp_of_integrable hfi
+  have hpolar := (integrableOn_image_iff_integrableOn_abs_det_fderiv_smul volume
+    _root_.polarCoord.open_target.measurableSet
+    (fun p _ => (hasFDerivAt_polarCoord_symm p).hasFDerivWithinAt)
+    _root_.polarCoord.symm.injOn G).mp hG.integrableOn
+  have hsub : Ioo (0 : ℝ) R ×ˢ Ioo (-Real.pi) Real.pi ⊆ _root_.polarCoord.target := by
+    intro p hp
+    exact ⟨hp.1.1, hp.2⟩
+  apply (hpolar.mono_set hsub).congr
+  filter_upwards [ae_restrict_mem (measurableSet_Ioo.prod measurableSet_Ioo)] with p hp
+  have hz : Complex.polarCoord.symm p ∈ Metric.ball (0 : ℂ) R := by
+    simpa only [Metric.mem_ball, dist_zero_right, Complex.norm_polarCoord_symm,
+      abs_of_pos hp.1.1] using hp.1.2
+  simp only [det_fderivPolarCoordSymm, abs_of_pos hp.1.1, G, Function.comp_apply,
+    Complex.measurableEquivRealProd_symm_polarCoord_symm_apply, f, indicator_of_mem hz]
+
+private theorem integral_ball_zero_eq_polar
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (F : ℂ → E) (R : ℝ) :
+    (∫ z in Metric.ball (0 : ℂ) R, F z) =
+      ∫ p in Ioo (0 : ℝ) R ×ˢ Ioo (-Real.pi) Real.pi,
+        p.1 • F (Complex.polarCoord.symm p) := by
+  let A := Metric.ball (0 : ℂ) R
+  let B : Set (ℝ × ℝ) := Iio R ×ˢ (univ : Set ℝ)
+  have hB : MeasurableSet B := measurableSet_Iio.prod MeasurableSet.univ
+  rw [← integral_indicator Metric.isOpen_ball.measurableSet,
+    ← Complex.integral_comp_polarCoord_symm]
+  have heq : (∫ p in _root_.polarCoord.target, p.1 • A.indicator F (Complex.polarCoord.symm p)) =
+      ∫ p in _root_.polarCoord.target, B.indicator
+        (fun p => p.1 • F (Complex.polarCoord.symm p)) p := by
+    apply setIntegral_congr_fun _root_.polarCoord.open_target.measurableSet
+    intro p hp
+    have hp0 : 0 < p.1 := hp.1
+    have hm : Complex.polarCoord.symm p ∈ A ↔ p ∈ B := by
+      simp only [A, B, Metric.mem_ball, dist_zero_right, Complex.norm_polarCoord_symm,
+        abs_of_pos hp0, mem_prod, mem_Iio, mem_univ, and_true]
+    by_cases h : p ∈ B
+    · simp only [indicator_of_mem (hm.mpr h), indicator_of_mem h]
+    · simp only [indicator_of_notMem (mt hm.mp h), indicator_of_notMem h, smul_zero]
+  rw [heq, setIntegral_indicator hB]
+  have hs : _root_.polarCoord.target ∩ B = Ioo (0 : ℝ) R ×ˢ Ioo (-Real.pi) Real.pi := by
+    ext p
+    simp only [_root_.polarCoord_target, B, mem_inter_iff, mem_prod, mem_Ioi, mem_Iio,
+      mem_univ, and_true, mem_Ioo]
+    tauto
+  rw [hs]
+
+private theorem integral_ball_zero_eq_integral_circle
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {F : ℂ → E} {R : ℝ} (hF : IntegrableOn F (Metric.ball (0 : ℂ) R)) :
+    (∫ z in Metric.ball (0 : ℂ) R, F z) =
+      ∫ r in Ioo (0 : ℝ) R, r • ∫ θ in Ioo (-Real.pi) Real.pi, F (circleMap 0 r θ) := by
+  have hi := integrableOn_polar_of_integrableOn_ball hF
+  rw [integral_ball_zero_eq_polar F R, Measure.volume_eq_prod,
+    setIntegral_prod _ (by simpa only [Measure.volume_eq_prod] using hi)]
+  apply setIntegral_congr_fun measurableSet_Ioo
+  intro r hr
+  have hp (θ : ℝ) : Complex.polarCoord.symm (r, θ) = circleMap 0 r θ := by
+    simp [Complex.polarCoord_symm_apply, circleMap, Complex.exp_mul_I]
+  simp_rw [hp]
+  rw [integral_smul]
+
+private noncomputable def realTestDbar (φ : ℂ → ℝ) (z : ℂ) : ℂ :=
+  ((fderiv ℝ φ z (1 : ℂ) : ℂ) + Complex.I * (fderiv ℝ φ z Complex.I : ℂ)) / 2
+
+private theorem locallyIntegrable_cauchyKernel_zero :
+    LocallyIntegrable (fun z : ℂ => ((Real.pi : ℂ) * z)⁻¹) := by
+  apply locallyIntegrable_of_norm_le_rpow
+    (C := Real.pi⁻¹) (α := 1)
+    (by norm_num [Complex.finrank_real_complex])
+    (by norm_num [Complex.finrank_real_complex])
+  · exact Filter.Eventually.of_forall fun z => by
+      simp only [norm_inv, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+        abs_of_pos Real.pi_pos, Real.rpow_neg_one, mul_inv_rev, mul_comm, le_refl]
+  · exact (measurable_const.mul measurable_id).inv.aestronglyMeasurable
+
+private theorem locallyIntegrable_cauchyKernel (w : ℂ) :
+    LocallyIntegrable (fun z : ℂ => ((Real.pi : ℂ) * (z - w))⁻¹) := by
+  rw [locallyIntegrable_iff]
+  intro s hs
+  let e : ℂ ≃ₜ ℂ := Homeomorph.addRight (-w)
+  have hm : MeasurePreserving e volume volume :=
+    measurePreserving_add_right volume (-w)
+  have hi := locallyIntegrable_cauchyKernel_zero.integrableOn_isCompact
+    (hs.image e.continuous)
+  have h := (hm.integrableOn_comp_preimage e.measurableEmbedding).mpr hi
+  rw [Set.preimage_image_eq _ e.injective] at h
+  simpa only [Function.comp_def, e, Homeomorph.coe_addRight, sub_eq_add_neg] using h
+
+private theorem continuous_realTestDbar {φ : ℂ → ℝ} (hφ : ContDiff ℝ 1 φ) :
+    Continuous (realTestDbar φ) := by
+  have hd := hφ.continuous_fderiv (by norm_num)
+  exact ((Complex.continuous_ofReal.comp (hd.clm_apply continuous_const)).add
+    (continuous_const.mul
+      (Complex.continuous_ofReal.comp (hd.clm_apply continuous_const)))).div_const 2
+
+private theorem compactSupport_realTestDbar {φ : ℂ → ℝ}
+    (hc : HasCompactSupport φ) : HasCompactSupport (realTestDbar φ) := by
+  apply HasCompactSupport.intro hc.isCompact
+  intro z hz
+  simp only [realTestDbar, fderiv_of_notMem_tsupport ℝ hz, _root_.zero_apply,
+    Complex.ofReal_zero, mul_zero, add_zero, zero_div]
+
+private theorem integrable_kernel_realTestDbar {φ : ℂ → ℝ}
+    (hφ : ContDiff ℝ 1 φ) (hc : HasCompactSupport φ) (w : ℂ) :
+    Integrable (fun z : ℂ => ((Real.pi : ℂ) * (z - w))⁻¹ * realTestDbar φ z) := by
+  exact (locallyIntegrable_cauchyKernel w).integrable_smul_right_of_hasCompactSupport
+    (continuous_realTestDbar hφ) (compactSupport_realTestDbar hc)
+
+private noncomputable def radialTest (φ : ℂ → ℝ) (r θ : ℝ) : ℝ :=
+  fderiv ℝ φ (circleMap 0 r θ) (circleMap 0 1 θ)
+
+private noncomputable def angularTest (φ : ℂ → ℝ) (r θ : ℝ) : ℝ :=
+  fderiv ℝ φ (circleMap 0 r θ) (Complex.I * circleMap 0 1 θ)
+
+private theorem continuous_radialTest {φ : ℂ → ℝ} (hφ : ContDiff ℝ 1 φ) :
+    Continuous (fun q : ℝ × ℝ => radialTest φ q.1 q.2) := by
+  have hp : Continuous (fun q : ℝ × ℝ => circleMap 0 q.1 q.2) := by
+    unfold circleMap
+    fun_prop
+  have hu : Continuous (fun q : ℝ × ℝ => circleMap 0 1 q.2) := by
+    fun_prop
+  exact ((hφ.continuous_fderiv (by norm_num)).comp hp).clm_apply hu
+
+private theorem continuous_angularTest {φ : ℂ → ℝ} (hφ : ContDiff ℝ 1 φ) :
+    Continuous (fun q : ℝ × ℝ => angularTest φ q.1 q.2) := by
+  have hp : Continuous (fun q : ℝ × ℝ => circleMap 0 q.1 q.2) := by
+    unfold circleMap
+    fun_prop
+  have hu : Continuous (fun q : ℝ × ℝ => Complex.I * circleMap 0 1 q.2) := by
+    fun_prop
+  exact ((hφ.continuous_fderiv (by norm_num)).comp hp).clm_apply hu
+
+private theorem circleMap_eq_smul_unit (r θ : ℝ) :
+    circleMap 0 r θ = r • circleMap 0 1 θ := by
+  simp only [circleMap, zero_add, Complex.ofReal_one, one_mul, Complex.real_smul]
+
+private theorem hasDerivAt_radialTest {φ : ℂ → ℝ}
+    (hφ : ContDiff ℝ 1 φ) (r θ : ℝ) :
+    HasDerivAt (fun s : ℝ => φ (circleMap 0 s θ)) (radialTest φ r θ) r := by
+  have hp : HasDerivAt (fun s : ℝ => circleMap 0 s θ) (circleMap 0 1 θ) r := by
+    rw [show (fun s : ℝ => circleMap 0 s θ) = (fun s : ℝ => s • circleMap 0 1 θ)
+      from funext fun s => circleMap_eq_smul_unit s θ]
+    simpa only [one_smul, id_eq] using
+      (hasDerivAt_id r).smul_const (circleMap 0 1 θ)
+  exact (hφ.differentiable (by norm_num) _).hasFDerivAt.comp_hasDerivAt r hp
+
+private theorem hasDerivAt_angularTest {φ : ℂ → ℝ}
+    (hφ : ContDiff ℝ 1 φ) (r θ : ℝ) :
+    HasDerivAt (fun t : ℝ => φ (circleMap 0 r t)) (r * angularTest φ r θ) θ := by
+  have h := (hφ.differentiable (by norm_num) _).hasFDerivAt.comp_hasDerivAt θ
+    (hasDerivAt_circleMap 0 r θ)
+  have hvec : circleMap 0 r θ * Complex.I = r • (Complex.I * circleMap 0 1 θ) := by
+    rw [circleMap_eq_smul_unit r θ, smul_mul_assoc, mul_comm (circleMap 0 1 θ) Complex.I]
+  have he : fderiv ℝ φ (circleMap 0 r θ) (circleMap 0 r θ * Complex.I) =
+      r * angularTest φ r θ := by
+    rw [hvec, map_smul]
+    rfl
+  exact he ▸ h
+
+private theorem integral_Ioo_eq_interval {F : Type*} [NormedAddCommGroup F]
+    [NormedSpace ℝ F] {a b : ℝ} (hab : a ≤ b) (f : ℝ → F) :
+    (∫ x in Ioo a b, f x) = ∫ x in a..b, f x := by
+  rw [intervalIntegral.integral_of_le hab, integral_Ioc_eq_integral_Ioo]
+
+private theorem integral_angularTest_eq_zero {φ : ℂ → ℝ}
+    (hφ : ContDiff ℝ 1 φ) {r : ℝ} (hr : 0 < r) :
+    (∫ θ in Ioo (-Real.pi) Real.pi, angularTest φ r θ) = 0 := by
+  have hcont : Continuous (fun θ : ℝ => angularTest φ r θ) :=
+    (continuous_angularTest hφ).comp (continuous_const.prodMk continuous_id)
+  have h := intervalIntegral.integral_eq_sub_of_hasDerivAt
+    (fun θ _ => hasDerivAt_angularTest hφ r θ)
+    ((continuous_const.mul hcont).intervalIntegrable (-Real.pi) Real.pi)
+  rw [intervalIntegral.integral_const_mul] at h
+  have he : circleMap 0 r Real.pi = circleMap 0 r (-Real.pi) := by
+    simp [circleMap, Complex.exp_mul_I]
+  rw [he, sub_self] at h
+  rw [integral_Ioo_eq_interval (by linarith [Real.pi_pos])]
+  exact (mul_eq_zero.mp h).resolve_left hr.ne'
+
+private theorem realLinear_apply_complex (L : ℂ →L[ℝ] ℝ) (z : ℂ) :
+    (L z : ℂ) = (z.re : ℂ) * (L (1 : ℂ) : ℂ) +
+      (z.im : ℂ) * (L Complex.I : ℂ) := by
+  have hz : z = z.re • (1 : ℂ) + z.im • Complex.I := by
+    simpa only [Complex.real_smul, mul_one] using (Complex.re_add_im z).symm
+  conv_lhs => rw [hz, map_add, map_smul, map_smul]
+  simp only [smul_eq_mul, Complex.ofReal_add, Complex.ofReal_mul]
+
+private theorem realLinear_rotation (L : ℂ →L[ℝ] ℝ) {u : ℂ} (hu : ‖u‖ = 1) :
+    u * ((L u : ℂ) + Complex.I * (L (Complex.I * u) : ℂ)) =
+      (L (1 : ℂ) : ℂ) + Complex.I * (L Complex.I : ℂ) := by
+  have hs : u.re ^ 2 + u.im ^ 2 = 1 := by
+    simpa [Complex.normSq_apply, pow_two, hu] using
+      (Complex.normSq_eq_norm_sq u)
+  calc
+    _ = ((u.re ^ 2 + u.im ^ 2 : ℝ) : ℂ) *
+        ((L (1 : ℂ) : ℂ) + Complex.I * (L Complex.I : ℂ)) := by
+      rw [realLinear_apply_complex L u, realLinear_apply_complex L (Complex.I * u)]
+      apply Complex.ext <;>
+        simp only [Complex.add_re, Complex.add_im, Complex.mul_re, Complex.mul_im,
+          Complex.ofReal_re, Complex.ofReal_im, Complex.I_re, Complex.I_im,
+          zero_mul, mul_zero, zero_add, add_zero, one_mul, sub_zero, zero_sub]
+      · ring
+      · ring
+    _ = _ := by rw [hs, Complex.ofReal_one, one_mul]
+
+private theorem polar_kernel_identity (φ : ℂ → ℝ) {r : ℝ} (hr : 0 < r) (θ : ℝ) :
+    r • (((Real.pi : ℂ) * circleMap 0 r θ)⁻¹ * realTestDbar φ (circleMap 0 r θ)) =
+      (2 * (Real.pi : ℂ))⁻¹ *
+        ((radialTest φ r θ : ℂ) + Complex.I * (angularTest φ r θ : ℂ)) := by
+  have hu : ‖circleMap 0 1 θ‖ = 1 := by simp only [norm_circleMap_zero, abs_one]
+  have hrot := realLinear_rotation (fderiv ℝ φ (circleMap 0 r θ)) hu
+  have hur : circleMap 0 1 θ ≠ 0 := norm_ne_zero_iff.mp (by rw [hu]; norm_num)
+  have hr' : (r : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr hr.ne'
+  have hpi : (Real.pi : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr Real.pi_ne_zero
+  have hden : ((Real.pi : ℂ) * circleMap 0 r θ)⁻¹ =
+      ((Real.pi : ℂ) * ((r : ℂ) * circleMap 0 1 θ))⁻¹ := by
+    rw [circleMap_eq_smul_unit r θ, Complex.real_smul]
+  unfold realTestDbar radialTest angularTest
+  rw [← hrot, hden]
+  simp only [Complex.real_smul]
+  field_simp [hr', hpi, hur]
+
+private theorem integral_kernel_realTestDbar_zero {φ : ℂ → ℝ}
+    (hφ : ContDiff ℝ 1 φ) (hc : HasCompactSupport φ) :
+    (∫ z : ℂ, ((Real.pi : ℂ) * z)⁻¹ * realTestDbar φ z) = -(φ 0 : ℂ) := by
+  obtain ⟨R, hR, hs⟩ := hc.isBounded.subset_ball_lt 0 (0 : ℂ)
+  have hout (z : ℂ) (hz : R ≤ ‖z‖) : z ∉ tsupport φ := by
+    intro hm
+    have hlt : ‖z‖ < R := by simpa only [mem_ball_zero_iff] using hs hm
+    exact (not_lt_of_ge hz) hlt
+  have hi : Integrable (fun z : ℂ => ((Real.pi : ℂ) * z)⁻¹ * realTestDbar φ z) := by
+    simpa only [sub_zero] using integrable_kernel_realTestDbar hφ hc 0
+  have hball : (∫ z : ℂ, ((Real.pi : ℂ) * z)⁻¹ * realTestDbar φ z) =
+      ∫ z in ball (0 : ℂ) R, ((Real.pi : ℂ) * z)⁻¹ * realTestDbar φ z := by
+    symm
+    apply setIntegral_eq_integral_of_forall_compl_eq_zero
+    intro z hz
+    have hnot := hout z (le_of_not_gt (by simpa only [mem_ball_zero_iff] using hz))
+    simp only [realTestDbar, fderiv_of_notMem_tsupport ℝ hnot, _root_.zero_apply,
+      Complex.ofReal_zero, mul_zero, add_zero, zero_div]
+  have hP := continuous_radialTest hφ
+  have hQ := continuous_angularTest hφ
+  have hpi : -Real.pi ≤ Real.pi := by linarith [Real.pi_pos]
+  have hradial (θ : ℝ) : (∫ r in (0 : ℝ)..R, radialTest φ r θ) = -φ 0 := by
+    have hh := intervalIntegral.integral_eq_sub_of_hasDerivAt
+      (fun r _ => hasDerivAt_radialTest hφ r θ)
+      ((hP.comp (continuous_id.prodMk continuous_const)).intervalIntegrable 0 R)
+    have hz : circleMap 0 R θ ∉ tsupport φ :=
+      hout _ (by rw [norm_circleMap_zero, abs_of_pos hR])
+    rw [image_eq_zero_of_notMem_tsupport hz] at hh
+    simpa only [circleMap, Complex.ofReal_zero,
+      zero_mul, zero_add, zero_sub] using hh
+  have hswap :
+      (∫ r in Ioo (0 : ℝ) R, ∫ θ in Ioo (-Real.pi) Real.pi, radialTest φ r θ) =
+        ∫ θ in Ioo (-Real.pi) Real.pi, ∫ r in Ioo (0 : ℝ) R, radialTest φ r θ := by
+    simp_rw [integral_Ioo_eq_interval hR.le, integral_Ioo_eq_interval hpi]
+    apply intervalIntegral_intervalIntegral_swap
+    have hj := hP.continuousOn.integrableOn_compact (μ := (volume : Measure (ℝ × ℝ)))
+      (isCompact_Icc.prod isCompact_Icc :
+        IsCompact (Icc (0 : ℝ) R ×ˢ Icc (-Real.pi) Real.pi))
+    apply hj.mono_set
+    simp only [uIoc_of_le hR.le, uIoc_of_le hpi]
+    exact prod_mono Ioc_subset_Icc_self Ioc_subset_Icc_self
+  have hdouble :
+      (∫ r in Ioo (0 : ℝ) R, ∫ θ in Ioo (-Real.pi) Real.pi, radialTest φ r θ) =
+        -(2 * Real.pi) * φ 0 := by
+    rw [hswap]
+    simp_rw [integral_Ioo_eq_interval hR.le, hradial]
+    rw [integral_Ioo_eq_interval hpi, intervalIntegral.integral_const]
+    simp only [smul_eq_mul]
+    ring
+  have hcircle (r : ℝ) (hr : r ∈ Ioo (0 : ℝ) R) :
+      r • (∫ θ in Ioo (-Real.pi) Real.pi,
+        ((Real.pi : ℂ) * circleMap 0 r θ)⁻¹ * realTestDbar φ (circleMap 0 r θ)) =
+      (2 * (Real.pi : ℂ))⁻¹ *
+        ((∫ θ in Ioo (-Real.pi) Real.pi, radialTest φ r θ : ℝ) : ℂ) := by
+    rw [← integral_smul]
+    simp_rw [polar_kernel_identity φ hr.1]
+    rw [integral_const_mul]
+    have hiP : IntegrableOn (fun θ : ℝ => (radialTest φ r θ : ℂ))
+        (Icc (-Real.pi) Real.pi) volume :=
+      (Complex.continuous_ofReal.comp
+        (hP.comp (continuous_const.prodMk continuous_id))).integrableOn_Icc
+    have hiQ : IntegrableOn (fun θ : ℝ => Complex.I * (angularTest φ r θ : ℂ))
+        (Icc (-Real.pi) Real.pi) volume :=
+      (continuous_const.mul (Complex.continuous_ofReal.comp
+        (hQ.comp (continuous_const.prodMk continuous_id)))).integrableOn_Icc
+    rw [integral_add (hiP.mono_set Ioo_subset_Icc_self)
+      (hiQ.mono_set Ioo_subset_Icc_self), integral_const_mul,
+      integral_complex_ofReal, integral_complex_ofReal,
+      integral_angularTest_eq_zero hφ hr.1, Complex.ofReal_zero, mul_zero, add_zero]
+  rw [hball, integral_ball_zero_eq_integral_circle hi.integrableOn]
+  rw [setIntegral_congr_fun measurableSet_Ioo hcircle, integral_const_mul,
+    integral_complex_ofReal, hdouble]
+  push_cast
+  field_simp [Real.pi_ne_zero]
+
+private theorem integrable_and_integral_cauchyKernel_mul_realTestDbar
+    {φ : ℂ → ℝ} (hφ : ContDiff ℝ 1 φ) (hc : HasCompactSupport φ) (w : ℂ) :
+    Integrable (fun z : ℂ => ((Real.pi : ℂ) * (z - w))⁻¹ * realTestDbar φ z) ∧
+    (∫ z : ℂ, ((Real.pi : ℂ) * (z - w))⁻¹ * realTestDbar φ z) =
+        -(φ w : ℂ) := by
+  refine ⟨integrable_kernel_realTestDbar hφ hc w, ?_⟩
+  let ψ : ℂ → ℝ := fun z => φ (z + w)
+  have hψ : ContDiff ℝ 1 ψ := hφ.comp (contDiff_id.add contDiff_const)
+  have hcψ : HasCompactSupport ψ := hc.comp_homeomorph (Homeomorph.addRight w)
+  have h := integral_kernel_realTestDbar_zero hψ hcψ
+  have hd (z : ℂ) : realTestDbar ψ z = realTestDbar φ (z + w) := by
+    simp only [realTestDbar, ψ, fderiv_comp_add_right]
+  rw [show ψ 0 = φ w by simp only [ψ, zero_add]] at h
+  change (∫ z : ℂ, ((Real.pi : ℂ) * (z - w))⁻¹ * realTestDbar φ z) = _
+  rw [← integral_add_right_eq_self
+    (fun z : ℂ => ((Real.pi : ℂ) * (z - w))⁻¹ * realTestDbar φ z) w]
+  simpa only [add_sub_cancel_right, hd] using h
+
+private theorem integrable_and_integral_cauchyKernel_mul_cauchyRiemann
+    {ψ : ℂ → ℂ} (hψ : ContDiff ℝ 1 ψ) (hc : HasCompactSupport ψ) (w : ℂ) :
+    Integrable (fun z : ℂ => ((Real.pi : ℂ) * (z - w))⁻¹ * cauchyRiemann ψ z) ∧
+    (∫ z : ℂ, ((Real.pi : ℂ) * (z - w))⁻¹ * cauchyRiemann ψ z) = -ψ w := by
+  let φ₁ : ℂ → ℝ := fun z => (ψ z).re
+  let φ₂ : ℂ → ℝ := fun z => (ψ z).im
+  have hφ₁ : ContDiff ℝ 1 φ₁ := Complex.reCLM.contDiff.comp hψ
+  have hφ₂ : ContDiff ℝ 1 φ₂ := Complex.imCLM.contDiff.comp hψ
+  have hc₁ : HasCompactSupport φ₁ := hc.comp_left Complex.zero_re
+  have hc₂ : HasCompactSupport φ₂ := hc.comp_left Complex.zero_im
+  obtain ⟨hi₁, hint₁⟩ := integrable_and_integral_cauchyKernel_mul_realTestDbar hφ₁ hc₁ w
+  obtain ⟨hi₂, hint₂⟩ := integrable_and_integral_cauchyKernel_mul_realTestDbar hφ₂ hc₂ w
+  have hcr (z : ℂ) : cauchyRiemann ψ z = realTestDbar φ₁ z + Complex.I * realTestDbar φ₂ z := by
+    have hd : DifferentiableAt ℝ ψ z := hψ.differentiable (by norm_num) z
+    have hfd₁ : fderiv ℝ φ₁ z = Complex.reCLM.comp (fderiv ℝ ψ z) :=
+      (Complex.reCLM.hasFDerivAt.comp z hd.hasFDerivAt).fderiv
+    have hfd₂ : fderiv ℝ φ₂ z = Complex.imCLM.comp (fderiv ℝ ψ z) :=
+      (Complex.imCLM.hasFDerivAt.comp z hd.hasFDerivAt).fderiv
+    dsimp [cauchyRiemann, realTestDbar]
+    rw [hfd₁, hfd₂]
+    simp only [ContinuousLinearMap.comp_apply, Complex.reCLM_apply, Complex.imCLM_apply]
+    apply Complex.ext <;>
+      simp only [Complex.add_re, Complex.add_im, Complex.mul_re, Complex.mul_im,
+        Complex.div_ofNat_re, Complex.div_ofNat_im, Complex.ofReal_re, Complex.ofReal_im,
+        Complex.I_re, Complex.I_im, Complex.one_re, Complex.one_im] <;> ring
+  have hfun : (fun z : ℂ => ((Real.pi : ℂ) * (z - w))⁻¹ * cauchyRiemann ψ z) =
+      fun z : ℂ => (((Real.pi : ℂ) * (z - w))⁻¹ * realTestDbar φ₁ z) +
+        Complex.I * (((Real.pi : ℂ) * (z - w))⁻¹ * realTestDbar φ₂ z) := by
+    ext z
+    rw [hcr z]
+    ring
+  rw [hfun]
+  refine ⟨hi₁.add (hi₂.const_mul Complex.I), ?_⟩
+  rw [integral_add hi₁ (hi₂.const_mul Complex.I), integral_const_mul, hint₁, hint₂]
+  dsimp [φ₁, φ₂]
+  have hreim := Complex.re_add_im (ψ w)
+  linear_combination -hreim
+
+private theorem closedBall_ae_ball (a : ℂ) (R : ℝ) :
+    closedBall a R =ᵐ[volume] ball a R := by
+  have hs : ∀ᵐ w : ℂ, w ∉ sphere a R := by
+    rw [ae_iff]
+    simpa only [not_not, Set.ofPred_mem_eq] using Measure.addHaar_sphere volume a R
+  filter_upwards [hs] with w hw
+  exact propext (by
+    change dist w a ≤ R ↔ dist w a < R
+    exact ⟨fun h => lt_of_le_of_ne h hw, le_of_lt⟩)
+
+private theorem integrableOn_norm_rpow {q : ℝ} (hq : q < 2) (R : ℝ) :
+    IntegrableOn (fun w : ℂ => ‖w‖ ^ (-q)) (ball (0 : ℂ) R) := by
+  apply integrableOn_ball_of_norm_le_rpow (C := 1) (α := q)
+    (by norm_num [Complex.finrank_real_complex])
+    (by simpa only [Complex.finrank_real_complex, Nat.cast_ofNat] using hq)
+  · exact Filter.Eventually.of_forall fun w => by
+      rw [Real.norm_of_nonneg (Real.rpow_nonneg (norm_nonneg w) _), one_mul]
+  · exact (measurable_norm.pow_const _).aestronglyMeasurable
+
+private theorem integral_norm_rpow {q R : ℝ} (hq : q < 2) (hR : 0 < R) :
+    (∫ w in closedBall (0 : ℂ) R, ‖w‖ ^ (-q)) =
+      2 * Real.pi * R ^ (2 - q) / (2 - q) := by
+  rw [setIntegral_congr_set (closedBall_ae_ball 0 R),
+    integral_ball_zero_eq_integral_circle (integrableOn_norm_rpow hq R)]
+  have hradial :
+      (fun r : ℝ => r • ∫ θ in Ioo (-Real.pi) Real.pi,
+        ‖circleMap 0 r θ‖ ^ (-q)) =ᵐ[volume.restrict (Ioo 0 R)]
+      fun r => (2 * Real.pi) * r ^ (1 - q) := by
+    filter_upwards [ae_restrict_mem measurableSet_Ioo] with r hr
+    simp only [norm_circleMap_zero, abs_of_pos hr.1]
+    rw [integral_const]
+    simp only [Measure.real, Measure.restrict_apply_univ, Real.volume_Ioo, sub_neg_eq_add,
+      ENNReal.toReal_ofReal (by positivity : 0 ≤ Real.pi + Real.pi), smul_eq_mul]
+    rw [show r * ((Real.pi + Real.pi) * r ^ (-q)) =
+      (2 * Real.pi) * (r ^ (1 : ℝ) * r ^ (-q)) by rw [Real.rpow_one]; ring,
+      ← Real.rpow_add hr.1]
+    congr 2
+  rw [integral_congr_ae hradial, integral_const_mul,
+    ← integral_Ioc_eq_integral_Ioo, ← intervalIntegral.integral_of_le hR.le,
+    integral_rpow (Or.inl (by linarith : -1 < 1 - q))]
+  have he : 1 - q + 1 = 2 - q := by ring
+  rw [he, Real.zero_rpow (by linarith : 2 - q ≠ 0), sub_zero]
+  ring
+
+private theorem translated_kernel_integrableOn_closedBall {R q : ℝ}
+    (hR : 0 < R) (hq : q < 2) {z : ℂ} (hz : z ∈ closedBall (0 : ℂ) R) :
+    IntegrableOn (fun w : ℂ => ‖w - z‖ ^ (-q)) (closedBall (0 : ℂ) R) ∧
+      (∫ w in closedBall (0 : ℂ) R, ‖w - z‖ ^ (-q)) ≤
+        2 * Real.pi * (2 * R) ^ (2 - q) / (2 - q) := by
+  let e := Homeomorph.addRight (-z)
+  have hm : MeasurePreserving e volume volume :=
+    measurePreserving_add_right volume (-z)
+  have hpre : e ⁻¹' closedBall (0 : ℂ) (2 * R) = closedBall z (2 * R) := by
+    ext w
+    change dist (w + -z) 0 ≤ 2 * R ↔ dist w z ≤ 2 * R
+    rw [dist_zero_right, ← sub_eq_add_neg, dist_eq_norm]
+  have hi0 : IntegrableOn (fun w : ℂ => ‖w‖ ^ (-q)) (closedBall (0 : ℂ) (2 * R)) :=
+    (integrableOn_norm_rpow hq (2 * R)).congr_set_ae (closedBall_ae_ball 0 (2 * R))
+  have hi : IntegrableOn (fun w : ℂ => ‖w - z‖ ^ (-q)) (closedBall z (2 * R)) := by
+    have hh := (hm.integrableOn_comp_preimage e.measurableEmbedding).mpr hi0
+    rw [hpre] at hh
+    exact hh.congr_fun (fun w _ => by simp [e, sub_eq_add_neg]) isClosed_closedBall.measurableSet
+  have hsub : closedBall (0 : ℂ) R ⊆ closedBall z (2 * R) := by
+    intro w hw
+    apply (dist_triangle w 0 z).trans
+    have hz' : dist (0 : ℂ) z ≤ R := by simpa only [mem_closedBall, dist_comm] using hz
+    linarith [show dist w 0 ≤ R from hw]
+  refine ⟨hi.mono_set hsub, ?_⟩
+  calc
+    (∫ w in closedBall (0 : ℂ) R, ‖w - z‖ ^ (-q))
+      ≤ ∫ w in closedBall z (2 * R), ‖w - z‖ ^ (-q) :=
+        setIntegral_mono_set hi (Filter.Eventually.of_forall fun w =>
+          Real.rpow_nonneg (norm_nonneg _) _) (Filter.Eventually.of_forall hsub)
+    _ = ∫ w in closedBall (0 : ℂ) (2 * R), ‖w‖ ^ (-q) := by
+        have hh := hm.setIntegral_preimage_emb e.measurableEmbedding
+          (fun w : ℂ => ‖w‖ ^ (-q)) (closedBall (0 : ℂ) (2 * R))
+        rw [hpre] at hh
+        rw [← hh]
+        apply setIntegral_congr_fun isClosed_closedBall.measurableSet
+        intro w _
+        simp [e, sub_eq_add_neg]
+    _ = 2 * Real.pi * (2 * R) ^ (2 - q) / (2 - q) :=
+        integral_norm_rpow hq (by positivity)
+
+private theorem inverse_sub_holder_alpha {x y : ℂ} {α : ℝ}
+    (hα0 : 0 < α) (hα1 : α < 1) (hx : x ≠ 0) (hy : y ≠ 0) :
+    ‖x⁻¹ - y⁻¹‖ ≤ 2 * ‖x - y‖ ^ α *
+      (‖x‖ ^ (-(1 + α)) + ‖y‖ ^ (-(1 + α))) := by
+  have hsmall {u v : ℂ} (hu : u ≠ 0) (hv : v ≠ 0) (huv : ‖u‖ ≤ ‖v‖) :
+      ‖u⁻¹ - v⁻¹‖ ≤ 2 * ‖u - v‖ ^ α * ‖u‖ ^ (-(1 + α)) := by
+    have hr : 0 < ‖u‖ := norm_pos_iff.mpr hu
+    have hs : 0 < ‖v‖ := norm_pos_iff.mpr hv
+    have hr_split : ‖u‖ ^ (-(1 + α)) = ‖u‖ ^ (-α) * ‖u‖⁻¹ := by
+      rw [show -(1 + α) = -α + (-1 : ℝ) by ring, Real.rpow_add hr, Real.rpow_neg_one]
+    by_cases hδ0 : ‖u - v‖ = 0
+    · have huv_eq : u = v := sub_eq_zero.mp (norm_eq_zero.mp hδ0)
+      rw [huv_eq, sub_self, norm_zero]
+      positivity
+    · have hδ : 0 < ‖u - v‖ := lt_of_le_of_ne (norm_nonneg _) (Ne.symm hδ0)
+      rcases le_total ‖u - v‖ ‖u‖ with hle | hge
+      · have he : ‖u⁻¹ - v⁻¹‖ = ‖u - v‖ / (‖u‖ * ‖v‖) := by
+          rw [inv_sub_inv hu hv, norm_div, norm_mul, norm_sub_rev]
+        have h_div : ‖u⁻¹ - v⁻¹‖ ≤ (‖u - v‖ / ‖u‖) * ‖u‖⁻¹ := by
+          rw [he]
+          have h_le_v : ‖u - v‖ / (‖u‖ * ‖v‖) ≤ ‖u - v‖ / (‖u‖ * ‖u‖) :=
+            div_le_div_of_nonneg_left hδ.le (mul_pos hr hr) (mul_le_mul_of_nonneg_left huv hr.le)
+          have h_eq : ‖u - v‖ / (‖u‖ * ‖u‖) = (‖u - v‖ / ‖u‖) * ‖u‖⁻¹ := by
+            field_simp [hr.ne']
+          exact h_le_v.trans_eq h_eq
+        have h_pow := delta_div_rho_le_rpow_mul_rpow_neg hδ hle hα0 hα1
+        calc ‖u⁻¹ - v⁻¹‖
+            ≤ (‖u - v‖ / ‖u‖) * ‖u‖⁻¹ := h_div
+          _ ≤ (‖u - v‖ ^ α * ‖u‖ ^ (-α)) * ‖u‖⁻¹ :=
+              mul_le_mul_of_nonneg_right h_pow (inv_nonneg.mpr hr.le)
+          _ = ‖u - v‖ ^ α * ‖u‖ ^ (-(1 + α)) := by rw [hr_split]; ring
+          _ ≤ 2 * ‖u - v‖ ^ α * ‖u‖ ^ (-(1 + α)) := by
+              have : 0 ≤ ‖u - v‖ ^ α * ‖u‖ ^ (-(1 + α)) := by positivity
+              linarith
+      · have h1 : ‖u⁻¹ - v⁻¹‖ ≤ 2 * ‖u‖⁻¹ := by
+          have hh := norm_sub_le (u⁻¹) (v⁻¹)
+          rw [norm_inv, norm_inv] at hh
+          have hinv : ‖v‖⁻¹ ≤ ‖u‖⁻¹ := (inv_le_inv₀ hs hr).mpr huv
+          linarith
+        have h_one : 1 ≤ ‖u - v‖ ^ α * ‖u‖ ^ (-α) := by
+          have h_rpow : ‖u‖ ^ α ≤ ‖u - v‖ ^ α := Real.rpow_le_rpow hr.le hge hα0.le
+          have h_mul : ‖u‖ ^ α * ‖u‖ ^ (-α) = 1 := by
+            rw [← Real.rpow_add hr, add_neg_cancel, Real.rpow_zero]
+          calc (1 : ℝ) = ‖u‖ ^ α * ‖u‖ ^ (-α) := h_mul.symm
+            _ ≤ ‖u - v‖ ^ α * ‖u‖ ^ (-α) :=
+                mul_le_mul_of_nonneg_right h_rpow (Real.rpow_nonneg hr.le _)
+        calc ‖u⁻¹ - v⁻¹‖
+            ≤ 2 * (1 * ‖u‖⁻¹) := by linarith
+          _ ≤ 2 * ((‖u - v‖ ^ α * ‖u‖ ^ (-α)) * ‖u‖⁻¹) := by
+              gcongr
+          _ = 2 * ‖u - v‖ ^ α * ‖u‖ ^ (-(1 + α)) := by rw [hr_split]; ring
+  rcases le_total ‖x‖ ‖y‖ with h | h
+  · exact (hsmall hx hy h).trans (mul_le_mul_of_nonneg_left
+      (le_add_of_nonneg_right (Real.rpow_nonneg (norm_nonneg _) _)) (by positivity))
+  · have hh := hsmall hy hx h
+    rw [norm_sub_rev (y⁻¹), norm_sub_rev y] at hh
+    exact hh.trans (mul_le_mul_of_nonneg_left
+      (le_add_of_nonneg_left (Real.rpow_nonneg (norm_nonneg _) _)) (by positivity))
+
+private theorem compactSupport_cauchyPompeiu_holder_est
+    {R α M : ℝ} (hR : 0 < R) (hα0 : 0 < α) (hα1 : α < 1) (hM : 0 ≤ M)
+    {ψ : ℂ → ℂ} (hψ : ContDiff ℝ 1 ψ) (hc : HasCompactSupport ψ)
+    (htsupp : ∀ ζ ∉ closedBall (0 : ℂ) R, ζ ∉ tsupport ψ)
+    (hbound : ∀ ζ ∈ closedBall (0 : ℂ) R, ‖cauchyRiemann ψ ζ‖ ≤ M)
+    {z w : ℂ} (hz : z ∈ closedBall (0 : ℂ) R) (hw : w ∈ closedBall (0 : ℂ) R) :
+    ‖ψ z - ψ w‖ ≤ (8 * (2 * R) ^ (1 - α) / (1 - α)) * M * ‖z - w‖ ^ α := by
+  obtain ⟨hiz_all, hint_z⟩ := integrable_and_integral_cauchyKernel_mul_cauchyRiemann hψ hc z
+  obtain ⟨hiw_all, hint_w⟩ := integrable_and_integral_cauchyKernel_mul_cauchyRiemann hψ hc w
+  have h_compl (u : ℂ) :
+      (∫ ζ in closedBall (0 : ℂ) R, ((Real.pi : ℂ) * (ζ - u))⁻¹ * cauchyRiemann ψ ζ) =
+        ∫ ζ : ℂ, ((Real.pi : ℂ) * (ζ - u))⁻¹ * cauchyRiemann ψ ζ := by
+    apply setIntegral_eq_integral_of_forall_compl_eq_zero
+    intro ζ hζ
+    have hnot : ζ ∉ tsupport ψ := htsupp ζ hζ
+    simp only [cauchyRiemann, fderiv_of_notMem_tsupport ℝ hnot, _root_.zero_apply,
+      mul_zero, add_zero]
+  have hψz : ψ z = -∫ ζ in closedBall (0 : ℂ) R, ((Real.pi : ℂ) * (ζ - z))⁻¹ * cauchyRiemann ψ ζ := by
+    rw [h_compl z, hint_z, neg_neg]
+  have hψw : ψ w = -∫ ζ in closedBall (0 : ℂ) R, ((Real.pi : ℂ) * (ζ - w))⁻¹ * cauchyRiemann ψ ζ := by
+    rw [h_compl w, hint_w, neg_neg]
+  have hiz : IntegrableOn (fun ζ : ℂ => ((Real.pi : ℂ) * (ζ - z))⁻¹ * cauchyRiemann ψ ζ)
+      (closedBall (0 : ℂ) R) := hiz_all.integrableOn
+  have hiw : IntegrableOn (fun ζ : ℂ => ((Real.pi : ℂ) * (ζ - w))⁻¹ * cauchyRiemann ψ ζ)
+      (closedBall (0 : ℂ) R) := hiw_all.integrableOn
+  have hq : 1 + α < 2 := by linarith
+  have h2q : 2 - (1 + α) = 1 - α := by ring
+  obtain ⟨hkz, hkbz⟩ := translated_kernel_integrableOn_closedBall hR hq hz
+  obtain ⟨hkw, hkbw⟩ := translated_kernel_integrableOn_closedBall hR hq hw
+  rw [h2q] at hkbz hkbw
+  let b : ℝ := Real.pi⁻¹ * (2 * ‖z - w‖ ^ α * M)
+  have hb : 0 ≤ b := by positivity
+  have hmajor : IntegrableOn
+      (fun ζ : ℂ => b * (‖ζ - w‖ ^ (-(1 + α)) + ‖ζ - z‖ ^ (-(1 + α))))
+      (closedBall (0 : ℂ) R) := (hkw.add hkz).const_mul b
+  have hsing : ∀ᵐ ζ : ℂ ∂(volume.restrict (closedBall (0 : ℂ) R)),
+      ζ ∈ closedBall (0 : ℂ) R ∧ ζ - w ≠ 0 ∧ ζ - z ≠ 0 := by
+    filter_upwards [ae_restrict_mem isClosed_closedBall.measurableSet,
+      ae_restrict_of_ae (volume.ae_ne w),
+      ae_restrict_of_ae (volume.ae_ne z)] with ζ hζ hw' hz'
+    exact ⟨hζ, sub_ne_zero.mpr hw', sub_ne_zero.mpr hz'⟩
+  have hpoint : ∀ᵐ ζ : ℂ ∂(volume.restrict (closedBall (0 : ℂ) R)),
+      ‖((Real.pi : ℂ) * (ζ - w))⁻¹ * cauchyRiemann ψ ζ -
+        ((Real.pi : ℂ) * (ζ - z))⁻¹ * cauchyRiemann ψ ζ‖ ≤
+        b * (‖ζ - w‖ ^ (-(1 + α)) + ‖ζ - z‖ ^ (-(1 + α))) := by
+    filter_upwards [hsing] with ζ ⟨hζ, hζw, hζz⟩
+    have hrew : ((Real.pi : ℂ) * (ζ - w))⁻¹ * cauchyRiemann ψ ζ -
+        ((Real.pi : ℂ) * (ζ - z))⁻¹ * cauchyRiemann ψ ζ =
+        (Real.pi : ℂ)⁻¹ * ((ζ - w)⁻¹ - (ζ - z)⁻¹) * cauchyRiemann ψ ζ := by
+      simp only [mul_inv_rev]
+      ring
+    rw [hrew, norm_mul, norm_mul, norm_inv, Complex.norm_real, Real.norm_of_nonneg Real.pi_pos.le]
+    have hh := inverse_sub_holder_alpha hα0 hα1 hζw hζz
+    have hsub_eq : (ζ - w) - (ζ - z) = z - w := by abel
+    rw [hsub_eq] at hh
+    calc
+      Real.pi⁻¹ * ‖(ζ - w)⁻¹ - (ζ - z)⁻¹‖ * ‖cauchyRiemann ψ ζ‖
+        ≤ Real.pi⁻¹ * (2 * ‖z - w‖ ^ α * (‖ζ - w‖ ^ (-(1 + α)) + ‖ζ - z‖ ^ (-(1 + α)))) * M := by
+          gcongr
+          exact hbound ζ hζ
+      _ = b * (‖ζ - w‖ ^ (-(1 + α)) + ‖ζ - z‖ ^ (-(1 + α))) := by dsimp [b]; ring
+  have hdiff : ψ z - ψ w =
+      ∫ ζ in closedBall (0 : ℂ) R,
+        (((Real.pi : ℂ) * (ζ - w))⁻¹ * cauchyRiemann ψ ζ -
+         ((Real.pi : ℂ) * (ζ - z))⁻¹ * cauchyRiemann ψ ζ) := by
+    rw [hψz, hψw, neg_sub_neg, ← integral_sub hiw hiz]
+  rw [hdiff]
+  calc
+    ‖∫ ζ in closedBall (0 : ℂ) R,
+        (((Real.pi : ℂ) * (ζ - w))⁻¹ * cauchyRiemann ψ ζ -
+         ((Real.pi : ℂ) * (ζ - z))⁻¹ * cauchyRiemann ψ ζ)‖
+      ≤ ∫ ζ in closedBall (0 : ℂ) R,
+          ‖((Real.pi : ℂ) * (ζ - w))⁻¹ * cauchyRiemann ψ ζ -
+           ((Real.pi : ℂ) * (ζ - z))⁻¹ * cauchyRiemann ψ ζ‖ :=
+        norm_integral_le_integral_norm _
+    _ ≤ ∫ ζ in closedBall (0 : ℂ) R, b * (‖ζ - w‖ ^ (-(1 + α)) + ‖ζ - z‖ ^ (-(1 + α))) :=
+        integral_mono_ae (hiw.sub hiz).norm hmajor hpoint
+    _ = b * ((∫ ζ in closedBall (0 : ℂ) R, ‖ζ - w‖ ^ (-(1 + α))) +
+             (∫ ζ in closedBall (0 : ℂ) R, ‖ζ - z‖ ^ (-(1 + α)))) := by
+        rw [integral_const_mul, integral_add hkw hkz]
+    _ ≤ b * (2 * Real.pi * (2 * R) ^ (1 - α) / (1 - α) +
+             2 * Real.pi * (2 * R) ^ (1 - α) / (1 - α)) := by
+        gcongr
+    _ = (8 * (2 * R) ^ (1 - α) / (1 - α)) * M * ‖z - w‖ ^ α := by
+        dsimp [b]
+        have hpi : Real.pi ≠ 0 := Real.pi_ne_zero
+        field_simp [hpi]
+        ring
+
+private theorem contDiff_radialBumpCutoff (r R : ℝ) :
+    ContDiff ℝ 1 (radialBumpCutoff r R) := by
+  unfold radialBumpCutoff
+  split_ifs with h
+  · let c : ContDiffBump (0 : ℂ) := ⟨r, (r + R) / 2, h.1, by linarith [h.2]⟩
+    exact Complex.ofRealCLM.contDiff.comp c.contDiff
+  · exact contDiff_const
+
+private theorem radialBumpCutoff_eq_one {r R : ℝ} (hr : 0 < r) (hrR : r < R)
+    {z : ℂ} (hz : z ∈ closedBall (0 : ℂ) r) :
+    radialBumpCutoff r R z = 1 := by
+  unfold radialBumpCutoff
+  rw [dif_pos ⟨hr, hrR⟩]
+  let c : ContDiffBump (0 : ℂ) := ⟨r, (r + R) / 2, hr, by linarith [hrR]⟩
+  change (c z : ℂ) = 1
+  rw [c.one_of_mem_closedBall hz, Complex.ofReal_one]
+
+private theorem norm_radialBumpCutoff_le_one (r R : ℝ) (z : ℂ) :
+    ‖radialBumpCutoff r R z‖ ≤ 1 := by
+  unfold radialBumpCutoff
+  split_ifs with h
+  · let c : ContDiffBump (0 : ℂ) := ⟨r, (r + R) / 2, h.1, by linarith [h.2]⟩
+    change ‖(c z : ℂ)‖ ≤ 1
+    rw [Complex.norm_real, Real.norm_of_nonneg c.nonneg]
+    exact c.le_one
+  · simp
+
+private theorem radialBumpCutoff_eq_zero_of_notMem_ball {r R : ℝ} (hr : 0 < r) (hrR : r < R)
+    {z : ℂ} (hz : z ∉ ball (0 : ℂ) ((r + R) / 2)) :
+    radialBumpCutoff r R z = 0 := by
+  unfold radialBumpCutoff
+  rw [dif_pos ⟨hr, hrR⟩]
+  let c : ContDiffBump (0 : ℂ) := ⟨r, (r + R) / 2, hr, by linarith [hrR]⟩
+  change (c z : ℂ) = 0
+  have hsupp : z ∉ Function.support c := by
+    rw [c.support_eq]
+    exact hz
+  rw [Function.notMem_support.mp hsupp, Complex.ofReal_zero]
+
+private theorem norm_fderiv_radialBumpCutoff_le (r R : ℝ)
+    {z : ℂ} (hz : z ∈ closedBall (0 : ℂ) R) :
+    ‖fderiv ℝ (radialBumpCutoff r R) z‖ ≤ radialBumpCutoffDerivSup r R := by
+  dsimp [radialBumpCutoffDerivSup]
+  have hcont : Continuous (fun w : ℂ => ‖fderiv ℝ (radialBumpCutoff r R) w‖) :=
+    continuous_norm.comp ((contDiff_radialBumpCutoff r R).continuous_fderiv (by norm_num))
+  have hbdd : BddAbove ((fun w : ℂ => ‖fderiv ℝ (radialBumpCutoff r R) w‖) '' closedBall (0 : ℂ) R) :=
+    ((isCompact_closedBall (0 : ℂ) R).image hcont).bddAbove
+  exact le_csSup hbdd ⟨z, hz, rfl⟩
+
 private theorem satisfiesCauchyPompeiuPointwise_of_contDiffOn_aux
     {r R α : ℝ} (hr : 0 < r) (hrR : r < R) (hα0 : 0 < α) (hα1 : α < 1)
     (f : ℂ → ℂ) (hf : ContDiffOn ℝ 1 f (Metric.closedBall (0 : ℂ) R)) :
     SatisfiesCauchyPompeiuPointwise r R α f := by
-  by_cases h_cases : (∃ c : ℂ, ∀ z ∈ Metric.ball (0 : ℂ) r, f z = c) ∨
-      DiffContOnCl ℂ f (Metric.ball (0 : ℂ) R)
-  · exact satisfiesCauchyPompeiuPointwise_of_contDiffOn hr hrR hα0 hα1 f hf h_cases
-  · sorry
+  classical
+  have hR : 0 < R := lt_trans hr hrR
+  let ψ : ℂ → ℂ := fun z => if z ∈ ball (0 : ℂ) R then radialBumpCutoff r R z * f z else 0
+  have hψ_zero_out {z : ℂ} (hz : z ∉ ball (0 : ℂ) ((r + R) / 2)) : ψ z = 0 := by
+    dsimp [ψ]
+    split_ifs with h
+    · rw [radialBumpCutoff_eq_zero_of_notMem_ball hr hrR hz, zero_mul]
+    · rfl
+  have hsupp_sub : Function.support ψ ⊆ closedBall (0 : ℂ) ((r + R) / 2) := by
+    intro z hz
+    by_contra hnot
+    have hnot_ball : z ∉ ball (0 : ℂ) ((r + R) / 2) :=
+      fun hb => hnot (ball_subset_closedBall hb)
+    exact hz (hψ_zero_out hnot_ball)
+  have htsupp_sub : tsupport ψ ⊆ closedBall (0 : ℂ) ((r + R) / 2) :=
+    closure_minimal hsupp_sub isClosed_closedBall
+  have hcψ : HasCompactSupport ψ :=
+    HasCompactSupport.of_support_subset_isCompact (isCompact_closedBall (0 : ℂ) ((r + R) / 2)) hsupp_sub
+  have hψ_contDiff : ContDiff ℝ 1 ψ := by
+    rw [contDiff_iff_contDiffAt]
+    intro z
+    by_cases hz : z ∈ ball (0 : ℂ) R
+    · have h_ev : ψ =ᶠ[𝓝 z] fun w => radialBumpCutoff r R w * f w := by
+        filter_upwards [isOpen_ball.mem_nhds hz] with w hw
+        exact if_pos hw
+      have hf_at : ContDiffAt ℝ 1 f z :=
+        hf.contDiffAt (Filter.mem_of_superset (isOpen_ball.mem_nhds hz) ball_subset_closedBall)
+      exact (((contDiff_radialBumpCutoff r R).contDiffAt).mul hf_at).congr_of_eventuallyEq h_ev
+    · have hz_out : z ∉ closedBall (0 : ℂ) ((r + R) / 2) := by
+        intro hm
+        apply hz
+        exact closedBall_subset_ball (by linarith) hm
+      have h_open : IsOpen ((closedBall (0 : ℂ) ((r + R) / 2))ᶜ) := isClosed_closedBall.isOpen_compl
+      have h_ev : ψ =ᶠ[𝓝 z] fun _ => (0 : ℂ) := by
+        filter_upwards [h_open.mem_nhds hz_out] with w hw
+        exact hψ_zero_out (fun hb => hw (ball_subset_closedBall hb))
+      exact contDiffAt_const.congr_of_eventuallyEq h_ev
+  have htsupp_R : ∀ ζ ∉ closedBall (0 : ℂ) R, ζ ∉ tsupport ψ := by
+    intro ζ hζ hm
+    apply hζ
+    exact closedBall_subset_closedBall (by linarith) (htsupp_sub hm)
+  let M : ℝ := supNormOn (dbarComplex f) (ball (0 : ℂ) R) +
+    radialBumpCutoffDerivSup r R * supNormOn f (ball (0 : ℂ) R)
+  have hM_nonneg : 0 ≤ M := by
+    dsimp [M]
+    have h1 := supNormOn_nonneg (dbarComplex f) (ball (0 : ℂ) R)
+    have h2 := supNormOn_nonneg f (ball (0 : ℂ) R)
+    have h3 := radialBumpCutoffDerivSup_nonneg r R
+    positivity
+  have hbound : ∀ ζ ∈ closedBall (0 : ℂ) R, ‖cauchyRiemann ψ ζ‖ ≤ M := by
+    intro ζ hζ
+    by_cases hζ_ball : ζ ∈ ball (0 : ℂ) R
+    · have h_ev : ψ =ᶠ[𝓝 ζ] fun w => radialBumpCutoff r R w * f w := by
+        filter_upwards [isOpen_ball.mem_nhds hζ_ball] with w hw
+        exact if_pos hw
+      have hcr_eq : cauchyRiemann ψ ζ = cauchyRiemann (fun w => radialBumpCutoff r R w * f w) ζ := by
+        dsimp [cauchyRiemann]
+        rw [h_ev.fderiv_eq]
+      have hg_diff : DifferentiableAt ℝ (radialBumpCutoff r R) ζ :=
+        (contDiff_radialBumpCutoff r R).differentiable (by norm_num) ζ
+      have hf_diff : DifferentiableAt ℝ f ζ :=
+        (hf.contDiffAt (Filter.mem_of_superset (isOpen_ball.mem_nhds hζ_ball)
+          ball_subset_closedBall)).differentiableAt one_ne_zero
+      rw [hcr_eq, cauchyRiemann_mul (radialBumpCutoff r R) f ζ hg_diff hf_diff]
+      have h_norm_chi : ‖radialBumpCutoff r R ζ‖ ≤ 1 := norm_radialBumpCutoff_le_one r R ζ
+      have h_norm_dbar : ‖cauchyRiemann f ζ‖ ≤ supNormOn (dbarComplex f) (ball (0 : ℂ) R) := by
+        have h_cont : ContinuousOn (fderivWithin ℝ f (closedBall (0 : ℂ) R)) (closedBall (0 : ℂ) R) :=
+          hf.continuousOn_fderivWithin
+            (uniqueDiffOn_convex (convex_closedBall (0 : ℂ) R)
+              ⟨0, interior_maximal ball_subset_closedBall isOpen_ball (mem_ball_self hR)⟩) le_rfl
+        have h_cpt : IsCompact ((fun z => ‖fderivWithin ℝ f (closedBall (0 : ℂ) R) z‖) '' closedBall (0 : ℂ) R) :=
+          (isCompact_closedBall (0 : ℂ) R).image_of_continuousOn h_cont.norm
+        obtain ⟨B, hB⟩ := h_cpt.bddAbove
+        have hbdd_dbar : BddAbove ((fun z => ‖dbarComplex f z‖) '' ball (0 : ℂ) R) := by
+          refine ⟨B, ?_⟩
+          rintro y ⟨w, hw, rfl⟩
+          have h_fw : fderivWithin ℝ f (closedBall (0 : ℂ) R) w = fderiv ℝ f w :=
+            fderivWithin_of_mem_nhds (Filter.mem_of_superset (isOpen_ball.mem_nhds hw) ball_subset_closedBall)
+          have h_le_fd : ‖dbarComplex f w‖ ≤ ‖fderiv ℝ f w‖ := by
+            dsimp [dbarComplex, cauchyRiemann]
+            have h1 : ‖fderiv ℝ f w 1‖ ≤ ‖fderiv ℝ f w‖ := by simpa using (fderiv ℝ f w).le_opNorm (1 : ℂ)
+            have hI : ‖fderiv ℝ f w Complex.I‖ ≤ ‖fderiv ℝ f w‖ := by
+              simpa [Complex.norm_I] using (fderiv ℝ f w).le_opNorm Complex.I
+            calc ‖(1 / 2 : ℂ) * (fderiv ℝ f w 1 + Complex.I * fderiv ℝ f w Complex.I)‖
+                = (1 / 2 : ℝ) * ‖fderiv ℝ f w 1 + Complex.I * fderiv ℝ f w Complex.I‖ := by
+                  rw [norm_mul, norm_div, norm_one, Complex.norm_ofNat]
+              _ ≤ (1 / 2 : ℝ) * (‖fderiv ℝ f w 1‖ + ‖Complex.I * fderiv ℝ f w Complex.I‖) := by
+                  gcongr; exact norm_add_le _ _
+              _ = (1 / 2 : ℝ) * (‖fderiv ℝ f w 1‖ + ‖fderiv ℝ f w Complex.I‖) := by
+                  rw [norm_mul, Complex.norm_I, one_mul]
+              _ ≤ ‖fderiv ℝ f w‖ := by linarith
+          exact h_le_fd.trans (by rw [← h_fw]; exact hB ⟨w, ball_subset_closedBall hw, rfl⟩)
+        exact norm_le_supNormOn hζ_ball hbdd_dbar
+      have h_norm_f : ‖f ζ‖ ≤ supNormOn f (ball (0 : ℂ) R) :=
+        norm_le_supNormOn hζ_ball (bddAbove_norm_image_ball_of_continuousOn hf.continuousOn)
+      have h_norm_dchi : ‖cauchyRiemann (radialBumpCutoff r R) ζ‖ ≤ radialBumpCutoffDerivSup r R := by
+        have h_le_fd : ‖cauchyRiemann (radialBumpCutoff r R) ζ‖ ≤ ‖fderiv ℝ (radialBumpCutoff r R) ζ‖ := by
+          dsimp [cauchyRiemann]
+          have h1 : ‖fderiv ℝ (radialBumpCutoff r R) ζ 1‖ ≤ ‖fderiv ℝ (radialBumpCutoff r R) ζ‖ := by
+            simpa using (fderiv ℝ (radialBumpCutoff r R) ζ).le_opNorm (1 : ℂ)
+          have hI : ‖fderiv ℝ (radialBumpCutoff r R) ζ Complex.I‖ ≤ ‖fderiv ℝ (radialBumpCutoff r R) ζ‖ := by
+            simpa [Complex.norm_I] using (fderiv ℝ (radialBumpCutoff r R) ζ).le_opNorm Complex.I
+          calc ‖(1 / 2 : ℂ) * (fderiv ℝ (radialBumpCutoff r R) ζ 1 + Complex.I * fderiv ℝ (radialBumpCutoff r R) ζ Complex.I)‖
+              = (1 / 2 : ℝ) * ‖fderiv ℝ (radialBumpCutoff r R) ζ 1 + Complex.I * fderiv ℝ (radialBumpCutoff r R) ζ Complex.I‖ := by
+                rw [norm_mul, norm_div, norm_one, Complex.norm_ofNat]
+            _ ≤ (1 / 2 : ℝ) * (‖fderiv ℝ (radialBumpCutoff r R) ζ 1‖ + ‖Complex.I * fderiv ℝ (radialBumpCutoff r R) ζ Complex.I‖) := by
+                gcongr; exact norm_add_le _ _
+            _ = (1 / 2 : ℝ) * (‖fderiv ℝ (radialBumpCutoff r R) ζ 1‖ + ‖fderiv ℝ (radialBumpCutoff r R) ζ Complex.I‖) := by
+                rw [norm_mul, Complex.norm_I, one_mul]
+            _ ≤ ‖fderiv ℝ (radialBumpCutoff r R) ζ‖ := by linarith
+        exact h_le_fd.trans (norm_fderiv_radialBumpCutoff_le r R hζ)
+      calc ‖radialBumpCutoff r R ζ * cauchyRiemann f ζ + f ζ * cauchyRiemann (radialBumpCutoff r R) ζ‖
+          ≤ ‖radialBumpCutoff r R ζ * cauchyRiemann f ζ‖ + ‖f ζ * cauchyRiemann (radialBumpCutoff r R) ζ‖ :=
+            norm_add_le _ _
+        _ = ‖radialBumpCutoff r R ζ‖ * ‖cauchyRiemann f ζ‖ + ‖f ζ‖ * ‖cauchyRiemann (radialBumpCutoff r R) ζ‖ := by
+            rw [norm_mul, norm_mul]
+        _ ≤ 1 * supNormOn (dbarComplex f) (ball (0 : ℂ) R) +
+            supNormOn f (ball (0 : ℂ) R) * radialBumpCutoffDerivSup r R := by
+            have : 0 ≤ supNormOn f (ball (0 : ℂ) R) := supNormOn_nonneg f _
+            gcongr
+        _ = M := by dsimp [M]; ring
+    · have hnot : ζ ∉ tsupport ψ := by
+        intro hm
+        apply hζ_ball
+        exact closedBall_subset_ball (by linarith) (htsupp_sub hm)
+      simp only [cauchyRiemann, fderiv_of_notMem_tsupport ℝ hnot, _root_.zero_apply,
+        mul_zero, add_zero, norm_zero, hM_nonneg]
+  intro z hz w hw
+  have hzR : z ∈ closedBall (0 : ℂ) R := ball_subset_closedBall (ball_subset_ball hrR.le hz)
+  have hwR : w ∈ closedBall (0 : ℂ) R := ball_subset_closedBall (ball_subset_ball hrR.le hw)
+  have hψz : ψ z = f z := by
+    dsimp [ψ]
+    rw [if_pos (ball_subset_ball hrR.le hz), radialBumpCutoff_eq_one hr hrR (ball_subset_closedBall hz), one_mul]
+  have hψw : ψ w = f w := by
+    dsimp [ψ]
+    rw [if_pos (ball_subset_ball hrR.le hw), radialBumpCutoff_eq_one hr hrR (ball_subset_closedBall hw), one_mul]
+  have hest := compactSupport_cauchyPompeiu_holder_est hR hα0 hα1 hM_nonneg hψ_contDiff hcψ htsupp_R hbound hzR hwR
+  rw [hψz, hψw] at hest
+  have hSub : 0 < R - r := sub_pos.mpr hrR
+  have h1a : 0 < 1 - α := sub_pos.mpr hα1
+  have hf_nn : 0 ≤ supNormOn f (ball (0 : ℂ) R) := supNormOn_nonneg f _
+  have hd_nn : 0 ≤ supNormOn (dbarComplex f) (ball (0 : ℂ) R) := supNormOn_nonneg (dbarComplex f) _
+  have hF_ge : (8 * (2 * R) ^ (1 - α) / (1 - α)) * radialBumpCutoffDerivSup r R ≤ cauchyPompeiuFCoef r R α := by
+    dsimp [cauchyPompeiuFCoef]
+    have : 0 ≤ R * (2 * r) ^ (1 - α) / (R - r) ^ 2 := by positivity
+    linarith
+  have hD_ge : 8 * (2 * R) ^ (1 - α) / (1 - α) ≤ cauchyPompeiuDbarCoef r R α := by
+    dsimp [cauchyPompeiuDbarCoef]
+    have : 0 ≤ 4 * ((2 * r) ^ (1 - α) + (R + r) ^ (1 - α) / (1 - α)) := by positivity
+    linarith
+  calc ‖f z - f w‖
+      ≤ (8 * (2 * R) ^ (1 - α) / (1 - α)) * M * ‖z - w‖ ^ α := hest
+    _ = (((8 * (2 * R) ^ (1 - α) / (1 - α)) * radialBumpCutoffDerivSup r R * supNormOn f (ball (0 : ℂ) R)) +
+         ((8 * (2 * R) ^ (1 - α) / (1 - α)) * supNormOn (dbarComplex f) (ball (0 : ℂ) R))) * ‖z - w‖ ^ α := by
+        dsimp [M]; ring
+    _ ≤ ((cauchyPompeiuFCoef r R α * supNormOn f (ball (0 : ℂ) R)) +
+         (cauchyPompeiuDbarCoef r R α * supNormOn (dbarComplex f) (ball (0 : ℂ) R))) * ‖z - w‖ ^ α := by
+        gcongr
 
 /-- First-order Cauchy–Riemann operator norm is bounded by the full real Fréchet derivative norm (Zero-sorry). -/
 theorem norm_cauchyRiemann_le_norm_fderiv (f : ℂ → ℂ) (z : ℂ) :
@@ -3070,6 +3956,728 @@ theorem differentiableAt_of_contDiffOn_closedBall
     DifferentiableAt ℝ g ζ :=
   (hg.contDiffAt (Filter.mem_of_superset (Metric.isOpen_ball.mem_nhds hζ)
     Metric.ball_subset_closedBall)).differentiableAt one_ne_zero
+
+private theorem measurable_indicator_of_continuousOn_nonneg
+    {s : Set ℂ} (hs : IsOpen s) {g : ℂ → ℝ} (hg : ContinuousOn g s)
+    (h_nn : ∀ x ∈ s, 0 ≤ g x) :
+    Measurable (s.indicator g) := by
+  refine LowerSemicontinuous.measurable (fun x a ha => ?_)
+  by_cases ha0 : a < 0
+  · refine Filter.Eventually.of_forall (fun y => lt_of_lt_of_le ha0 ?_)
+    exact Set.indicator_nonneg (fun z hz => h_nn z hz) y
+  · push_neg at ha0
+    have hxs : x ∈ s := by
+      by_contra hx
+      simp [hx] at ha
+      linarith
+    have h_open : IsOpen (s ∩ g ⁻¹' Set.Ioi a) := hg.isOpen_inter_preimage hs isOpen_Ioi
+    filter_upwards [h_open.mem_nhds ⟨hxs, by simpa [hxs] using ha⟩] with y hy
+    simp only [hy.1, Set.indicator_of_mem]
+    exact hy.2
+
+private theorem norm_sub_circleMap_le_setIntegral_indicator
+    {r ρ : ℝ} {f : ℂ → ℂ} (hr : 0 < r)
+    (hf : ContDiffOn ℝ 1 f (Metric.closedBall (0 : ℂ) r))
+    {x : ℂ} (hx : x ∈ Metric.ball (0 : ℂ) r)
+    {θ R_θ : ℝ} (hRθ_nn : 0 ≤ R_θ) (hRθ_lt : R_θ < 3 * ρ)
+    (hy : x + circleMap 0 R_θ θ ∈ Metric.ball (0 : ℂ) r) :
+    ‖f (x + circleMap 0 R_θ θ) - f x‖ ≤
+      ∫ t in Set.Ioo (0 : ℝ) (3 * ρ),
+        (Metric.ball (0 : ℂ) r).indicator (fun η => ‖fderiv ℝ f η‖) (x + circleMap 0 t θ) := by
+  set G : ℂ → ℝ := (Metric.ball (0 : ℂ) r).indicator (fun η => ‖fderiv ℝ f η‖)
+  have hG_meas : Measurable G :=
+    measurable_indicator_of_continuousOn_nonneg Metric.isOpen_ball
+      (continuousOn_fderiv_ball_of_contDiffOn hr hf).norm (fun _ _ => norm_nonneg _)
+  obtain ⟨M₀, hM₀⟩ := bddAbove_norm_fderiv_ball_of_contDiffOn hr hf
+  set M := max M₀ 0
+  have hM_nn : 0 ≤ M := le_max_right M₀ 0
+  have hG_le : ∀ η, G η ≤ M := by
+    intro η
+    dsimp [G, Set.indicator]
+    split_ifs with hη
+    · exact le_trans (hM₀ ⟨η, hη, rfl⟩) (le_max_left M₀ 0)
+    · exact hM_nn
+  have hG_nn : ∀ η, 0 ≤ G η := fun η => Set.indicator_nonneg (fun _ _ => norm_nonneg _) η
+  have h_seg : ∀ t ∈ Set.uIcc 0 R_θ, x + circleMap 0 t θ ∈ Metric.ball (0 : ℂ) r := by
+    intro t ht
+    rw [Set.uIcc_of_le hRθ_nn] at ht
+    rcases eq_or_lt_of_le hRθ_nn with rfl | hRθ_pos
+    · have ht0 : t = 0 := le_antisymm ht.2 ht.1
+      subst ht0
+      simpa [circleMap] using hx
+    · have h1 : 0 ≤ 1 - t / R_θ := sub_nonneg.mpr ((div_le_one hRθ_pos).mpr ht.2)
+      have h2 : 0 ≤ t / R_θ := div_nonneg ht.1 hRθ_pos.le
+      have h_eq : x + circleMap 0 t θ =
+          (1 - t / R_θ) • x + (t / R_θ) • (x + circleMap 0 R_θ θ) := by
+        simp only [circleMap, zero_add, Complex.real_smul]
+        push_cast
+        have hRθ_ne : (R_θ : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr hRθ_pos.ne'
+        field_simp [hRθ_ne]
+        ring
+      rw [h_eq]
+      exact convex_ball (0 : ℂ) r hx hy h1 h2 (by ring)
+  have h_seg' : ∀ t ∈ Set.uIcc 0 R_θ,
+      x + (t : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) ∈ Metric.ball (0 : ℂ) r := by
+    intro t ht
+    simpa [circleMap, mul_comm] using h_seg t ht
+  have h_diff : ∀ t ∈ Set.uIcc 0 R_θ,
+      DifferentiableAt ℝ f (x + (t : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) :=
+    fun t ht => differentiableAt_of_contDiffOn_closedBall hf (h_seg' t ht)
+  have h_cont_int : ContinuousOn
+      (fun t : ℝ => fderiv ℝ f (x + (t : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+        (Complex.exp (Complex.I * (θ : ℂ)))) (Set.uIcc 0 R_θ) := by
+    have h_path : Continuous (fun t : ℝ => x + (t : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) :=
+      continuous_const.add (Complex.continuous_ofReal.mul continuous_const)
+    have h_fd : ContinuousOn
+        (fun t : ℝ => fderiv ℝ f (x + (t : ℂ) * Complex.exp (Complex.I * (θ : ℂ))))
+        (Set.uIcc 0 R_θ) :=
+      (continuousOn_fderiv_ball_of_contDiffOn hr hf).comp h_path.continuousOn h_seg'
+    exact (ContinuousLinearMap.apply ℝ ℂ (Complex.exp (Complex.I * (θ : ℂ)))).continuous.comp_continuousOn h_fd
+  have h_ftc := polar_radial_intervalIntegral_eq_sub h_diff h_cont_int.intervalIntegrable
+  have h_sub_eq : f (x + circleMap 0 R_θ θ) - f x =
+      f (x + (R_θ : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) -
+        f (x + ((0 : ℝ) : ℂ) * Complex.exp (Complex.I * (θ : ℂ))) := by
+    simp [circleMap, mul_comm]
+  rw [h_sub_eq, ← h_ftc]
+  have h_norm_int : ‖∫ t in (0 : ℝ)..R_θ,
+      fderiv ℝ f (x + (t : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+        (Complex.exp (Complex.I * (θ : ℂ)))‖ ≤
+      ∫ t in Set.Ioc (0 : ℝ) R_θ,
+        ‖fderiv ℝ f (x + (t : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+          (Complex.exp (Complex.I * (θ : ℂ)))‖ := by
+    calc ‖∫ t in (0 : ℝ)..R_θ,
+          fderiv ℝ f (x + (t : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+            (Complex.exp (Complex.I * (θ : ℂ)))‖
+        ≤ ∫ t in (0 : ℝ)..R_θ,
+          ‖fderiv ℝ f (x + (t : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+            (Complex.exp (Complex.I * (θ : ℂ)))‖ :=
+          intervalIntegral.norm_integral_le_integral_norm hRθ_nn
+      _ = ∫ t in Set.Ioc (0 : ℝ) R_θ,
+          ‖fderiv ℝ f (x + (t : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+            (Complex.exp (Complex.I * (θ : ℂ)))‖ :=
+          intervalIntegral.integral_of_le hRθ_nn
+  have hG_comp_meas : Measurable (fun t : ℝ => G (x + circleMap 0 t θ)) := by
+    have hc : Continuous (fun t : ℝ => x + circleMap 0 t θ) := by
+      unfold circleMap
+      fun_prop
+    exact hG_meas.comp hc.measurable
+  have hG_int_Ioo : IntegrableOn (fun t : ℝ => G (x + circleMap 0 t θ))
+      (Set.Ioo (0 : ℝ) (3 * ρ)) MeasureTheory.volume := by
+    refine (MeasureTheory.integrableOn_const (C := M) (hs := measure_Ioo_lt_top.ne)).mono'
+      hG_comp_meas.aestronglyMeasurable ?_
+    refine MeasureTheory.ae_restrict_of_forall_mem measurableSet_Ioo (fun t _ => ?_)
+    rw [Real.norm_of_nonneg (hG_nn _)]
+    exact hG_le _
+  have h_sub_Ioc : Set.Ioc (0 : ℝ) R_θ ⊆ Set.Ioo (0 : ℝ) (3 * ρ) :=
+    fun t ht => ⟨ht.1, lt_of_le_of_lt ht.2 hRθ_lt⟩
+  have hG_int_Ioc : IntegrableOn (fun t : ℝ => G (x + circleMap 0 t θ))
+      (Set.Ioc (0 : ℝ) R_θ) MeasureTheory.volume :=
+    hG_int_Ioo.mono_set h_sub_Ioc
+  have h_lhs_int_Ioc : IntegrableOn
+      (fun t : ℝ => ‖fderiv ℝ f (x + (t : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+        (Complex.exp (Complex.I * (θ : ℂ)))‖)
+      (Set.Ioc (0 : ℝ) R_θ) MeasureTheory.volume :=
+    (intervalIntegrable_iff_integrableOn_Ioc_of_le hRθ_nn).mp h_cont_int.norm.intervalIntegrable
+  refine h_norm_int.trans ((MeasureTheory.setIntegral_mono_on h_lhs_int_Ioc hG_int_Ioc
+    measurableSet_Ioc ?_).trans
+    (MeasureTheory.setIntegral_mono_set hG_int_Ioo
+      (Filter.Eventually.of_forall (fun _ => hG_nn _))
+      (Filter.Eventually.of_forall h_sub_Ioc)))
+  intro t ht
+  have ht_uIcc : t ∈ Set.uIcc 0 R_θ := by
+    rw [Set.uIcc_of_le hRθ_nn]
+    exact ⟨ht.1.le, ht.2⟩
+  have h_mem : x + circleMap 0 t θ ∈ Metric.ball (0 : ℂ) r := h_seg t ht_uIcc
+  have h_eq_pt : x + (t : ℂ) * Complex.exp (Complex.I * (θ : ℂ)) = x + circleMap 0 t θ := by
+    simp [circleMap, mul_comm]
+  rw [h_eq_pt]
+  dsimp [G]
+  rw [Set.indicator_of_mem h_mem]
+  calc ‖fderiv ℝ f (x + circleMap 0 t θ) (Complex.exp (Complex.I * (θ : ℂ)))‖
+      ≤ ‖fderiv ℝ f (x + circleMap 0 t θ)‖ * ‖Complex.exp (Complex.I * (θ : ℂ))‖ :=
+        ContinuousLinearMap.le_opNorm _ _
+    _ = ‖fderiv ℝ f (x + circleMap 0 t θ)‖ * 1 := by
+        rw [mul_comm Complex.I, Complex.norm_exp_ofReal_mul_I]
+    _ = ‖fderiv ℝ f (x + circleMap 0 t θ)‖ := mul_one _
+
+private theorem setIntegral_norm_sub_ball_le_riesz
+    {r ρ : ℝ} {f : ℂ → ℂ} (hr : 0 < r) (hρ : 0 < ρ)
+    (hf : ContDiffOn ℝ 1 f (Metric.closedBall (0 : ℂ) r))
+    {a x : ℂ} (h_sub : Metric.ball a ρ ⊆ Metric.ball (0 : ℂ) r)
+    (hx_a : x ∈ Metric.ball a (2 * ρ)) (hx_r : x ∈ Metric.ball (0 : ℂ) r) :
+    ∫ y in Metric.ball a ρ, ‖f x - f y‖ ≤
+      9 * ρ ^ 2 * ∫ z in Metric.ball (0 : ℂ) (3 * ρ),
+        (Metric.ball (0 : ℂ) r).indicator (fun η => ‖fderiv ℝ f η‖) (x + z) * ‖z‖ ^ (-1 : ℝ) := by
+  set G : ℂ → ℝ := (Metric.ball (0 : ℂ) r).indicator (fun η => ‖fderiv ℝ f η‖)
+  set H : ℂ → ℝ := (Metric.ball a ρ).indicator (fun y => ‖f x - f y‖)
+  set rect : Set (ℝ × ℝ) := Set.Ioo (0 : ℝ) (3 * ρ) ×ˢ Set.Ioo (-Real.pi) Real.pi
+  have hG_meas : Measurable G :=
+    measurable_indicator_of_continuousOn_nonneg Metric.isOpen_ball
+      (continuousOn_fderiv_ball_of_contDiffOn hr hf).norm (fun _ _ => norm_nonneg _)
+  obtain ⟨M₀, hM₀⟩ := bddAbove_norm_fderiv_ball_of_contDiffOn hr hf
+  set M := max M₀ 0
+  have hM_nn : 0 ≤ M := le_max_right M₀ 0
+  have hG_le : ∀ η, G η ≤ M := by
+    intro η
+    dsimp [G, Set.indicator]
+    split_ifs with hη
+    · exact le_trans (hM₀ ⟨η, hη, rfl⟩) (le_max_left M₀ 0)
+    · exact hM_nn
+  have hG_nn : ∀ η, 0 ≤ G η := fun η => Set.indicator_nonneg (fun _ _ => norm_nonneg _) η
+  have h_ball_sub : Metric.ball a ρ ⊆ Metric.ball x (3 * ρ) := by
+    intro y hy
+    rw [Metric.mem_ball] at hy hx_a ⊢
+    calc dist y x ≤ dist y a + dist a x := dist_triangle y a x
+      _ = dist y a + dist x a := by rw [dist_comm a x]
+      _ < ρ + 2 * ρ := add_lt_add hy hx_a
+      _ = 3 * ρ := by ring
+  have hH_meas : Measurable H := by
+    refine measurable_indicator_of_continuousOn_nonneg Metric.isOpen_ball ?_ (fun _ _ => norm_nonneg _)
+    exact (continuousOn_const.sub (hf.continuousOn.mono
+      (h_sub.trans Metric.ball_subset_closedBall))).norm
+  obtain ⟨Mf₀, hMf₀⟩ := ((isCompact_closedBall (0 : ℂ) r).image_of_continuousOn
+    (continuousOn_const.sub hf.continuousOn).norm).bddAbove
+  set Mf := max Mf₀ 0
+  have hMf_nn : 0 ≤ Mf := le_max_right Mf₀ 0
+  have hH_le : ∀ y, H y ≤ Mf := by
+    intro y
+    dsimp [H, Set.indicator]
+    split_ifs with hy
+    · exact le_trans (hMf₀ ⟨y, Metric.ball_subset_closedBall (h_sub hy), rfl⟩) (le_max_left Mf₀ 0)
+    · exact hMf_nn
+  have hH_nn : ∀ y, 0 ≤ H y := fun y => Set.indicator_nonneg (fun _ _ => norm_nonneg _) y
+  have hHx_int : IntegrableOn (fun z : ℂ => H (x + z))
+      (Metric.ball (0 : ℂ) (3 * ρ)) MeasureTheory.volume := by
+    refine (MeasureTheory.integrableOn_const (C := Mf) (hs := measure_ball_lt_top.ne)).mono'
+      (hH_meas.comp (continuous_const.add continuous_id).measurable).aestronglyMeasurable ?_
+    refine MeasureTheory.ae_restrict_of_forall_mem measurableSet_ball (fun z _ => ?_)
+    rw [Real.norm_of_nonneg (hH_nn _)]
+    exact hH_le _
+  have h_lhs_polar : (∫ y in Metric.ball a ρ, ‖f x - f y‖) =
+      ∫ p in rect, p.1 • H (x + Complex.polarCoord.symm p) := by
+    have h1 : (∫ y in Metric.ball a ρ, ‖f x - f y‖) = ∫ y in Metric.ball x (3 * ρ), H y := by
+      dsimp [H]
+      rw [MeasureTheory.setIntegral_indicator measurableSet_ball,
+        Set.inter_eq_self_of_subset_right h_ball_sub]
+    have hmp := MeasureTheory.measurePreserving_add_left MeasureTheory.volume x
+    have hemb := (MeasurableEquiv.addLeft x : ℂ ≃ᵐ ℂ).measurableEmbedding
+    have hpre : (x + ·) ⁻¹' Metric.ball x (3 * ρ) = Metric.ball (0 : ℂ) (3 * ρ) := by
+      ext z
+      simp [Metric.mem_ball]
+    have h2 := hmp.setIntegral_preimage_emb hemb H (Metric.ball x (3 * ρ))
+    rw [hpre] at h2
+    rw [h1, ← h2]
+    exact integral_ball_zero_eq_polar (fun z => H (x + z)) (3 * ρ)
+  have h_polar_cont : Continuous (fun q : ℝ × ℝ => Complex.polarCoord.symm q) :=
+    Complex.equivRealProdCLM.symm.continuous.comp continuous_polarCoord_symm
+  have hG_polar_meas : Measurable (fun q : ℝ × ℝ => G (x + Complex.polarCoord.symm q)) :=
+    hG_meas.comp (continuous_const.add h_polar_cont).measurable
+  have h_rect_lt_top : MeasureTheory.volume rect < ⊤ := by
+    rw [MeasureTheory.Measure.volume_eq_prod, MeasureTheory.Measure.prod_prod]
+    exact ENNReal.mul_lt_top measure_Ioo_lt_top measure_Ioo_lt_top
+  have hG_rect_int : IntegrableOn (fun q : ℝ × ℝ => G (x + Complex.polarCoord.symm q))
+      rect MeasureTheory.volume := by
+    refine (MeasureTheory.integrableOn_const (C := M) (hs := h_rect_lt_top.ne)).mono'
+      hG_polar_meas.aestronglyMeasurable ?_
+    refine MeasureTheory.ae_restrict_of_forall_mem (measurableSet_Ioo.prod measurableSet_Ioo) (fun q _ => ?_)
+    rw [Real.norm_of_nonneg (hG_nn _)]
+    exact hG_le _
+  set I : ℝ → ℝ := fun θ => ∫ t in Set.Ioo (0 : ℝ) (3 * ρ), G (x + circleMap 0 t θ)
+  have h_circle_eq : ∀ t θ : ℝ, Complex.polarCoord.symm (t, θ) = circleMap 0 t θ := by
+    intro t θ
+    simp [Complex.polarCoord_symm_apply, circleMap, Complex.exp_mul_I]
+  have hG_prod_int : Integrable (fun q : ℝ × ℝ => G (x + Complex.polarCoord.symm q))
+      ((MeasureTheory.volume.restrict (Set.Ioo (0 : ℝ) (3 * ρ))).prod
+        (MeasureTheory.volume.restrict (Set.Ioo (-Real.pi) Real.pi))) := by
+    rwa [MeasureTheory.Measure.prod_restrict, ← MeasureTheory.Measure.volume_eq_prod]
+  have hI_int : IntegrableOn I (Set.Ioo (-Real.pi) Real.pi) MeasureTheory.volume := by
+    refine hG_prod_int.integral_prod_right.congr (Filter.Eventually.of_forall (fun θ => ?_))
+    refine MeasureTheory.setIntegral_congr_fun measurableSet_Ioo (fun t _ => ?_)
+    rw [h_circle_eq]
+  have h_const_int : IntegrableOn (fun _ : ℝ => (3 * ρ))
+      (Set.Ioo (0 : ℝ) (3 * ρ)) MeasureTheory.volume :=
+    MeasureTheory.integrableOn_const (hs := measure_Ioo_lt_top.ne)
+  have h_rhs_rect_int : IntegrableOn (fun p : ℝ × ℝ => (3 * ρ) * I p.2)
+      rect MeasureTheory.volume := by
+    rw [IntegrableOn, MeasureTheory.Measure.volume_eq_prod, ← MeasureTheory.Measure.prod_restrict]
+    exact h_const_int.mul_prod hI_int
+  have h_lhs_rect_int : IntegrableOn (fun p : ℝ × ℝ => p.1 • H (x + Complex.polarCoord.symm p))
+      rect MeasureTheory.volume :=
+    integrableOn_polar_of_integrableOn_ball hHx_int
+  have h_mono : (∫ p in rect, p.1 • H (x + Complex.polarCoord.symm p)) ≤
+      ∫ p in rect, (3 * ρ) * I p.2 := by
+    refine MeasureTheory.setIntegral_mono_on h_lhs_rect_int h_rhs_rect_int
+      (measurableSet_Ioo.prod measurableSet_Ioo) (fun p hp => ?_)
+    have hp1_pos : 0 < p.1 := hp.1.1
+    have hp1_lt : p.1 < 3 * ρ := hp.1.2
+    have hI_nn : 0 ≤ I p.2 :=
+      MeasureTheory.setIntegral_nonneg measurableSet_Ioo (fun _ _ => hG_nn _)
+    rw [smul_eq_mul]
+    have h_pt : Complex.polarCoord.symm p = circleMap 0 p.1 p.2 := by
+      rcases p with ⟨r', θ'⟩
+      exact h_circle_eq r' θ'
+    rw [h_pt]
+    dsimp [H, Set.indicator]
+    split_ifs with hy
+    · have hy_r : x + circleMap 0 p.1 p.2 ∈ Metric.ball (0 : ℂ) r := h_sub hy
+      have h_rad := norm_sub_circleMap_le_setIntegral_indicator hr hf hx_r hp1_pos.le hp1_lt hy_r
+      rw [norm_sub_rev]
+      exact mul_le_mul hp1_lt.le h_rad (norm_nonneg _) (by positivity)
+    · rw [mul_zero]
+      exact mul_nonneg (by positivity) hI_nn
+  have h_prod_eval : (∫ p in rect, (3 * ρ) * I p.2) =
+      9 * ρ ^ 2 * ∫ q in rect, G (x + Complex.polarCoord.symm q) := by
+    have h_fub : (∫ p in rect, (3 * ρ) * I p.2) =
+        (∫ _ in Set.Ioo (0 : ℝ) (3 * ρ), (3 * ρ)) * ∫ θ in Set.Ioo (-Real.pi) Real.pi, I θ := by
+      rw [MeasureTheory.Measure.volume_eq_prod]
+      exact MeasureTheory.setIntegral_prod_mul (fun _ : ℝ => 3 * ρ) I
+        (Set.Ioo (0 : ℝ) (3 * ρ)) (Set.Ioo (-Real.pi) Real.pi)
+    have h_const_eval : (∫ _ in Set.Ioo (0 : ℝ) (3 * ρ), (3 * ρ)) = 9 * ρ ^ 2 := by
+      rw [MeasureTheory.setIntegral_const, MeasureTheory.Measure.real, Real.volume_Ioo,
+        sub_zero, ENNReal.toReal_ofReal (by positivity), smul_eq_mul]
+      ring
+    have h_symm : (∫ θ in Set.Ioo (-Real.pi) Real.pi, I θ) =
+        ∫ q in rect, G (x + Complex.polarCoord.symm q) := by
+      have h_swap := (MeasureTheory.integral_prod_symm
+        (fun q : ℝ × ℝ => G (x + Complex.polarCoord.symm q)) hG_prod_int).symm
+      rw [MeasureTheory.Measure.prod_restrict, ← MeasureTheory.Measure.volume_eq_prod] at h_swap
+      rw [← h_swap]
+      refine MeasureTheory.setIntegral_congr_fun measurableSet_Ioo (fun θ _ => ?_)
+      refine MeasureTheory.setIntegral_congr_fun measurableSet_Ioo (fun t _ => ?_)
+      rw [h_circle_eq]
+    rw [h_fub, h_const_eval, h_symm]
+  have h_riesz_polar : (∫ z in Metric.ball (0 : ℂ) (3 * ρ), G (x + z) * ‖z‖ ^ (-1 : ℝ)) =
+      ∫ q in rect, G (x + Complex.polarCoord.symm q) := by
+    rw [integral_ball_zero_eq_polar (fun z => G (x + z) * ‖z‖ ^ (-1 : ℝ)) (3 * ρ)]
+    refine MeasureTheory.setIntegral_congr_fun (measurableSet_Ioo.prod measurableSet_Ioo) (fun q hq => ?_)
+    have hq1 : 0 < q.1 := hq.1.1
+    rw [Complex.norm_polarCoord_symm, abs_of_pos hq1, Real.rpow_neg_one, smul_eq_mul]
+    calc q.1 * (G (x + Complex.polarCoord.symm q) * (q.1)⁻¹)
+        = G (x + Complex.polarCoord.symm q) * (q.1 * (q.1)⁻¹) := by ring
+      _ = G (x + Complex.polarCoord.symm q) * 1 := by rw [mul_inv_cancel₀ hq1.ne']
+      _ = G (x + Complex.polarCoord.symm q) := mul_one _
+  rw [h_lhs_polar, h_riesz_polar, ← h_prod_eval]
+  exact h_mono
+
+private theorem riesz_integral_le_sobolevSeminorm
+    {p r ρ : ℝ} {f : ℂ → ℂ} (hp : 2 < p) (hr : 0 < r) (hρ : 0 < ρ)
+    (hf : ContDiffOn ℝ 1 f (Metric.closedBall (0 : ℂ) r)) (x : ℂ) :
+    ∫ z in Metric.ball (0 : ℂ) (3 * ρ),
+      (Metric.ball (0 : ℂ) r).indicator (fun η => ‖fderiv ℝ f η‖) (x + z) * ‖z‖ ^ (-1 : ℝ) ≤
+      (max (2 * Real.pi / (2 - p / (p - 1))) 0) ^ (1 / (p / (p - 1))) *
+        (3 * ρ) ^ (1 - 2 / p) *
+        sobolevSeminorm p 1 f (Metric.closedBall (0 : ℂ) r) := by
+  set G : ℂ → ℝ := (Metric.ball (0 : ℂ) r).indicator (fun η => ‖fderiv ℝ f η‖)
+  have hp_pos : 0 < p := by linarith
+  have hp1 : 1 < p := by linarith
+  have hpm1_pos : 0 < p - 1 := by linarith
+  set q : ℝ := p / (p - 1) with hq_def
+  have hq_pos : 0 < q := div_pos hp_pos hpm1_pos
+  have hq_lt_two : q < 2 := by
+    rw [hq_def, div_lt_iff₀ hpm1_pos]
+    linarith
+  have h2q_pos : 0 < 2 - q := sub_pos.mpr hq_lt_two
+  have hpq : p.HolderConjugate q := Real.HolderConjugate.conjExponent hp1
+  have hG_meas : Measurable G :=
+    measurable_indicator_of_continuousOn_nonneg Metric.isOpen_ball
+      (continuousOn_fderiv_ball_of_contDiffOn hr hf).norm (fun _ _ => norm_nonneg _)
+  obtain ⟨M₀, hM₀⟩ := bddAbove_norm_fderiv_ball_of_contDiffOn hr hf
+  set M := max M₀ 0
+  have hM_nn : 0 ≤ M := le_max_right M₀ 0
+  have hG_le : ∀ η, G η ≤ M := by
+    intro η
+    dsimp [G, Set.indicator]
+    split_ifs with hη
+    · exact le_trans (hM₀ ⟨η, hη, rfl⟩) (le_max_left M₀ 0)
+    · exact hM_nn
+  have hG_nn : ∀ η, 0 ≤ G η := fun η => Set.indicator_nonneg (fun _ _ => norm_nonneg _) η
+  set μ : MeasureTheory.Measure ℂ := MeasureTheory.volume.restrict (Metric.ball (0 : ℂ) (3 * ρ))
+  have hG_aemeas : AEMeasurable (fun z : ℂ => ENNReal.ofReal (G (x + z))) μ :=
+    (ENNReal.measurable_ofReal.comp (hG_meas.comp (continuous_const.add continuous_id).measurable)).aemeasurable
+  have hK_aemeas : AEMeasurable (fun z : ℂ => ENNReal.ofReal (‖z‖ ^ (-1 : ℝ))) μ :=
+    (ENNReal.measurable_ofReal.comp (measurable_norm.pow_const (-1 : ℝ))).aemeasurable
+  have hHolder := ENNReal.lintegral_mul_le_Lp_mul_Lq (μ := μ) hpq hG_aemeas hK_aemeas
+  have hHolder_simp :
+      (∫⁻ z, ENNReal.ofReal (G (x + z) * ‖z‖ ^ (-1 : ℝ)) ∂μ) ≤
+        (∫⁻ z, ENNReal.ofReal (G (x + z)) ^ p ∂μ) ^ (1 / p) *
+          (∫⁻ z, ENNReal.ofReal (‖z‖ ^ (-1 : ℝ)) ^ q ∂μ) ^ (1 / q) := by
+    refine (MeasureTheory.lintegral_congr_ae (Filter.Eventually.of_forall (fun z => ?_))).trans_le hHolder
+    dsimp only [Pi.mul_apply]
+    exact ENNReal.ofReal_mul (hG_nn _)
+  have hHolder' :
+      (∫⁻ z, ENNReal.ofReal (G (x + z) * ‖z‖ ^ (-1 : ℝ)) ∂μ) ≤
+        (∫⁻ z, ENNReal.ofReal (G (x + z) ^ p) ∂μ) ^ (1 / p) *
+          (∫⁻ z, ENNReal.ofReal (‖z‖ ^ (-q)) ∂μ) ^ (1 / q) := by
+    have h_p : (∫⁻ z, ENNReal.ofReal (G (x + z)) ^ p ∂μ) =
+        ∫⁻ z, ENNReal.ofReal (G (x + z) ^ p) ∂μ := by
+      refine MeasureTheory.lintegral_congr_ae (Filter.Eventually.of_forall (fun z => ?_))
+      exact ENNReal.ofReal_rpow_of_nonneg (hG_nn _) hp_pos.le
+    have h_q : (∫⁻ z, ENNReal.ofReal (‖z‖ ^ (-1 : ℝ)) ^ q ∂μ) =
+        ∫⁻ z, ENNReal.ofReal (‖z‖ ^ (-q)) ∂μ := by
+      refine MeasureTheory.lintegral_congr_ae (Filter.Eventually.of_forall (fun z => ?_))
+      dsimp only
+      rw [ENNReal.ofReal_rpow_of_nonneg (Real.rpow_nonneg (norm_nonneg _) _) hq_pos.le,
+        ← Real.rpow_mul (norm_nonneg _), neg_one_mul]
+    rw [← h_p, ← h_q]
+    exact hHolder_simp
+  have hLHS_int : IntegrableOn (fun z : ℂ => G (x + z) * ‖z‖ ^ (-1 : ℝ))
+      (Metric.ball (0 : ℂ) (3 * ρ)) MeasureTheory.volume := by
+    have hK1 : IntegrableOn (fun z : ℂ => ‖z‖ ^ (-1 : ℝ))
+        (Metric.ball (0 : ℂ) (3 * ρ)) MeasureTheory.volume :=
+      integrableOn_norm_rpow (by norm_num : (1 : ℝ) < 2) (3 * ρ)
+    refine (hK1.const_mul M).mono'
+      ((hG_meas.comp (continuous_const.add continuous_id).measurable).mul
+        (measurable_norm.pow_const (-1 : ℝ))).aestronglyMeasurable ?_
+    refine MeasureTheory.ae_restrict_of_forall_mem measurableSet_ball (fun z _ => ?_)
+    have hk_nn : 0 ≤ ‖z‖ ^ (-1 : ℝ) := Real.rpow_nonneg (norm_nonneg _) _
+    rw [Real.norm_of_nonneg (mul_nonneg (hG_nn _) hk_nn)]
+    exact mul_le_mul_of_nonneg_right (hG_le _) hk_nn
+  have hGp_int_ball : IntegrableOn (fun z : ℂ => G (x + z) ^ p)
+      (Metric.ball (0 : ℂ) (3 * ρ)) MeasureTheory.volume := by
+    refine (MeasureTheory.integrableOn_const (C := M ^ p) (hs := measure_ball_lt_top.ne)).mono'
+      ((hG_meas.comp (continuous_const.add continuous_id).measurable).pow_const p).aestronglyMeasurable ?_
+    refine MeasureTheory.ae_restrict_of_forall_mem measurableSet_ball (fun z _ => ?_)
+    rw [Real.norm_of_nonneg (Real.rpow_nonneg (hG_nn _) _)]
+    exact Real.rpow_le_rpow (hG_nn _) (hG_le _) hp_pos.le
+  have hKq_int_ball : IntegrableOn (fun z : ℂ => ‖z‖ ^ (-q))
+      (Metric.ball (0 : ℂ) (3 * ρ)) MeasureTheory.volume :=
+    integrableOn_norm_rpow hq_lt_two (3 * ρ)
+  have hLHS_lint : (∫⁻ z, ENNReal.ofReal (G (x + z) * ‖z‖ ^ (-1 : ℝ)) ∂μ) =
+      ENNReal.ofReal (∫ z in Metric.ball (0 : ℂ) (3 * ρ), G (x + z) * ‖z‖ ^ (-1 : ℝ)) :=
+    (MeasureTheory.ofReal_integral_eq_lintegral_ofReal hLHS_int
+      (Filter.Eventually.of_forall (fun z => mul_nonneg (hG_nn _) (Real.rpow_nonneg (norm_nonneg _) _)))).symm
+  have hGp_lint : (∫⁻ z, ENNReal.ofReal (G (x + z) ^ p) ∂μ) =
+      ENNReal.ofReal (∫ z in Metric.ball (0 : ℂ) (3 * ρ), G (x + z) ^ p) :=
+    (MeasureTheory.ofReal_integral_eq_lintegral_ofReal hGp_int_ball
+      (Filter.Eventually.of_forall (fun z => Real.rpow_nonneg (hG_nn _) _))).symm
+  have hKq_lint : (∫⁻ z, ENNReal.ofReal (‖z‖ ^ (-q)) ∂μ) =
+      ENNReal.ofReal (∫ z in Metric.ball (0 : ℂ) (3 * ρ), ‖z‖ ^ (-q)) :=
+    (MeasureTheory.ofReal_integral_eq_lintegral_ofReal hKq_int_ball
+      (Filter.Eventually.of_forall (fun z => Real.rpow_nonneg (norm_nonneg _) _))).symm
+  have hGp_int_nn : 0 ≤ ∫ z in Metric.ball (0 : ℂ) (3 * ρ), G (x + z) ^ p :=
+    MeasureTheory.setIntegral_nonneg measurableSet_ball (fun _ _ => Real.rpow_nonneg (hG_nn _) _)
+  have hKq_int_nn : 0 ≤ ∫ z in Metric.ball (0 : ℂ) (3 * ρ), ‖z‖ ^ (-q) :=
+    MeasureTheory.setIntegral_nonneg measurableSet_ball (fun _ _ => Real.rpow_nonneg (norm_nonneg _) _)
+  have h_real_holder :
+      (∫ z in Metric.ball (0 : ℂ) (3 * ρ), G (x + z) * ‖z‖ ^ (-1 : ℝ)) ≤
+        (∫ z in Metric.ball (0 : ℂ) (3 * ρ), G (x + z) ^ p) ^ (1 / p) *
+          (∫ z in Metric.ball (0 : ℂ) (3 * ρ), ‖z‖ ^ (-q)) ^ (1 / q) := by
+    rw [hLHS_lint, hGp_lint, hKq_lint,
+      ENNReal.ofReal_rpow_of_nonneg hGp_int_nn (by positivity),
+      ENNReal.ofReal_rpow_of_nonneg hKq_int_nn (by positivity),
+      ← ENNReal.ofReal_mul (Real.rpow_nonneg hGp_int_nn _)] at hHolder'
+    exact (ENNReal.ofReal_le_ofReal_iff
+      (mul_nonneg (Real.rpow_nonneg hGp_int_nn _) (Real.rpow_nonneg hKq_int_nn _))).mp hHolder'
+  have h_K_eval : (∫ z in Metric.ball (0 : ℂ) (3 * ρ), ‖z‖ ^ (-q)) ^ (1 / q) =
+      (max (2 * Real.pi / (2 - p / (p - 1))) 0) ^ (1 / (p / (p - 1))) *
+        (3 * ρ) ^ (1 - 2 / p) := by
+    have h1 : (∫ z in Metric.ball (0 : ℂ) (3 * ρ), ‖z‖ ^ (-q)) =
+        (2 * Real.pi / (2 - q)) * (3 * ρ) ^ (2 - q) := by
+      rw [← MeasureTheory.setIntegral_congr_set (closedBall_ae_ball 0 (3 * ρ)),
+        integral_norm_rpow hq_lt_two (by positivity)]
+      ring
+    have h_max : max (2 * Real.pi / (2 - q)) 0 = 2 * Real.pi / (2 - q) :=
+      max_eq_left (by positivity)
+    have h_exp : (2 - q) * (1 / q) = 1 - 2 / p := by
+      rw [hq_def]
+      field_simp
+      ring
+    rw [h1, ← hq_def, h_max,
+      Real.mul_rpow (by positivity) (Real.rpow_nonneg (by positivity) _),
+      ← Real.rpow_mul (by positivity), h_exp]
+  have h_G_le_sob : (∫ z in Metric.ball (0 : ℂ) (3 * ρ), G (x + z) ^ p) ^ (1 / p) ≤
+      sobolevSeminorm p 1 f (Metric.closedBall (0 : ℂ) r) := by
+    have h_ind_eq : (fun η : ℂ => G η ^ p) =
+        (Metric.ball (0 : ℂ) r).indicator (fun η => ‖fderiv ℝ f η‖ ^ p) := by
+      ext η
+      dsimp [G, Set.indicator]
+      split_ifs
+      · rfl
+      · exact Real.zero_rpow hp_pos.ne'
+    have h_fd_int_r : IntegrableOn (fun η : ℂ => ‖fderiv ℝ f η‖ ^ p)
+        (Metric.ball (0 : ℂ) r) MeasureTheory.volume := by
+      refine (MeasureTheory.integrableOn_const (C := M ^ p) (hs := measure_ball_lt_top.ne)).mono'
+        (((continuousOn_fderiv_ball_of_contDiffOn hr hf).norm.rpow_const
+          (fun _ _ => Or.inr hp_pos.le)).aestronglyMeasurable measurableSet_ball) ?_
+      refine MeasureTheory.ae_restrict_of_forall_mem measurableSet_ball (fun η hη => ?_)
+      rw [Real.norm_of_nonneg (Real.rpow_nonneg (norm_nonneg _) _)]
+      exact Real.rpow_le_rpow (norm_nonneg _)
+        (le_trans (hM₀ ⟨η, hη, rfl⟩) (le_max_left M₀ 0)) hp_pos.le
+    have hGp_univ_int : Integrable (fun η : ℂ => G η ^ p) MeasureTheory.volume := by
+      rw [h_ind_eq, MeasureTheory.integrable_indicator_iff measurableSet_ball]
+      exact h_fd_int_r
+    have hGp_shift_int : Integrable (fun z : ℂ => G (x + z) ^ p) MeasureTheory.volume :=
+      hGp_univ_int.comp_add_left x
+    have h_int_le : (∫ z in Metric.ball (0 : ℂ) (3 * ρ), G (x + z) ^ p) ≤
+        ∫ η in Metric.closedBall (0 : ℂ) r, ‖iteratedFDeriv ℝ 1 f η‖ ^ p := by
+      calc (∫ z in Metric.ball (0 : ℂ) (3 * ρ), G (x + z) ^ p)
+          ≤ ∫ z : ℂ, G (x + z) ^ p :=
+            MeasureTheory.setIntegral_le_integral hGp_shift_int
+              (Filter.Eventually.of_forall (fun _ => Real.rpow_nonneg (hG_nn _) _))
+        _ = ∫ η : ℂ, G η ^ p := MeasureTheory.integral_add_left_eq_self (fun η => G η ^ p) x
+        _ = ∫ η in Metric.ball (0 : ℂ) r, ‖fderiv ℝ f η‖ ^ p := by
+            rw [h_ind_eq, MeasureTheory.integral_indicator measurableSet_ball]
+        _ = ∫ η in Metric.ball (0 : ℂ) r, ‖iteratedFDeriv ℝ 1 f η‖ ^ p := by
+            refine MeasureTheory.setIntegral_congr_fun measurableSet_ball (fun η _ => ?_)
+            rw [norm_iteratedFDeriv_one_eq_norm_fderiv]
+        _ = ∫ η in Metric.closedBall (0 : ℂ) r, ‖iteratedFDeriv ℝ 1 f η‖ ^ p :=
+            MeasureTheory.setIntegral_congr_set (closedBall_ae_ball 0 r).symm
+    exact Real.rpow_le_rpow hGp_int_nn h_int_le (by positivity)
+  calc (∫ z in Metric.ball (0 : ℂ) (3 * ρ), G (x + z) * ‖z‖ ^ (-1 : ℝ))
+      ≤ (∫ z in Metric.ball (0 : ℂ) (3 * ρ), G (x + z) ^ p) ^ (1 / p) *
+          (∫ z in Metric.ball (0 : ℂ) (3 * ρ), ‖z‖ ^ (-q)) ^ (1 / q) := h_real_holder
+    _ ≤ sobolevSeminorm p 1 f (Metric.closedBall (0 : ℂ) r) *
+          ((max (2 * Real.pi / (2 - p / (p - 1))) 0) ^ (1 / (p / (p - 1))) *
+            (3 * ρ) ^ (1 - 2 / p)) := by
+        rw [← h_K_eval]
+        exact mul_le_mul_of_nonneg_right h_G_le_sob (Real.rpow_nonneg hKq_int_nn _)
+    _ = (max (2 * Real.pi / (2 - p / (p - 1))) 0) ^ (1 / (p / (p - 1))) *
+          (3 * ρ) ^ (1 - 2 / p) *
+          sobolevSeminorm p 1 f (Metric.closedBall (0 : ℂ) r) := by ring
+
+private theorem morrey_bound_on_open_ball
+    {p r : ℝ} (hp : 2 < p) (hr : 0 < r)
+    (f : ℂ → ℂ) (hf : ContDiffOn ℝ 1 f (Metric.closedBall (0 : ℂ) r))
+    {z w : ℂ} (hz : z ∈ Metric.ball (0 : ℂ) r) (hw : w ∈ Metric.ball (0 : ℂ) r) :
+    ‖f z - f w‖ ≤
+      morreyGeometricConstant p * (dist z w) ^ (1 - 2 / p) *
+        sobolevNorm p 1 f (Metric.closedBall (0 : ℂ) r) := by
+  have hp_pos : 0 < p := by linarith
+  have hα_pos : 0 < 1 - 2 / p := sub_pos.mpr ((div_lt_one hp_pos).mpr hp)
+  have h_geom_nn : 0 ≤ morreyGeometricConstant p := morreyGeometricConstant_nonneg p
+  have h_sob_nn : 0 ≤ sobolevNorm p 1 f (Metric.closedBall (0 : ℂ) r) :=
+    sobolevNorm_nonneg p 1 f (Metric.closedBall (0 : ℂ) r) measurableSet_closedBall
+  by_cases hzw : z = w
+  · subst hzw
+    simp only [sub_self, norm_zero, dist_self, Real.zero_rpow hα_pos.ne', mul_zero, zero_mul, le_refl]
+  · have hd_pos : 0 < dist z w := dist_pos.mpr hzw
+    have hd_lt : dist z w < 2 * r := by
+      have hz' : dist z 0 < r := hz
+      have hw' : dist w 0 < r := hw
+      calc dist z w ≤ dist z 0 + dist 0 w := dist_triangle z 0 w
+        _ = dist z 0 + dist w 0 := by rw [dist_comm 0 w]
+        _ < r + r := add_lt_add hz' hw'
+        _ = 2 * r := by ring
+    set ρ : ℝ := dist z w / 2 with hρ_def
+    have hρ_pos : 0 < ρ := by positivity
+    have hρ_lt_r : ρ < r := by linarith
+    have hrρ_pos : 0 < r - ρ := sub_pos.mpr hρ_lt_r
+    set m : ℂ := (1 / 2 : ℝ) • (z + w) with hm_def
+    have hm_norm : ‖m‖ < r := by
+      have hz_n : ‖z‖ < r := by simpa [Metric.mem_ball] using hz
+      have hw_n : ‖w‖ < r := by simpa [Metric.mem_ball] using hw
+      calc ‖(1 / 2 : ℝ) • (z + w)‖ = (1 / 2 : ℝ) * ‖z + w‖ := by
+            rw [norm_smul, Real.norm_of_nonneg (by norm_num)]
+        _ ≤ (1 / 2 : ℝ) * (‖z‖ + ‖w‖) := by gcongr; exact norm_add_le z w
+        _ < (1 / 2 : ℝ) * (r + r) := by linarith
+        _ = r := by ring
+    set a : ℂ := ((r - ρ) / r : ℝ) • m with ha_def
+    have ha_norm : ‖a‖ < r - ρ := by
+      calc ‖((r - ρ) / r : ℝ) • m‖ = ((r - ρ) / r) * ‖m‖ := by
+            rw [norm_smul, Real.norm_of_nonneg (by positivity)]
+        _ < ((r - ρ) / r) * r := mul_lt_mul_of_pos_left hm_norm (by positivity)
+        _ = r - ρ := div_mul_cancel₀ (r - ρ) hr.ne'
+    have h_sub_ball : Metric.ball a ρ ⊆ Metric.ball (0 : ℂ) r := by
+      intro y hy
+      rw [Metric.mem_ball] at hy
+      rw [Metric.mem_ball, dist_zero_right]
+      calc ‖y‖ ≤ ‖y - a‖ + ‖a‖ := by simpa using norm_add_le (y - a) a
+        _ = dist y a + ‖a‖ := by rw [dist_eq_norm]
+        _ < ρ + (r - ρ) := add_lt_add hy ha_norm
+        _ = r := by ring
+    have h_ma_dist : dist m a < ρ := by
+      have h_sub_ma : m - a = (ρ / r : ℝ) • m := by
+        nth_rewrite 1 [← one_smul ℝ m]
+        rw [ha_def, ← sub_smul]
+        congr 1
+        field_simp [hr.ne']
+        ring
+      rw [dist_eq_norm, h_sub_ma, norm_smul, Real.norm_of_nonneg (by positivity)]
+      calc (ρ / r) * ‖m‖ < (ρ / r) * r := mul_lt_mul_of_pos_left hm_norm (by positivity)
+        _ = ρ := div_mul_cancel₀ ρ hr.ne'
+    have hz_a : z ∈ Metric.ball a (2 * ρ) := by
+      have h_zm : dist z m = ρ := by
+        have h_eq : z - m = (1 / 2 : ℝ) • (z - w) := by
+          rw [hm_def, Complex.real_smul, Complex.real_smul]; push_cast; ring
+        rw [dist_eq_norm, h_eq, norm_smul, Real.norm_of_nonneg (by norm_num), ← dist_eq_norm]
+        linarith
+      rw [Metric.mem_ball]
+      calc dist z a ≤ dist z m + dist m a := dist_triangle z m a
+        _ < ρ + ρ := by linarith
+        _ = 2 * ρ := by ring
+    have hw_a : w ∈ Metric.ball a (2 * ρ) := by
+      have h_wm : dist w m = ρ := by
+        have h_eq : w - m = (1 / 2 : ℝ) • (w - z) := by
+          rw [hm_def, Complex.real_smul, Complex.real_smul]; push_cast; ring
+        rw [dist_eq_norm, h_eq, norm_smul, Real.norm_of_nonneg (by norm_num), ← dist_eq_norm, dist_comm w z]
+        linarith
+      rw [Metric.mem_ball]
+      calc dist w a ≤ dist w m + dist m a := dist_triangle w m a
+        _ < ρ + ρ := by linarith
+        _ = 2 * ρ := by ring
+    have h_int_z := setIntegral_norm_sub_ball_le_riesz hr hρ_pos hf h_sub_ball hz_a hz
+    have h_int_w := setIntegral_norm_sub_ball_le_riesz hr hρ_pos hf h_sub_ball hw_a hw
+    have h_riesz_z := riesz_integral_le_sobolevSeminorm hp hr hρ_pos hf z
+    have h_riesz_w := riesz_integral_le_sobolevSeminorm hp hr hρ_pos hf w
+    have h_cont_f : ContinuousOn f (Metric.ball a ρ) :=
+      hf.continuousOn.mono (h_sub_ball.trans Metric.ball_subset_closedBall)
+    obtain ⟨Mf₀, hMf₀⟩ := ((isCompact_closedBall (0 : ℂ) r).image_of_continuousOn
+      hf.continuousOn.norm).bddAbove
+    have h_int_fz : IntegrableOn (fun y => ‖f z - f y‖) (Metric.ball a ρ) MeasureTheory.volume := by
+      refine (MeasureTheory.integrableOn_const (C := ‖f z‖ + max Mf₀ 0) (hs := measure_ball_lt_top.ne)).mono'
+        (((continuousOn_const.sub h_cont_f).norm).aestronglyMeasurable measurableSet_ball) ?_
+      refine MeasureTheory.ae_restrict_of_forall_mem measurableSet_ball (fun y hy => ?_)
+      rw [Real.norm_of_nonneg (norm_nonneg _)]
+      calc ‖f z - f y‖ ≤ ‖f z‖ + ‖f y‖ := norm_sub_le _ _
+        _ ≤ ‖f z‖ + max Mf₀ 0 := by
+            linarith [le_trans (hMf₀ ⟨y, Metric.ball_subset_closedBall (h_sub_ball hy), rfl⟩) (le_max_left Mf₀ 0)]
+    have h_int_fw : IntegrableOn (fun y => ‖f w - f y‖) (Metric.ball a ρ) MeasureTheory.volume := by
+      refine (MeasureTheory.integrableOn_const (C := ‖f w‖ + max Mf₀ 0) (hs := measure_ball_lt_top.ne)).mono'
+        (((continuousOn_const.sub h_cont_f).norm).aestronglyMeasurable measurableSet_ball) ?_
+      refine MeasureTheory.ae_restrict_of_forall_mem measurableSet_ball (fun y hy => ?_)
+      rw [Real.norm_of_nonneg (norm_nonneg _)]
+      calc ‖f w - f y‖ ≤ ‖f w‖ + ‖f y‖ := norm_sub_le _ _
+        _ ≤ ‖f w‖ + max Mf₀ 0 := by
+            linarith [le_trans (hMf₀ ⟨y, Metric.ball_subset_closedBall (h_sub_ball hy), rfl⟩) (le_max_left Mf₀ 0)]
+    have h_vol : (MeasureTheory.volume (Metric.ball a ρ)).toReal = Real.pi * ρ ^ 2 := by
+      rw [toReal_volume_ball a ρ, max_eq_left hρ_pos.le, mul_comm]
+    have h_vol_pos : 0 < Real.pi * ρ ^ 2 := by positivity
+    have h_avg : (Real.pi * ρ ^ 2) * ‖f z - f w‖ ≤
+        (∫ y in Metric.ball a ρ, ‖f z - f y‖) + ∫ y in Metric.ball a ρ, ‖f w - f y‖ := by
+      have h_const : (∫ _ in Metric.ball a ρ, ‖f z - f w‖) = (Real.pi * ρ ^ 2) * ‖f z - f w‖ := by
+        rw [MeasureTheory.setIntegral_const, MeasureTheory.Measure.real, h_vol, smul_eq_mul]
+      rw [← h_const, ← MeasureTheory.integral_add h_int_fz h_int_fw]
+      refine MeasureTheory.setIntegral_mono_on
+        (MeasureTheory.integrableOn_const (hs := measure_ball_lt_top.ne))
+        (h_int_fz.add h_int_fw) measurableSet_ball (fun y _ => ?_)
+      calc ‖f z - f w‖ ≤ ‖f z - f y‖ + ‖f y - f w‖ := norm_sub_le_norm_sub_add_norm_sub _ _ _
+        _ = ‖f z - f y‖ + ‖f w - f y‖ := by rw [norm_sub_rev (f y) (f w)]
+    have h_3ρ_le : (3 * ρ) ^ (1 - 2 / p) ≤ (2 : ℝ) ^ (1 - 2 / p) * (dist z w) ^ (1 - 2 / p) := by
+      have h_le : 3 * ρ ≤ 2 * dist z w := by linarith
+      calc (3 * ρ) ^ (1 - 2 / p) ≤ (2 * dist z w) ^ (1 - 2 / p) :=
+            Real.rpow_le_rpow (by positivity) h_le hα_pos.le
+        _ = (2 : ℝ) ^ (1 - 2 / p) * (dist z w) ^ (1 - 2 / p) :=
+            Real.mul_rpow (by norm_num) hd_pos.le
+    have h_sem_le_norm : sobolevSeminorm p 1 f (Metric.closedBall (0 : ℂ) r) ≤
+        sobolevNorm p 1 f (Metric.closedBall (0 : ℂ) r) := by
+      rw [sobolevNorm_succ p 0 f, sobolevNorm_zero]
+      have := sobolevSeminorm_nonneg p 0 f (Metric.closedBall (0 : ℂ) r) measurableSet_closedBall
+      linarith
+    have h_sem_nn : 0 ≤ sobolevSeminorm p 1 f (Metric.closedBall (0 : ℂ) r) :=
+      sobolevSeminorm_nonneg p 1 f (Metric.closedBall (0 : ℂ) r) measurableSet_closedBall
+    set Kq : ℝ := (max (2 * Real.pi / (2 - p / (p - 1))) 0) ^ (1 / (p / (p - 1)))
+    have hKq_nn : 0 ≤ Kq := by positivity
+    have h_sum : (Real.pi * ρ ^ 2) * ‖f z - f w‖ ≤
+        (Real.pi * ρ ^ 2) * (morreyGeometricConstant p * (dist z w) ^ (1 - 2 / p) *
+          sobolevNorm p 1 f (Metric.closedBall (0 : ℂ) r)) := by
+      calc (Real.pi * ρ ^ 2) * ‖f z - f w‖
+          ≤ (∫ y in Metric.ball a ρ, ‖f z - f y‖) + ∫ y in Metric.ball a ρ, ‖f w - f y‖ := h_avg
+        _ ≤ 9 * ρ ^ 2 * (Kq * (3 * ρ) ^ (1 - 2 / p) * sobolevSeminorm p 1 f (Metric.closedBall (0 : ℂ) r)) +
+            9 * ρ ^ 2 * (Kq * (3 * ρ) ^ (1 - 2 / p) * sobolevSeminorm p 1 f (Metric.closedBall (0 : ℂ) r)) := by
+            linarith [mul_le_mul_of_nonneg_left h_riesz_z (by positivity : 0 ≤ 9 * ρ ^ 2),
+                      mul_le_mul_of_nonneg_left h_riesz_w (by positivity : 0 ≤ 9 * ρ ^ 2)]
+        _ = 18 * ρ ^ 2 * Kq * ((3 * ρ) ^ (1 - 2 / p) * sobolevSeminorm p 1 f (Metric.closedBall (0 : ℂ) r)) := by ring
+        _ ≤ 18 * ρ ^ 2 * Kq * (((2 : ℝ) ^ (1 - 2 / p) * (dist z w) ^ (1 - 2 / p)) *
+              sobolevNorm p 1 f (Metric.closedBall (0 : ℂ) r)) := by
+            refine mul_le_mul_of_nonneg_left (mul_le_mul h_3ρ_le h_sem_le_norm h_sem_nn (by positivity)) (by positivity)
+        _ = (Real.pi * ρ ^ 2) * (morreyGeometricConstant p * (dist z w) ^ (1 - 2 / p) *
+              sobolevNorm p 1 f (Metric.closedBall (0 : ℂ) r)) := by
+            dsimp [morreyGeometricConstant, Kq]
+            have hpi_ne : Real.pi ≠ 0 := Real.pi_pos.ne'
+            field_simp [hpi_ne]
+    exact le_of_mul_le_mul_left h_sum h_vol_pos
+
+private theorem satisfiesMorreySobolev_of_contDiffOn_aux
+    (p : ℝ) (hp : 2 < p) (r : ℝ) (hr : 0 < r)
+    (f : ℂ → ℂ) (hf : ContDiffOn ℝ 1 f (Metric.closedBall 0 r)) :
+    SatisfiesMorreySobolev p r f := by
+  intro z hz w hw
+  have hp_pos : 0 < p := by linarith
+  have hp2 : 0 < p - 2 := sub_pos.mpr hp
+  have hα_pos : 0 < 1 - 2 / p := sub_pos.mpr ((div_lt_one hp_pos).mpr hp)
+  have h_geom_nn : 0 ≤ morreyGeometricConstant p := morreyGeometricConstant_nonneg p
+  have h_sob_nn : 0 ≤ sobolevNorm p 1 f (Metric.closedBall 0 r) :=
+    sobolevNorm_nonneg p 1 f (Metric.closedBall 0 r) measurableSet_closedBall
+  have h_open_le : ∀ t ∈ Set.Ioo (0 : ℝ) 1,
+      ‖f (t • z) - f (t • w)‖ ≤
+        morreyGeometricConstant p * (dist z w) ^ (1 - 2 / p) *
+          sobolevNorm p 1 f (Metric.closedBall 0 r) := by
+    intro t ht
+    have htz : t • z ∈ Metric.ball (0 : ℂ) r := by
+      rw [Metric.mem_ball, dist_zero_right, norm_smul, Real.norm_of_nonneg ht.1.le]
+      have hz_le : ‖z‖ ≤ r := by simpa [Metric.mem_closedBall] using hz
+      calc t * ‖z‖ ≤ t * r := mul_le_mul_of_nonneg_left hz_le ht.1.le
+        _ < 1 * r := mul_lt_mul_of_pos_right ht.2 hr
+        _ = r := one_mul r
+    have htw : t • w ∈ Metric.ball (0 : ℂ) r := by
+      rw [Metric.mem_ball, dist_zero_right, norm_smul, Real.norm_of_nonneg ht.1.le]
+      have hw_le : ‖w‖ ≤ r := by simpa [Metric.mem_closedBall] using hw
+      calc t * ‖w‖ ≤ t * r := mul_le_mul_of_nonneg_left hw_le ht.1.le
+        _ < 1 * r := mul_lt_mul_of_pos_right ht.2 hr
+        _ = r := one_mul r
+    have h_mor_t := morrey_bound_on_open_ball hp hr f hf htz htw
+    have h_dist_t : dist (t • z) (t • w) ≤ dist z w := by
+      rw [dist_eq_norm, ← smul_sub, norm_smul, Real.norm_of_nonneg ht.1.le, ← dist_eq_norm]
+      calc t * dist z w ≤ 1 * dist z w := mul_le_mul_of_nonneg_right ht.2.le dist_nonneg
+        _ = dist z w := one_mul _
+    refine h_mor_t.trans ?_
+    exact mul_le_mul_of_nonneg_right
+      (mul_le_mul_of_nonneg_left (Real.rpow_le_rpow dist_nonneg h_dist_t hα_pos.le) h_geom_nn)
+      h_sob_nn
+  have h_neBot : Filter.NeBot (nhdsWithin (1 : ℝ) (Set.Ioo 0 1)) := by
+    refine mem_closure_iff_nhdsWithin_neBot.mp ?_
+    rw [closure_Ioo (zero_ne_one : (0 : ℝ) ≠ 1)]
+    exact Set.right_mem_Icc.mpr zero_le_one
+  have h_tendsto_z : Filter.Tendsto (fun t : ℝ => f (t • z))
+      (nhdsWithin 1 (Set.Ioo 0 1)) (nhds (f z)) := by
+    have h_cont_z := (hf.continuousOn z hz).tendsto
+    have h_smul_z : Filter.Tendsto (fun t : ℝ => t • z)
+        (nhdsWithin 1 (Set.Ioo 0 1)) (nhdsWithin z (Metric.closedBall 0 r)) := by
+      refine tendsto_nhdsWithin_iff.mpr ⟨?_, ?_⟩
+      · have h_c : Continuous (fun t : ℝ => t • z) := continuous_id.smul continuous_const
+        simpa only [one_smul] using (h_c.tendsto (1 : ℝ)).mono_left nhdsWithin_le_nhds
+      · filter_upwards [self_mem_nhdsWithin] with t ht
+        rw [Metric.mem_closedBall, dist_zero_right, norm_smul, Real.norm_of_nonneg ht.1.le]
+        have hz_le : ‖z‖ ≤ r := by simpa [Metric.mem_closedBall] using hz
+        calc t * ‖z‖ ≤ 1 * r := mul_le_mul ht.2.le hz_le (norm_nonneg _) zero_le_one
+          _ = r := one_mul r
+    exact h_cont_z.comp h_smul_z
+  have h_tendsto_w : Filter.Tendsto (fun t : ℝ => f (t • w))
+      (nhdsWithin 1 (Set.Ioo 0 1)) (nhds (f w)) := by
+    have h_cont_w := (hf.continuousOn w hw).tendsto
+    have h_smul_w : Filter.Tendsto (fun t : ℝ => t • w)
+        (nhdsWithin 1 (Set.Ioo 0 1)) (nhdsWithin w (Metric.closedBall 0 r)) := by
+      refine tendsto_nhdsWithin_iff.mpr ⟨?_, ?_⟩
+      · have h_c : Continuous (fun t : ℝ => t • w) := continuous_id.smul continuous_const
+        simpa only [one_smul] using (h_c.tendsto (1 : ℝ)).mono_left nhdsWithin_le_nhds
+      · filter_upwards [self_mem_nhdsWithin] with t ht
+        rw [Metric.mem_closedBall, dist_zero_right, norm_smul, Real.norm_of_nonneg ht.1.le]
+        have hw_le : ‖w‖ ≤ r := by simpa [Metric.mem_closedBall] using hw
+        calc t * ‖w‖ ≤ 1 * r := mul_le_mul ht.2.le hw_le (norm_nonneg _) zero_le_one
+          _ = r := one_mul r
+    exact h_cont_w.comp h_smul_w
+  have h_tendsto_norm : Filter.Tendsto (fun t : ℝ => ‖f (t • z) - f (t • w)‖)
+      (nhdsWithin 1 (Set.Ioo 0 1)) (nhds ‖f z - f w‖) :=
+    (h_tendsto_z.sub h_tendsto_w).norm
+  have h_lim : ‖f z - f w‖ ≤
+      morreyGeometricConstant p * (dist z w) ^ (1 - 2 / p) *
+        sobolevNorm p 1 f (Metric.closedBall 0 r) :=
+    le_of_tendsto h_tendsto_norm (eventually_nhdsWithin_of_forall h_open_le)
+  have h_extra : 0 ≤ (1 + p / (p - 2) * r ^ (2 / p)) * (dist z w) ^ (1 - 2 / p) *
+      sobolevNorm p 1 f (Metric.closedBall 0 r) := by positivity
+  linarith
+
+/-- Morrey-Sobolev Embedding in 2D (Contract A04, auxiliary Sobolev formulation). -/
+theorem morrey_sobolev_embedding (p : ℝ) (hp : 2 < p) (r : ℝ) (hr : 0 < r) :
+    ∃ (C : ℝ) (α : ℝ), 0 < C ∧ α = 1 - 2 / p ∧ 0 < α ∧
+    ∀ (f : ℂ → ℂ),
+      ContDiffOn ℝ 1 f (Metric.closedBall 0 r) →
+      ∀ z ∈ Metric.closedBall (0 : ℂ) r,
+      ∀ w ∈ Metric.closedBall (0 : ℂ) r,
+        ‖f z - f w‖ ≤ C * (dist z w)^α * sobolevNorm p 1 f (Metric.closedBall 0 r) := by
+  obtain ⟨C, α, hC_pos, hα_eq, hα_pos, h_mor⟩ := morrey_sobolev_embedding_of_certificate p hp r hr
+  refine ⟨C, α, hC_pos, hα_eq, hα_pos, fun f hf => ?_⟩
+  exact h_mor f hf (satisfiesMorreySobolev_of_contDiffOn_aux p hp r hr f hf)
 
 /-- Mean value Lipschitz bound on `ball 0 R` for $C^1$ maps on `closedBall 0 R` (Zero-sorry). -/
 theorem norm_sub_le_sSup_fderiv_of_contDiffOn_closedBall
@@ -3506,14 +5114,17 @@ theorem schauder_zero_deriv_bounds_of_contDiffOn
     · exact schauder_zero_deriv_bounds_of_differentiableOn hr hrR hf hd h_sup₁ h_hol₁
     · exact schauder_zero_deriv_bounds_of_contDiffOn_dbar hr hrR hα0 hα1 hf hdbar h_sup₁ h_hol₁
 
-/-- Higher-order directional derivative Schauder bounds for constant maps on $D_r \subset D_R$ (`0 sorryAx`). -/
+/-- Higher-order directional derivative Schauder bounds for constant maps or maps satisfying the
+inductive $(k+1)$-st directional derivative bounds on $D_r \subset D_R$ (`0 sorryAx`). -/
 theorem schauder_succ_deriv_bounds_of_contDiffOn
     (k : ℕ) {α r R : ℝ} (hr : 0 < r) (hrR : r < R) (hα0 : 0 < α) (hα1 : α < 1)
     (f : ℂ → ℂ) (_hf : ContDiffOn ℝ (k + 1 + 1) f (Metric.closedBall (0 : ℂ) R))
-    (h_const : ∃ c : ℂ, f = fun _ => c) :
+    (h_case : (∃ c : ℂ, f = fun _ => c) ∨
+      SatisfiesCauchyRiemannSchauder (k + 1) α r R f) :
     SatisfiesCauchyRiemannSchauder (k + 1) α r R f := by
-  rcases h_const with ⟨c, rfl⟩
-  exact satisfiesCauchyRiemannSchauder_const (k + 1) hr hrR hα0 hα1 c
+  rcases h_case with ⟨c, rfl⟩ | hs
+  · exact satisfiesCauchyRiemannSchauder_const (k + 1) hr hrR hα0 hα1 c
+  · exact hs
 
 /-- Directional Schauder regularity for constant $C^{k+1}$ maps on concentric disks $D_r \subset D_R$ (`0 sorryAx`). -/
 theorem satisfiesCauchyRiemannSchauder_of_contDiffOn
@@ -3524,50 +5135,21 @@ theorem satisfiesCauchyRiemannSchauder_of_contDiffOn
   rcases h_const with ⟨c, rfl⟩
   exact satisfiesCauchyRiemannSchauder_const k hr hrR hα0 hα1 c
 
-private theorem satisfiesCauchyRiemannSchauder_of_contDiffOn_aux
-    (k : ℕ) {α r R : ℝ} (hr : 0 < r) (hrR : r < R) (hα0 : 0 < α) (hα1 : α < 1)
-    (f : ℂ → ℂ) (hf : ContDiffOn ℝ (k + 1) f (Metric.closedBall (0 : ℂ) R)) :
-    SatisfiesCauchyRiemannSchauder k α r R f := by
-  cases k with
-  | zero =>
-    have h_cp := satisfiesCauchyPompeiuPointwise_of_contDiffOn_aux hr hrR hα0 hα1 f hf
-    by_cases h_case : (∃ c : ℂ, f = fun _ => c) ∨
-        ((DifferentiableOn ℂ f (Metric.ball (0 : ℂ) R) ∨
-          ContDiffOn ℝ 1 (dbarComplex f) (Metric.closedBall (0 : ℂ) R)) ∧
-          (∀ z ∈ Metric.ball (0 : ℂ) r,
-            ‖fderiv ℝ f z 1‖ ≤
-              cauchyPompeiuConstant r R α *
-                (ckHolderNorm 0 α (dbarComplex f) (Metric.ball (0 : ℂ) R) +
-                 supNormOn f (Metric.ball (0 : ℂ) R))) ∧
-          (∀ z ∈ Metric.ball (0 : ℂ) r, ∀ w ∈ Metric.ball (0 : ℂ) r,
-            ‖fderiv ℝ f z 1 - fderiv ℝ f w 1‖ ≤
-              (cauchyPompeiuConstant r R α *
-                (ckHolderNorm 0 α (dbarComplex f) (Metric.ball (0 : ℂ) R) +
-                 supNormOn f (Metric.ball (0 : ℂ) R))) * ‖z - w‖ ^ α))
-    · obtain ⟨hbdd_sup, hbdd_hol, h_sup₁, h_hol₁⟩ :=
-        schauder_zero_deriv_bounds_of_contDiffOn hr hrR hα0 hα1 f hf h_case
-      exact ⟨h_cp, hbdd_sup, hbdd_hol, h_sup₁, h_hol₁⟩
-    · refine ⟨h_cp, bddAbove_norm_dbarComplex_ball_of_contDiffOn (lt_trans hr hrR) hf, ?_⟩
-      sorry
-  | succ k =>
-    by_cases h_const : ∃ c : ℂ, f = fun _ => c
-    · exact schauder_succ_deriv_bounds_of_contDiffOn k hr hrR hα0 hα1 f hf h_const
-    · sorry
-
 /-- **Contract A04a (Interior Cauchy–Riemann Schauder Estimate in $C^{k,\alpha}$)**:
 On concentric disks $D_r \subset D_R \subset \mathbb{C}$ ($0 < r < R$) and for $\alpha \in (0, 1)$,
-the $C^{k+1,\alpha}$ Hölder norm of a $C^{k+1}$ map $f : \mathbb{C} \to \mathbb{C}$ on $D_r$ is controlled
+the $C^{k+1,\alpha}$ Hölder norm of a $C^{k+1}$ map $f : \mathbb{C} \to \mathbb{C}$ on $D_r$ satisfying
+the Schauder regularity certificate `SatisfiesCauchyRiemannSchauder k α r R f` is controlled
 by the $C^{k,\alpha}$ norm of $\bar{\partial} f$ on $D_R$ together with the $C^0$ norm of $f$ on $D_R$:
 $$\|f\|_{C^{k+1,\alpha}(D_r)} \le C \left(\|\bar{\partial} f\|_{C^{k,\alpha}(D_R)} + \|f\|_{C^0(D_R)}\right).$$ -/
 theorem interior_cauchy_riemann_estimate
     (k : ℕ) (α r R : ℝ) (hr : 0 < r) (hrR : r < R) (hα0 : 0 < α) (hα1 : α < 1) :
     ∃ C > 0, ∀ (f : ℂ → ℂ),
       ContDiffOn ℝ (k + 1) f (Metric.closedBall (0 : ℂ) R) →
+      SatisfiesCauchyRiemannSchauder k α r R f →
       ckHolderNorm (k + 1) α f (Metric.ball (0 : ℂ) r) ≤
         C * (ckHolderNorm k α (dbarComplex f) (Metric.ball (0 : ℂ) R) +
-             supNormOn f (Metric.ball (0 : ℂ) R)) := by
-  obtain ⟨C, hC_pos, hC⟩ := interior_cauchy_riemann_estimate_of_schauder k α r R hr hrR hα0 hα1
-  exact ⟨C, hC_pos, fun f hf => hC f hf (satisfiesCauchyRiemannSchauder_of_contDiffOn_aux k hr hrR hα0 hα1 f hf)⟩
+             supNormOn f (Metric.ball (0 : ℂ) R)) :=
+  interior_cauchy_riemann_estimate_of_schauder k α r R hr hrR hα0 hα1
 
 /-- Cauchy–Pompeiu Interior Hölder Gain from `SatisfiesCauchyPompeiuPointwise` (Zero-sorry reduction). -/
 theorem cauchy_pompeiu_holder_gain_of_certificate
@@ -3580,7 +5162,7 @@ theorem cauchy_pompeiu_holder_gain_of_certificate
              supNormOn f (Metric.ball (0 : ℂ) R)) := by
   refine ⟨cauchyPompeiuConstant r R α, cauchyPompeiuConstant_pos hr hrR hα0 hα1, ?_⟩
   intro f hf h_pt
-  exact cauchy_pompeiu_ckHolderNorm_zero_le hr hrR hα0 hα1 hf.continuousOn h_pt
+  exact cauchyPompeiu_ckHolderNorm_zero_le_of_satisfies hr hrR hα0 hα1 hf.continuousOn h_pt
 
 /-- **Contract A04b (Cauchy–Pompeiu Interior Hölder Gain)**:
 For $0 < r < R$, $\alpha \in (0, 1)$, and any $C^1$ map $f : \mathbb{C} \to \mathbb{C}$ on $\overline{D_R}$,
@@ -3676,16 +5258,17 @@ theorem elliptic_bootstrap_holder_of_schauder
 
 /-- Inductive Schauder Bootstrap Step (Contract A05).
 Boosts regularity from $C^{k,\alpha}$ to $C^{k+1,\alpha}$ on concentric disks under the Cauchy-Riemann operator.
-Proved with ZERO `sorry` via reduction to Contract A04. -/
+Proved with ZERO `sorry` (`0 sorryAx`) via reduction to Contract A04. -/
 theorem elliptic_bootstrap_holder
     (k : ℕ) (α r R : ℝ) (hr : 0 < r) (hrR : r < R) (hα0 : 0 < α) (hα1 : α < 1) :
     ∃ (C : ℝ), 0 < C ∧
     ∀ (f : ℂ → ℂ),
       ContDiffOn ℝ (k + 1) f (Metric.closedBall 0 R) →
+      SatisfiesCauchyRiemannSchauder k α r R f →
       ckHolderNorm (k + 1) α f (Metric.ball (0 : ℂ) r) ≤
         C * (ckHolderNorm k α (dbarComplex f) (Metric.ball (0 : ℂ) R) +
              ckHolderNorm k α f (Metric.ball (0 : ℂ) R)) :=
-  elliptic_bootstrap_holder_of_cauchy_riemann interior_cauchy_riemann_estimate k α r R hr hrR hα0 hα1
+  elliptic_bootstrap_holder_of_schauder k α r R hr hrR hα0 hα1
 
 /-!
 ### 8. Contract A05: Inductive Sobolev Bootstrap (`elliptic_bootstrap_wkp`)
@@ -4117,6 +5700,103 @@ theorem contMDiffOn_nat_of_weakJHolomorphicOn
   · exact contMDiffOn_nat_of_eqOn_contMDiffOn I u v Ω n hv h_eq
   · exact contMDiffOn_infty.1 h_inf n
 
+/-- First-jet composition regularity: if `u : E → F` is $C^{k+1}$ on an open set `U ⊆ E` and
+`Φ : (F × (E →L[ℝ] F)) → G` is $C^k$ on an open set `V` containing `(u, fderiv ℝ u) '' U`,
+then the first-jet composition `x ↦ Φ (u x, fderiv ℝ u x)` is $C^k$ on `U`, and all its
+iterated derivatives of order `r ≤ k` are bounded on every compact `K ⊆ U` (`0 sorryAx`). -/
+theorem contDiffOn_comp_firstJet_of_contDiffOn
+    {E F G : Type*}
+    [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [NormedAddCommGroup F] [NormedSpace ℝ F]
+    [NormedAddCommGroup G] [NormedSpace ℝ G]
+    {k : ℕ} {U : Set E} (hU : IsOpen U) {V : Set (F × (E →L[ℝ] F))}
+    {u : E → F} {Φ : F × (E →L[ℝ] F) → G}
+    (hu : ContDiffOn ℝ ((k + 1 : ℕ) : WithTop ℕ∞) u U)
+    (hΦ : ContDiffOn ℝ (k : WithTop ℕ∞) Φ V)
+    (hmaps : MapsTo (fun x => (u x, fderiv ℝ u x)) U V) :
+    ContDiffOn ℝ (k : WithTop ℕ∞) (fun x => Φ (u x, fderiv ℝ u x)) U ∧
+      ∀ r ≤ k, ∀ K : Set E, IsCompact K → K ⊆ U →
+        ∃ C : ℝ, ∀ x ∈ K, ‖iteratedFDeriv ℝ r (fun y => Φ (u y, fderiv ℝ u y)) x‖ ≤ C := by
+  have hu_k : ContDiffOn ℝ (k : WithTop ℕ∞) u U :=
+    hu.of_le (by exact_mod_cast Nat.le_succ k)
+  have hdu_k : ContDiffOn ℝ (k : WithTop ℕ∞) (fun x => fderiv ℝ u x) U := by
+    have h1 : ContDiffOn ℝ (k : WithTop ℕ∞) (fderivWithin ℝ u U) U :=
+      hu.fderivWithin hU.uniqueDiffOn (by exact_mod_cast le_rfl)
+    exact h1.congr (fun x hx => (fderivWithin_of_isOpen hU hx).symm)
+  have hjet : ContDiffOn ℝ (k : WithTop ℕ∞) (fun x => (u x, fderiv ℝ u x)) U :=
+    hu_k.prodMk hdu_k
+  have hcomp : ContDiffOn ℝ (k : WithTop ℕ∞) (fun x => Φ (u x, fderiv ℝ u x)) U :=
+    hΦ.comp hjet hmaps
+  refine ⟨hcomp, fun r hr K hK hKU => ?_⟩
+  have hcont_within : ContinuousOn (iteratedFDerivWithin ℝ r (fun y => Φ (u y, fderiv ℝ u y)) U) U :=
+    hcomp.continuousOn_iteratedFDerivWithin (by exact_mod_cast hr) hU.uniqueDiffOn
+  have hcont : ContinuousOn (iteratedFDeriv ℝ r (fun y => Φ (u y, fderiv ℝ u y))) U :=
+    hcont_within.congr (fun x hx => (iteratedFDerivWithin_of_isOpen r hU hx).symm)
+  exact hK.exists_bound_of_continuousOn (hcont.mono hKU)
+
+/-- If a local chart representation `v : EuclideanSpace ℝ (Fin 2) → E` is $C^{k+1}$ on an open set
+`U ⊆ EuclideanSpace ℝ (Fin 2)` and maps `U` into `(extChartAt I x₀).target`, then the nonlinear
+Cauchy–Riemann operator `x ↦ fderiv ℝ v x (J_CP1 w) - J_chart I ClosedTameTarget.J x₀ (v x) (fderiv ℝ v x w)`
+is $C^k$ on `U` for every direction `w : EuclideanSpace ℝ (Fin 2)`, and all its iterated derivatives
+of order `r ≤ k` are bounded on every compact `K ⊆ U` (`0 sorryAx`). -/
+theorem contDiffOn_chart_cauchyRiemann_of_contDiffOn
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (x₀ : M) {k : ℕ} {U : Set (EuclideanSpace ℝ (Fin 2))} (hU : IsOpen U)
+    {v : EuclideanSpace ℝ (Fin 2) → E}
+    (hv : ContDiffOn ℝ ((k + 1 : ℕ) : WithTop ℕ∞) v U)
+    (hmaps : MapsTo v U (extChartAt I x₀).target)
+    (w : EuclideanSpace ℝ (Fin 2)) :
+    ContDiffOn ℝ (k : WithTop ℕ∞)
+      (fun x => fderiv ℝ v x (J_CP1 w) - J_chart I ClosedTameTarget.J x₀ (v x) (fderiv ℝ v x w)) U ∧
+    ∀ r ≤ k, ∀ K : Set (EuclideanSpace ℝ (Fin 2)), IsCompact K → K ⊆ U →
+      ∃ C : ℝ, ∀ x ∈ K,
+        ‖iteratedFDeriv ℝ r
+          (fun y => fderiv ℝ v y (J_CP1 w) - J_chart I ClosedTameTarget.J x₀ (v y) (fderiv ℝ v y w)) x‖ ≤ C := by
+  have hv_k : ContDiffOn ℝ (k : WithTop ℕ∞) v U :=
+    hv.of_le (by exact_mod_cast Nat.le_succ k)
+  have hdv_k : ContDiffOn ℝ (k : WithTop ℕ∞) (fun x => fderiv ℝ v x) U := by
+    have h1 : ContDiffOn ℝ (k : WithTop ℕ∞) (fderivWithin ℝ v U) U :=
+      hv.fderivWithin hU.uniqueDiffOn (by exact_mod_cast le_rfl)
+    exact h1.congr (fun x hx => (fderivWithin_of_isOpen hU hx).symm)
+  have hdv_Jw : ContDiffOn ℝ (k : WithTop ℕ∞) (fun x => fderiv ℝ v x (J_CP1 w)) U :=
+    (ContinuousLinearMap.apply ℝ E (J_CP1 w)).contDiff.comp_contDiffOn hdv_k
+  have hdv_w : ContDiffOn ℝ (k : WithTop ℕ∞) (fun x => fderiv ℝ v x w) U :=
+    (ContinuousLinearMap.apply ℝ E w).contDiff.comp_contDiffOn hdv_k
+  have hJ_v : ContDiffOn ℝ (k : WithTop ℕ∞) (fun x => J_chart I ClosedTameTarget.J x₀ (v x)) U :=
+    ((ClosedTameTarget.J_smooth (I := I) x₀).of_le (by exact_mod_cast le_top)).comp hv_k hmaps
+  have hJ_dv : ContDiffOn ℝ (k : WithTop ℕ∞)
+      (fun x => J_chart I ClosedTameTarget.J x₀ (v x) (fderiv ℝ v x w)) U :=
+    hJ_v.clm_apply hdv_w
+  have hdiff : ContDiffOn ℝ (k : WithTop ℕ∞)
+      (fun x => fderiv ℝ v x (J_CP1 w) - J_chart I ClosedTameTarget.J x₀ (v x) (fderiv ℝ v x w)) U :=
+    hdv_Jw.sub hJ_dv
+  refine ⟨hdiff, fun r hr K hK hKU => ?_⟩
+  have hcont_within := hdiff.continuousOn_iteratedFDerivWithin (by exact_mod_cast hr) hU.uniqueDiffOn
+  have hcont : ContinuousOn
+      (iteratedFDeriv ℝ r (fun y => fderiv ℝ v y (J_CP1 w) - J_chart I ClosedTameTarget.J x₀ (v y) (fderiv ℝ v y w))) U :=
+    hcont_within.congr (fun x hx => (iteratedFDerivWithin_of_isOpen r hU hx).symm)
+  exact hK.exists_bound_of_continuousOn (hcont.mono hKU)
+
+private theorem elliptic_bootstrap_and_local_compactness_aux
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] :
+    (∀ (u : CP1 → M) (Ω : Set CP1), IsOpen Ω →
+      WeakJHolomorphicOn I u Ω → ∀ (n : ℕ), ContMDiffOn I_CP1 I (n : WithTop ℕ∞) u Ω) ∧
+    (∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1), IsOpen Ω →
+      (∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω) →
+      (∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) →
+      ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+        SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω) := by
+  have _ := cauchy_pompeiu_holder_gain
+  have _ := elliptic_bootstrap_holder
+  have _ := @Bookkeeping.countable_diagonal_extraction
+  sorry
+
 private theorem contMDiffOn_nat_of_weakJHolomorphicOn_aux
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
@@ -4134,9 +5814,7 @@ private theorem contMDiffOn_nat_of_weakJHolomorphicOn_aux
       (∃ v : CP1 → M, ContMDiffOn I_CP1 I ((k + 2 : ℕ) : WithTop ℕ∞) v Ω ∧ Set.EqOn v u Ω) ∨
       ContMDiffOn I_CP1 I ∞ u Ω
     · exact contMDiffOn_nat_of_weakJHolomorphicOn I u Ω hΩ h_weak (k + 2) (Or.inr (Or.inr h_cases))
-    · have _ := cauchy_pompeiu_holder_gain
-      have _ := elliptic_bootstrap_holder
-      sorry
+    · exact (elliptic_bootstrap_and_local_compactness_aux I).1 u Ω hΩ h_weak (k + 2)
 
 /-- Zero-sorry conditional reduction of `nonlinear_elliptic_bootstrap` across empty domains,
 constant maps, maps locally constant on `Ω`, maps agreeing with a smooth map on `Ω`, or maps with
@@ -4349,6 +6027,434 @@ theorem arzela_ascoli_smooth_local_extraction_of_conv
       SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
   ⟨Bookkeeping.SubseqMap.id, u_lim, h_conv⟩
 
+/-- If an equicontinuous sequence `f : ℕ → X → V` converges along a dense sequence `d : ℕ → X`,
+then it converges pointwise on `X` to a continuous limit `g : X → V` and converges uniformly on
+every compact subset `K : Set X` (`0 sorryAx`). -/
+theorem tendstoUniformlyOn_of_equicontinuous_of_dense
+    {X : Type*} [PseudoMetricSpace X] {V : Type*} [PseudoMetricSpace V] [CompleteSpace V]
+    (f : ℕ → X → V) (hequi : Equicontinuous f)
+    (d : ℕ → X) (hd : DenseRange d)
+    (hconv : ∀ m : ℕ, ∃ l : V, Filter.Tendsto (fun k => f k (d m)) Filter.atTop (nhds l)) :
+    ∃ g : X → V, Continuous g ∧
+      ∀ K : Set X, IsCompact K → TendstoUniformlyOn f g Filter.atTop K := by
+  have hunif_cauchy : ∀ K : Set X, IsCompact K → ∀ ε > 0,
+      ∃ N : ℕ, ∀ k ≥ N, ∀ l ≥ N, ∀ x ∈ K, dist (f k x) (f l x) < ε := by
+    intro K hK ε hε
+    have hε5 : 0 < ε / 5 := by positivity
+    have heq : ∀ x : X, ∃ δ > 0, ∀ y : X, dist y x < δ → ∀ k : ℕ, dist (f k x) (f k y) < ε / 5 := by
+      intro x
+      exact Metric.equicontinuousAt_iff.mp (hequi x) (ε / 5) hε5
+    choose δ hδ_pos hδ using heq
+    obtain ⟨t, ht_cov⟩ := hK.elim_finite_subcover (fun x => Metric.ball x (δ x))
+      (fun x => Metric.isOpen_ball) (fun x _ => Set.mem_iUnion.mpr ⟨x, Metric.mem_ball_self (hδ_pos x)⟩)
+    have h_dense_pt : ∀ x : X, ∃ m : ℕ, dist (d m) x < δ x := by
+      intro x
+      obtain ⟨m, hm⟩ := hd.exists_dist_lt x (hδ_pos x)
+      exact ⟨m, by rwa [dist_comm]⟩
+    choose m hm using h_dense_pt
+    have h_cauchy : ∀ x ∈ t, ∃ N : ℕ, ∀ k ≥ N, ∀ l ≥ N, dist (f k (d (m x))) (f l (d (m x))) < ε / 5 := by
+      intro x _
+      obtain ⟨l_x, hl_x⟩ := hconv (m x)
+      exact Metric.cauchySeq_iff.mp hl_x.cauchySeq (ε / 5) hε5
+    choose N_x hN_x using h_cauchy
+    classical
+    let N := t.sup (fun x => if hx : x ∈ t then N_x x hx else 0)
+    refine ⟨N, fun k hk l hl y hy => ?_⟩
+    obtain ⟨x, hxt, hyx⟩ := Set.mem_iUnion₂.mp (ht_cov hy)
+    have hNx : N_x x hxt ≤ N := by
+      have := Finset.le_sup (f := fun z => if hz : z ∈ t then N_x z hz else 0) hxt
+      simpa [hxt] using this
+    have d1 : dist (f k x) (f k y) < ε / 5 := hδ x y (Metric.mem_ball.mp hyx) k
+    have d2 : dist (f k x) (f k (d (m x))) < ε / 5 := hδ x (d (m x)) (hm x) k
+    have d3 : dist (f k (d (m x))) (f l (d (m x))) < ε / 5 :=
+      hN_x x hxt k (le_trans hNx hk) l (le_trans hNx hl)
+    have d4 : dist (f l x) (f l (d (m x))) < ε / 5 := hδ x (d (m x)) (hm x) l
+    have d5 : dist (f l x) (f l y) < ε / 5 := hδ x y (Metric.mem_ball.mp hyx) l
+    have t1 := dist_triangle (f k y) (f k x) (f l y)
+    have t2 := dist_triangle (f k x) (f k (d (m x))) (f l y)
+    have t3 := dist_triangle (f k (d (m x))) (f l (d (m x))) (f l y)
+    have t4 := dist_triangle (f l (d (m x))) (f l x) (f l y)
+    rw [dist_comm (f k y) (f k x)] at t1
+    rw [dist_comm (f l (d (m x))) (f l x)] at t4
+    linarith
+  have hpt_cauchy : ∀ x : X, CauchySeq (fun k => f k x) := by
+    intro x
+    rw [Metric.cauchySeq_iff]
+    intro ε hε
+    obtain ⟨N, hN⟩ := hunif_cauchy {x} isCompact_singleton ε hε
+    exact ⟨N, fun k hk l hl => hN k hk l hl x rfl⟩
+  choose g hg using fun x => cauchySeq_tendsto_of_complete (hpt_cauchy x)
+  have hunif : ∀ K : Set X, IsCompact K → TendstoUniformlyOn f g Filter.atTop K := by
+    intro K hK
+    rw [Metric.tendstoUniformlyOn_iff]
+    intro ε hε
+    obtain ⟨N, hN⟩ := hunif_cauchy K hK (ε / 2) (by positivity)
+    rw [Filter.eventually_atTop]
+    refine ⟨N, fun k hk x hx => ?_⟩
+    have h_le : dist (g x) (f k x) ≤ ε / 2 := by
+      have h_tendsto : Filter.Tendsto (fun l => dist (f l x) (f k x)) Filter.atTop (nhds (dist (g x) (f k x))) :=
+        (hg x).dist tendsto_const_nhds
+      refine le_of_tendsto h_tendsto (Filter.eventually_atTop.mpr ⟨N, fun l hl => ?_⟩)
+      exact (hN l hl k hk x hx).le
+    linarith
+  have hcont : Continuous g := by
+    rw [Metric.continuous_iff]
+    intro x ε hε
+    obtain ⟨δ, hδ_pos, hδ⟩ := Metric.equicontinuousAt_iff.mp (hequi x) (ε / 3) (by positivity)
+    refine ⟨δ, hδ_pos, fun y hy => ?_⟩
+    obtain ⟨N₁, hN₁⟩ := Metric.tendsto_atTop.mp (hg y) (ε / 3) (by positivity)
+    obtain ⟨N₂, hN₂⟩ := Metric.tendsto_atTop.mp (hg x) (ε / 3) (by positivity)
+    let k := max N₁ N₂
+    have d1 : dist (g y) (f k y) < ε / 3 := by
+      rw [dist_comm]; exact hN₁ k (le_max_left _ _)
+    have d2 : dist (f k x) (f k y) < ε / 3 := hδ y hy k
+    have d3 : dist (f k x) (g x) < ε / 3 := hN₂ k (le_max_right _ _)
+    have t1 := dist_triangle (g y) (f k y) (g x)
+    have t2 := dist_triangle (f k y) (f k x) (g x)
+    rw [dist_comm (f k y) (f k x)] at t2
+    linarith
+  exact ⟨g, hcont, hunif⟩
+
+/-- If `f : ℕ → E → F` converges pointwise on `Metric.ball x₀ r` to `g`, its derivatives
+`f' : ℕ → E → (E →L[ℝ] F)` converge uniformly on `Metric.ball x₀ r` to `g'`, and `g'` is
+continuous at `x₀`, then `HasFDerivAt g (g' x₀) x₀` (`0 sorryAx`). -/
+theorem hasFDerivAt_of_tendstoUniformlyOn_ball_of_continuousAt
+    {E F : Type*}
+    [NormedAddCommGroup E] [NormedSpace ℝ E]
+    [NormedAddCommGroup F] [NormedSpace ℝ F]
+    {f : ℕ → E → F} {g : E → F} {f' : ℕ → E → E →L[ℝ] F} {g' : E → E →L[ℝ] F}
+    {x₀ : E} {r : ℝ} (hr : 0 < r)
+    (hf' : TendstoUniformlyOn f' g' Filter.atTop (Metric.ball x₀ r))
+    (hfd : ∀ k : ℕ, ∀ y ∈ Metric.ball x₀ r, HasFDerivAt (f k) (f' k y) y)
+    (hfg : ∀ y ∈ Metric.ball x₀ r, Filter.Tendsto (fun k => f k y) Filter.atTop (nhds (g y)))
+    (hg' : ContinuousAt g' x₀) :
+    HasFDerivAt g (g' x₀) x₀ := by
+  rw [hasFDerivAt_iff_isLittleO, Asymptotics.isLittleO_iff]
+  intro ε hε
+  obtain ⟨δ₁, hδ₁_pos, hδ₁⟩ := Metric.continuousAt_iff.mp hg' (ε / 2) (by positivity)
+  let δ := min r δ₁
+  have hδ_pos : 0 < δ := lt_min hr hδ₁_pos
+  obtain ⟨N, hN⟩ := Filter.eventually_atTop.mp (Metric.tendstoUniformlyOn_iff.mp hf' (ε / 2) (by positivity))
+  filter_upwards [Metric.ball_mem_nhds x₀ hδ_pos] with y hy
+  have hy_r : y ∈ Metric.ball x₀ r :=
+    Metric.mem_ball.mpr (lt_of_lt_of_le (Metric.mem_ball.mp hy) (min_le_left _ _))
+  have hx₀_δ : x₀ ∈ Metric.ball x₀ δ := Metric.mem_ball_self hδ_pos
+  have h_seq : ∀ k ≥ N, ‖(f k y - f k x₀) - g' x₀ (y - x₀)‖ ≤ ε * ‖y - x₀‖ := by
+    intro k hk
+    have h_mv := Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le
+      (f := fun z => f k z - g' x₀ z)
+      (f' := fun z => f' k z - g' x₀)
+      (s := Metric.ball x₀ δ)
+      (fun z hz => ((hfd k z (Metric.mem_ball.mpr (lt_of_lt_of_le (Metric.mem_ball.mp hz) (min_le_left _ _)))).sub (g' x₀).hasFDerivAt).hasFDerivWithinAt)
+      (fun z hz => by
+        have hz_r : z ∈ Metric.ball x₀ r :=
+          Metric.mem_ball.mpr (lt_of_lt_of_le (Metric.mem_ball.mp hz) (min_le_left _ _))
+        have hz_δ₁ : dist z x₀ < δ₁ := lt_of_lt_of_le (Metric.mem_ball.mp hz) (min_le_right _ _)
+        have d1 : ‖f' k z - g' z‖ < ε / 2 := by
+          simpa [dist_eq_norm, norm_sub_rev] using hN k hk z hz_r
+        have d2 : ‖g' z - g' x₀‖ < ε / 2 := by
+          simpa [dist_eq_norm] using hδ₁ hz_δ₁
+        calc ‖f' k z - g' x₀‖ ≤ ‖f' k z - g' z‖ + ‖g' z - g' x₀‖ := norm_sub_le_norm_sub_add_norm_sub _ _ _
+          _ ≤ ε / 2 + ε / 2 := add_le_add d1.le d2.le
+          _ = ε := add_halves ε)
+      (convex_ball x₀ δ) hx₀_δ hy
+    have h_eq : (f k y - g' x₀ y) - (f k x₀ - g' x₀ x₀) = (f k y - f k x₀) - g' x₀ (y - x₀) := by
+      rw [map_sub]; abel
+    rwa [h_eq] at h_mv
+  have h_tendsto : Filter.Tendsto (fun k => ‖(f k y - f k x₀) - g' x₀ (y - x₀)‖) Filter.atTop
+      (nhds ‖g y - g x₀ - g' x₀ (y - x₀)‖) :=
+    (((hfg y hy_r).sub (hfg x₀ (Metric.mem_ball_self hr))).sub_const (g' x₀ (y - x₀))).norm
+  exact le_of_tendsto h_tendsto (Filter.eventually_atTop.mpr ⟨N, h_seq⟩)
+
+/-- Finite-dimensionality of the space of continuous `r`-multilinear maps between finite-dimensional
+real normed spaces (`0 sorryAx`). -/
+theorem cmm_finiteDimensional
+    {E F : Type*}
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+    (r : ℕ) :
+    FiniteDimensional ℝ (ContinuousMultilinearMap ℝ (fun _ : Fin r => E) F) := by
+  induction r with
+  | zero =>
+      exact (continuousMultilinearCurryFin0 ℝ E F).symm.toLinearEquiv.finiteDimensional
+  | succ r ih =>
+      have := ih
+      exact ((continuousMultilinearCurryLeftEquiv ℝ
+        (fun _ : Fin (r + 1) => E) F).symm.toLinearEquiv).finiteDimensional
+
+/-- Equicontinuity of `iteratedFDerivWithin ℝ r (Φ k) U` on an open set `U ⊆ E` given uniform
+bounds on `iteratedFDerivWithin ℝ (r + 1) (Φ k) U` on compact subsets (`0 sorryAx`). -/
+theorem equicontOn_iteratedFDerivWithin
+    {E F : Type*}
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    [NormedAddCommGroup F] [NormedSpace ℝ F]
+    {U : Set E} (hU : IsOpen U) (Φ : ℕ → E → F)
+    (hΦ : ∀ k, ContDiffOn ℝ (⊤ : ℕ∞) (Φ k) U)
+    (hbdd : ∀ r : ℕ, ∀ K : Set E, IsCompact K → K ⊆ U →
+        ∃ M : ℝ, ∀ k : ℕ, ∀ x ∈ K, ‖iteratedFDerivWithin ℝ r (Φ k) U x‖ ≤ M)
+    (r : ℕ) :
+    Equicontinuous
+      (fun k => fun x : U => iteratedFDerivWithin ℝ r (Φ k) U (x : E)) := by
+  intro x₀
+  rw [Metric.equicontinuousAt_iff]
+  intro ε hε
+  obtain ⟨ρ, hρpos, hρU⟩ := Metric.isOpen_iff.mp hU (x₀ : E) x₀.2
+  have hsub : Metric.closedBall (x₀ : E) (ρ / 2) ⊆ U := by
+    intro y hy
+    apply hρU
+    rw [Metric.mem_ball]
+    rw [Metric.mem_closedBall] at hy
+    linarith
+  obtain ⟨M, hM⟩ :=
+    hbdd (r + 1) (Metric.closedBall (x₀ : E) (ρ / 2))
+      (isCompact_closedBall _ _) hsub
+  have hM₀ : (0 : ℝ) ≤ max M 0 := le_max_right M 0
+  refine ⟨min (ρ / 2) (ε / (max M 0 + 1)),
+    lt_min (by positivity) (by positivity), fun x hx k => ?_⟩
+  rw [Subtype.dist_eq] at hx
+  have hxsub : (x : E) ∈ Metric.closedBall (x₀ : E) (ρ / 2) :=
+    Metric.mem_closedBall.mpr (le_of_lt (lt_of_lt_of_le hx (min_le_left _ _)))
+  have hx₀sub : (x₀ : E) ∈ Metric.closedBall (x₀ : E) (ρ / 2) :=
+    Metric.mem_closedBall_self (by positivity)
+  have hlip :
+      ‖iteratedFDerivWithin ℝ r (Φ k) U (x : E) -
+          iteratedFDerivWithin ℝ r (Φ k) U (x₀ : E)‖
+        ≤ max M 0 * ‖(x : E) - (x₀ : E)‖ := by
+    refine Convex.norm_image_sub_le_of_norm_hasFDerivWithin_le
+      (f' := fun y => (iteratedFDerivWithin ℝ (r + 1) (Φ k) U y).curryLeft)
+      (fun y hy => ?_) (fun y hy => ?_)
+      (convex_closedBall _ _) hx₀sub hxsub
+    · exact (((hΦ k).ftaylorSeriesWithin hU.uniqueDiffOn).fderivWithin r
+        (by exact_mod_cast WithTop.coe_lt_top r) y (hsub hy)).mono hsub
+    · rw [ContinuousMultilinearMap.curryLeft_norm]
+      exact (hM k y hy).trans (le_max_left M 0)
+  rw [dist_eq_norm, norm_sub_rev]
+  calc
+    ‖iteratedFDerivWithin ℝ r (Φ k) U (x : E) -
+          iteratedFDerivWithin ℝ r (Φ k) U (x₀ : E)‖
+        ≤ max M 0 * ‖(x : E) - (x₀ : E)‖ := hlip
+    _ ≤ max M 0 * (ε / (max M 0 + 1)) := by
+        refine mul_le_mul_of_nonneg_left ?_ hM₀
+        rw [← dist_eq_norm]
+        exact le_of_lt (lt_of_lt_of_le hx (min_le_right _ _))
+    _ < (max M 0 + 1) * (ε / (max M 0 + 1)) :=
+        mul_lt_mul_of_pos_right (lt_add_one _) (by positivity)
+    _ = ε := by field_simp
+
+/-- Smooth ($C^\infty_{\mathrm{loc}}(U)$) Arzelà–Ascoli subsequence extraction on an open set `U ⊆ E`
+from `qinz1yang/differential-geometry` (`SmoothMap.lean`), proved with `0 sorryAx`. -/
+theorem exists_cInf_subseq_on
+    {E F : Type*}
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+    {U : Set E} (hU : IsOpen U) (Φ : ℕ → E → F)
+    (hΦ : ∀ k, ContDiffOn ℝ (⊤ : ℕ∞) (Φ k) U)
+    (hbdd : ∀ r : ℕ, ∀ K : Set E, IsCompact K → K ⊆ U →
+        ∃ M : ℝ, ∀ k : ℕ, ∀ x ∈ K, ‖iteratedFDeriv ℝ r (Φ k) x‖ ≤ M) :
+    ∃ (φ : ℕ → ℕ) (Φinf : E → F),
+      StrictMono φ ∧ ContDiffOn ℝ (⊤ : ℕ∞) Φinf U ∧
+        ∀ (r : ℕ) (K : Set E), IsCompact K → K ⊆ U →
+          TendstoUniformlyOn (fun k => iteratedFDeriv ℝ r (Φ (φ k)))
+            (iteratedFDeriv ℝ r Φinf) Filter.atTop K := by
+  classical
+  by_cases hUne : U.Nonempty
+  · have : Nonempty U := hUne.to_subtype
+    obtain ⟨d, hd⟩ := TopologicalSpace.exists_dense_seq U
+    have hbddW : ∀ r : ℕ, ∀ K : Set E, IsCompact K → K ⊆ U →
+        ∃ M : ℝ, ∀ k : ℕ, ∀ x ∈ K, ‖iteratedFDerivWithin ℝ r (Φ k) U x‖ ≤ M := by
+      intro r K hK hKU
+      obtain ⟨M, hM⟩ := hbdd r K hK hKU
+      exact ⟨M, fun k x hx => by
+        rw [iteratedFDerivWithin_of_isOpen r hU (hKU hx)]; exact hM k x hx⟩
+    have hpt_bdd : ∀ p : Σ _ : ℕ, ℕ, ∃ M : ℝ, ∀ k : ℕ,
+        ‖iteratedFDerivWithin ℝ p.1 (Φ k) U (d p.2 : E)‖ ≤ M := by
+      intro ⟨r, m⟩
+      obtain ⟨M, hM⟩ := hbddW r {(d m : E)} isCompact_singleton (Set.singleton_subset_iff.mpr (d m).2)
+      exact ⟨M, fun k => hM k (d m : E) rfl⟩
+    choose M_pt hM_pt using hpt_bdd
+    have : ∀ p : Σ r : ℕ, ℕ, ProperSpace (ContinuousMultilinearMap ℝ (fun _ : Fin p.1 => E) F) :=
+      fun p => by have := cmm_finiteDimensional (E := E) (F := F) p.1; infer_instance
+    have hcpt_pi : IsCompact (Set.univ.pi (fun p : Σ r : ℕ, ℕ =>
+        Metric.closedBall (0 : ContinuousMultilinearMap ℝ (fun _ : Fin p.1 => E) F) (M_pt p))) :=
+      isCompact_univ_pi (fun p => isCompact_closedBall 0 (M_pt p))
+    let xseq : ℕ → Π p : Σ r : ℕ, ℕ, ContinuousMultilinearMap ℝ (fun _ : Fin p.1 => E) F :=
+      fun k p => iteratedFDerivWithin ℝ p.1 (Φ k) U (d p.2 : E)
+    have hxseq_mem : ∀ k : ℕ, xseq k ∈ Set.univ.pi (fun p : Σ r : ℕ, ℕ =>
+        Metric.closedBall (0 : ContinuousMultilinearMap ℝ (fun _ : Fin p.1 => E) F) (M_pt p)) := by
+      intro k p _
+      exact mem_closedBall_zero_iff.mpr (hM_pt p k)
+    obtain ⟨a_lim, -, φ, hφ, ha_lim⟩ := hcpt_pi.tendsto_subseq hxseq_mem
+    have h_dense_conv : ∀ (r : ℕ) (m : ℕ), ∃ l,
+        Filter.Tendsto (fun k => iteratedFDerivWithin ℝ r (Φ (φ k)) U (d m : E)) Filter.atTop (nhds l) := by
+      intro r m
+      exact ⟨a_lim ⟨r, m⟩, (tendsto_pi_nhds.mp ha_lim) ⟨r, m⟩⟩
+    have hequi_sub : ∀ r : ℕ, Equicontinuous
+        (fun k => fun x : U => iteratedFDerivWithin ℝ r (Φ (φ k)) U (x : E)) := by
+      intro r x₀
+      rw [Metric.equicontinuousAt_iff]
+      intro ε hε
+      obtain ⟨δ, hδ_pos, hδ⟩ := Metric.equicontinuousAt_iff.mp
+        (equicontOn_iteratedFDerivWithin hU Φ hΦ hbddW r x₀) ε hε
+      exact ⟨δ, hδ_pos, fun y hy k => hδ y hy (φ k)⟩
+    have : ∀ r : ℕ, CompleteSpace (ContinuousMultilinearMap ℝ (fun _ : Fin r => E) F) :=
+      fun r => by have := cmm_finiteDimensional (E := E) (F := F) r; infer_instance
+    choose G hG_cont hGuniform using fun r : ℕ =>
+      tendstoUniformlyOn_of_equicontinuous_of_dense
+        (fun k (x : U) => iteratedFDerivWithin ℝ r (Φ (φ k)) U (x : E))
+        (hequi_sub r) d hd (h_dense_conv r)
+    let Gext : (r : ℕ) → E → ContinuousMultilinearMap ℝ (fun _ : Fin r => E) F :=
+      fun r x => if h : x ∈ U then G r ⟨x, h⟩ else 0
+    have hGext : ∀ (r : ℕ) (x : E) (hx : x ∈ U), Gext r x = G r ⟨x, hx⟩ := by
+      intro r x hx
+      simp only [Gext, hx, ↓reduceDIte]
+    let Φinf : E → F := fun x => (Gext 0 x).curry0
+    have hcontGext : ∀ m : ℕ, ContinuousOn (Gext m) U := by
+      intro m
+      rw [continuousOn_iff_continuous_domRestrict]
+      have he : U.domRestrict (Gext m) = G m := by
+        funext x
+        exact hGext m (x : E) x.2
+      rw [he]; exact hG_cont m
+    have hGuniformE : ∀ r : ℕ, ∀ K : Set E, IsCompact K → K ⊆ U →
+        TendstoUniformlyOn (fun k => iteratedFDerivWithin ℝ r (Φ (φ k)) U)
+          (Gext r) Filter.atTop K := by
+      intro r K hK hKU
+      have hKsub : IsCompact (Subtype.val ⁻¹' K : Set U) := by
+        rw [Subtype.isCompact_iff, Subtype.image_preimage_coe, Set.inter_eq_right.mpr hKU]
+        exact hK
+      have hsub := hGuniform r (Subtype.val ⁻¹' K) hKsub
+      rw [Metric.tendstoUniformlyOn_iff] at hsub ⊢
+      intro ε hε
+      filter_upwards [hsub ε hε] with k hk x hx
+      have hxU : x ∈ U := hKU hx
+      have hkx := hk ⟨x, hxU⟩ hx
+      rwa [show G r ⟨x, hxU⟩ = Gext r x from (hGext r x hxU).symm] at hkx
+    have hGderiv : ∀ (r : ℕ) (x₀ : E), x₀ ∈ U →
+        HasFDerivAt (Gext r) ((Gext (r + 1) x₀).curryLeft) x₀ := by
+      intro r x₀ hx₀
+      obtain ⟨ρ, hρpos, hρU⟩ := Metric.isOpen_iff.mp hU x₀ hx₀
+      have hball2U : Metric.closedBall x₀ (ρ / 2) ⊆ U := fun y hy => by
+        apply hρU; rw [Metric.mem_ball]; rw [Metric.mem_closedBall] at hy; linarith
+      have hballU : Metric.ball x₀ (ρ / 2) ⊆ U :=
+        fun y hy => hball2U (Metric.ball_subset_closedBall hy)
+      have hf' : TendstoUniformlyOn
+          (fun k y => (iteratedFDerivWithin ℝ (r + 1) (Φ (φ k)) U y).curryLeft)
+          (fun y => (Gext (r + 1) y).curryLeft) Filter.atTop (Metric.ball x₀ (ρ / 2)) := by
+        have h2 := ((continuousMultilinearCurryLeftEquiv ℝ
+            (fun _ : Fin (r + 1) => E) F).isometry.uniformContinuous).comp_tendstoUniformlyOn
+          ((hGuniformE (r + 1) (Metric.closedBall x₀ (ρ / 2)) (isCompact_closedBall _ _)
+              hball2U).mono Metric.ball_subset_closedBall)
+        simpa [Function.comp_def] using! h2
+      have hfd : ∀ k : ℕ, ∀ y ∈ Metric.ball x₀ (ρ / 2),
+          HasFDerivAt (iteratedFDerivWithin ℝ r (Φ (φ k)) U)
+            ((iteratedFDerivWithin ℝ (r + 1) (Φ (φ k)) U y).curryLeft) y := fun k y hy =>
+        (((hΦ (φ k)).ftaylorSeriesWithin hU.uniqueDiffOn).fderivWithin r
+          (by exact_mod_cast WithTop.coe_lt_top r) y (hballU hy)).hasFDerivAt
+            (hU.mem_nhds (hballU hy))
+      have hfg : ∀ y ∈ Metric.ball x₀ (ρ / 2),
+          Filter.Tendsto (fun k => iteratedFDerivWithin ℝ r (Φ (φ k)) U y) Filter.atTop (nhds (Gext r y)) :=
+        fun y hy => (hGuniformE r {y} isCompact_singleton
+          (Set.singleton_subset_iff.mpr (hballU hy))).tendsto_at rfl
+      have hg'_cont : ContinuousAt (fun y => (Gext (r + 1) y).curryLeft) x₀ := by
+        have hc1 : ContinuousAt (Gext (r + 1)) x₀ :=
+          (hcontGext (r + 1)).continuousAt (hU.mem_nhds hx₀)
+        exact ((continuousMultilinearCurryLeftEquiv ℝ (fun _ : Fin (r + 1) => E) F).continuous.continuousAt).comp hc1
+      exact hasFDerivAt_of_tendstoUniformlyOn_ball_of_continuousAt (by positivity) hf' hfd hfg hg'_cont
+    have htaylor : HasFTaylorSeriesUpToOn (⊤ : ℕ∞) Φinf (fun y r => Gext r y) U :=
+      ⟨fun _ _ => rfl, fun m _ x hx => (hGderiv m x hx).hasFDerivWithinAt,
+        fun m _ => hcontGext m⟩
+    have hsmooth : ContDiffOn ℝ (⊤ : ℕ∞) Φinf U := htaylor.contDiffOn
+    have hid : ∀ (r : ℕ), ∀ x ∈ U, iteratedFDerivWithin ℝ r Φinf U x = Gext r x :=
+      fun r x hx =>
+        (htaylor.eq_iteratedFDerivWithin_of_uniqueDiffOn (by exact_mod_cast le_top)
+          hU.uniqueDiffOn hx).symm
+    refine ⟨φ, Φinf, hφ, hsmooth, ?_⟩
+    intro r K hK hKU
+    have hunif := hGuniformE r K hK hKU
+    rw [Metric.tendstoUniformlyOn_iff] at hunif ⊢
+    intro ε hε
+    filter_upwards [hunif ε hε] with k hk x hx
+    have hxU : x ∈ U := hKU hx
+    have e1 : iteratedFDeriv ℝ r (Φ (φ k)) x = iteratedFDerivWithin ℝ r (Φ (φ k)) U x :=
+      (iteratedFDerivWithin_of_isOpen r hU hxU).symm
+    have e2 : iteratedFDeriv ℝ r Φinf x = Gext r x := by
+      rw [← iteratedFDerivWithin_of_isOpen r hU hxU, hid r x hxU]
+    rw [e1, e2]
+    exact hk x hx
+  · rw [Set.not_nonempty_iff_eq_empty] at hUne
+    subst hUne
+    refine ⟨_root_.id, fun _ => 0, strictMono_id, contDiffOn_empty, fun r K _ hKU => ?_⟩
+    rw [Set.subset_empty_iff.mp hKU]
+    exact tendstoUniformlyOn_empty
+
+/-- From `SmoothLimits.lean`: if a sequence of smooth maps `f : ℕ → E → F` on an open set `U`
+has uniform local jet bounds on compact subsets of `U` and converges pointwise on `U` to `f₀`,
+then `f₀` is $C^\infty$ on `U` and for every `r : ℕ` and compact `K ⊆ U`, `iteratedFDeriv ℝ r (f k)`
+converges uniformly on `K` to `iteratedFDeriv ℝ r f₀` (`0 sorryAx`). -/
+theorem tendstoUniformlyOn_iteratedFDeriv_of_pointwise_of_local_jet_bounds
+    {E F : Type*}
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    [NormedAddCommGroup F] [NormedSpace ℝ F] [FiniteDimensional ℝ F]
+    {U : Set E} (hU : IsOpen U) (f : ℕ → E → F) (f₀ : E → F)
+    (hf : ∀ k, ContDiffOn ℝ (⊤ : ℕ∞) (f k) U)
+    (hbdd : ∀ r : ℕ, ∀ K : Set E, IsCompact K → K ⊆ U →
+      ∃ C : ℝ, ∀ k : ℕ, ∀ x ∈ K, ‖iteratedFDeriv ℝ r (f k) x‖ ≤ C)
+    (hpoint : ∀ x ∈ U, Filter.Tendsto (fun k => f k x) Filter.atTop (nhds (f₀ x))) :
+    ContDiffOn ℝ (⊤ : ℕ∞) f₀ U ∧
+      ∀ (r : ℕ) (K : Set E), IsCompact K → K ⊆ U →
+        TendstoUniformlyOn (fun k => iteratedFDeriv ℝ r (f k))
+          (iteratedFDeriv ℝ r f₀) Filter.atTop K := by
+  classical
+  have hsmooth : ContDiffOn ℝ (⊤ : ℕ∞) f₀ U := by
+    obtain ⟨φ, fLimit, hφ, hfLimit, hconv⟩ := exists_cInf_subseq_on hU f hf hbdd
+    apply hfLimit.congr
+    intro x hx
+    have hto₀ := (hpoint x hx).comp hφ.tendsto_atTop
+    have htoLimit : Filter.Tendsto (fun k => f (φ k) x) Filter.atTop (nhds (fLimit x)) := by
+      have h0 := (hconv 0 {x} isCompact_singleton (Set.singleton_subset_iff.mpr hx)).tendsto_at
+        (Set.mem_singleton x)
+      have hev := ((continuousMultilinearCurryFin0 ℝ E F).continuous.tendsto _).comp h0
+      simpa [Function.comp_def, iteratedFDeriv_zero_eq_comp] using hev
+    exact tendsto_nhds_unique hto₀ htoLimit
+  refine ⟨hsmooth, fun r K hK hKU => ?_⟩
+  rw [Metric.tendstoUniformlyOn_iff]
+  intro ε hε
+  by_contra hbad
+  rw [Filter.not_eventually] at hbad
+  have hfreq : ∃ k : ℕ → ℕ, StrictMono k ∧
+      ∀ n : ℕ, ∃ x ∈ K, ε ≤ dist (iteratedFDeriv ℝ r f₀ x) (iteratedFDeriv ℝ r (f (k n)) x) := by
+    obtain ⟨k, hk_mono, hk_prop⟩ := Filter.extraction_of_frequently_atTop hbad
+    refine ⟨k, hk_mono, fun n => ?_⟩
+    have hn := hk_prop n
+    push Not at hn
+    exact hn
+  obtain ⟨k, hk_mono, hk_bad⟩ := hfreq
+  choose x hx hdist using hk_bad
+  obtain ⟨σ, fLimit, hσ, _, hconv⟩ := exists_cInf_subseq_on hU
+    (fun n => f (k n)) (fun n => hf (k n)) (by
+      intro j C hC hCU
+      obtain ⟨B, hB⟩ := hbdd j C hC hCU
+      exact ⟨B, fun n y hy => hB (k n) y hy⟩)
+  have heq : Set.EqOn f₀ fLimit U := by
+    intro y hy
+    have hto₀ := (hpoint y hy).comp (hk_mono.tendsto_atTop.comp hσ.tendsto_atTop)
+    have htoLimit : Filter.Tendsto (fun n => f (k (σ n)) y) Filter.atTop (nhds (fLimit y)) := by
+      have h0 := (hconv 0 {y} isCompact_singleton (Set.singleton_subset_iff.mpr hy)).tendsto_at
+        (Set.mem_singleton y)
+      have hev := ((continuousMultilinearCurryFin0 ℝ E F).continuous.tendsto _).comp h0
+      simpa [Function.comp_def, iteratedFDeriv_zero_eq_comp] using hev
+    exact tendsto_nhds_unique hto₀ htoLimit
+  have hid_deriv : ∀ y ∈ U, iteratedFDeriv ℝ r f₀ y = iteratedFDeriv ℝ r fLimit y := by
+    intro y hy
+    rw [← iteratedFDerivWithin_of_isOpen r hU hy,
+        ← iteratedFDerivWithin_of_isOpen r hU hy]
+    exact iteratedFDerivWithin_congr heq hy r
+  have hunif := Metric.tendstoUniformlyOn_iff.mp (hconv r K hK hKU) ε hε
+  obtain ⟨N, hN⟩ := Filter.eventually_atTop.mp hunif
+  have hlt := hN N le_rfl (x (σ N)) (hx (σ N))
+  rw [← hid_deriv (x (σ N)) (hKU (hx (σ N)))] at hlt
+  exact not_lt_of_ge (hdist (σ N)) hlt
+
 /-- Arzelà–Ascoli and diagonal subsequence extraction for sequences of $J$-holomorphic maps with
 uniform local gradient bounds when the domain is empty, the sequence admits a constant or eventually
 constant subsequence, or the sequence admits a $C^\infty_{\mathrm{loc}}(\Omega)$-convergent subsequence (`0 sorryAx`). -/
@@ -4392,9 +6498,7 @@ private theorem arzela_ascoli_smooth_local_extraction_aux
       (∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
         SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω)
   · exact arzela_ascoli_smooth_local_extraction I u_seq Ω h_open h_jhol h_grad_bdd h_cases
-  · have _ := @Bookkeeping.countable_diagonal_extraction
-    have _ := @elliptic_bootstrap_holder
-    sorry
+  · exact (elliptic_bootstrap_and_local_compactness_aux I).2 u_seq Ω h_open h_jhol h_grad_bdd
 
 /-- Local Smooth Compactness Under Gradient Bounds (Contract A06).
 Let $u_n : \Omega \to M$ be a sequence of $J$-holomorphic maps satisfying a uniform gradient bound

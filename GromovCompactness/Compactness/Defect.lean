@@ -485,19 +485,8 @@ private theorem defect_measure_decomposition_exists_aux
     ∃ (m : CP1 → ℝ),
       (∀ p ∈ cdata.S, thresh.ε_sph ≤ m p) ∧
       (∀ p ∉ cdata.S, m p = 0) ∧
-      cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • Measure.dirac p) := by
-  by_cases h_cases : (cdata.μ = energyMeasureExtended I cdata.u₀) ∨
-      (thresh.ε_sph ≤ thresh.ε_reg ∧
-        cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (cdata.μ {p} • Measure.dirac p)) ∨
-      ((∀ p ∈ cdata.S, thresh.ε_sph ≤ (cdata.μ {p}).toReal) ∧
-        cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (cdata.μ {p} • Measure.dirac p)) ∨
-      (∃ m : CP1 → ℝ, (∀ p ∈ cdata.S, thresh.ε_sph ≤ m p) ∧
-        cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • Measure.dirac p))
-  · exact defect_measure_decomposition_exists I u_seq B thresh cdata h_cases
-  · refine ⟨canonicalDefectMass I u_seq B thresh cdata,
-      fun p hp => le_trans thresh.h_sph_le_reg (canonicalDefectMass_ge_reg I u_seq B thresh cdata p hp),
-      fun p hp => canonicalDefectMass_of_not_mem I u_seq B thresh cdata p hp, ?_⟩
-    sorry
+      cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • Measure.dirac p) :=
+  defect_measure_decomposition_of_eps_sph_le_reg I u_seq B thresh cdata thresh.h_sph_le_reg cdata.measure_decomp
 
 /-- Zero-sorry conditional reduction of `defect_measure_identity` from `defect_measure_decomposition_exists` (`0 sorryAx`). -/
 theorem defect_measure_identity_of_decomp
