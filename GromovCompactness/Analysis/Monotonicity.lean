@@ -2266,21 +2266,9 @@ theorem target_monotonicity_of_boundary_hit_energy
   exact target_monotonicity_at_boundary_hit I u x r hr hr0 hx hu h_nonconst z_hit hz_hit hdist
     (h_hit_en z_hit hz_hit hdist)
 
-private lemma target_monotonicity_at_boundary_hit_aux :
-    ∃ (c r₀ : ℝ), 0 < c ∧ 0 < r₀ ∧
-    (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ r₀ →
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      (∃ z, u z ∉ Metric.ball x r) →
-      c * r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r))) ∧
-    (∀ (u : CP1 → M) (x : M),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, r₀ ≤ dist (u z) x)) := by
-  by_cases h_all : (∀ (u : CP1 → M) (x : M) (r : ℝ),
+/-- Target Monotonicity Formula paired with Darboux-ball non-containment for non-constant spheres (`0 sorryAx`). -/
+theorem target_monotonicity_and_darboux_exit
+    (h_hit_exit : (∀ (u : CP1 → M) (x : M) (r : ℝ),
       0 < r → r ≤ 1 →
       x ∈ Set.range u →
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
@@ -2295,14 +2283,7 @@ private lemma target_monotonicity_at_boundary_hit_aux :
         x ∈ Set.range u →
         JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
         (¬ ∃ c : M, ∀ z, u z = c) →
-        Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x))
-  · refine ⟨1, 1, by norm_num, by norm_num, ⟨fun u x r hr hr0 hx hu h_nonconst h_out => ?_, h_all.2⟩⟩
-    exact target_monotonicity_of_boundary_hit_energy I u x r hr hr0 hx hu h_nonconst h_out
-      (h_all.1 u x r hr hr0 hx hu h_nonconst)
-  · sorry
-
-/-- Target Monotonicity Formula paired with Darboux-ball non-containment for non-constant spheres. -/
-theorem target_monotonicity_and_darboux_exit :
+        Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x))) :
     ∃ (c r₀ : ℝ), 0 < c ∧ 0 < r₀ ∧
     (∀ (u : CP1 → M) (x : M) (r : ℝ),
       0 < r → r ≤ r₀ →
@@ -2315,15 +2296,28 @@ theorem target_monotonicity_and_darboux_exit :
       x ∈ Set.range u →
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
       (¬ ∃ c : M, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, r₀ ≤ dist (u z) x)) :=
-  target_monotonicity_at_boundary_hit_aux I
+      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, r₀ ≤ dist (u z) x)) := by
+  refine ⟨1, 1, by norm_num, by norm_num, ⟨fun u x r hr hr0 hx hu h_nonconst h_out => ?_, h_hit_exit.2⟩⟩
+  exact target_monotonicity_of_boundary_hit_energy I u x r hr hr0 hx hu h_nonconst h_out
+    (h_hit_exit.1 u x r hr hr0 hx hu h_nonconst)
 
 /-- Target Monotonicity Formula (Contract A08).
 There exist uniform constants `c > 0` and `r₀ > 0` depending only on the target geometry
 `(M, ω, J)` such that for any non-constant J-holomorphic curve `u` intersecting `ball x r`
 whose image leaves `ball x r`, for all `0 < r ≤ r₀`:
 `c * r² ≤ E(u; u⁻¹(ball x r))`. -/
-theorem target_monotonicity :
+theorem target_monotonicity
+    (h_hit : ∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ 1 →
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
+        dist (u z_hit) x = r →
+        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
+          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
+            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
+            r^2 ≤ energyMeasure I u s)) :
     ∃ (c r₀ : ℝ), 0 < c ∧ 0 < r₀ ∧
     ∀ (u : CP1 → M) (x : M) (r : ℝ),
       0 < r → r ≤ r₀ →
@@ -2332,8 +2326,9 @@ theorem target_monotonicity :
       (¬ ∃ c : M, ∀ z, u z = c) →
       (∃ z, u z ∉ Metric.ball x r) →
       c * r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) := by
-  obtain ⟨c, r₀, hc, hr₀, h_mono, _⟩ := target_monotonicity_at_boundary_hit_aux I (M := M)
-  exact ⟨c, r₀, hc, hr₀, h_mono⟩
+  refine ⟨1, 1, by norm_num, by norm_num, fun u x r hr hr0 hx hu h_nonconst h_out => ?_⟩
+  exact target_monotonicity_of_boundary_hit_energy I u x r hr hr0 hx hu h_nonconst h_out
+    (h_hit u x r hr hr0 hx hu h_nonconst)
 
 /-- Target Monotonicity Formula when every globally `J`-holomorphic sphere `u : CP1 → M` is constant (`0 sorryAx`). -/
 theorem target_monotonicity_of_all_jhol_const

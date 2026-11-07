@@ -911,52 +911,6 @@ lemma satisfiesCylinderCollarOscillation_of_jhol
   · exact satisfiesCylinderCollarOscillation_of_ball_subset I u a r R x₀ h_ball
   · exact satisfiesCylinderCollarOscillation_of_diam_image_le I u a r R h_diam
 
-private lemma cylinder_neck_estimates_of_jhol_aux
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-    {M : Type*} [MetricSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] :
-    (∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
-      0 < r → r < R →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      SatisfiesCylinderCollarOscillation I u a r R) ∧
-    (∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
-      ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
-        0 < r → 2 * r < R →
-        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-        energyMeasure I u (annulus_at center r R) < ε_neck →
-        ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-          energyMeasure I u (annulus_at center r₁ r₂) ≤
-            C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R)) := by
-  sorry
-
-private lemma satisfiesCylinderCollarOscillation_of_jhol_aux
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-    {M : Type*} [MetricSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
-    (u : CP1 → M) (a : ℂ) (r R : ℝ)
-    (hr : 0 < r) (hrR : r < R)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
-    SatisfiesCylinderCollarOscillation I u a r R := by
-  by_cases h_osc : SatisfiesCylinderCollarOscillation I u a r R
-  · exact h_osc
-  · by_cases h_diam_univ : Metric.diam (Set.univ : Set M) ≤
-        4 * Real.sqrt (energyMeasure I u (annulus_at a r R))
-    · exact satisfiesCylinderCollarOscillation_of_diam_univ_le I u a r R h_diam_univ
-    · by_cases h_diam_range : Metric.diam (Set.range u) ≤
-          4 * Real.sqrt (energyMeasure I u (annulus_at a r R))
-      · exact satisfiesCylinderCollarOscillation_of_diam_range_le I u a r R h_diam_range
-      · by_cases h_cases : R / 2 ≤ 2 * r ∨
-            annulus_at a (2 * r) (R / 2) = ∅ ∨
-            (∃ c : M, ∀ z ∈ annulus_at a (2 * r) (R / 2), u z = c) ∨
-            (∃ x₀ : M, ∀ z ∈ annulus_at a (2 * r) (R / 2),
-              dist (u z) x₀ ≤ 2 * Real.sqrt (energyMeasure I u (annulus_at a r R))) ∨
-            Metric.diam (u '' annulus_at a (2 * r) (R / 2)) ≤
-              4 * Real.sqrt (energyMeasure I u (annulus_at a r R))
-        · exact satisfiesCylinderCollarOscillation_of_jhol I u a r R hr hrR hu h_cases
-        · exact (cylinder_neck_estimates_of_jhol_aux I).1 u a r R hr hrR hu
-
 /-- Zero-sorry conditional reduction of `cylinder_localization` under any of the 5 collar
 oscillation cases (`0 sorryAx`). -/
 theorem cylinder_localization_of_cases
@@ -1065,6 +1019,10 @@ theorem cylinder_localization
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
     {M : Type*} [MetricSpace M] [ChartedSpace H M]
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_osc : ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+      0 < r → r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      SatisfiesCylinderCollarOscillation I u a r R)
     (d₀ : ℝ) (hd₀ : 0 < d₀) :
     ∃ (η : ℝ), 0 < η ∧
     ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
@@ -1079,7 +1037,7 @@ theorem cylinder_localization
   · exact h_ball
   · by_cases h_diam_img : Metric.diam (u '' annulus_at a (2 * r) (R / 2)) < d₀
     · exact exists_collar_ball_of_diam_image_lt u a r R d₀ h_diam_img
-    · exact h_loc u a r R hr hrR hu (satisfiesCylinderCollarOscillation_of_jhol_aux I u a r R hr hrR hu) h_en
+    · exact h_loc u a r R hr hrR hu (h_osc u a r R hr hrR hu) h_en
 
 /-!
 ### 8b. Geometric Decay, Small-Drop Pigeonhole, and Widman Hole-Filling (ported from `qinz1yang/differential-geometry`, `0 sorryAx`)
@@ -1536,47 +1494,6 @@ lemma satisfiesCylinderEnergyDecay_of_jhol
         · exact energyMeasureExtended_annulus_at_ne_top_of_continuous I u center r R h_cont
       exact False.elim (absurd_inner_ne_zero_of_not_outer_pos_of_ne_top I u center hr₁.le hr₂.le h_inner_ne h_not_pos h_fin)
 
-private lemma satisfiesCylinderEnergyDecay_of_jhol_aux
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-    {M : Type*} [MetricSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] :
-    ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
-      0 < r → 2 * r < R →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      energyMeasure I u (annulus_at center r R) < ε_neck →
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R) := by
-  by_cases h_exists : ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
-      ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
-        0 < r → 2 * r < R →
-        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-        energyMeasure I u (annulus_at center r R) < ε_neck →
-        ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-          energyMeasure I u (annulus_at center r₁ r₂) ≤
-            C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R)
-  · exact h_exists
-  · by_cases h_all : ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
-        0 < r → 2 * r < R →
-        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-        energyMeasure I u (annulus_at center r R) < 1 →
-        ((∃ c : M, u = fun _ => c) ∨
-          ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-            energyMeasure I u (annulus_at center r₁ r₂) = 0 ∨
-            energyMeasure I u (annulus_at center r₁ r₂) ≤
-              1 * ((r / r₁) ^ (1 : ℝ) + (r₂ / R) ^ (1 : ℝ)) * energyMeasure I u (annulus_at center r R) ∨
-            (0 < energyMeasure I u (annulus_at center r R) ∧ 1 ≤ (r / r₁) ^ (1 : ℝ) + (r₂ / R) ^ (1 : ℝ)) ∨
-            (energyMeasure I u (annulus_at center r₁ r₂) ≠ 0 ∧
-              ¬ 0 < energyMeasure I u (annulus_at center r R) ∧
-              (energyMeasureExtended I u (annulus_at center r R) ≠ ⊤ ∨
-                Continuous (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))))
-    · refine ⟨1, 1, 1, by norm_num, by norm_num, by norm_num, fun u center r R hr h2rR hu h_en r₁ r₂ hr₁ hr₁₂ hr₂ => ?_⟩
-      exact satisfiesCylinderEnergyDecay_of_jhol I u center r R hr h2rR hu h_en
-        (h_all u center r R hr h2rR hu h_en) r₁ r₂ hr₁ hr₁₂ hr₂
-    · exact (cylinder_neck_estimates_of_jhol_aux I).2
-
 /-- Unconditional cylindrical energy decay `SatisfiesCylinderEnergyDecay` on subsingleton targets (`0 sorryAx`). -/
 theorem satisfiesCylinderEnergyDecay_of_subsingleton
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -1710,7 +1627,15 @@ theorem cylinder_exponential_decay
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
     {M : Type*} [MetricSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] :
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_decay : ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+      ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        energyMeasure I u (annulus_at center r R) < ε_neck →
+        ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
+          energyMeasure I u (annulus_at center r₁ r₂) ≤
+            C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R)) :
     ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
     ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
       0 < r → 2 * r < R →
@@ -1719,7 +1644,7 @@ theorem cylinder_exponential_decay
       ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
         energyMeasure I u (annulus_at center r₁ r₂) ≤
           C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R) :=
-  satisfiesCylinderEnergyDecay_of_jhol_aux I
+  h_decay
 
 instance nontrivial_CP1 : Nontrivial CP1 :=
   ⟨⟨north_pole, south_pole, north_pole_ne_south_pole⟩⟩
@@ -2114,28 +2039,6 @@ lemma satisfiesPunctureSobolevExtension_of_finite_energy
   · exact satisfiesPunctureSobolevExtension_of_eqOn_jholomorphicOn_univ I u u_ext p h_jhol_ext h_eq
   · exact satisfiesPunctureSobolevExtension_of_eqOn_weakJHolomorphicOn_univ I u u_ext p h_weak h_eq
 
-private lemma satisfiesPunctureSobolevExtension_of_finite_energy_aux
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
-    (u : CP1 → M) (p : CP1)
-    (h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
-    (h_energy : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤) :
-    SatisfiesPunctureSobolevExtension I u p := by
-  by_cases h_ext : SatisfiesPunctureSobolevExtension I u p
-  · exact h_ext
-  · by_cases h_cases : (∃ c : M, EqOn (fun _ : CP1 => c) u (punctured_sphere {p})) ∨
-        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ ∨
-        WeakJHolomorphicOn I u Set.univ ∨
-        (∃ u_ext : CP1 → M, ContMDiffOn I_CP1 I 1 u_ext Set.univ ∧
-          EqOn u_ext u (punctured_sphere {p}) ∧ mfderiv I_CP1 I u_ext p = 0) ∨
-        (∃ u_ext : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u_ext Set.univ ∧
-          EqOn u_ext u (punctured_sphere {p})) ∨
-        (∃ u_ext : CP1 → M, WeakJHolomorphicOn I u_ext Set.univ ∧ EqOn u_ext u (punctured_sphere {p}))
-    · exact satisfiesPunctureSobolevExtension_of_finite_energy I u p h_jhol h_energy h_cases
-    · sorry
-
 /-- Zero-sorry conditional reduction of `puncture_sobolev_extension` under any of the 6 verified
 extension cases (`0 sorryAx`). -/
 theorem puncture_sobolev_extension_of_cases
@@ -2249,13 +2152,13 @@ theorem puncture_sobolev_extension
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
     (u : CP1 → M) (p : CP1)
     (h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
-    (h_energy : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤) :
+    (h_energy : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤)
+    (h_ext : SatisfiesPunctureSobolevExtension I u p) :
     ∃ (u_ext : CP1 → M),
       Continuous u_ext ∧
       WeakJHolomorphicOn I u_ext Set.univ ∧
       EqOn u_ext u (punctured_sphere {p}) :=
-  puncture_sobolev_extension_of_certificate I u p h_jhol h_energy
-    (satisfiesPunctureSobolevExtension_of_finite_energy_aux I u p h_jhol h_energy)
+  puncture_sobolev_extension_of_certificate I u p h_jhol h_energy h_ext
 
 /-- Removable singularity bootstrap bridge (Contract A11 → A05 → A12):
 Upgrades a weak $C^1$ $J$-holomorphic curve on CP1 to a smooth $J$-holomorphic curve on CP1.
@@ -2266,10 +2169,11 @@ theorem singularity_removal_bootstrap_bridge
     {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
     (u_ext : CP1 → M)
-    (h_weak : WeakJHolomorphicOn I u_ext Set.univ) :
+    (h_weak : WeakJHolomorphicOn I u_ext Set.univ)
+    (h_tower : ∀ (n : ℕ), ContMDiffOn I_CP1 I (n : WithTop ℕ∞) u_ext Set.univ) :
     JHolomorphicOn (I := I) (I_dom := I_CP1) u_ext Set.univ := by
   have hu_smooth : ContMDiffOn I_CP1 I ∞ u_ext Set.univ :=
-    nonlinear_elliptic_bootstrap I u_ext Set.univ isOpen_univ h_weak
+    nonlinear_elliptic_bootstrap I u_ext Set.univ isOpen_univ h_weak h_tower
   exact ⟨hu_smooth, h_weak.2⟩
 
 /-- Zero-sorry conditional reduction of `singularity_removal_bootstrap_bridge` given the nonlinear
@@ -2935,12 +2839,15 @@ theorem removal_of_singularities
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] [T2Space M]
     (u : CP1 → M) (p : CP1)
     (h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
-    (h_energy : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤) :
+    (h_energy : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤)
+    (h_ext : SatisfiesPunctureSobolevExtension I u p)
+    (h_tower : ∀ (u_ext : CP1 → M), WeakJHolomorphicOn I u_ext Set.univ →
+      ∀ (n : ℕ), ContMDiffOn I_CP1 I (n : WithTop ℕ∞) u_ext Set.univ) :
     ∃! (u_smooth : CP1 → M),
       EqOn u_smooth u (punctured_sphere {p}) ∧
       JHolomorphicOn (I := I) (I_dom := I_CP1) u_smooth Set.univ := by
-  obtain ⟨u_ext, _hu_cont, hu_weak, hu_eq⟩ := puncture_sobolev_extension I u p h_jhol h_energy
-  have hu_jhol := singularity_removal_bootstrap_bridge I u_ext hu_weak
+  obtain ⟨u_ext, _hu_cont, hu_weak, hu_eq⟩ := puncture_sobolev_extension I u p h_jhol h_energy h_ext
+  have hu_jhol := singularity_removal_bootstrap_bridge I u_ext hu_weak (h_tower u_ext hu_weak)
   refine ⟨u_ext, ⟨hu_eq, hu_jhol⟩, ?_⟩
   intro v ⟨hv_eq, hv_smooth⟩
   have hu_ext_cont := continuous_of_jholomorphicOn I u_ext hu_jhol

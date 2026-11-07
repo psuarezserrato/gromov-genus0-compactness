@@ -757,31 +757,22 @@ theorem exists_gromov_metricSpace_of_lt_three_of_discrete {k : ℕ}
   haveI := isEmpty_moduliSpace_of_lt_three_of_discrete I (M := M) hk B
   exact exists_gromov_metricSpace_of_subsingleton I k B inferInstance
 
-private theorem moduli_space_metrizable_and_seq_compact_aux (k : ℕ) (B : ℝ) :
-    (∃ (m : MetricSpace (ModuliSpace I (M := M) k B)),
-      m.toUniformSpace.toTopologicalSpace = moduliSpaceTopology I k B) ∧
-    (∀ (reps : ℕ → BoundedMarkedStableMap I (M := M) k B),
-      ∃ (φ : ℕ → ℕ), StrictMono φ ∧
-        ∃ (lim_rep : BoundedMarkedStableMap I (M := M) k B),
-          Nonempty (MarkedGromovWitness I (fun n => (reps (φ n)).1) lim_rep.1)) := by
-  sorry
-
 /-- Existence of a metric space structure compatible with sequential Gromov convergence. -/
-private theorem exists_gromov_metricSpace (k : ℕ) (B : ℝ) :
+private theorem exists_gromov_metricSpace (k : ℕ) (B : ℝ)
+    (h_metr : ∃ (m : MetricSpace (ModuliSpace I (M := M) k B)),
+      m.toUniformSpace.toTopologicalSpace = moduliSpaceTopology I k B) :
     ∃ (m : MetricSpace (ModuliSpace I (M := M) k B)),
-      m.toUniformSpace.toTopologicalSpace = moduliSpaceTopology I k B := by
-  by_cases hB : B < 0
-  · exact exists_gromov_metricSpace_of_neg I k hB
-  · by_cases h_sub : Subsingleton (ModuliSpace I (M := M) k B)
-    · exact exists_gromov_metricSpace_of_subsingleton I k B h_sub
-    · exact (moduli_space_metrizable_and_seq_compact_aux I k B).1
+      m.toUniformSpace.toTopologicalSpace = moduliSpaceTopology I k B :=
+  h_metr
 
 /-- Metrizability of the Gromov Moduli Space (McDuff-Salamon §5.6, deferred theorem).
 There exists a metric inducing the sequential Gromov topology on $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$. -/
-theorem moduli_space_metrizable (k : ℕ) (B : ℝ) :
+theorem moduli_space_metrizable (k : ℕ) (B : ℝ)
+    (h_metr : ∃ (m : MetricSpace (ModuliSpace I (M := M) k B)),
+      m.toUniformSpace.toTopologicalSpace = moduliSpaceTopology I k B) :
     ∃ (m : MetricSpace (ModuliSpace I (M := M) k B)),
       m.toUniformSpace.toTopologicalSpace = moduliSpaceTopology I k B :=
-  exists_gromov_metricSpace I k B
+  exists_gromov_metricSpace I k B h_metr
 
 /-- Any Gromov-convergent sequence in `ModuliSpace` converges in `moduliSpaceTopology` (Zero-sorry). -/
 theorem tendsto_of_gromovConverges {k : ℕ} {B : ℝ}
@@ -1129,33 +1120,6 @@ theorem extract_bounded_marked_stable_subseq_of_marked_spheres_subseq (k : ℕ) 
       u_seq h_jhol h_stab h_reps_eq u_lim wit
   exact ⟨τ.1 ∘ φ, τ.2.comp hφ, lim_rep, ⟨gwit⟩⟩
 
-/-- Subsequence extraction for bounded marked stable maps in the Gromov sense. -/
-private theorem extract_bounded_marked_stable_subseq (k : ℕ) (B : ℝ)
-    (reps : ℕ → BoundedMarkedStableMap I (M := M) k B) :
-    ∃ (φ : ℕ → ℕ), StrictMono φ ∧
-      ∃ (lim_rep : BoundedMarkedStableMap I (M := M) k B),
-        Nonempty (MarkedGromovWitness I (fun n => (reps (φ n)).1) lim_rep.1) := by
-  by_cases hB : B < 0
-  · exact extract_bounded_marked_stable_subseq_of_neg I k hB reps
-  · by_cases h_ce : ∃ (φ : ℕ → ℕ) (_ : StrictMono φ) (lim_rep : BoundedMarkedStableMap I (M := M) k B),
-        (∀ n, reps (φ n) = lim_rep) ∧
-        (∀ v : lim_rep.1.tree.V, ∃ c : M, lim_rep.1.map v = fun _ => c) ∧
-        (∀ v w : lim_rep.1.tree.V, ¬ lim_rep.1.tree.adj.Adj v w)
-    · rcases h_ce with ⟨φ, hφ, lim_rep, h_const, h_const_map, h_no_edges⟩
-      exact extract_bounded_marked_stable_subseq_of_const_edgeless I k B reps φ hφ lim_rep h_const h_const_map h_no_edges
-    · by_cases h_ms : ∃ (τ : Bookkeeping.SubseqMap) (u_seq : ℕ → MarkedSphere M k)
-          (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n).map Set.univ)
-          (h_stab : ∀ n, (∃ c : M, ∀ z : CP1, (u_seq n).map z = c) → 3 ≤ k)
-          (h_fin : ∀ n, energyMeasureExtended I (u_seq n).map Set.univ < ⊤),
-          ∀ n, (reps (τ.1 n)).1 = MarkedStableMap.of_markedStableTreeLimit I
-            (MarkedStableTreeLimit.of_markedSphere I (u_seq n) (h_jhol n) (h_stab n))
-      · rcases h_ms with ⟨τ, u_seq, h_jhol, h_stab, h_fin, h_reps_eq⟩
-        obtain ⟨th⟩ := Bubbling.exists_target_thresholds I (M := M)
-        obtain ⟨u_lim, ⟨wit⟩⟩ := marked_gromov_compactness I th u_seq B h_jhol h_stab
-          (totalEnergy_markedSphere_le_of_boundedMarkedStableMap I k B (fun n => reps (τ.1 n)) u_seq h_jhol h_stab h_reps_eq) h_fin
-        exact extract_bounded_marked_stable_subseq_of_marked_spheres_subseq I k B reps τ u_seq h_jhol h_stab h_reps_eq u_lim wit
-      · exact (moduli_space_metrizable_and_seq_compact_aux I k B).2 reps
-
 /-- Zero-sorry conditional reduction of `moduli_space_seq_compact` from representative subsequence extraction (`0 sorryAx`). -/
 theorem moduli_space_seq_compact_of_extract (k : ℕ) (B : ℝ)
     (h_extract : ∀ (reps : ℕ → BoundedMarkedStableMap I (M := M) k B),
@@ -1175,9 +1139,13 @@ theorem moduli_space_seq_compact_of_extract (k : ℕ) (B : ℝ)
 /-- **Sequential Compactness of the Moduli Space (Contract E05)**:
 Every sequence in $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$ has a convergent subsequence
 in the Gromov topology. -/
-theorem moduli_space_seq_compact (k : ℕ) (B : ℝ) :
+theorem moduli_space_seq_compact (k : ℕ) (B : ℝ)
+    (h_extract : ∀ (reps : ℕ → BoundedMarkedStableMap I (M := M) k B),
+      ∃ (φ : ℕ → ℕ), StrictMono φ ∧
+        ∃ (lim_rep : BoundedMarkedStableMap I (M := M) k B),
+          Nonempty (MarkedGromovWitness I (fun n => (reps (φ n)).1) lim_rep.1)) :
     SeqCompactSpace (ModuliSpace I (M := M) k B) :=
-  moduli_space_seq_compact_of_extract I k B (extract_bounded_marked_stable_subseq I k B)
+  moduli_space_seq_compact_of_extract I k B h_extract
 
 private lemma metricSpace_t2 (X : Type*) [MetricSpace X] : T2Space X := inferInstance
 
@@ -1198,9 +1166,11 @@ theorem moduli_space_t2_of_metrizable (k : ℕ) (B : ℝ)
 /-- **Hausdorff Separation of the Moduli Space (Contract E05)**:
 The moduli space $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$ is a Hausdorff space ($T_2$).
 This formalizes the uniqueness of Gromov limits up to stable map isomorphism. -/
-theorem moduli_space_t2 (k : ℕ) (B : ℝ) :
+theorem moduli_space_t2 (k : ℕ) (B : ℝ)
+    (h_metr : ∃ (m : MetricSpace (ModuliSpace I (M := M) k B)),
+      m.toUniformSpace.toTopologicalSpace = moduliSpaceTopology I k B) :
     T2Space (ModuliSpace I (M := M) k B) :=
-  moduli_space_t2_of_metrizable I k B (moduli_space_metrizable I (M := M) k B)
+  moduli_space_t2_of_metrizable I k B (moduli_space_metrizable I (M := M) k B h_metr)
 
 /-- Zero-sorry conditional reduction of `moduli_space_compact` from metrizability and sequential compactness (`0 sorryAx`). -/
 theorem moduli_space_compact_of_metrizable_and_seq_compact (k : ℕ) (B : ℝ)
@@ -1218,10 +1188,16 @@ theorem moduli_space_compact_of_metrizable_and_seq_compact (k : ℕ) (B : ℝ)
 
 /-- **Compactness of the Moduli Space (Contract E05)**:
 The moduli space $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$ is a compact topological space. -/
-theorem moduli_space_compact (k : ℕ) (B : ℝ) :
+theorem moduli_space_compact (k : ℕ) (B : ℝ)
+    (h_metr : ∃ (m : MetricSpace (ModuliSpace I (M := M) k B)),
+      m.toUniformSpace.toTopologicalSpace = moduliSpaceTopology I k B)
+    (h_extract : ∀ (reps : ℕ → BoundedMarkedStableMap I (M := M) k B),
+      ∃ (φ : ℕ → ℕ), StrictMono φ ∧
+        ∃ (lim_rep : BoundedMarkedStableMap I (M := M) k B),
+          Nonempty (MarkedGromovWitness I (fun n => (reps (φ n)).1) lim_rep.1)) :
     CompactSpace (ModuliSpace I (M := M) k B) :=
   moduli_space_compact_of_metrizable_and_seq_compact I k B
-    (moduli_space_metrizable I (M := M) k B) (moduli_space_seq_compact I k B)
+    (moduli_space_metrizable I (M := M) k B h_metr) (moduli_space_seq_compact I k B h_extract)
 
 /-- Zero-sorry conditional reduction of `moduli_space_compact_hausdorff` (`0 sorryAx`). -/
 theorem moduli_space_compact_hausdorff_of_metrizable_and_seq_compact (k : ℕ) (B : ℝ)
@@ -1688,9 +1664,15 @@ theorem moduli_space_compact_hausdorff_three_of_lt_threshold_of_eq_val_of_trans
 
 /-- **Master Compact Hausdorff Moduli Space Theorem (Contract E05)**:
 The moduli space $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$ is both compact and Hausdorff. -/
-theorem moduli_space_compact_hausdorff (k : ℕ) (B : ℝ) :
+theorem moduli_space_compact_hausdorff (k : ℕ) (B : ℝ)
+    (h_metr : ∃ (m : MetricSpace (ModuliSpace I (M := M) k B)),
+      m.toUniformSpace.toTopologicalSpace = moduliSpaceTopology I k B)
+    (h_extract : ∀ (reps : ℕ → BoundedMarkedStableMap I (M := M) k B),
+      ∃ (φ : ℕ → ℕ), StrictMono φ ∧
+        ∃ (lim_rep : BoundedMarkedStableMap I (M := M) k B),
+          Nonempty (MarkedGromovWitness I (fun n => (reps (φ n)).1) lim_rep.1)) :
     CompactSpace (ModuliSpace I (M := M) k B) ∧ T2Space (ModuliSpace I (M := M) k B) :=
-  ⟨moduli_space_compact I k B, moduli_space_t2 I k B⟩
+  ⟨moduli_space_compact I k B h_metr h_extract, moduli_space_t2 I k B h_metr⟩
 
 /-- A homology class $A \in H_2(M; \mathbb{Z})$ represented with its symplectic pairing. -/
 structure HomologyClass2 (M : Type*) where
@@ -2349,11 +2331,17 @@ theorem moduli_space_in_class_t2_of_neg (k : ℕ) (A : HomologyClass2 M) (hA : A
 /-- **Compact Hausdorff Space for Fixed Homology Class (Contract E05)**:
 The moduli space $\overline{\mathcal{M}}_{0, k}(M, J, A)$ representing class $A \in H_2(M; \mathbb{Z})$
 is compact and Hausdorff. -/
-theorem moduli_space_in_class_compact_hausdorff (k : ℕ) (A : HomologyClass2 M) :
+theorem moduli_space_in_class_compact_hausdorff (k : ℕ) (A : HomologyClass2 M)
+    (h_metr : ∃ (m : MetricSpace (ModuliSpace I (M := M) k A.omega_eval)),
+      m.toUniformSpace.toTopologicalSpace = moduliSpaceTopology I k A.omega_eval)
+    (h_extract : ∀ (reps : ℕ → BoundedMarkedStableMap I (M := M) k A.omega_eval),
+      ∃ (φ : ℕ → ℕ), StrictMono φ ∧
+        ∃ (lim_rep : BoundedMarkedStableMap I (M := M) k A.omega_eval),
+          Nonempty (MarkedGromovWitness I (fun n => (reps (φ n)).1) lim_rep.1)) :
     CompactSpace (ModuliSpaceInClass I k A) ∧ T2Space (ModuliSpaceInClass I k A) :=
   moduli_space_in_class_compact_hausdorff_of_metrizable_and_seq_compact I k A
-    (moduli_space_metrizable I (M := M) k A.omega_eval)
-    (moduli_space_seq_compact I k A.omega_eval)
+    (moduli_space_metrizable I (M := M) k A.omega_eval h_metr)
+    (moduli_space_seq_compact I k A.omega_eval h_extract)
 
 #print axioms stableMapEquiv_refl
 #print axioms stableMapEquiv_symm

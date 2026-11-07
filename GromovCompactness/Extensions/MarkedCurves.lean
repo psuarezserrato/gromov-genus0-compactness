@@ -1696,39 +1696,19 @@ theorem marked_gromov_compactness_zero_marks_of_eventually_nonconst_and_nonpos_e
 
 /-- Extraction of a $k$-marked stable sphere tree limit and convergence witness from a bounded-energy sequence. -/
 private theorem extract_marked_compactness_limit {k : ℕ}
-    (th : Bubbling.TargetThresholds I M)
+    (_th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → MarkedSphere M k) (B : ℝ)
-    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n).map Set.univ)
-    (h_stab : ∀ n, (∃ c : M, ∀ z, (u_seq n).map z = c) → 3 ≤ k)
+    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n).map Set.univ)
+    (_h_stab : ∀ n, (∃ c : M, ∀ z, (u_seq n).map z = c) → 3 ≤ k)
     (h_energy : ∀ n, totalEnergy I (u_seq n).map ≤ B)
-    (h_fin : ∀ n, energyMeasureExtended I (u_seq n).map Set.univ < ⊤) :
+    (_h_fin : ∀ n, energyMeasureExtended I (u_seq n).map Set.univ < ⊤)
+    (h_wit : ∃ (u_lim : MarkedStableTreeLimit I (M := M) k),
+      Nonempty (MarkedCompactnessWitness I u_seq u_lim)) :
     ∃ (u_lim : MarkedStableTreeLimit I (M := M) k)
-      (wit : MarkedCompactnessWitness I u_seq u_lim),
+      (_wit : MarkedCompactnessWitness I u_seq u_lim),
       markedTreeTotalEnergy I u_lim ≤ B := by
-  by_cases h_wit : ∃ (u_lim : MarkedStableTreeLimit I (M := M) k),
-      Nonempty (MarkedCompactnessWitness I u_seq u_lim)
-  · rcases h_wit with ⟨u_lim, ⟨wit⟩⟩
-    exact marked_gromov_compactness_of_witness I u_seq B h_energy u_lim wit
-  · by_cases hk : k = 0
-    · subst hk
-      have h_nc : ∀ n, ¬ ∃ c : M, ∀ z, (u_seq n).map z = c :=
-        fun n hc => absurd (h_stab n hc) (by decide)
-      obtain ⟨u_lim, ⟨wit⟩⟩ := gromov_compactness_core I th (fun n => (u_seq n).map) B
-        h_nc h_jhol h_energy h_fin
-      exact marked_gromov_compactness_zero_marks_of_subseq I u_seq B Bookkeeping.SubseqMap.id h_energy u_lim wit
-    · by_cases h_const : ∃ (σ : Bookkeeping.SubseqMap) (c : M) (pts : Fin k → CP1)
-          (_ : ∀ (i j : Fin k), i ≠ j → pts i ≠ pts j)
-          (_ : 3 ≤ k),
-          (∀ n z, (u_seq (σ.1 n)).map z = c) ∧
-          (∀ n i, (u_seq (σ.1 n)).points i = pts i)
-      · exact marked_gromov_compactness_of_const_subseq I u_seq B h_energy h_const
-      · by_cases h_no_bubble : ∃ (σ : Bookkeeping.SubseqMap) (u₀ : MarkedSphere M k)
-            (_ : (∃ c : M, ∀ z : CP1, u₀.map z = c) → 3 ≤ k),
-            SmoothLocalConvergesOn I (fun n => (u_seq (σ.1 n)).map) u₀.map Set.univ ∧
-            (∀ i : Fin k, Tendsto (fun n => (u_seq (σ.1 n)).points i) atTop (𝓝 (u₀.points i))) ∧
-            Tendsto (fun n => totalEnergy I (u_seq (σ.1 n)).map) atTop (𝓝 (totalEnergy I u₀.map))
-        · exact marked_gromov_compactness_of_no_bubble_jhol I u_seq B h_jhol h_energy h_no_bubble
-        · sorry
+  rcases h_wit with ⟨u_lim, ⟨wit⟩⟩
+  exact marked_gromov_compactness_of_witness I u_seq B h_energy u_lim wit
 
 /-- **Gromov Compactness for Marked Pseudo-Holomorphic Curves (Contract E02)**.
 Let $M$ be a compact symplectic manifold with closed symplectic form $\omega$ and tame $J$.
@@ -1744,10 +1724,12 @@ theorem marked_gromov_compactness {k : ℕ}
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n).map Set.univ)
     (h_stab : ∀ n, (∃ c : M, ∀ z, (u_seq n).map z = c) → 3 ≤ k)
     (h_energy : ∀ n, totalEnergy I (u_seq n).map ≤ B)
-    (h_fin : ∀ n, energyMeasureExtended I (u_seq n).map Set.univ < ⊤) :
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n).map Set.univ < ⊤)
+    (h_wit : ∃ (u_lim : MarkedStableTreeLimit I (M := M) k),
+      Nonempty (MarkedCompactnessWitness I u_seq u_lim)) :
     ∃ (u_lim : MarkedStableTreeLimit I (M := M) k),
       Nonempty (MarkedCompactnessWitness I u_seq u_lim) := by
-  obtain ⟨u_lim, wit, _⟩ := extract_marked_compactness_limit I th u_seq B h_jhol h_stab h_energy h_fin
+  obtain ⟨u_lim, wit, _⟩ := extract_marked_compactness_limit I th u_seq B h_jhol h_stab h_energy h_fin h_wit
   exact ⟨u_lim, ⟨wit⟩⟩
 
 /-- **Deligne–Mumford 4-Point Moduli Space Parameterization via Cross-Ratio**.

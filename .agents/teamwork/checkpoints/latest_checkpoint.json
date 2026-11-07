@@ -1,10 +1,10 @@
 {
-  "checkpoint_id": "chk_20261105T090929Z_phase5_complete",
-  "timestamp": "2026-11-05T09:09:29Z",
-  "label": "phase5_complete",
-  "notes": "",
-  "workflow_state": "RUNNING",
-  "is_paused": false,
+  "checkpoint_id": "chk_20261107T051251Z_manual_checkpoint",
+  "timestamp": "2026-11-07T05:12:51Z",
+  "label": "manual_checkpoint",
+  "notes": "Paused at commit bbec245: Mathlib v4.35.0, 3207/3239 clean declarations, 32 sorryAx-dependent, 11 direct sorry leaves, 19/45 tracked declarations 0 sorryAx",
+  "workflow_state": "PAUSED",
+  "is_paused": true,
   "active_phase": "Phase 4: Complete Formally Verified Theorem (Complete)",
   "progress_percentage": 100.0,
   "phase1_percentage": 100.0,
@@ -22,175 +22,175 @@
       "exists": true,
       "path": "GromovCompactness/Geometry/Target.lean",
       "lines": 192,
-      "size_bytes": 10786,
+      "size_bytes": 10828,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "F02": {
       "exists": true,
       "path": "GromovCompactness/Geometry/Sphere.lean",
-      "lines": 1316,
-      "size_bytes": 63269,
+      "lines": 1430,
+      "size_bytes": 67526,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "F03": {
       "exists": true,
       "path": "GromovCompactness/Analysis/Energy.lean",
-      "lines": 1015,
-      "size_bytes": 47950,
+      "lines": 1027,
+      "size_bytes": 48625,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "F04": {
       "exists": true,
       "path": "GromovCompactness/Topology/SmoothLocal.lean",
-      "lines": 202,
-      "size_bytes": 10436,
+      "lines": 410,
+      "size_bytes": 21227,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "F05": {
       "exists": true,
       "path": "GromovCompactness/Topology/Subsequence.lean",
-      "lines": 114,
-      "size_bytes": 4511,
+      "lines": 115,
+      "size_bytes": 4554,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "F06": {
       "exists": true,
       "path": "GromovCompactness/Topology/SphereTree.lean",
-      "lines": 455,
-      "size_bytes": 23360,
+      "lines": 465,
+      "size_bytes": 23795,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "A01": {
       "exists": true,
       "path": "GromovCompactness/Analysis/Monotonicity.lean",
-      "lines": 203,
-      "size_bytes": 9077,
+      "lines": 2554,
+      "size_bytes": 144035,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "A02": {
       "exists": true,
       "path": "GromovCompactness/Analysis/Bochner.lean",
-      "lines": 212,
-      "size_bytes": 10089,
+      "lines": 986,
+      "size_bytes": 54876,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "A03": {
       "exists": true,
       "path": "GromovCompactness/Analysis/EpsilonRegularity.lean",
-      "lines": 83,
-      "size_bytes": 4075,
+      "lines": 882,
+      "size_bytes": 51182,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "A04": {
       "exists": true,
       "path": "GromovCompactness/Analysis/EllipticBootstrap.lean",
-      "lines": 1040,
-      "size_bytes": 51181,
+      "lines": 6921,
+      "size_bytes": 391470,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "A05": {
       "exists": true,
       "path": "GromovCompactness/Analysis/EllipticBootstrap.lean",
-      "lines": 1040,
-      "size_bytes": 51181,
+      "lines": 6921,
+      "size_bytes": 391470,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "A06": {
       "exists": true,
       "path": "GromovCompactness/Analysis/EllipticBootstrap.lean",
-      "lines": 1040,
-      "size_bytes": 51181,
+      "lines": 6921,
+      "size_bytes": 391470,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "A07": {
       "exists": true,
       "path": "GromovCompactness/Analysis/EnergyGap.lean",
-      "lines": 280,
-      "size_bytes": 11825,
+      "lines": 1193,
+      "size_bytes": 60825,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "A08": {
       "exists": true,
       "path": "GromovCompactness/Analysis/Monotonicity.lean",
-      "lines": 203,
-      "size_bytes": 9077,
+      "lines": 2554,
+      "size_bytes": 144035,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "A09": {
       "exists": true,
       "path": "GromovCompactness/Analysis/SingularityRemoval.lean",
-      "lines": 624,
-      "size_bytes": 30313,
+      "lines": 2953,
+      "size_bytes": 165043,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "A10": {
       "exists": true,
       "path": "GromovCompactness/Analysis/SingularityRemoval.lean",
-      "lines": 624,
-      "size_bytes": 30313,
+      "lines": 2953,
+      "size_bytes": 165043,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "A11": {
       "exists": true,
       "path": "GromovCompactness/Analysis/SingularityRemoval.lean",
-      "lines": 624,
-      "size_bytes": 30313,
+      "lines": 2953,
+      "size_bytes": 165043,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "A12": {
       "exists": true,
       "path": "GromovCompactness/Analysis/SingularityRemoval.lean",
-      "lines": 624,
-      "size_bytes": 30313,
+      "lines": 2953,
+      "size_bytes": 165043,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "C01": {
       "exists": true,
       "path": "GromovCompactness/Compactness/Measures.lean",
-      "lines": 183,
-      "size_bytes": 9330,
+      "lines": 833,
+      "size_bytes": 47272,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "C02": {
       "exists": true,
       "path": "GromovCompactness/Compactness/Concentration.lean",
-      "lines": 156,
-      "size_bytes": 8208,
+      "lines": 1684,
+      "size_bytes": 96583,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "C03": {
       "exists": true,
       "path": "GromovCompactness/Compactness/Defect.lean",
-      "lines": 132,
-      "size_bytes": 7239,
+      "lines": 1590,
+      "size_bytes": 93049,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "B01": {
       "exists": true,
       "path": "GromovCompactness/Analysis/HoferRescaling.lean",
-      "lines": 622,
-      "size_bytes": 30856,
+      "lines": 1066,
+      "size_bytes": 56640,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "B02": {
       "exists": true,
       "path": "GromovCompactness/Analysis/HoferRescaling.lean",
-      "lines": 622,
-      "size_bytes": 30856,
+      "lines": 1066,
+      "size_bytes": 56640,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "B03": {
       "exists": true,
       "path": "GromovCompactness/Bubbling/Neck.lean",
-      "lines": 110,
-      "size_bytes": 5250,
+      "lines": 1296,
+      "size_bytes": 76295,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "B04": {
       "exists": true,
       "path": "GromovCompactness/Bubbling/OneLevel.lean",
-      "lines": 199,
-      "size_bytes": 9072,
+      "lines": 1230,
+      "size_bytes": 68740,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "B05": {
@@ -204,35 +204,35 @@
       "exists": true,
       "path": "GromovCompactness/Bubbling/Rank.lean",
       "lines": 137,
-      "size_bytes": 6850,
+      "size_bytes": 6849,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "B07": {
       "exists": true,
       "path": "GromovCompactness/Bubbling/LocalTree.lean",
-      "lines": 304,
-      "size_bytes": 14810,
+      "lines": 1064,
+      "size_bytes": 59592,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "G01": {
       "exists": true,
       "path": "GromovCompactness/Compactness/Assembly.lean",
-      "lines": 319,
-      "size_bytes": 16718,
+      "lines": 2065,
+      "size_bytes": 117299,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "G02": {
       "exists": true,
       "path": "GromovCompactness/Compactness/Stabilize.lean",
-      "lines": 282,
-      "size_bytes": 15208,
+      "lines": 3786,
+      "size_bytes": 210882,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "G03": {
       "exists": true,
       "path": "GromovCompactness/Compactness/GenusZero.lean",
-      "lines": 198,
-      "size_bytes": 10446,
+      "lines": 963,
+      "size_bytes": 54084,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "G04": {
@@ -245,46 +245,55 @@
     "G05": {
       "exists": true,
       "path": "GromovCompactness/Main.lean",
-      "lines": 101,
-      "size_bytes": 5735,
+      "lines": 775,
+      "size_bytes": 48966,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "E01": {
       "exists": true,
       "path": "GromovCompactness/Extensions/VaryingJ.lean",
-      "lines": 336,
-      "size_bytes": 17336,
+      "lines": 1694,
+      "size_bytes": 97619,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "E02": {
       "exists": true,
       "path": "GromovCompactness/Extensions/MarkedCurves.lean",
-      "lines": 373,
-      "size_bytes": 20356,
+      "lines": 1794,
+      "size_bytes": 101356,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "E03": {
       "exists": true,
       "path": "GromovCompactness/Extensions/Homology.lean",
-      "lines": 208,
-      "size_bytes": 11668,
+      "lines": 209,
+      "size_bytes": 11710,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "E04": {
       "exists": true,
       "path": "GromovCompactness/Extensions/Automorphisms.lean",
-      "lines": 537,
-      "size_bytes": 27341,
+      "lines": 798,
+      "size_bytes": 42863,
       "status": "SCAFFOLDED_OR_VERIFIED"
     },
     "E05": {
       "exists": true,
       "path": "GromovCompactness/Extensions/ModuliSpace.lean",
-      "lines": 356,
-      "size_bytes": 18489,
+      "lines": 2366,
+      "size_bytes": 144411,
       "status": "SCAFFOLDED_OR_VERIFIED"
     }
   },
-  "pause_details": null,
+  "pause_details": {
+    "paused": true,
+    "paused_at": "2026-11-07T05:12:39Z",
+    "reason": "User requested pause after external library integration (commit bbec245, 32 sorryAx-dependent declarations, 11 direct sorry leaves)",
+    "active_task": "Phase 1: Foundations & Bookkeeping Layer",
+    "user": "pablosuarez",
+    "completed_contracts_at_pause": 39,
+    "progress_percentage_at_pause": 100.0,
+    "metadata": {}
+  },
   "metadata": {}
 }

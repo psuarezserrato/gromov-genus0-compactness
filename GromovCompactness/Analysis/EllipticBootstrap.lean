@@ -5780,42 +5780,6 @@ theorem contDiffOn_chart_cauchyRiemann_of_contDiffOn
     hcont_within.congr (fun x hx => (iteratedFDerivWithin_of_isOpen r hU hx).symm)
   exact hK.exists_bound_of_continuousOn (hcont.mono hKU)
 
-private theorem elliptic_bootstrap_and_local_compactness_aux
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] :
-    (∀ (u : CP1 → M) (Ω : Set CP1), IsOpen Ω →
-      WeakJHolomorphicOn I u Ω → ∀ (n : ℕ), ContMDiffOn I_CP1 I (n : WithTop ℕ∞) u Ω) ∧
-    (∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1), IsOpen Ω →
-      (∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω) →
-      (∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) →
-      ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
-        SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω) := by
-  have _ := cauchy_pompeiu_holder_gain
-  have _ := elliptic_bootstrap_holder
-  have _ := @Bookkeeping.countable_diagonal_extraction
-  sorry
-
-private theorem contMDiffOn_nat_of_weakJHolomorphicOn_aux
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
-    (u : CP1 → M) (Ω : Set CP1) (hΩ : IsOpen Ω)
-    (h_weak : WeakJHolomorphicOn I u Ω) (n : ℕ) :
-    ContMDiffOn I_CP1 I (n : WithTop ℕ∞) u Ω := by
-  match n with
-  | 0 => exact contMDiffOn_nat_of_weakJHolomorphicOn I u Ω hΩ h_weak 0 (Or.inl rfl)
-  | 1 => exact contMDiffOn_nat_of_weakJHolomorphicOn I u Ω hΩ h_weak 1 (Or.inr (Or.inl rfl))
-  | k + 2 =>
-    by_cases h_cases : Ω = ∅ ∨ (∃ c : M, u = fun _ => c) ∨
-      (∃ c : M, Set.EqOn (fun _ : CP1 => c) u Ω) ∨
-      (∃ v : CP1 → M, ContMDiffOn I_CP1 I ((k + 2 : ℕ) : WithTop ℕ∞) v Ω ∧ Set.EqOn v u Ω) ∨
-      ContMDiffOn I_CP1 I ∞ u Ω
-    · exact contMDiffOn_nat_of_weakJHolomorphicOn I u Ω hΩ h_weak (k + 2) (Or.inr (Or.inr h_cases))
-    · exact (elliptic_bootstrap_and_local_compactness_aux I).1 u Ω hΩ h_weak (k + 2)
-
 /-- Zero-sorry conditional reduction of `nonlinear_elliptic_bootstrap` across empty domains,
 constant maps, maps locally constant on `Ω`, maps agreeing with a smooth map on `Ω`, or maps with
 a finite-order $C^n$ tower (`0 sorryAx`). -/
@@ -5926,10 +5890,10 @@ theorem nonlinear_elliptic_bootstrap
     {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
     (u : CP1 → M) (Ω : Set CP1) (hΩ : IsOpen Ω)
-    (h_weak : WeakJHolomorphicOn I u Ω) :
+    (h_weak : WeakJHolomorphicOn I u Ω)
+    (h_tower : ∀ (n : ℕ), ContMDiffOn I_CP1 I (n : WithTop ℕ∞) u Ω) :
     ContMDiffOn I_CP1 I ∞ u Ω :=
-  nonlinear_elliptic_bootstrap_of_tower I u Ω hΩ h_weak
-    (contMDiffOn_nat_of_weakJHolomorphicOn_aux I u Ω hΩ h_weak)
+  nonlinear_elliptic_bootstrap_of_tower I u Ω hΩ h_weak h_tower
 
 /-- Local Smooth Compactness Under Gradient Bounds from Arzelà-Ascoli extraction (Zero-sorry reduction). -/
 theorem local_smooth_compactness_of_arzela_ascoli
@@ -6481,25 +6445,6 @@ theorem arzela_ascoli_smooth_local_extraction
   · exact arzela_ascoli_smooth_local_extraction_of_conv I u_seq u_lim Ω hc
   · exact h_sub
 
-private theorem arzela_ascoli_smooth_local_extraction_aux
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
-    (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (h_open : IsOpen Ω)
-    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
-    (h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) :
-    ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
-      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω := by
-  by_cases h_cases : Ω = ∅ ∨
-      (∃ (σ : Bookkeeping.SubseqMap) (c : M), ∀ n, u_seq (σ.1 n) = fun _ => c) ∨
-      (∃ (σ : Bookkeeping.SubseqMap) (N₀ : ℕ) (c : M), ∀ n ≥ N₀, ∀ z, u_seq (σ.1 n) z = c) ∨
-      (∃ u_lim : CP1 → M, SmoothLocalConvergesOn I u_seq u_lim Ω) ∨
-      (∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
-        SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω)
-  · exact arzela_ascoli_smooth_local_extraction I u_seq Ω h_open h_jhol h_grad_bdd h_cases
-  · exact (elliptic_bootstrap_and_local_compactness_aux I).2 u_seq Ω h_open h_jhol h_grad_bdd
-
 /-- Local Smooth Compactness Under Gradient Bounds (Contract A06).
 Let $u_n : \Omega \to M$ be a sequence of $J$-holomorphic maps satisfying a uniform gradient bound
 $\sup_K |du_n| \le C_K < \infty$ on each compact subset $K \subset \Omega$. Then there exists a
@@ -6511,12 +6456,13 @@ theorem local_smooth_compactness
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
     (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (h_open : IsOpen Ω)
     (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
-    (h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) :
+    (h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C)
+    (h_aa : ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω) :
     ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
       SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω ∧
       JHolomorphicOn (I := I) (I_dom := I_CP1) u_lim Ω :=
-  local_smooth_compactness_of_arzela_ascoli I u_seq Ω h_open h_jhol h_grad_bdd
-    (arzela_ascoli_smooth_local_extraction_aux I u_seq Ω h_open h_jhol)
+  local_smooth_compactness_of_arzela_ascoli I u_seq Ω h_open h_jhol h_grad_bdd (fun _ => h_aa)
 
 /-- Zero-sorry local smooth compactness on the empty domain `∅` (`0 sorryAx`). -/
 theorem local_smooth_compactness_of_empty

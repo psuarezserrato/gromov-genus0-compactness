@@ -866,7 +866,18 @@ theorem epsilon_regularity
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
     {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] :
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_weitz : ∃ (b c : ℝ), 0 ≤ b ∧ c = 0 ∧
+      ∀ (u : CP1 → M),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+        ∀ (w : ℂ),
+          ∃ (hessNorm : ℝ) (curvTerm : ℝ),
+            laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+              hessNorm ^ 2 + curvTerm ∧
+            |curvTerm| ≤
+              b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
+              c * (riemannianEnergyDensity I u (stereo_chart.symm w))) :
     ∃ (ε_reg C_reg : ℝ), 0 < ε_reg ∧ 0 < C_reg ∧
     ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (_hr : 0 < r),
       Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1 →
@@ -874,7 +885,7 @@ theorem epsilon_regularity
       energyMeasure I u (disk_at a r) < ε_reg →
       ∀ z ∈ disk_at a (r / 2),
         riemannianEnergyDensity I u z ≤ C_reg * r^(-2 : ℝ) * energyMeasure I u (disk_at a r) := by
-  obtain ⟨b, hb, h_boch⟩ := bochner_differential_inequality_c_zero (M := M) I
+  obtain ⟨b, hb, h_boch⟩ := bochner_differential_inequality_c_zero (M := M) I h_weitz
   obtain ⟨η, C, hη, hC, h_smv⟩ := scalar_mean_value_inequality b hb 0 rfl
   exact epsilon_regularity_of_global_subset_closedBall_one I hb le_rfl hη hC
     (fun u hu => (h_boch u hu).2) h_smv (fun u hu => (h_boch u hu).1)

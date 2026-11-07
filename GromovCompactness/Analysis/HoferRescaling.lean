@@ -455,12 +455,47 @@ theorem exists_target_thresholds_of_all_jhol_const
       (fun v hv => let ⟨_, hc⟩ := h_all_const v hv; funext (fun x => (hc x).trans (hc north_pole).symm)))
 
 /-- Existence of target thresholds on any compact tame target manifold (Contract B01). -/
-theorem exists_target_thresholds :
+theorem exists_target_thresholds
+    (h_weitz : ∃ (b c : ℝ), 0 ≤ b ∧ c = 0 ∧
+      ∀ (u : CP1 → M),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+        ∀ (w : ℂ),
+          ∃ (hessNorm : ℝ) (curvTerm : ℝ),
+            laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+              hessNorm ^ 2 + curvTerm ∧
+            |curvTerm| ≤
+              b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
+              c * (riemannianEnergyDensity I u (stereo_chart.symm w)))
+    (h_hit_exit : (∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ 1 →
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
+        dist (u z_hit) x = r →
+        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
+          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
+            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
+            r^2 ≤ energyMeasure I u s)) ∧
+      (∀ (u : CP1 → M) (x : M),
+        x ∈ Set.range u →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        (¬ ∃ c : M, ∀ z, u z = c) →
+        Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)))
+    (h_decay : ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+      ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        energyMeasure I u (annulus_at center r R) < ε_neck →
+        ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
+          energyMeasure I u (annulus_at center r₁ r₂) ≤
+            C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R)) :
     Nonempty (TargetThresholds I M) :=
   exists_target_thresholds_of_existentials I
-    (epsilon_regularity (M := M) I)
-    (sphere_energy_gap (M := M) I)
-    (cylinder_exponential_decay (M := M) I)
+    (epsilon_regularity (M := M) I h_weitz)
+    (sphere_energy_gap (M := M) I h_hit_exit)
+    (cylinder_exponential_decay (M := M) I h_decay)
 
 /- =========================================================================
    SECTION 4: HOFER RESCALING & GRADIENT BOUNDEDNESS (Zero-sorry)

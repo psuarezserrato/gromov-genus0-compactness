@@ -1110,47 +1110,6 @@ theorem extract_grafted_tree_rescaling_and_conv_of_eventually_nonpos_energy
   extract_grafted_tree_rescaling_and_conv_of_eventually_lt_eps_sph I u_seq h_jhol B th cdata m_defect P N₀
     (fun n hn => (h_ev n hn).trans_lt th.ε_sph_pos)
 
-private theorem extract_grafted_tree_rescaling_and_conv_aux
-    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
-    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
-    (_h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
-    (_h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
-    (th : Bubbling.TargetThresholds I M)
-    (cdata : Compactness.ConcentrationData I u_seq B th)
-    (m_defect : CP1 → ℝ)
-    (P : PartialRootGraftedTree I u_seq B th cdata m_defect cdata.S) :
-    ∃ (σ : Bookkeeping.SubseqMap) (res : TreeRescalingData P.tree P.root),
-      (∀ (frames : (v : P.tree.V) → ℕ → MoebiusFrame),
-        (∀ n, frames P.root n = MoebiusFrame.id) →
-        (∀ (w : P.tree.V) (hw : w ≠ P.root) (n : ℕ),
-          frames w n = MoebiusFrame.comp (frames (res.parent w hw) n)
-            (affine_scaling (res.center w n) (res.scale w n) (res.scale_pos w n))) →
-        (∀ (v : P.tree.V),
-          SmoothLocalConvergesOn I
-            (fun n => (u_seq (σ.1 n)) ∘ (frames v n).toHomeo)
-            (P.map v)
-            (punctured_sphere { z | ∃ (w : P.tree.V) (h : P.tree.adj.Adj v w), z = P.tree.node_point v w h })) ∧
-        (P.tree.adj.degree P.root = 1 → (∃ c : M, ∀ z : CP1, P.map P.root z = c) →
-          ∀ (w₀ : P.tree.V) (hw₀_adj : P.tree.adj.Adj P.root w₀),
-            SmoothLocalConvergesOn I
-              (fun n => (u_seq (σ.1 n)) ∘ (frames w₀ n).toHomeo)
-              (P.map w₀)
-              {P.tree.node_point w₀ P.root (P.tree.adj.adj_symm hw₀_adj)})) ∧
-      Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
-        (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p)) := by
-  by_cases h_root : cdata.S = ∅ ∧
-      (Tendsto (fun n => totalEnergy I (u_seq (cdata.σ.1 n))) atTop
-          (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p)) ∨
-        ∃ (τ : Bookkeeping.SubseqMap),
-          Tendsto (fun n => totalEnergy I (u_seq ((cdata.σ.comp τ).1 n))) atTop
-            (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p)))
-  · obtain ⟨σ, res, h_conv, h_en⟩ :=
-      extract_grafted_tree_rescaling_and_conv_of_empty_S I u_seq B th cdata m_defect P h_root.1 h_root.2
-    refine ⟨σ, res, fun frames h_root_id h_rec => ⟨h_conv frames h_root_id h_rec, fun h_deg1 _ _ _ => ?_⟩, h_en⟩
-    have h_deg0 := P.degree_root_eq_zero_of_empty I h_root.1
-    omega
-  · sorry
-
 /-- When the concentration singular set `cdata.S` is empty, `graft_defect_trees_to_root` holds
 with zero `sorry` directly from `prestable_limit_singleton_subseq`. -/
 theorem graft_defect_trees_to_root_of_empty_S
@@ -2027,7 +1986,63 @@ theorem assemble_prestable_limit
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
     (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
-    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤) :
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
+    (h_conc_extract : ∀ (σ : Bookkeeping.SubseqMap) (μ : MeasureTheory.Measure CP1) (S : Finset CP1),
+      MeasureTheory.IsFiniteMeasure μ →
+      Compactness.WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ →
+      (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal th.ε_reg ≤ μ {p}) →
+      ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
+        SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
+        μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
+    (h_one_level : ∀ (m : ℝ), th.h ≤ m → ∀ (b : M),
+      (∃ v : CP1 → M,
+        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
+        m = totalEnergy I v ∧
+        v north_pole = b ∧
+        energyMeasure I v (disk_at 0 1) = m - th.h / 2) ∨
+      (∃ v : CP1 → M,
+        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
+        totalEnergy I v ≤ m - th.h ∧
+        v north_pole = b ∧
+        totalEnergy I v - energyMeasure I v (disk_at 0 1) = th.h / 2) ∨
+      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
+        (∀ z ∈ q, ‖z‖ < 1) ∧
+        (∀ z ∈ q, th.h ≤ m_child z) ∧
+        (∀ z ∉ q, m_child z = 0) ∧
+        m = totalEnergy I v + ∑ z ∈ q, m_child z ∧
+        v north_pole = b ∧
+        totalEnergy I v - energyMeasure I v (disk_at 0 1) = th.h / 2) ∨
+      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
+        (∀ z ∈ q, th.h ≤ m_child z) ∧
+        (∀ z ∉ q, m_child z = 0) ∧
+        m = totalEnergy I v + ∑ z ∈ q, m_child z ∧
+        v north_pole = b ∧
+        energyMeasure I v (disk_at 0 1) + ∑ z ∈ q.filter (fun w => ‖w‖ < 1), m_child z =
+          m - th.h / 2))
+    (h_graft_extract : ∀ (cdata : Compactness.ConcentrationData I u_seq B th)
+      (m_defect : CP1 → ℝ)
+      (P : PartialRootGraftedTree I u_seq B th cdata m_defect cdata.S),
+      ∃ (σ : Bookkeeping.SubseqMap) (res : TreeRescalingData P.tree P.root),
+        (∀ (frames : (v : P.tree.V) → ℕ → MoebiusFrame),
+          (∀ n, frames P.root n = MoebiusFrame.id) →
+          (∀ (w : P.tree.V) (hw : w ≠ P.root) (n : ℕ),
+            frames w n = MoebiusFrame.comp (frames (res.parent w hw) n)
+              (affine_scaling (res.center w n) (res.scale w n) (res.scale_pos w n))) →
+          (∀ (v : P.tree.V),
+            SmoothLocalConvergesOn I
+              (fun n => (u_seq (σ.1 n)) ∘ (frames v n).toHomeo)
+              (P.map v)
+              (punctured_sphere { z | ∃ (w : P.tree.V) (h : P.tree.adj.Adj v w), z = P.tree.node_point v w h })) ∧
+          (P.tree.adj.degree P.root = 1 → (∃ c : M, ∀ z : CP1, P.map P.root z = c) →
+            ∀ (w₀ : P.tree.V) (hw₀_adj : P.tree.adj.Adj P.root w₀),
+              SmoothLocalConvergesOn I
+                (fun n => (u_seq (σ.1 n)) ∘ (frames w₀ n).toHomeo)
+                (P.map w₀)
+                {P.tree.node_point w₀ P.root (P.tree.adj.adj_symm hw₀_adj)})) ∧
+        Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
+          (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m_defect p))) :
     ∃ (pdata : PrestableLimitData I u_seq),
       (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B := by
   by_cases h_pdata : ∃ (σ : Bookkeeping.SubseqMap),
@@ -2039,15 +2054,15 @@ theorem assemble_prestable_limit
     · rcases h_ev with ⟨σ, N₀, c, hc⟩
       exact assemble_prestable_limit_of_eventually_const_subseq I u_seq B h_jhol h_energy σ N₀ c hc
     · have hB : 0 ≤ B := (energy_nonneg I (u_seq 0) Set.univ).trans (h_energy 0)
-      obtain ⟨cdata⟩ := Compactness.exists_concentration_data I u_seq h_jhol B hB h_energy h_fin th
+      obtain ⟨cdata⟩ := Compactness.exists_concentration_data I u_seq h_jhol B hB h_energy h_fin th h_conc_extract
       obtain ⟨m_defect, hm_sph, _hm_zero, _h_decomp, h_tendsto_energy⟩ :=
         Compactness.defect_measure_identity I u_seq B h_jhol h_energy h_fin th cdata
       let defect_trees : (p : CP1) → p ∈ cdata.S → Bubbling.LocalDefectTree I th (m_defect p) (cdata.u₀ p) :=
         fun p hp =>
           have h_pos : 0 < m_defect p := th.ε_sph_pos.trans_le (hm_sph p hp)
-          Classical.choice (Bubbling.resolve_single_defect_tree I u_seq h_jhol B h_energy h_fin th (m_defect p) h_pos (cdata.u₀ p))
+          Classical.choice (Bubbling.resolve_single_defect_tree I u_seq h_jhol B h_energy h_fin th (m_defect p) h_pos (cdata.u₀ p) h_one_level)
       exact assemble_prestable_limit_of_components I th u_seq B h_energy cdata m_defect hm_sph h_tendsto_energy
-        defect_trees (extract_grafted_tree_rescaling_and_conv_aux I u_seq B h_jhol h_energy h_fin th cdata m_defect)
+        defect_trees (h_graft_extract cdata m_defect)
 
 #print axioms frame_comp_id_left
 #print axioms frame_comp_id_right

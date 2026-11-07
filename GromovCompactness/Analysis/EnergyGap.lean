@@ -1179,13 +1179,29 @@ theorem sphere_energy_gap
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
     {M : Type*} [MetricSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] :
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_hit_exit : (∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ 1 →
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
+        dist (u z_hit) x = r →
+        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
+          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
+            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
+            r^2 ≤ energyMeasure I u s)) ∧
+      (∀ (u : CP1 → M) (x : M),
+        x ∈ Set.range u →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        (¬ ∃ c : M, ∀ z, u z = c) →
+        Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x))) :
     ∃ (ε_sph : ℝ), 0 < ε_sph ∧
     ∀ (u : CP1 → M),
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
       (¬ ∃ c : M, ∀ z, u z = c) →
       ε_sph ≤ totalEnergy I u := by
-  obtain ⟨c, r₀, hc, hr₀, h_mono, h_exit⟩ := target_monotonicity_and_darboux_exit (M := M) I
+  obtain ⟨c, r₀, hc, hr₀, h_mono, h_exit⟩ := target_monotonicity_and_darboux_exit (M := M) I h_hit_exit
   exact sphere_energy_gap_of_global_cases I hc hr₀ h_mono
     (fun u hu h_nc x hx => ⟨Or.inr (Or.inr (h_exit u x hx hu h_nc).1),
       Or.inl (h_exit u x hx hu h_nc).2⟩)

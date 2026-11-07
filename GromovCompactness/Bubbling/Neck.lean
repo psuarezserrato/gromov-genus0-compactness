@@ -211,13 +211,17 @@ private lemma neck_annular_energy_and_diam_eventually_small_aux
     (h_isol_neck : ∀ R > (1 : ℝ), ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
       ∃ N₀ : ℕ, ∀ n ≥ N₀,
         energyMeasure I (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ) < thresh.ε_neck)
+    (h_osc : ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+      0 < r → r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      SatisfiesCylinderCollarOscillation I u a r R)
     (η : ℝ) (hη : 0 < η) :
     ∃ R₀ > (1 : ℝ), ∀ R ≥ R₀,
       ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
         ∃ N : ℕ, ∀ n ≥ N,
           energyMeasure I (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ) < η ∧
           Metric.diam (Set.image (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ)) < η := by
-  obtain ⟨η_loc, hη_loc_pos, h_loc⟩ := cylinder_localization I (M := M) (η / 3) (by linarith)
+  obtain ⟨η_loc, hη_loc_pos, h_loc⟩ := cylinder_localization I (M := M) h_osc (η / 3) (by linarith)
   let η_min : ℝ := min η η_loc
   have hη_min_pos : 0 < η_min := lt_min hη hη_loc_pos
   obtain ⟨δ_base, hδ_base_pos, h_isol_base⟩ := h_isol_neck 2 (by norm_num)
@@ -615,6 +619,10 @@ theorem neck_vanishing_quantified
     (h_isol_neck : ∀ R > (1 : ℝ), ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
       ∃ N₀ : ℕ, ∀ n ≥ N₀,
         energyMeasure I (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ) < thresh.ε_neck)
+    (h_osc : ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+      0 < r → r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      SatisfiesCylinderCollarOscillation I u a r R)
     (η : ℝ) (hη : 0 < η) :
     ∃ R₀ > (1 : ℝ), ∀ R ≥ R₀,
       ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
@@ -634,7 +642,7 @@ theorem neck_vanishing_quantified
         Metric.diam (Set.image (u_seq n) (annulus_at a r₁ r₂)) < η)
   · exact neck_vanishing_quantified_of_cases I u_seq thresh m_defect res η hη h_cases
   · exact neck_vanishing_quantified_of_eventually_small I u_seq thresh m_defect res η hη
-      (neck_annular_energy_and_diam_eventually_small_aux I u_seq h_jhol B h_energy h_fin thresh m_defect res h_isol_neck η hη)
+      (neck_annular_energy_and_diam_eventually_small_aux I u_seq h_jhol B h_energy h_fin thresh m_defect res h_isol_neck h_osc η hη)
 
 /-- Pointwise distance oscillation bound from diameter bound on an annulus (Zero-sorry Foundation). -/
 lemma neck_pointwise_oscillation_of_diam_bound

@@ -1,0 +1,29 @@
+{
+    "adapter_path": "data/gemma_lora_adapters",
+    "batch_size": 1,
+    "config": null,
+    "data": "data/lora_splits",
+    "fine_tune_type": "lora",
+    "grad_checkpoint": true,
+    "iters": 200,
+    "learning_rate": 1e-05,
+    "lora_parameters": {
+        "rank": 8,
+        "alpha": 16,
+        "dropout": 0.0,
+        "scale": 10.0
+    },
+    "lr_schedule": null,
+    "max_seq_length": 1024,
+    "model": "mlx-community/gemma-2-9b-it-4bit",
+    "num_layers": 8,
+    "resume_adapter_file": null,
+    "save_every": 50,
+    "seed": 0,
+    "steps_per_eval": 50,
+    "steps_per_report": 10,
+    "test": true,
+    "test_batches": 25,
+    "train": true,
+    "val_batches": 25
+}

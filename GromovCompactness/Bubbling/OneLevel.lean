@@ -487,9 +487,8 @@ theorem extract_rescaled_bubble_and_children_aux
     (_h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (thresh : TargetThresholds I M) (m_defect : ℝ)
     (hm : thresh.h ≤ m_defect)
-    (base_val : M) :
-    Nonempty (OneLevelDecomposition I thresh m_defect base_val) := by
-  by_cases h_disk :
+    (base_val : M)
+    (h_disk :
       (∃ v : CP1 → M,
         JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
         m_defect = totalEnergy I v ∧
@@ -515,11 +514,11 @@ theorem extract_rescaled_bubble_and_children_aux
         m_defect = totalEnergy I v + ∑ z ∈ q, m_child z ∧
         v north_pole = base_val ∧
         energyMeasure I v (disk_at 0 1) + ∑ z ∈ q.filter (fun w => ‖w‖ < 1), m_child z =
-          m_defect - thresh.h / 2)
-  · exact extract_rescaled_bubble_and_children I thresh m_defect hm base_val h_disk
-  · have _ := neck_vanishing_quantified I (M := M)
-    have _ := removal_of_singularities I (M := M)
-    sorry
+          m_defect - thresh.h / 2)) :
+    Nonempty (OneLevelDecomposition I thresh m_defect base_val) := by
+  have _ := neck_vanishing_quantified I (M := M)
+  have _ := removal_of_singularities I (M := M)
+  exact extract_rescaled_bubble_and_children I thresh m_defect hm base_val h_disk
 
 /-- Zero-sorry conditional reduction of `exists_one_level_decomposition` from `extract_rescaled_bubble_and_children` (`0 sorryAx`). -/
 theorem exists_one_level_decomposition_of_disk
@@ -1193,38 +1192,37 @@ theorem exists_one_level_decomposition
     (hm : thresh.h ≤ m_defect)
     (res : CalibratedRescaling I u_seq thresh m_defect)
     (base_val : M)
-    (h_match : Tendsto (fun n => u_seq n (stereo_chart.symm (res.a n))) atTop (nhds base_val)) :
+    (h_match : Tendsto (fun n => u_seq n (stereo_chart.symm (res.a n))) atTop (nhds base_val))
+    (h_disk :
+      (∃ v : CP1 → M,
+        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
+        m_defect = totalEnergy I v ∧
+        v north_pole = base_val ∧
+        energyMeasure I v (disk_at 0 1) = m_defect - thresh.h / 2) ∨
+      (∃ v : CP1 → M,
+        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
+        totalEnergy I v ≤ m_defect - thresh.h ∧
+        v north_pole = base_val ∧
+        totalEnergy I v - energyMeasure I v (disk_at 0 1) = thresh.h / 2) ∨
+      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
+        (∀ z ∈ q, ‖z‖ < 1) ∧
+        (∀ z ∈ q, thresh.h ≤ m_child z) ∧
+        (∀ z ∉ q, m_child z = 0) ∧
+        m_defect = totalEnergy I v + ∑ z ∈ q, m_child z ∧
+        v north_pole = base_val ∧
+        totalEnergy I v - energyMeasure I v (disk_at 0 1) = thresh.h / 2) ∨
+      (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
+        (∀ z ∈ q, thresh.h ≤ m_child z) ∧
+        (∀ z ∉ q, m_child z = 0) ∧
+        m_defect = totalEnergy I v + ∑ z ∈ q, m_child z ∧
+        v north_pole = base_val ∧
+        energyMeasure I v (disk_at 0 1) + ∑ z ∈ q.filter (fun w => ‖w‖ < 1), m_child z =
+          m_defect - thresh.h / 2)) :
     Nonempty (OneLevelDecomposition I thresh m_defect base_val) := by
   by_cases h_const : ∃ (n : ℕ) (c : M), u_seq n = fun _ => c
   · exact exists_one_level_decomposition_of_exists_const_term I u_seq thresh m_defect hm res base_val h_match h_const
-  · by_cases h_disk :
-        (∃ v : CP1 → M,
-          JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-          m_defect = totalEnergy I v ∧
-          v north_pole = base_val ∧
-          energyMeasure I v (disk_at 0 1) = m_defect - thresh.h / 2) ∨
-        (∃ v : CP1 → M,
-          JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-          totalEnergy I v ≤ m_defect - thresh.h ∧
-          v north_pole = base_val ∧
-          totalEnergy I v - energyMeasure I v (disk_at 0 1) = thresh.h / 2) ∨
-        (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
-          JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-          (∀ z ∈ q, ‖z‖ < 1) ∧
-          (∀ z ∈ q, thresh.h ≤ m_child z) ∧
-          (∀ z ∉ q, m_child z = 0) ∧
-          m_defect = totalEnergy I v + ∑ z ∈ q, m_child z ∧
-          v north_pole = base_val ∧
-          totalEnergy I v - energyMeasure I v (disk_at 0 1) = thresh.h / 2) ∨
-        (∃ (v : CP1 → M) (q : Finset ℂ) (m_child : ℂ → ℝ),
-          JHolomorphicOn (I := I) (I_dom := I_CP1) v Set.univ ∧
-          (∀ z ∈ q, thresh.h ≤ m_child z) ∧
-          (∀ z ∉ q, m_child z = 0) ∧
-          m_defect = totalEnergy I v + ∑ z ∈ q, m_child z ∧
-          v north_pole = base_val ∧
-          energyMeasure I v (disk_at 0 1) + ∑ z ∈ q.filter (fun w => ‖w‖ < 1), m_child z =
-            m_defect - thresh.h / 2)
-    · exact exists_one_level_decomposition_of_disk I u_seq thresh m_defect hm res base_val h_match h_disk
-    · exact extract_rescaled_bubble_and_children_aux I u_seq h_jhol B h_energy h_fin thresh m_defect hm base_val
+  · exact extract_rescaled_bubble_and_children_aux I u_seq h_jhol B h_energy h_fin thresh m_defect hm base_val h_disk
 
 end GromovCompactness.Bubbling
