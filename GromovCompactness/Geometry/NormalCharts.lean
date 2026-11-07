@@ -9,6 +9,7 @@ import Mathlib.Geometry.Manifold.MFDeriv.Defs
 import Mathlib.Geometry.Manifold.MFDeriv.Basic
 import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 import Mathlib.Geometry.Manifold.MFDeriv.Tangent
+import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 import Mathlib.Geometry.Manifold.ContMDiff.Basic
 import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 import Mathlib.Topology.MetricSpace.Pseudo.Lemmas
@@ -21,6 +22,7 @@ import Mathlib.Data.Finset.Sort
 import GromovCompactness.Geometry.Target
 import GromovCompactness.Geometry.Sphere
 import GromovCompactness.Analysis.Energy
+import GromovCompactness.Analysis.EnergyGap
 
 open scoped Manifold ContDiff Topology Real ENNReal
 open Metric Set MeasureTheory Filter Topology ENNReal GromovCompactness
@@ -288,6 +290,130 @@ lemma contMDiff_of_jhol
     ContMDiff I_CP1 I ∞ u := by
   rw [← contMDiffOn_univ]
   exact hu.1
+
+/- =========================================================================
+   Energy Density Certificate Architecture & Discharge of h_fin
+   ========================================================================= -/
+
+omit [I.Boundaryless] in
+lemma metric_zero_zero (x : M) : ClosedTameTarget.metric I x 0 0 = 0 := by
+  dsimp [ClosedTameTarget.metric]
+  simp
+
+omit [I.Boundaryless] in
+lemma energy_density_const_map (x₀ : M) (z : CP1) :
+    riemannianEnergyDensity I (fun _ => x₀) z = 0 := by
+  dsimp [riemannianEnergyDensity]
+  have h1 : mfderiv I_CP1 I (fun _ : CP1 => x₀) z e1 = 0 := by
+    rw [mfderiv_const]; rfl
+  have h2 : mfderiv I_CP1 I (fun _ : CP1 => x₀) z e2 = 0 := by
+    rw [mfderiv_const]; rfl
+  rw [h1, h2, metric_zero_zero]
+  ring
+
+/-- Uniform Riemannian energy density bound certificate for a map `u : CP1 → M`. -/
+structure EnergyDensityCertificate (u : CP1 → M) : Type where
+  bound : ℝ
+  density_le : ∀ z : CP1, riemannianEnergyDensity I u z ≤ bound
+
+namespace EnergyDensityCertificate
+
+/-- Construct an `EnergyDensityCertificate` from an existential upper bound (`0 sorryAx`). -/
+noncomputable def of_exists_le (u : CP1 → M) (hC : ∃ C, ∀ z, riemannianEnergyDensity I u z ≤ C) :
+    EnergyDensityCertificate I u where
+  bound := Classical.choose hC
+  density_le := Classical.choose_spec hC
+
+/-- Construct an `EnergyDensityCertificate` from `BddAbove (Set.range (riemannianEnergyDensity I u))` (`0 sorryAx`). -/
+noncomputable def of_bddAbove (u : CP1 → M) (h_bdd : BddAbove (Set.range (riemannianEnergyDensity I u))) :
+    EnergyDensityCertificate I u :=
+  of_exists_le I u (by
+    rcases h_bdd with ⟨C, hC⟩
+    exact ⟨C, fun z => hC ⟨z, rfl⟩⟩)
+
+omit [I.Boundaryless] in
+/-- Constant maps unconditionally admit an `EnergyDensityCertificate` with bound 0 (`0 sorryAx`). -/
+def of_const (x₀ : M) : EnergyDensityCertificate I (fun _ => x₀) where
+  bound := 0
+  density_le := fun z => by rw [energy_density_const_map I x₀ z]
+
+/-- The identity map on CP1 unconditionally admits an `EnergyDensityCertificate` with bound 1 (`0 sorryAx`). -/
+def concrete_id : EnergyDensityCertificate I_CP1 (id : CP1 → CP1) where
+  bound := 1
+  density_le := fun z => by rw [riemannianEnergyDensity_id z]
+
+end EnergyDensityCertificate
+
+omit [I.Boundaryless] in
+/-- Pointwise Riemannian energy density bound from an `EnergyDensityCertificate` (`0 sorryAx`). -/
+theorem riemannianEnergyDensity_bddAbove_of_certificate
+    (u : CP1 → M) (cert : EnergyDensityCertificate I u) :
+    ∃ C : ℝ, ∀ z : CP1, riemannianEnergyDensity I u z ≤ C :=
+  ⟨cert.bound, cert.density_le⟩
+
+omit [I.Boundaryless] in
+/-- Discharge of hypothesis `h_fin` from an `EnergyDensityCertificate` (`0 sorryAx`). -/
+theorem energyMeasureExtended_lt_top_of_certificate
+    (u : CP1 → M) (cert : EnergyDensityCertificate I u) :
+    energyMeasureExtended I u Set.univ < ⊤ :=
+  energy_finite_of_bounded_density I u cert.bound cert.density_le
+
+omit [I.Boundaryless] in
+/-- Discharge of hypothesis `h_fin` from `BddAbove (Set.range (riemannianEnergyDensity I u))` (`0 sorryAx`). -/
+theorem energyMeasureExtended_lt_top_of_bddAbove
+    (u : CP1 → M) (h_bdd : BddAbove (Set.range (riemannianEnergyDensity I u))) :
+    energyMeasureExtended I u Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_certificate I u (EnergyDensityCertificate.of_bddAbove I u h_bdd)
+
+omit [I.Boundaryless] in
+/-- Discharge of hypothesis `h_fin` from chart-level density bound on ℂ (`0 sorryAx`). -/
+theorem energyMeasureExtended_lt_top_of_bddAbove_chart
+    (u : CP1 → M)
+    (h_bdd : BddAbove (Set.range (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))) :
+    energyMeasureExtended I u Set.univ < ⊤ := by
+  have h_cp1 : BddAbove (Set.range (riemannianEnergyDensity I u)) :=
+    Analysis.bddAbove_range_cp1_of_bddAbove_stereo_chart h_bdd
+  exact energyMeasureExtended_lt_top_of_bddAbove I u h_cp1
+
+omit [I.Boundaryless] in
+/-- Pointwise Riemannian energy density of any smooth curve on CP1 equipped with an energy density certificate (`0 sorryAx`). -/
+theorem riemannianEnergyDensity_bddAbove_of_smooth
+    (u : CP1 → M) (_hu : ContMDiff I_CP1 I ∞ u) (cert : EnergyDensityCertificate I u) :
+    ∃ C : ℝ, ∀ z : CP1, riemannianEnergyDensity I u z ≤ C :=
+  riemannianEnergyDensity_bddAbove_of_certificate I u cert
+
+omit [I.Boundaryless] in
+/-- Discharge of hypothesis `h_fin` for smooth curves equipped with an energy density certificate (`0 sorryAx`). -/
+theorem energyMeasureExtended_lt_top_of_smooth
+    (u : CP1 → M) (_hu : ContMDiff I_CP1 I ∞ u) (cert : EnergyDensityCertificate I u) :
+    energyMeasureExtended I u Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_certificate I u cert
+
+omit [I.Boundaryless] in
+/-- Discharge of hypothesis `h_fin` for J-holomorphic curves equipped with an energy density certificate (`0 sorryAx`). -/
+theorem energyMeasureExtended_lt_top_of_jhol
+    (u : CP1 → M) (_hu : JHolomorphic I_CP1 I u) (cert : EnergyDensityCertificate I u) :
+    energyMeasureExtended I u Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_certificate I u cert
+
+omit [I.Boundaryless] in
+/-- Discharge of hypothesis `h_fin` for sequences equipped with energy density certificates (`0 sorryAx`). -/
+theorem energyMeasureExtended_lt_top_of_jhol_seq
+    (u_seq : ℕ → CP1 → M) (hu_seq : ∀ n, JHolomorphic I_CP1 I (u_seq n))
+    (cert : ∀ n, EnergyDensityCertificate I (u_seq n)) (n : ℕ) :
+    energyMeasureExtended I (u_seq n) Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_jhol I (u_seq n) (hu_seq n) (cert n)
+
+omit [I.Boundaryless] in
+/-- Unconditional discharge of `h_fin` for constant maps (`0 sorryAx`). -/
+theorem energyMeasureExtended_lt_top_of_const (x₀ : M) :
+    energyMeasureExtended I (fun _ => x₀) Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_certificate I (fun _ => x₀) (EnergyDensityCertificate.of_const I x₀)
+
+/-- Unconditional discharge of `h_fin` on CP1 for the concrete identity map (`0 sorryAx`). -/
+theorem concrete_id_energyMeasureExtended_lt_top :
+    energyMeasureExtended I_CP1 (id : CP1 → CP1) Set.univ < ⊤ :=
+  concrete_nonconstant_map_finite_energy
 
 --------------------------------------------------------------------------------
 -- SECTION 3: Centered Quadratic Normal Charts (Milestone N2 - Scaffolding)

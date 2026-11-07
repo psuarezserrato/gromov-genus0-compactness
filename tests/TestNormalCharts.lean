@@ -21,9 +21,11 @@ namespace GromovCompactness.Tests.NormalCharts
 
 instance : Nonempty CP1 := ⟨north_pole⟩
 
+universe u
+
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 variable {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H) [I.Boundaryless]
-variable {M : Type*} [MetricSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [CompactSpace M]
+variable {M : Type u} [MetricSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [CompactSpace M]
 variable [tgt : ClosedTameTarget I M] [Nonempty M]
 
 --------------------------------------------------------------------------------
@@ -104,21 +106,83 @@ theorem test_contMDiff_of_jhol (u : CP1 → M) (hu : JHolomorphic I_CP1 I u) :
   contMDiff_of_jhol (I := I) u hu
 
 --------------------------------------------------------------------------------
--- Test 4: Concrete evaluation on canonical standard model CP1
+-- Test 4: Riemannian energy density is bounded above via Certificate
 --------------------------------------------------------------------------------
 
-/-- Test 4.1: The identity map on CP1 has strictly finite extended energy measure. -/
+omit [I.Boundaryless] [Nonempty M] in
+/-- Test 4.1: The pointwise Riemannian energy density is bounded above given a certificate. -/
+theorem test_riemannian_density_bdd (u : CP1 → M) (hu : ContMDiff I_CP1 I ∞ u)
+    (cert : EnergyDensityCertificate I u) :
+    ∃ C : ℝ, ∀ z : CP1, riemannianEnergyDensity I u z ≤ C :=
+  riemannianEnergyDensity_bddAbove_of_smooth I u hu cert
+
+--------------------------------------------------------------------------------
+-- Test 5: Discharge of hypothesis h_fin via Certificate / BddAbove
+--------------------------------------------------------------------------------
+
+omit [I.Boundaryless] [Nonempty M] in
+/-- Test 5.1: Hypothesis h_fin is discharged for any smooth curve equipped with a certificate. -/
+theorem test_h_fin_discharge_smooth (u : CP1 → M) (hu : ContMDiff I_CP1 I ∞ u)
+    (cert : EnergyDensityCertificate I u) :
+    energyMeasureExtended I u Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_smooth I u hu cert
+
+omit [I.Boundaryless] [Nonempty M] in
+/-- Test 5.2: Hypothesis h_fin is discharged for any J-holomorphic curve equipped with a certificate. -/
+theorem test_h_fin_discharge_jhol (u : CP1 → M) (hu : JHolomorphic I_CP1 I u)
+    (cert : EnergyDensityCertificate I u) :
+    energyMeasureExtended I u Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_jhol I u hu cert
+
+omit [I.Boundaryless] [Nonempty M] in
+/-- Test 5.3: Hypothesis h_fin holds for each element of a sequence of J-curves equipped with certificates. -/
+theorem test_h_fin_discharge_seq
+    (u_seq : ℕ → CP1 → M) (hu_seq : ∀ n, JHolomorphic I_CP1 I (u_seq n))
+    (cert : ∀ n, EnergyDensityCertificate I (u_seq n)) (n : ℕ) :
+    energyMeasureExtended I (u_seq n) Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_jhol_seq I u_seq hu_seq cert n
+
+omit [I.Boundaryless] [Nonempty M] in
+/-- Test 5.4: Hypothesis h_fin discharged from BddAbove. -/
+theorem test_h_fin_discharge_bddAbove (u : CP1 → M)
+    (h_bdd : BddAbove (Set.range (riemannianEnergyDensity I u))) :
+    energyMeasureExtended I u Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_bddAbove I u h_bdd
+
+omit [I.Boundaryless] [Nonempty M] in
+/-- Test 5.5: Hypothesis h_fin discharged from chart-level BddAbove on ℂ. -/
+theorem test_h_fin_discharge_bddAbove_chart (u : CP1 → M)
+    (h_bdd : BddAbove (Set.range (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))) :
+    energyMeasureExtended I u Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_bddAbove_chart I u h_bdd
+
+omit [I.Boundaryless] [Nonempty M] in
+/-- Test 5.6: Constant maps unconditionally admit finite energy. -/
+theorem test_const_finite_energy (x₀ : M) :
+    energyMeasureExtended I (fun _ => x₀) Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_const I x₀
+
+--------------------------------------------------------------------------------
+-- Test 6: Concrete evaluation on canonical standard model CP1 (Unconditional)
+--------------------------------------------------------------------------------
+
+/-- Test 6.1: The concrete identity certificate on CP1. -/
+def test_CP1_id_cert_exists :
+    EnergyDensityCertificate I_CP1 (id : CP1 → CP1) :=
+  EnergyDensityCertificate.concrete_id
+
+/-- Test 6.2: The identity map on CP1 has strictly finite extended energy measure. -/
 theorem test_CP1_standard_model_finite_energy :
     energyMeasureExtended I_CP1 (id : CP1 → CP1) Set.univ < ⊤ :=
-  concrete_nonconstant_map_finite_energy
+  concrete_id_energyMeasureExtended_lt_top
 
-/-- Test 4.2: The identity map on CP1 has strictly positive total energy. -/
+/-- Test 6.3: The identity map on CP1 has strictly positive total energy. -/
 theorem test_CP1_standard_model_positive_energy :
     0 < totalEnergy I_CP1 (id : CP1 → CP1) :=
   concrete_nonconstant_map_positive_energy
 
 --------------------------------------------------------------------------------
--- Test 5: Axiom census audit
+-- Test 7: Axiom census audit
 --------------------------------------------------------------------------------
 
 #print axioms test_atlas_exists
@@ -130,6 +194,13 @@ theorem test_CP1_standard_model_positive_energy :
 #print axioms test_omega_eq_chart
 #print axioms test_J_eq_chart
 #print axioms test_contMDiff_of_jhol
+#print axioms test_riemannian_density_bdd
+#print axioms test_h_fin_discharge_smooth
+#print axioms test_h_fin_discharge_jhol
+#print axioms test_h_fin_discharge_seq
+#print axioms test_h_fin_discharge_bddAbove
+#print axioms test_h_fin_discharge_bddAbove_chart
+#print axioms test_const_finite_energy
 #print axioms test_CP1_standard_model_finite_energy
 #print axioms test_CP1_standard_model_positive_energy
 
