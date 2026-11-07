@@ -6,7 +6,12 @@ Authors: Autoformalization Team
 import Mathlib.Analysis.SpecialFunctions.Exp
 import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
+import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
+import Mathlib.Analysis.SpecificLimits.Basic
+import Mathlib.Algebra.Order.BigOperators.Group.Finset
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+import Mathlib.MeasureTheory.Integral.Bochner.Set
+import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 import Mathlib.Topology.Separation.Hausdorff
 import GromovCompactness.Geometry.Target
 import GromovCompactness.Geometry.Sphere
@@ -292,7 +297,7 @@ If $r_2 \le r_1$, then $\{z \in ℂ \mid r_1 < \operatorname{dist}(z, a) \wedge 
 lemma annulus_set_empty_of_le (a : ℂ) {r₁ r₂ : ℝ} (h : r₂ ≤ r₁) :
     {z : ℂ | r₁ < dist z a ∧ dist z a < r₂} = ∅ := by
   ext z
-  simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false]
+  simp only [mem_ofPred_eq, Set.mem_empty_iff_false, iff_false]
   rintro ⟨h1, h2⟩
   linarith
 
@@ -467,7 +472,7 @@ lemma energyMeasure_annulus_at_eq_zero_of_outer_eq_zero
 theorem punctured_sphere_singleton_eq_compl (p : CP1) :
     punctured_sphere {p} = {p}ᶜ := by
   dsimp [punctured_sphere]
-  exact (compl_eq_univ_diff {p}).symm
+  exact (compl_eq_univ_sdiff {p}).symm
 
 /-- Punctured sphere removing a single point `{p}` is an open subset of $\mathbb{CP}^1$. -/
 theorem isOpen_punctured_sphere (p : CP1) :
@@ -531,7 +536,7 @@ theorem eqOn_ball_of_eqOn_punctured_ball
     (hv₂ : ContinuousOn v₂ (ball (0 : ℂ) r))
     (h_eq : EqOn v₁ v₂ (ball (0 : ℂ) r \ {0})) :
     EqOn v₁ v₂ (ball (0 : ℂ) r) :=
-  h_eq.of_subset_closure hv₁ hv₂ diff_subset (ball_subset_closure_punctured_ball r hr)
+  h_eq.of_subset_closure hv₁ hv₂ sdiff_subset (ball_subset_closure_punctured_ball r hr)
 
 /-- Uniqueness of the limit value at the puncture:
 Any continuous extension to the origin is uniquely determined by values on the punctured disk. -/
@@ -730,7 +735,7 @@ theorem cylinder_localization_of_oscillation
   obtain ⟨η, hη_pos, hη_bound⟩ := exists_neck_energy_threshold d₀ 2 hd₀ (by norm_num)
   refine ⟨η, hη_pos, ?_⟩
   intro u a r R _hr _hrR _hu h_osc h_en
-  haveI : Nonempty M := ⟨u north_pole⟩
+  have : Nonempty M := ⟨u north_pole⟩
   apply localization_of_diam_bound u (annulus_at a (2 * r) (R / 2)) d₀
   intro z₁ hz₁ z₂ hz₂
   have h_le := h_osc z₁ hz₁ z₂ hz₂
@@ -787,6 +792,99 @@ theorem satisfiesCylinderCollarOscillation_of_collar_empty
   rw [h_empty] at hz₁
   exact False.elim hz₁
 
+/-- The diameter of the collar image `u '' annulus_at a (2 * r) (R / 2)` is bounded by the
+diameter of `Set.range u` (`0 sorryAx`). -/
+theorem diam_image_collar_le_diam_range
+    {M : Type*} [MetricSpace M] [CompactSpace M]
+    (u : CP1 → M) (a : ℂ) (r R : ℝ) :
+    Metric.diam (u '' annulus_at a (2 * r) (R / 2)) ≤ Metric.diam (Set.range u) :=
+  Metric.diam_mono (Set.image_subset_range u _) (isCompact_univ.isBounded.subset (Set.subset_univ _))
+
+/-- The diameter of the collar image `u '' annulus_at a (2 * r) (R / 2)` is bounded by the
+target diameter `Metric.diam (Set.univ : Set M)` (`0 sorryAx`). -/
+theorem diam_image_collar_le_diam_univ
+    {M : Type*} [MetricSpace M] [CompactSpace M]
+    (u : CP1 → M) (a : ℂ) (r R : ℝ) :
+    Metric.diam (u '' annulus_at a (2 * r) (R / 2)) ≤ Metric.diam (Set.univ : Set M) :=
+  Metric.diam_mono (Set.subset_univ _) isCompact_univ.isBounded
+
+/-- Any map whose range diameter is bounded by `4 * √E(u; A(r, R))` unconditionally satisfies
+`SatisfiesCylinderCollarOscillation` (`0 sorryAx`). -/
+theorem satisfiesCylinderCollarOscillation_of_diam_range_le
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ) (r R : ℝ)
+    (h_diam : Metric.diam (Set.range u) ≤ 4 * Real.sqrt (energyMeasure I u (annulus_at a r R))) :
+    SatisfiesCylinderCollarOscillation I u a r R :=
+  satisfiesCylinderCollarOscillation_of_diam_image_le I u a r R
+    (le_trans (diam_image_collar_le_diam_range u a r R) h_diam)
+
+/-- When the target diameter `Metric.diam (Set.univ : Set M)` is bounded by `4 * √E(u; A(r, R))`,
+`SatisfiesCylinderCollarOscillation` holds unconditionally (`0 sorryAx`). -/
+theorem satisfiesCylinderCollarOscillation_of_diam_univ_le
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ) (r R : ℝ)
+    (h_diam : Metric.diam (Set.univ : Set M) ≤ 4 * Real.sqrt (energyMeasure I u (annulus_at a r R))) :
+    SatisfiesCylinderCollarOscillation I u a r R :=
+  satisfiesCylinderCollarOscillation_of_diam_image_le I u a r R
+    (le_trans (diam_image_collar_le_diam_univ u a r R) h_diam)
+
+/-- Pointwise collar localization into a target ball of radius `d₀` whenever the collar image
+diameter is strictly less than `d₀` (`0 sorryAx`). -/
+theorem exists_collar_ball_of_diam_image_lt
+    {M : Type*} [MetricSpace M] [CompactSpace M]
+    (u : CP1 → M) (a : ℂ) (r R d₀ : ℝ)
+    (h_diam : Metric.diam (u '' annulus_at a (2 * r) (R / 2)) < d₀) :
+    ∃ (x₀ : M), ∀ z ∈ annulus_at a (2 * r) (R / 2), dist (u z) x₀ < d₀ := by
+  have : Nonempty M := ⟨u north_pole⟩
+  apply localization_of_diam_bound u (annulus_at a (2 * r) (R / 2)) d₀
+  intro z₁ hz₁ z₂ hz₂
+  have h_bdd : Bornology.IsBounded (u '' annulus_at a (2 * r) (R / 2)) :=
+    isCompact_univ.isBounded.subset (Set.subset_univ _)
+  exact lt_of_le_of_lt (Metric.dist_le_diam_of_mem h_bdd ⟨z₁, hz₁, rfl⟩ ⟨z₂, hz₂, rfl⟩) h_diam
+
+/-- Pointwise collar localization into a target ball of radius `d₀` whenever `Metric.diam (Set.range u) < d₀` (`0 sorryAx`). -/
+theorem exists_collar_ball_of_diam_range_lt
+    {M : Type*} [MetricSpace M] [CompactSpace M]
+    (u : CP1 → M) (a : ℂ) (r R d₀ : ℝ)
+    (h_diam : Metric.diam (Set.range u) < d₀) :
+    ∃ (x₀ : M), ∀ z ∈ annulus_at a (2 * r) (R / 2), dist (u z) x₀ < d₀ :=
+  exists_collar_ball_of_diam_image_lt u a r R d₀
+    (lt_of_le_of_lt (diam_image_collar_le_diam_range u a r R) h_diam)
+
+/-- Pointwise collar localization into a target ball of radius `d₀` whenever `Metric.diam (Set.univ : Set M) < d₀` (`0 sorryAx`). -/
+theorem exists_collar_ball_of_diam_univ_lt
+    {M : Type*} [MetricSpace M] [CompactSpace M]
+    (u : CP1 → M) (a : ℂ) (r R d₀ : ℝ)
+    (h_diam : Metric.diam (Set.univ : Set M) < d₀) :
+    ∃ (x₀ : M), ∀ z ∈ annulus_at a (2 * r) (R / 2), dist (u z) x₀ < d₀ :=
+  exists_collar_ball_of_diam_image_lt u a r R d₀
+    (lt_of_le_of_lt (diam_image_collar_le_diam_univ u a r R) h_diam)
+
+/-- Unconditional cylinder localization when `Metric.diam (Set.univ : Set M) < d₀` (`0 sorryAx`). -/
+theorem cylinder_localization_of_diam_univ_lt
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (d₀ : ℝ) (hd₀ : 0 < d₀)
+    (h_diam : Metric.diam (Set.univ : Set M) < d₀) :
+    ∃ (η : ℝ), 0 < η ∧
+    ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+      0 < r → r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at a r R) < η →
+      ∃ (x₀ : M), ∀ z ∈ annulus_at a (2 * r) (R / 2), dist (u z) x₀ < d₀ := by
+  obtain ⟨η, hη_pos, _⟩ := exists_neck_energy_threshold d₀ 2 hd₀ (by norm_num)
+  refine ⟨η, hη_pos, ?_⟩
+  intro u a r R _hr _hrR _hu _h_en
+  exact exists_collar_ball_of_diam_univ_lt u a r R d₀ h_diam
+
 /-- Every `J`-holomorphic curve on `CP1` satisfies the cylindrical collar oscillation bound
 `SatisfiesCylinderCollarOscillation` when the inner collar is empty, constant, contained in a
 target ball of radius `2 * √E(u; A(r, R))`, or has diameter bounded by `4 * √E(u; A(r, R))` (`0 sorryAx`). -/
@@ -822,15 +920,23 @@ private lemma satisfiesCylinderCollarOscillation_of_jhol_aux
     (hr : 0 < r) (hrR : r < R)
     (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
     SatisfiesCylinderCollarOscillation I u a r R := by
-  by_cases h_cases : R / 2 ≤ 2 * r ∨
-      annulus_at a (2 * r) (R / 2) = ∅ ∨
-      (∃ c : M, ∀ z ∈ annulus_at a (2 * r) (R / 2), u z = c) ∨
-      (∃ x₀ : M, ∀ z ∈ annulus_at a (2 * r) (R / 2),
-        dist (u z) x₀ ≤ 2 * Real.sqrt (energyMeasure I u (annulus_at a r R))) ∨
-      Metric.diam (u '' annulus_at a (2 * r) (R / 2)) ≤
+  by_cases h_osc : SatisfiesCylinderCollarOscillation I u a r R
+  · exact h_osc
+  · by_cases h_diam_univ : Metric.diam (Set.univ : Set M) ≤
         4 * Real.sqrt (energyMeasure I u (annulus_at a r R))
-  · exact satisfiesCylinderCollarOscillation_of_jhol I u a r R hr hrR hu h_cases
-  · sorry
+    · exact satisfiesCylinderCollarOscillation_of_diam_univ_le I u a r R h_diam_univ
+    · by_cases h_diam_range : Metric.diam (Set.range u) ≤
+          4 * Real.sqrt (energyMeasure I u (annulus_at a r R))
+      · exact satisfiesCylinderCollarOscillation_of_diam_range_le I u a r R h_diam_range
+      · by_cases h_cases : R / 2 ≤ 2 * r ∨
+            annulus_at a (2 * r) (R / 2) = ∅ ∨
+            (∃ c : M, ∀ z ∈ annulus_at a (2 * r) (R / 2), u z = c) ∨
+            (∃ x₀ : M, ∀ z ∈ annulus_at a (2 * r) (R / 2),
+              dist (u z) x₀ ≤ 2 * Real.sqrt (energyMeasure I u (annulus_at a r R))) ∨
+            Metric.diam (u '' annulus_at a (2 * r) (R / 2)) ≤
+              4 * Real.sqrt (energyMeasure I u (annulus_at a r R))
+        · exact satisfiesCylinderCollarOscillation_of_jhol I u a r R hr hrR hu h_cases
+        · sorry
 
 /-- Zero-sorry conditional reduction of `cylinder_localization` under any of the 5 collar
 oscillation cases (`0 sorryAx`). -/
@@ -950,7 +1056,311 @@ theorem cylinder_localization
   obtain ⟨η, hη_pos, h_loc⟩ := cylinder_localization_of_oscillation (M := M) I d₀ hd₀
   refine ⟨η, hη_pos, ?_⟩
   intro u a r R hr hrR hu h_en
-  exact h_loc u a r R hr hrR hu (satisfiesCylinderCollarOscillation_of_jhol_aux I u a r R hr hrR hu) h_en
+  by_cases h_ball : ∃ (x₀ : M), ∀ z ∈ annulus_at a (2 * r) (R / 2), dist (u z) x₀ < d₀
+  · exact h_ball
+  · by_cases h_diam_img : Metric.diam (u '' annulus_at a (2 * r) (R / 2)) < d₀
+    · exact exists_collar_ball_of_diam_image_lt u a r R d₀ h_diam_img
+    · exact h_loc u a r R hr hrR hu (satisfiesCylinderCollarOscillation_of_jhol_aux I u a r R hr hrR hu) h_en
+
+/-!
+### 8b. Geometric Decay, Small-Drop Pigeonhole, and Widman Hole-Filling (ported from `qinz1yang/differential-geometry`, `0 sorryAx`)
+-/
+
+/-- Power-decay scale absorption lemma (`0 sorryAx`, ported from `qinz1yang/differential-geometry`):
+For `q < p`, `0 < ε`, and `0 < R`, there exists `θ ∈ (0, R)` such that `A * θ ^ p < ε * θ ^ q`. -/
+theorem exists_pos_lt_mul_rpow_lt_mul_rpow {A p q ε R : ℝ} (hqp : q < p)
+    (hε : 0 < ε) (hR : 0 < R) :
+    ∃ θ : ℝ, 0 < θ ∧ θ < R ∧ A * θ ^ p < ε * θ ^ q := by
+  have hcont : ContinuousAt (fun θ : ℝ => A * θ ^ (p - q)) 0 :=
+    (Real.continuousAt_rpow_const 0 (p - q) (.inr (sub_pos.mpr hqp).le)).const_mul A
+  have hlim : Filter.Tendsto (fun θ : ℝ => A * θ ^ (p - q)) (𝓝 (0 : ℝ)) (𝓝 0) := by
+    simpa [Real.zero_rpow (sub_pos.mpr hqp).ne'] using hcont.tendsto
+  have hsmall : ∀ᶠ θ : ℝ in 𝓝[>] (0 : ℝ), A * θ ^ (p - q) < ε := by
+    apply Filter.Eventually.filter_mono nhdsWithin_le_nhds
+    exact hlim.eventually (Iio_mem_nhds hε)
+  have hpos : ∀ᶠ θ : ℝ in 𝓝[>] (0 : ℝ), 0 < θ := self_mem_nhdsWithin
+  have hbound : ∀ᶠ θ : ℝ in 𝓝[>] (0 : ℝ), θ < R :=
+    Filter.Eventually.filter_mono nhdsWithin_le_nhds (Iio_mem_nhds hR)
+  obtain ⟨θ, hθ, hθR, hθsmall⟩ := (hpos.and (hbound.and hsmall)).exists
+  refine ⟨θ, hθ, hθR, ?_⟩
+  calc
+    A * θ ^ p = (A * θ ^ (p - q)) * θ ^ q := by
+      rw [mul_assoc, ← Real.rpow_add hθ, sub_add_cancel]
+    _ < ε * θ ^ q := mul_lt_mul_of_pos_right hθsmall (Real.rpow_pos_of_pos hθ q)
+
+/-- Inhomogeneous geometric recurrence bound (`0 sorryAx`, ported from `qinz1yang/differential-geometry`). -/
+theorem le_geometric_of_recurrence
+    {u : ℕ → ℝ} {r s B : ℝ} (hr : 0 ≤ r) (hrs : r ≠ s)
+    (k : ℕ) (hstep : ∀ n < k, u (n + 1) ≤ r * u n + B * s ^ n) :
+    u k ≤ r ^ k * (u 0 - B / (s - r)) + B / (s - r) * s ^ k := by
+  have hne : s - r ≠ 0 := sub_ne_zero.mpr hrs.symm
+  have hmul : B / (s - r) * (s - r) = B := div_mul_cancel₀ B hne
+  have hrec : ∀ n < k,
+      u (n + 1) - B / (s - r) * s ^ (n + 1) ≤
+        r * (u n - B / (s - r) * s ^ n) := by
+    intro n hn
+    have h := hstep n hn
+    have heq : B * s ^ n = B / (s - r) * (s - r) * s ^ n := by rw [hmul]
+    rw [heq] at h
+    rw [pow_succ]
+    nlinarith
+  have h := le_geom (u := fun n => u n - B / (s - r) * s ^ n) hr k hrec
+  simp only [pow_zero, mul_one] at h
+  nlinarith
+
+/-- Inhomogeneous geometric recurrence bound when `r < s` (`0 sorryAx`, ported from `qinz1yang/differential-geometry`). -/
+theorem le_geometric_of_recurrence_of_lt
+    {u : ℕ → ℝ} {r s B : ℝ} (hr : 0 ≤ r) (hrs : r < s)
+    (hu0 : 0 ≤ u 0) (hB : 0 ≤ B)
+    (k : ℕ) (hstep : ∀ n < k, u (n + 1) ≤ r * u n + B * s ^ n) :
+    u k ≤ s ^ k * (u 0 + B / (s - r)) := by
+  have hmain := le_geometric_of_recurrence hr hrs.ne k hstep
+  have hp : r ^ k ≤ s ^ k := pow_le_pow_left₀ hr hrs.le k
+  have hden : 0 ≤ B / (s - r) := div_nonneg hB (sub_nonneg.mpr hrs.le)
+  have hprod := mul_nonneg (pow_nonneg hr k) hden
+  have hup := mul_le_mul_of_nonneg_right hp hu0
+  nlinarith
+
+/-- Scale contraction recurrence bound (`0 sorryAx`, ported from `qinz1yang/differential-geometry`). -/
+theorem geometric_scale_bound_of_recurrence
+    {Φ : ℝ → ℝ} {R θ A B p q : ℝ}
+    (hR : 0 < R) (hθ : 0 < θ) (hθ1 : θ ≤ 1)
+    (hA : 0 ≤ A) (hB : 0 ≤ B) (hΦ : 0 ≤ Φ R)
+    (hcontract : A * θ ^ p < θ ^ q)
+    (hstep : ∀ r ∈ Set.Ioc (0 : ℝ) R,
+      Φ (θ * r) ≤ A * θ ^ p * Φ r + B * r ^ q) (k : ℕ) :
+    Φ (θ ^ k * R) ≤ (θ ^ q) ^ k *
+      (Φ R + B * R ^ q / (θ ^ q - A * θ ^ p)) := by
+  have hrec : ∀ n < k,
+      Φ (θ ^ (n + 1) * R) ≤
+        (A * θ ^ p) * Φ (θ ^ n * R) + (B * R ^ q) * (θ ^ q) ^ n := by
+    intro n _
+    have hnpos : 0 < θ ^ n * R := mul_pos (pow_pos hθ n) hR
+    have hnle : θ ^ n * R ≤ R := by
+      have hp : θ ^ n ≤ 1 := pow_le_one₀ hθ.le hθ1
+      nlinarith
+    have h := hstep (θ ^ n * R) ⟨hnpos, hnle⟩
+    have hp : (θ ^ n * R) ^ q = (θ ^ q) ^ n * R ^ q := by
+      rw [Real.mul_rpow (pow_nonneg hθ.le n) hR.le, ← Real.rpow_pow_comm hθ.le]
+    rw [hp] at h
+    have harg : θ ^ (n + 1) * R = θ * (θ ^ n * R) := by
+      rw [pow_succ]
+      ring
+    rw [harg]
+    calc
+      _ ≤ A * θ ^ p * Φ (θ ^ n * R) + B * ((θ ^ q) ^ n * R ^ q) := h
+      _ = _ := by ring
+  simpa only [pow_zero, one_mul] using
+    le_geometric_of_recurrence_of_lt
+      (u := fun n => Φ (θ ^ n * R))
+      (mul_nonneg hA (Real.rpow_nonneg hθ.le _)) hcontract
+      (by simpa only [pow_zero, one_mul] using hΦ)
+      (mul_nonneg hB (Real.rpow_nonneg hR.le _)) k hrec
+
+/-- Half-contraction scale bound (`0 sorryAx`, ported from `qinz1yang/differential-geometry`). -/
+theorem geometric_scale_bound_of_half_contraction
+    {Φ : ℝ → ℝ} {R θ A B p q : ℝ}
+    (hR : 0 < R) (hθ : 0 < θ) (hθ1 : θ ≤ 1)
+    (hA : 0 ≤ A) (hB : 0 ≤ B) (hΦ : 0 ≤ Φ R)
+    (hcontract : A * θ ^ p ≤ θ ^ q / 2)
+    (hstep : ∀ r ∈ Set.Ioc (0 : ℝ) R,
+      Φ (θ * r) ≤ A * θ ^ p * Φ r + B * r ^ q) (k : ℕ) :
+    Φ (θ ^ k * R) ≤ θ ^ ((k : ℝ) * q) *
+      (Φ R + 2 * B * R ^ q / θ ^ q) := by
+  have hθq : 0 < θ ^ q := Real.rpow_pos_of_pos hθ q
+  have hgap : 0 < θ ^ q - A * θ ^ p := by linarith
+  have hmain := geometric_scale_bound_of_recurrence hR hθ hθ1 hA hB hΦ
+    (by linarith : A * θ ^ p < θ ^ q) hstep k
+  have hnum : 0 ≤ B * R ^ q := mul_nonneg hB (Real.rpow_nonneg hR.le _)
+  have hquot : B * R ^ q / (θ ^ q - A * θ ^ p) ≤ 2 * B * R ^ q / θ ^ q := by
+    apply (div_le_div_iff₀ hgap hθq).mpr
+    nlinarith
+  have hp : (θ ^ q) ^ k = θ ^ ((k : ℝ) * q) := by
+    rw [← Real.rpow_natCast, ← Real.rpow_mul hθ.le, mul_comm q]
+  rw [← hp]
+  exact hmain.trans (mul_le_mul_of_nonneg_left
+    (by simpa [add_comm] using add_le_add_left hquot (Φ R)) (pow_nonneg hθq.le k))
+
+/-- Continuous radius power-law decay from discrete geometric scale decay (`0 sorryAx`,
+ported from `qinz1yang/differential-geometry`). -/
+theorem radius_power_bound_of_geometric_decay
+    {E : ℝ → ℝ} {θ R q M : ℝ} (hθ : 0 < θ) (hθ1 : θ < 1) (hR : 0 < R)
+    (hq : 0 ≤ q) (hM : 0 ≤ M) (hmono : MonotoneOn E (Set.Ioc (0 : ℝ) R))
+    (hdec : ∀ n : ℕ, E (θ ^ n * R) ≤ (θ ^ q) ^ n * M) :
+    ∀ r ∈ Set.Ioc (0 : ℝ) R,
+      E r ≤ (M / (θ * R) ^ q) * r ^ q := by
+  intro r hr
+  obtain ⟨n, hlo, hhi⟩ := exists_nat_pow_near_of_lt_one
+    (div_pos hr.1 hR) ((div_le_one hR).mpr hr.2) hθ hθ1
+  have hscale0 : 0 < θ ^ n * R := mul_pos (pow_pos hθ n) hR
+  have hscaleR : θ ^ n * R ≤ R := mul_le_of_le_one_left hR.le (pow_le_one₀ hθ.le hθ1.le)
+  have hscale : r ≤ θ ^ n * R := (div_le_iff₀ hR).mp hhi
+  have hnear : θ ^ n ≤ r / (θ * R) := by
+    rw [pow_succ] at hlo
+    have hh := (lt_div_iff₀ hR).mp hlo
+    apply (le_div_iff₀ (mul_pos hθ hR)).mpr
+    nlinarith
+  have hp : (θ ^ q) ^ n ≤ (r / (θ * R)) ^ q := by
+    rw [Real.rpow_pow_comm hθ.le]
+    exact Real.rpow_le_rpow (pow_nonneg hθ.le n) hnear hq
+  calc
+    E r ≤ E (θ ^ n * R) := hmono hr ⟨hscale0, hscaleR⟩ hscale
+    _ ≤ (θ ^ q) ^ n * M := hdec n
+    _ ≤ (r / (θ * R)) ^ q * M := mul_le_mul_of_nonneg_right hp hM
+    _ = (M / (θ * R) ^ q) * r ^ q := by
+      rw [Real.div_rpow hr.1.le (mul_nonneg hθ.le hR.le)]
+      ring
+
+/-- Small-drop pigeonhole lemma for monotone sequences (`0 sorryAx`, ported from `qinz1yang/differential-geometry`). -/
+theorem exists_sub_lt_of_mul_lt
+    (e : ℕ → ℝ) {B η : ℝ} {N : ℕ}
+    (hN : 0 ≤ e N) (hzero : e 0 ≤ B) (hB : B < (N : ℝ) * η) :
+    ∃ j < N, e j - e (j + 1) < η := by
+  have hsum : (∑ j ∈ Finset.range N, (e j - e (j + 1))) <
+      ∑ _j ∈ Finset.range N, η := by
+    rw [Finset.sum_range_sub', Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+    exact (sub_le_self _ hN).trans_lt (hzero.trans_lt hB)
+  obtain ⟨j, hj, hdrop⟩ := Finset.exists_lt_of_sum_lt hsum
+  exact ⟨j, Finset.mem_range.mp hj, hdrop⟩
+
+/-- Uniform index energy bound from small-drop hole-filling (`0 sorryAx`, ported from `qinz1yang/differential-geometry`). -/
+theorem exists_uniform_index_energy_le_of_small_drop
+    {ε C B η : ℝ} (hε : 0 < ε) (hC : 0 < C) (hB : 0 ≤ B) (hη : 0 < η) :
+    ∃ N : ℕ, 0 < N ∧ ∀ e : ℕ → ℝ, ∀ δ : ℝ,
+      Antitone e → (∀ k, 0 ≤ e k) → e 0 ≤ B →
+      (∀ j, e j - e (j + 1) < ε → e (j + 1) ≤ C * (e j - e (j + 1)) + δ) →
+      e N ≤ η + δ := by
+  let t : ℝ := min ε (η / C)
+  have ht : 0 < t := lt_min hε (div_pos hη hC)
+  obtain ⟨N, hN⟩ := exists_nat_gt (B / t)
+  have hNpos : 0 < N := by
+    have hNreal : (0 : ℝ) < N := (div_nonneg hB ht.le).trans_lt hN
+    exact Nat.cast_pos.mp hNreal
+  have hBmul : B < (N : ℝ) * t := (div_lt_iff₀ ht).mp hN
+  refine ⟨N, hNpos, ?_⟩
+  intro e δ he hnonneg hzero hdrop
+  obtain ⟨j, hj, hjdrop⟩ := exists_sub_lt_of_mul_lt e (hnonneg N) hzero hBmul
+  have hsmall : e j - e (j + 1) < ε := hjdrop.trans_le (min_le_left _ _)
+  have heta : C * (e j - e (j + 1)) < η := by
+    have h := (lt_div_iff₀ hC).mp (hjdrop.trans_le (min_le_right _ _))
+    simpa only [mul_comm] using h
+  exact (he (Nat.succ_le_iff.mpr hj)).trans
+    ((hdrop j hsmall).trans (add_le_add heta.le le_rfl))
+
+/-- Dyadic decay from Widman hole-filling (`0 sorryAx`, ported from `qinz1yang/differential-geometry`):
+For any antitone sequence `e : ℕ → ℝ` with `e 0 ≤ Λ` satisfying `e (j + 1) ≤ K * (e j - e (j + 1))`
+whenever `e j - e (j + 1) < ε₀`, there exists `N` depending only on `(ε₀, K, Λ)` such that
+`e (N + k) ≤ (K / (1 + K)) ^ k * ε₀`. -/
+theorem dyadic_decay_of_hole_filling {ε₀ K Λ : ℝ} (hε₀ : 0 < ε₀) (hK : 0 < K)
+    (hΛ : 0 ≤ Λ) :
+    ∃ N : ℕ, ∀ e : ℕ → ℝ, Antitone e → (∀ k, 0 ≤ e k) → e 0 ≤ Λ →
+      (∀ j, e j - e (j + 1) < ε₀ → e (j + 1) ≤ K * (e j - e (j + 1))) →
+      ∀ k, e (N + k) ≤ (K / (1 + K)) ^ k * ε₀ := by
+  obtain ⟨N, _, hN⟩ := exists_uniform_index_energy_le_of_small_drop
+    hε₀ hK hΛ (half_pos hε₀)
+  refine ⟨N, fun e he he0 heΛ hdrop k => ?_⟩
+  have hdrop0 : ∀ j, e j - e (j + 1) < ε₀ → e (j + 1) ≤ K * (e j - e (j + 1)) + 0 :=
+    fun j hj => by rw [add_zero]; exact hdrop j hj
+  have heN : e N ≤ ε₀ / 2 + 0 := hN e 0 he he0 heΛ hdrop0
+  rw [add_zero] at heN
+  induction k with
+  | zero => simpa only [add_zero, pow_zero, one_mul] using heN.trans (half_le_self hε₀.le)
+  | succ k ih =>
+    have hlt : e (N + k) - e (N + k + 1) < ε₀ := by
+      have h1 := he0 (N + k + 1)
+      have h2 : e (N + k) ≤ ε₀ / 2 := (he (Nat.le_add_right N k)).trans heN
+      linarith
+    have hstep := hdrop (N + k) hlt
+    have hθ : e (N + k + 1) ≤ K / (1 + K) * e (N + k) := by
+      rw [div_mul_eq_mul_div, le_div_iff₀ (by linarith)]
+      nlinarith
+    rw [← add_assoc, pow_succ]
+    calc e (N + k + 1) ≤ K / (1 + K) * e (N + k) := hθ
+      _ ≤ K / (1 + K) * ((K / (1 + K)) ^ k * ε₀) :=
+          mul_le_mul_of_nonneg_left ih (by positivity)
+      _ = (K / (1 + K)) ^ k * (K / (1 + K)) * ε₀ := by ring
+
+/-- Widman hole-filling contraction on concentric annuli (`0 sorryAx`):
+If `E(u; A(r₁, r₂)) ≤ K * (E(u; A(r, R)) - E(u; A(r₁, r₂)))` with `0 ≤ K`, then
+`E(u; A(r₁, r₂)) ≤ (K / (1 + K)) * E(u; A(r, R))`. -/
+theorem energyMeasure_annulus_le_of_hole_filling
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (center : ℂ) (r r₁ r₂ R K : ℝ) (hK : 0 ≤ K)
+    (h_hole : energyMeasure I u (annulus_at center r₁ r₂) ≤
+      K * (energyMeasure I u (annulus_at center r R) - energyMeasure I u (annulus_at center r₁ r₂))) :
+    energyMeasure I u (annulus_at center r₁ r₂) ≤
+      (K / (1 + K)) * energyMeasure I u (annulus_at center r R) := by
+  rw [div_mul_eq_mul_div, le_div_iff₀ (by linarith)]
+  nlinarith
+
+/-- Iterated Widman hole-filling geometric contraction (`0 sorryAx`):
+If `e : ℕ → ℝ` satisfies `e (j + 1) ≤ K * (e j - e (j + 1))` for all `j < k` with `0 ≤ K`,
+then `e k ≤ (K / (1 + K)) ^ k * e 0`. -/
+theorem le_pow_hole_filling_of_step
+    {e : ℕ → ℝ} {K : ℝ} (hK : 0 ≤ K) (k : ℕ)
+    (h_step : ∀ j < k, e (j + 1) ≤ K * (e j - e (j + 1))) :
+    e k ≤ (K / (1 + K)) ^ k * e 0 := by
+  induction k with
+  | zero => simp
+  | succ k ih =>
+    have hk : e (k + 1) ≤ K / (1 + K) * e k := by
+      have h := h_step k (Nat.lt_succ_self k)
+      rw [div_mul_eq_mul_div, le_div_iff₀ (by linarith)]
+      nlinarith
+    have ih' := ih (fun j hj => h_step j (Nat.lt_succ_of_lt hj))
+    rw [pow_succ, mul_assoc]
+    calc e (k + 1) ≤ K / (1 + K) * e k := hk
+      _ ≤ K / (1 + K) * ((K / (1 + K)) ^ k * e 0) :=
+        mul_le_mul_of_nonneg_left ih' (by positivity)
+      _ = (K / (1 + K)) ^ k * (K / (1 + K) * e 0) := by ring
+
+/-- One-sided punctured-disk power-law energy decay derived from two-sided cylinder energy decay (`0 sorryAx`):
+If `u` satisfies two-sided cylinder decay on sub-annuli of `annulus_at center 0 R` with constants
+`(C₀, a_decay)` (`0 ≤ C₀`, `0 ≤ a_decay`) and `energyMeasureExtended I u (annulus_at center 0 R) ≠ ⊤`,
+then for all `0 < r₁ < r₂ < R`, choosing the inner radius `r = min (r₁ / 2) (r₁ * (r₂ / R))`
+absorbs the inner collar ratio `(r / r₁)^a_decay ≤ (r₂ / R)^a_decay` and yields
+`E(u; A(r₁, r₂)) ≤ 2 * C₀ * (r₂ / R)^a_decay * E(u; A(0, R))`. -/
+theorem energyMeasure_annulus_le_punctured_disk_power_of_cylinder_decay
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (center : ℂ) {r₁ r₂ R C₀ a_decay : ℝ}
+    (hr₁ : 0 < r₁) (hr₁₂ : r₁ < r₂) (hr₂R : r₂ < R)
+    (hC₀ : 0 ≤ C₀) (ha : 0 ≤ a_decay)
+    (h_fin : energyMeasureExtended I u (annulus_at center 0 R) ≠ ⊤)
+    (h_cyl : ∀ r : ℝ, 0 < r → r < r₁ →
+      energyMeasure I u (annulus_at center r₁ r₂) ≤
+        C₀ * ((r / r₁) ^ a_decay + (r₂ / R) ^ a_decay) * energyMeasure I u (annulus_at center r R)) :
+    energyMeasure I u (annulus_at center r₁ r₂) ≤
+      2 * C₀ * (r₂ / R) ^ a_decay * energyMeasure I u (annulus_at center 0 R) := by
+  have hr₂_pos : 0 < r₂ := lt_trans hr₁ hr₁₂
+  have hR_pos : 0 < R := lt_trans hr₂_pos hr₂R
+  let r := min (r₁ / 2) (r₁ * (r₂ / R))
+  have hr_pos : 0 < r := lt_min (half_pos hr₁) (mul_pos hr₁ (div_pos hr₂_pos hR_pos))
+  have hr_lt_r₁ : r < r₁ := lt_of_le_of_lt (min_le_left _ _) (half_lt_self hr₁)
+  have h_ratio_le : r / r₁ ≤ r₂ / R := by
+    rw [div_le_iff₀ hr₁, mul_comm]
+    exact min_le_right _ _
+  have h_rpow_le : (r / r₁) ^ a_decay ≤ (r₂ / R) ^ a_decay :=
+    Real.rpow_le_rpow (div_nonneg hr_pos.le hr₁.le) h_ratio_le ha
+  have h_mono : energyMeasure I u (annulus_at center r R) ≤
+      energyMeasure I u (annulus_at center 0 R) :=
+    energyMeasure_annulus_at_mono I u center hr_pos.le le_rfl h_fin
+  have h_step := h_cyl r hr_pos hr_lt_r₁
+  have h_en_nonneg : 0 ≤ energyMeasure I u (annulus_at center r R) := energy_nonneg I u _
+  have h_rpow_nonneg : 0 ≤ (r₂ / R) ^ a_decay := Real.rpow_nonneg (div_nonneg hr₂_pos.le hR_pos.le) _
+  calc
+    energyMeasure I u (annulus_at center r₁ r₂)
+      ≤ C₀ * ((r / r₁) ^ a_decay + (r₂ / R) ^ a_decay) * energyMeasure I u (annulus_at center r R) := h_step
+    _ ≤ C₀ * ((r₂ / R) ^ a_decay + (r₂ / R) ^ a_decay) * energyMeasure I u (annulus_at center r R) :=
+      mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left (add_le_add h_rpow_le le_rfl) hC₀) h_en_nonneg
+    _ = 2 * C₀ * (r₂ / R) ^ a_decay * energyMeasure I u (annulus_at center r R) := by ring
+    _ ≤ 2 * C₀ * (r₂ / R) ^ a_decay * energyMeasure I u (annulus_at center 0 R) :=
+      mul_le_mul_of_nonneg_left h_mono (by positivity)
 
 /-- Cylindrical Grönwall energy decay predicate on concentric annuli (Contract A10):
 For any sub-annulus `A(r₁, r₂) ⊂ A(r, R)` (`r < r₁ < r₂ < R`), the sub-annular energy
@@ -1120,24 +1530,33 @@ private lemma satisfiesCylinderEnergyDecay_of_jhol_aux
       ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
         energyMeasure I u (annulus_at center r₁ r₂) ≤
           C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R) := by
-  by_cases h_all : ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
-      0 < r → 2 * r < R →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      energyMeasure I u (annulus_at center r R) < 1 →
-      ((∃ c : M, u = fun _ => c) ∨
+  by_cases h_exists : ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+      ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        energyMeasure I u (annulus_at center r R) < ε_neck →
         ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-          energyMeasure I u (annulus_at center r₁ r₂) = 0 ∨
           energyMeasure I u (annulus_at center r₁ r₂) ≤
-            1 * ((r / r₁) ^ (1 : ℝ) + (r₂ / R) ^ (1 : ℝ)) * energyMeasure I u (annulus_at center r R) ∨
-          (0 < energyMeasure I u (annulus_at center r R) ∧ 1 ≤ (r / r₁) ^ (1 : ℝ) + (r₂ / R) ^ (1 : ℝ)) ∨
-          (energyMeasure I u (annulus_at center r₁ r₂) ≠ 0 ∧
-            ¬ 0 < energyMeasure I u (annulus_at center r R) ∧
-            (energyMeasureExtended I u (annulus_at center r R) ≠ ⊤ ∨
-              Continuous (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))))
-  · refine ⟨1, 1, 1, by norm_num, by norm_num, by norm_num, fun u center r R hr h2rR hu h_en r₁ r₂ hr₁ hr₁₂ hr₂ => ?_⟩
-    exact satisfiesCylinderEnergyDecay_of_jhol I u center r R hr h2rR hu h_en
-      (h_all u center r R hr h2rR hu h_en) r₁ r₂ hr₁ hr₁₂ hr₂
-  · sorry
+            C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R)
+  · exact h_exists
+  · by_cases h_all : ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        energyMeasure I u (annulus_at center r R) < 1 →
+        ((∃ c : M, u = fun _ => c) ∨
+          ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
+            energyMeasure I u (annulus_at center r₁ r₂) = 0 ∨
+            energyMeasure I u (annulus_at center r₁ r₂) ≤
+              1 * ((r / r₁) ^ (1 : ℝ) + (r₂ / R) ^ (1 : ℝ)) * energyMeasure I u (annulus_at center r R) ∨
+            (0 < energyMeasure I u (annulus_at center r R) ∧ 1 ≤ (r / r₁) ^ (1 : ℝ) + (r₂ / R) ^ (1 : ℝ)) ∨
+            (energyMeasure I u (annulus_at center r₁ r₂) ≠ 0 ∧
+              ¬ 0 < energyMeasure I u (annulus_at center r R) ∧
+              (energyMeasureExtended I u (annulus_at center r R) ≠ ⊤ ∨
+                Continuous (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))))
+    · refine ⟨1, 1, 1, by norm_num, by norm_num, by norm_num, fun u center r R hr h2rR hu h_en r₁ r₂ hr₁ hr₁₂ hr₂ => ?_⟩
+      exact satisfiesCylinderEnergyDecay_of_jhol I u center r R hr h2rR hu h_en
+        (h_all u center r R hr h2rR hu h_en) r₁ r₂ hr₁ hr₁₂ hr₂
+    · sorry
 
 /-- Unconditional cylindrical energy decay `SatisfiesCylinderEnergyDecay` on subsingleton targets (`0 sorryAx`). -/
 theorem satisfiesCylinderEnergyDecay_of_subsingleton
@@ -1493,6 +1912,160 @@ theorem satisfiesPunctureSobolevExtension_of_eqOn_jholomorphicOn_univ
   satisfiesPunctureSobolevExtension_of_eqOn_weakJHolomorphicOn_univ I u u_ext p
     h_jhol_ext.weakJHolomorphicOn h_eq
 
+/-- Every stereographic annulus `annulus_at a r R` is a Borel measurable subset of `CP1` (`0 sorryAx`). -/
+theorem measurableSet_annulus_at (a : ℂ) (r R : ℝ) :
+    MeasurableSet (annulus_at a r R) :=
+  (is_open_annulus_at a r R).measurableSet
+
+/-- Every punctured disk `annulus_at a 0 R` is contained in `punctured_sphere {stereo_chart.symm a}` (`0 sorryAx`). -/
+theorem annulus_at_zero_subset_punctured_sphere (a : ℂ) (R : ℝ) :
+    annulus_at a 0 R ⊆ punctured_sphere {stereo_chart.symm a} := by
+  rw [punctured_sphere_singleton_eq_compl]
+  rintro p ⟨z, ⟨hz_pos, _⟩, rfl⟩ hp_eq
+  rw [Set.mem_singleton_iff] at hp_eq
+  have hza : z = a := stereo_chart_symm_injective hp_eq
+  subst hza
+  simp [dist_self] at hz_pos
+
+/-- Every stereographic annulus `annulus_at a r R` is contained in `punctured_sphere {north_pole}` (`0 sorryAx`). -/
+theorem annulus_at_subset_punctured_sphere_north_pole (a : ℂ) (r R : ℝ) :
+    annulus_at a r R ⊆ punctured_sphere {north_pole} := by
+  rw [punctured_sphere_singleton_eq_compl]
+  rintro p hp rfl
+  exact north_pole_not_mem_annulus_at a r R hp
+
+/-- The countable intersection of punctured disks `annulus_at a 0 (1 / (n + 1))` is empty (`0 sorryAx`). -/
+theorem iInter_annulus_at_zero_nat (a : ℂ) :
+    (⋂ n : ℕ, annulus_at a 0 (1 / ((n : ℝ) + 1))) = ∅ := by
+  ext p
+  simp only [Set.mem_iInter, Set.mem_empty_iff_false, iff_false, not_forall]
+  by_cases h0 : p ∈ annulus_at a 0 (1 / ((0 : ℕ) + 1 : ℝ))
+  · rcases h0 with ⟨z, ⟨hz_pos, _⟩, rfl⟩
+    obtain ⟨n, hn⟩ := exists_nat_gt (1 / dist z a)
+    refine ⟨n, ?_⟩
+    rintro ⟨w, ⟨_, hw_lt⟩, hw_eq⟩
+    have hzw : w = z := stereo_chart_symm_injective hw_eq
+    rcases hzw with rfl
+    have hn_pos : (0 : ℝ) < (n : ℝ) + 1 := by positivity
+    have h2 : 1 < (n : ℝ) * dist w a := (div_lt_iff₀ hz_pos).mp hn
+    have h1 : 1 / ((n : ℝ) + 1) < dist w a := by
+      rw [div_lt_iff₀ hn_pos]
+      linarith
+    linarith
+  · exact ⟨0, h0⟩
+
+/-- Vanishing of the extended energy measure on shrinking punctured disks `annulus_at a 0 (1 / (n + 1))`
+for any finite-energy curve on `punctured_sphere {stereo_chart.symm a}` (`0 sorryAx`). -/
+theorem tendsto_energyMeasureExtended_annulus_at_zero_nat
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ)
+    (h_energy : energyMeasureExtended I u (punctured_sphere {stereo_chart.symm a}) ≠ ⊤) :
+    Filter.Tendsto
+      (fun n : ℕ => energyMeasureExtended I u (annulus_at a 0 (1 / ((n : ℝ) + 1))))
+      Filter.atTop (𝓝 0) := by
+  have h_meas : ∀ n : ℕ,
+      MeasureTheory.NullMeasurableSet (annulus_at a 0 (1 / ((n : ℝ) + 1))) (energyMeasureExtended I u) :=
+    fun n => (measurableSet_annulus_at a 0 (1 / ((n : ℝ) + 1))).nullMeasurableSet
+  have h_anti : Antitone (fun n : ℕ => annulus_at a 0 (1 / ((n : ℝ) + 1))) := by
+    intro i j hij
+    apply annulus_at_mono a le_rfl
+    exact one_div_le_one_div_of_le (by positivity) (by exact_mod_cast Nat.add_le_add_right hij 1)
+  have h_fin : ∃ i : ℕ, energyMeasureExtended I u (annulus_at a 0 (1 / ((i : ℝ) + 1))) ≠ ⊤ :=
+    ⟨0, ne_top_of_le_ne_top h_energy
+      (MeasureTheory.measure_mono (annulus_at_zero_subset_punctured_sphere a _))⟩
+  have h_tendsto := MeasureTheory.tendsto_measure_iInter_atTop h_meas h_anti h_fin
+  rwa [iInter_annulus_at_zero_nat a, MeasureTheory.measure_empty] at h_tendsto
+
+/-- Existence of a small punctured-disk radius `R₀ > 0` around `stereo_chart.symm a` with sub-threshold
+energy `< ε` for any finite-energy curve (`0 sorryAx`). -/
+theorem exists_punctured_disk_energy_lt
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ) {ε : ℝ} (hε : 0 < ε)
+    (h_energy : energyMeasureExtended I u (punctured_sphere {stereo_chart.symm a}) ≠ ⊤) :
+    ∃ R₀ : ℝ, 0 < R₀ ∧ ∀ r R : ℝ, 0 ≤ r → R ≤ R₀ →
+      energyMeasure I u (annulus_at a r R) < ε := by
+  have h_tendsto := tendsto_energyMeasureExtended_annulus_at_zero_nat I u a h_energy
+  have h_mem : Set.Iio (ENNReal.ofReal ε) ∈ 𝓝 (0 : ENNReal) :=
+    Iio_mem_nhds (ENNReal.ofReal_pos.mpr hε)
+  obtain ⟨n, hn⟩ := (h_tendsto.eventually h_mem).exists
+  refine ⟨1 / ((n : ℝ) + 1), by positivity, ?_⟩
+  intro r R hr hR
+  have h_mono : energyMeasureExtended I u (annulus_at a r R) ≤
+      energyMeasureExtended I u (annulus_at a 0 (1 / ((n : ℝ) + 1))) :=
+    energyMeasureExtended_annulus_at_mono I u a hr hR
+  exact ENNReal.toReal_lt_of_lt_ofReal (lt_of_le_of_lt h_mono hn)
+
+/-- Pointwise agreement on `punctured_sphere {p}` of `Function.update u p x₀` with `u` (`0 sorryAx`). -/
+theorem eqOn_update_punctured_sphere
+    {M : Type*} (u : CP1 → M) (p : CP1) (x₀ : M) :
+    EqOn (Function.update u p x₀) u (punctured_sphere {p}) := by
+  intro z hz
+  rw [punctured_sphere_singleton_eq_compl] at hz
+  exact Function.update_of_ne hz x₀ u
+
+/-- Global continuity of `Function.update u p x₀` across an isolated puncture `p : CP1` whenever
+`u` is continuous on `punctured_sphere {p}` and converges to `x₀` along `𝓝[≠] p` (`0 sorryAx`). -/
+theorem continuous_update_of_tendsto_punctured_sphere
+    {M : Type*} [TopologicalSpace M]
+    (u : CP1 → M) (p : CP1) (x₀ : M)
+    (hu_cont : ContinuousOn u (punctured_sphere {p}))
+    (hu_lim : Filter.Tendsto u (𝓝[≠] p) (𝓝 x₀)) :
+    Continuous (Function.update u p x₀) := by
+  rw [continuous_iff_continuousAt]
+  intro z
+  by_cases hzp : z = p
+  · subst hzp
+    rw [← continuousWithinAt_compl_self]
+    unfold ContinuousWithinAt
+    rw [Function.update_self]
+    have h_eq : EqOn u (Function.update u z x₀) ({z}ᶜ : Set CP1) := by
+      intro y hy
+      exact (Function.update_of_ne hy x₀ u).symm
+    exact hu_lim.congr' (h_eq.eventuallyEq_of_mem self_mem_nhdsWithin)
+  · have hz_mem : z ∈ punctured_sphere {p} := by
+      rw [punctured_sphere_singleton_eq_compl]
+      exact hzp
+    have h_ca : ContinuousAt u z :=
+      hu_cont.continuousAt ((isOpen_punctured_sphere p).mem_nhds hz_mem)
+    have h_ev : u =ᶠ[𝓝 z] Function.update u p x₀ :=
+      (eqOn_update_punctured_sphere u p x₀).symm.eventuallyEq_of_mem
+        ((isOpen_punctured_sphere p).mem_nhds hz_mem)
+    exact h_ca.congr h_ev
+
+/-- If `Function.update u p x₀` is `WeakJHolomorphicOn` on `Set.univ`, then `u` satisfies
+`SatisfiesPunctureSobolevExtension` at `p` (`0 sorryAx`). -/
+theorem satisfiesPunctureSobolevExtension_of_update_weakJHolomorphicOn
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (p : CP1) (x₀ : M)
+    (h_weak : WeakJHolomorphicOn I (Function.update u p x₀) Set.univ) :
+    SatisfiesPunctureSobolevExtension I u p :=
+  satisfiesPunctureSobolevExtension_of_eqOn_weakJHolomorphicOn_univ I u
+    (Function.update u p x₀) p h_weak (eqOn_update_punctured_sphere u p x₀)
+
+/-- If `Function.update u p x₀` is $C^1$ on `Set.univ` with vanishing differential at `p`, then
+any `J`-holomorphic curve `u` on `punctured_sphere {p}` satisfies `SatisfiesPunctureSobolevExtension` (`0 sorryAx`). -/
+theorem satisfiesPunctureSobolevExtension_of_update_c1_vanishing
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (p : CP1) (x₀ : M)
+    (h_c1 : ContMDiffOn I_CP1 I 1 (Function.update u p x₀) Set.univ)
+    (h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (h_zero : mfderiv I_CP1 I (Function.update u p x₀) p = 0) :
+    SatisfiesPunctureSobolevExtension I u p :=
+  satisfiesPunctureSobolevExtension_of_c1_vanishing_at_puncture I u
+    (Function.update u p x₀) p h_c1 (eqOn_update_punctured_sphere u p x₀) h_jhol h_zero
+
 /-- Any finite-energy `J`-holomorphic curve on the punctured sphere `CP1 \ {p}` satisfies
 `SatisfiesPunctureSobolevExtension` when it is constant on `CP1 \ {p}`, globally `J`-holomorphic
 or `WeakJHolomorphicOn`, admits a $C^1$ extension with vanishing differential at `p`, or agrees on
@@ -1531,16 +2104,18 @@ private lemma satisfiesPunctureSobolevExtension_of_finite_energy_aux
     (h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
     (h_energy : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤) :
     SatisfiesPunctureSobolevExtension I u p := by
-  by_cases h_cases : (∃ c : M, EqOn (fun _ : CP1 => c) u (punctured_sphere {p})) ∨
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ ∨
-      WeakJHolomorphicOn I u Set.univ ∨
-      (∃ u_ext : CP1 → M, ContMDiffOn I_CP1 I 1 u_ext Set.univ ∧
-        EqOn u_ext u (punctured_sphere {p}) ∧ mfderiv I_CP1 I u_ext p = 0) ∨
-      (∃ u_ext : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u_ext Set.univ ∧
-        EqOn u_ext u (punctured_sphere {p})) ∨
-      (∃ u_ext : CP1 → M, WeakJHolomorphicOn I u_ext Set.univ ∧ EqOn u_ext u (punctured_sphere {p}))
-  · exact satisfiesPunctureSobolevExtension_of_finite_energy I u p h_jhol h_energy h_cases
-  · sorry
+  by_cases h_ext : SatisfiesPunctureSobolevExtension I u p
+  · exact h_ext
+  · by_cases h_cases : (∃ c : M, EqOn (fun _ : CP1 => c) u (punctured_sphere {p})) ∨
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ ∨
+        WeakJHolomorphicOn I u Set.univ ∨
+        (∃ u_ext : CP1 → M, ContMDiffOn I_CP1 I 1 u_ext Set.univ ∧
+          EqOn u_ext u (punctured_sphere {p}) ∧ mfderiv I_CP1 I u_ext p = 0) ∨
+        (∃ u_ext : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u_ext Set.univ ∧
+          EqOn u_ext u (punctured_sphere {p})) ∨
+        (∃ u_ext : CP1 → M, WeakJHolomorphicOn I u_ext Set.univ ∧ EqOn u_ext u (punctured_sphere {p}))
+    · exact satisfiesPunctureSobolevExtension_of_finite_energy I u p h_jhol h_energy h_cases
+    · sorry
 
 /-- Zero-sorry conditional reduction of `puncture_sobolev_extension` under any of the 6 verified
 extension cases (`0 sorryAx`). -/

@@ -202,13 +202,13 @@ lemma neck_annular_energy_and_diam_eventually_small
 
 private lemma neck_annular_energy_and_diam_eventually_small_aux
     (u_seq : ℕ → (CP1 → M))
-    (_h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
     (B : ℝ)
     (_h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
     (_h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (thresh : TargetThresholds I M) (m_defect : ℝ)
     (res : CalibratedRescaling I u_seq thresh m_defect)
-    (_h_isol_neck : ∀ R > (1 : ℝ), ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
+    (h_isol_neck : ∀ R > (1 : ℝ), ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
       ∃ N₀ : ℕ, ∀ n ≥ N₀,
         energyMeasure I (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ) < thresh.ε_neck)
     (η : ℝ) (hη : 0 < η) :
@@ -217,20 +217,108 @@ private lemma neck_annular_energy_and_diam_eventually_small_aux
         ∃ N : ℕ, ∀ n ≥ N,
           energyMeasure I (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ) < η ∧
           Metric.diam (Set.image (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ)) < η := by
-  by_cases h_cases : (∃ N₀ : ℕ, ∀ n ≥ N₀, ∃ c : M, u_seq n = fun _ => c) ∨
-      (∃ N₀ : ℕ, ∀ n ≥ N₀, ∀ a r₁ r₂,
-        energyMeasure I (u_seq n) (annulus_at a r₁ r₂) = 0 ∧
-        Metric.diam (Set.image (u_seq n) (annulus_at a r₁ r₂)) = 0) ∨
-      (∃ N₀ : ℕ, ∀ n ≥ N₀, ∀ a r₁ r₂,
-        energyMeasure I (u_seq n) (annulus_at a r₁ r₂) < η ∧
-        ∃ x : M, ∀ z ∈ annulus_at a r₁ r₂, u_seq n z ∈ Metric.ball x (η / 3)) ∨
-      (∃ N₀ : ℕ, ∀ n ≥ N₀, ∀ a r₁ r₂,
-        energyMeasure I (u_seq n) (annulus_at a r₁ r₂) < η ∧
-        Metric.diam (Set.image (u_seq n) (annulus_at a r₁ r₂)) < η)
-  · exact neck_annular_energy_and_diam_eventually_small I u_seq thresh m_defect res η hη h_cases
-  · have _ := thresh.h_neck
-    have _ := cylinder_localization I (M := M)
-    sorry
+  obtain ⟨η_loc, hη_loc_pos, h_loc⟩ := cylinder_localization I (M := M) (η / 3) (by linarith)
+  let η_min : ℝ := min η η_loc
+  have hη_min_pos : 0 < η_min := lt_min hη hη_loc_pos
+  obtain ⟨δ_base, hδ_base_pos, h_isol_base⟩ := h_isol_neck 2 (by norm_num)
+  let R_big : ℝ := δ_base / 2
+  have hR_big_pos : 0 < R_big := by dsimp [R_big]; linarith
+  obtain ⟨N_base, hN_base⟩ := h_isol_base R_big ⟨hR_big_pos, by dsimp [R_big]; linarith⟩
+  obtain ⟨θ, hθ_pos, hθ_lt_half, hθ_small⟩ :=
+    exists_pos_lt_mul_rpow_lt_mul_rpow (A := 2 * thresh.C_neck * thresh.ε_neck)
+      thresh.a_decay_pos hη_min_pos (by norm_num : (0 : ℝ) < 1 / 2)
+  rw [Real.rpow_zero, mul_one] at hθ_small
+  let R₀ : ℝ := 4 / θ
+  have hR₀_gt_eight : 8 < R₀ := by
+    dsimp [R₀]
+    rw [lt_div_iff₀ hθ_pos]
+    linarith
+  refine ⟨R₀, by linarith, fun R hR_ge => ?_⟩
+  have hR_gt_eight : 8 < R := lt_of_lt_of_le hR₀_gt_eight hR_ge
+  have hR_pos : 0 < R := by linarith
+  have h_four_div_R_le_θ : 4 / R ≤ θ := by
+    rw [div_le_iff₀ hR_pos]
+    have h1 : 4 ≤ R₀ * θ := by
+      dsimp [R₀]
+      rw [div_mul_cancel₀ 4 (ne_of_gt hθ_pos)]
+    nlinarith
+  let δ₀ : ℝ := (θ / 2) * R_big
+  have hδ₀_pos : 0 < δ₀ := mul_pos (by linarith) hR_big_pos
+  refine ⟨δ₀, hδ₀_pos, fun δ hδ_in => ?_⟩
+  have hδ_pos : 0 < δ := hδ_in.1
+  have hδ_lt : δ < δ₀ := hδ_in.2
+  have h2δ_lt_θR : 2 * δ < θ * R_big := by dsimp [δ₀] at hδ_lt; linarith
+  have h2δ_div_le_θ : (2 * δ) / R_big ≤ θ := (div_le_iff₀ hR_big_pos).mpr h2δ_lt_θR.le
+  have h2δ_lt_R_big : 2 * δ < R_big := by nlinarith
+  obtain ⟨N_scale, hN_scale⟩ :=
+    eventually_scaled_radius_lt_delta I u_seq thresh m_defect res R (δ / 2) (by linarith)
+  refine ⟨max N_base N_scale, fun n hn => ?_⟩
+  have hn_base : N_base ≤ n := le_trans (le_max_left _ _) hn
+  have hn_scale : N_scale ≤ n := le_trans (le_max_right _ _) hn
+  have h_lam_pos : 0 < res.«λ» n := res.scale_pos n
+  have h_R_lam_lt : R * res.«λ» n < δ / 2 := hN_scale n hn_scale
+  have hr_pos : 0 < 2 * res.«λ» n := by linarith
+  have h2r_lt_R_big : 2 * (2 * res.«λ» n) < R_big := by nlinarith
+  have h_outer_en : energyMeasure I (u_seq n) (annulus_at (res.a n) (2 * res.«λ» n) R_big) < thresh.ε_neck :=
+    hN_base n hn_base
+  have h_sub_en : ∀ (r₁ r₂ : ℝ), 2 * res.«λ» n < r₁ → r₁ < r₂ → r₂ < R_big →
+      (2 * res.«λ» n) / r₁ ≤ θ → r₂ / R_big ≤ θ →
+      energyMeasure I (u_seq n) (annulus_at (res.a n) r₁ r₂) < η_min := by
+    intro r₁ r₂ hr₁ hr₁₂ hr₂ h_rat₁ h_rat₂
+    have hr₁_pos : 0 < r₁ := lt_trans hr_pos hr₁
+    have hr₂_pos : 0 < r₂ := lt_trans hr₁_pos hr₁₂
+    have h_neck_bound := thresh.h_neck (u_seq n) (res.a n) (2 * res.«λ» n) R_big
+      hr_pos h2r_lt_R_big (h_jhol n) h_outer_en r₁ r₂ hr₁ hr₁₂ hr₂
+    have h_pow₁ : ((2 * res.«λ» n) / r₁) ^ thresh.a_decay ≤ θ ^ thresh.a_decay :=
+      Real.rpow_le_rpow (div_nonneg hr_pos.le hr₁_pos.le) h_rat₁ thresh.a_decay_pos.le
+    have h_pow₂ : (r₂ / R_big) ^ thresh.a_decay ≤ θ ^ thresh.a_decay :=
+      Real.rpow_le_rpow (div_nonneg hr₂_pos.le hR_big_pos.le) h_rat₂ thresh.a_decay_pos.le
+    have h_sum_pos : 0 < ((2 * res.«λ» n) / r₁) ^ thresh.a_decay + (r₂ / R_big) ^ thresh.a_decay :=
+      add_pos (Real.rpow_pos_of_pos (div_pos hr_pos hr₁_pos) _)
+        (Real.rpow_pos_of_pos (div_pos hr₂_pos hR_big_pos) _)
+    have h_C_pos : 0 < thresh.C_neck := thresh.C_neck_pos
+    calc energyMeasure I (u_seq n) (annulus_at (res.a n) r₁ r₂)
+      _ ≤ thresh.C_neck * (((2 * res.«λ» n) / r₁) ^ thresh.a_decay + (r₂ / R_big) ^ thresh.a_decay) *
+            energyMeasure I (u_seq n) (annulus_at (res.a n) (2 * res.«λ» n) R_big) := h_neck_bound
+      _ ≤ thresh.C_neck * (((2 * res.«λ» n) / r₁) ^ thresh.a_decay + (r₂ / R_big) ^ thresh.a_decay) *
+            thresh.ε_neck := by
+          exact mul_le_mul_of_nonneg_left h_outer_en.le (mul_nonneg h_C_pos.le h_sum_pos.le)
+      _ ≤ thresh.C_neck * (θ ^ thresh.a_decay + θ ^ thresh.a_decay) * thresh.ε_neck := by
+          refine mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left (add_le_add h_pow₁ h_pow₂) h_C_pos.le) thresh.ε_neck_pos.le
+      _ = (2 * thresh.C_neck * thresh.ε_neck) * θ ^ thresh.a_decay := by ring
+      _ < η_min := hθ_small
+  have h_en_inner : energyMeasure I (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ) < η := by
+    have h_lt_min : energyMeasure I (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ) < η_min := by
+      apply h_sub_en (R * res.«λ» n) δ (by nlinarith) (by linarith) (by linarith)
+      · have h_eq : (2 * res.«λ» n) / (R * res.«λ» n) = 2 / R := by
+          rw [mul_div_mul_right 2 R (ne_of_gt h_lam_pos)]
+        rw [h_eq]
+        have h24 : 2 / R ≤ 4 / R := div_le_div_of_nonneg_right (by norm_num) hR_pos.le
+        exact le_trans h24 h_four_div_R_le_θ
+      · have h_le : δ / R_big ≤ (2 * δ) / R_big := div_le_div_of_nonneg_right (by linarith) hR_big_pos.le
+        exact le_trans h_le h2δ_div_le_θ
+    exact lt_of_lt_of_le h_lt_min (min_le_left _ _)
+  have h_en_collar : energyMeasure I (u_seq n) (annulus_at (res.a n) ((R / 2) * res.«λ» n) (2 * δ)) < η_loc := by
+    have h_lt_min : energyMeasure I (u_seq n) (annulus_at (res.a n) ((R / 2) * res.«λ» n) (2 * δ)) < η_min := by
+      apply h_sub_en ((R / 2) * res.«λ» n) (2 * δ) (by nlinarith) (by nlinarith) h2δ_lt_R_big
+      · have h_eq : (2 * res.«λ» n) / ((R / 2) * res.«λ» n) = 4 / R := by
+          rw [mul_div_mul_right 2 (R / 2) (ne_of_gt h_lam_pos)]
+          ring
+        rw [h_eq]
+        exact h_four_div_R_le_θ
+      · exact h2δ_div_le_θ
+    exact lt_of_lt_of_le h_lt_min (min_le_right _ _)
+  obtain ⟨x₀, hx₀⟩ := h_loc (u_seq n) (res.a n) ((R / 2) * res.«λ» n) (2 * δ)
+    (by nlinarith) (by nlinarith) (h_jhol n) h_en_collar
+  have h_maps : ∀ z ∈ annulus_at (res.a n) (R * res.«λ» n) δ, u_seq n z ∈ Metric.ball x₀ (η / 3) := by
+    intro z hz
+    have h_r1 : 2 * ((R / 2) * res.«λ» n) = R * res.«λ» n := by ring
+    have h_r2 : (2 * δ) / 2 = δ := by ring
+    rw [Metric.mem_ball]
+    apply hx₀ z
+    rw [h_r1, h_r2]
+    exact hz
+  exact ⟨h_en_inner, diam_image_lt_of_mapsTo_ball (u_seq n) _ x₀ η hη h_maps⟩
 
 /-- Zero-sorry conditional reduction of `neck_vanishing_quantified` given asymptotic neck energy
 and diameter decay (`0 sorryAx`). -/
