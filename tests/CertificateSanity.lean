@@ -199,4 +199,24 @@ theorem s4_old_graft_contradiction (u_seq : ℕ → (CP1 → M)) (B : ℝ)
 
 #print axioms s4_old_graft_contradiction
 
+/-! ## S5: affine_scaling respects its center -/
+
+/-- **S5.** The affine scaling frame $w \mapsto a + \lambda w$ maps the south pole (origin $0 \in \mathbb{C}$)
+to `stereo_chart.symm a`. For $a \ne 0$, this genuinely displaces the origin, confirming the center $a$ is incorporated. -/
+theorem s5_affine_scaling_center (a : ℂ) (scale : ℝ) (hscale : 0 < scale) :
+    (affine_scaling a scale hscale).toHomeo south_pole = stereo_chart.symm a ∧
+    (a ≠ 0 → (affine_scaling a 1 one_pos).toHomeo south_pole ≠ south_pole) :=
+  ⟨affine_scaling_south_pole a scale hscale, fun ha => affine_scaling_south_pole_ne a ha⟩
+
+#print axioms s5_affine_scaling_center
+
+/-! ## S6: SmoothLocalConvergesOn is satisfiable for nonconstant smooth maps -/
+
+/-- **S6.** `SmoothLocalConvergesOn` is satisfiable for the nonconstant smooth identity map `id : CP1 → CP1`. -/
+theorem s6_smooth_local_converges_on_id :
+    SmoothLocalConvergesOn I_CP1 (fun _ => (id : CP1 → CP1)) id Set.univ :=
+  smoothLocalConvergesOn_const I_CP1 id Set.univ contMDiff_id
+
+#print axioms s6_smooth_local_converges_on_id
+
 end GromovCompactness.CertificateSanity

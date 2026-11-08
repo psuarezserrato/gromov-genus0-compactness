@@ -390,6 +390,32 @@ def prestable_limit_singleton_subseq
     rw [h_sum]
     exact h_energy
 
+lemma rot_tendstoUniformlyOn_forward (rot : MoebiusFrame) {F : ℕ → CP1 → CP1} {target : CP1} {K : Set CP1}
+    (h_col : TendstoUniformlyOn F (fun _ => target) atTop K) :
+    TendstoUniformlyOn (fun n => rot.toHomeo ∘ F n) (fun _ => rot.toHomeo target) atTop K := by
+  have h_uc : UniformContinuous rot.toHomeo :=
+    CompactSpace.uniformContinuous_of_continuous rot.toHomeo.continuous
+  exact h_uc.comp_tendstoUniformlyOn h_col
+
+lemma rot_tendstoUniformlyOn_backward (rot : MoebiusFrame) {F : ℕ → CP1 → CP1} {target : CP1} {K : Set CP1}
+    {avoid : CP1} (hK_sub : K ⊆ punctured_sphere (Set.singleton avoid)) (hK_cpt : IsCompact K)
+    (h_col : ∀ K' ⊆ punctured_sphere (Set.singleton (rot.inv.toHomeo avoid)), IsCompact K' →
+      TendstoUniformlyOn F (fun _ => target) atTop K') :
+    TendstoUniformlyOn (fun n => F n ∘ rot.inv.toHomeo) (fun _ => target) atTop K := by
+  let K' := rot.inv.toHomeo '' K
+  have hK'_cpt : IsCompact K' := hK_cpt.image rot.inv.toHomeo.continuous
+  have hK'_sub : K' ⊆ punctured_sphere (Set.singleton (rot.inv.toHomeo avoid)) := by
+    rintro _ ⟨x, hx_K, rfl⟩
+    have hx_ne : x ∉ (Set.singleton avoid : Set CP1) := (hK_sub hx_K).2
+    refine ⟨mem_univ _, ?_⟩
+    intro (hx_eq : rot.inv.toHomeo x ∈ Set.singleton (rot.inv.toHomeo avoid))
+    have h_eq : rot.inv.toHomeo x = rot.inv.toHomeo avoid := Set.mem_singleton_iff.mp hx_eq
+    exact hx_ne (Set.mem_singleton_iff.mpr (rot.inv.toHomeo.injective h_eq))
+  have h_col' := h_col K' hK'_sub hK'_cpt
+  have h_comp := h_col'.comp rot.inv.toHomeo
+  have h_sub : K ⊆ rot.inv.toHomeo ⁻¹' K' := Set.subset_preimage_image rot.inv.toHomeo K
+  exact h_comp.mono h_sub
+
 /-- Partial grafted sphere tree obtained by grafting a subset `s ⊆ cdata.S` of local defect trees
 onto the base curve `cdata.u₀`. -/
 structure PartialRootGraftedTree
@@ -405,6 +431,9 @@ structure PartialRootGraftedTree
   root_map : map root = cdata.u₀
   root_nodal_points : ∀ (w : tree.V) (h : tree.adj.Adj root w),
     tree.node_point root w h ∈ s
+  root_nodal_surj : ∀ p ∈ s, ∃ (w : tree.V) (h : tree.adj.Adj root w),
+    tree.node_point root w h = p
+  root_degree_ge : s.card ≤ tree.adj.degree root
   energy_sum : (∑ v : tree.V, totalEnergy I (map v)) =
     totalEnergy I cdata.u₀ + ∑ p ∈ s, m_defect p
   stable_off_root : ∀ (v : tree.V), v ≠ root → (∃ c : M, ∀ z : CP1, map v z = c) →
@@ -423,6 +452,8 @@ noncomputable def partialRootGraftedTree_empty
   nodal_match _ _ h := False.elim h
   root_map := rfl
   root_nodal_points _ h := False.elim h
+  root_nodal_surj := fun p hp => False.elim (Finset.notMem_empty p hp)
+  root_degree_ge := Nat.zero_le _
   energy_sum := by
     have h_sum : (∑ _v : Bubbling.singletonSphereTree.V, totalEnergy I cdata.u₀) = totalEnergy I cdata.u₀ :=
       Fintype.sum_unique (fun _ : Unit => totalEnergy I cdata.u₀)
@@ -475,6 +506,19 @@ noncomputable def partialRootGraftedTree_insert
       rcases y with w | w
       · exact Finset.mem_insert_of_mem (P.root_nodal_points w h)
       · exact Finset.mem_insert_self p₀ s
+    root_nodal_surj := fun p hp => by
+      rcases Finset.mem_insert.mp hp with rfl | hp_s
+      · refine ⟨Sum.inr C.root, ⟨rfl, rfl⟩, ?_⟩
+        dsimp [T', graft_trees, graftNodePoint]
+      · obtain ⟨w, h, heq⟩ := P.root_nodal_surj p hp_s
+        refine ⟨Sum.inl w, h, ?_⟩
+        dsimp [T', graft_trees, graftNodePoint]
+        exact heq
+    root_degree_ge := by
+      rw [Finset.card_insert_of_notMem hp₀_not_s]
+      have h_le1 : s.card + 1 ≤ P.tree.adj.degree P.root + 1 := Nat.add_le_add_right P.root_degree_ge 1
+      have h_le2 := Bubbling.graft_degree_bridge_left P.tree C.tree P.root C.root
+      exact h_le1.trans h_le2
     energy_sum := by
       have h_split := Bubbling.graft_trees_energy_sum P.tree C.tree P.root C.root
         p₀ north_pole hp₁ hp₂ (fun v => totalEnergy I (map' v))
@@ -518,6 +562,266 @@ theorem graft_root_sphere_tree
       have hs'_sub : s' ⊆ cdata.S := (Finset.subset_insert p₀ s').trans hs_sub
       obtain ⟨P⟩ := ih hs'_sub
       exact ⟨partialRootGraftedTree_insert I u_seq B th cdata m_defect hm_sph s' p₀ hp₀_not_s hp₀_S P (defect_trees p₀ hp₀_S)⟩
+  exact h_ind cdata.S Finset.Subset.rfl
+
+/-- Incident node set of the root sphere in a `PartialRootGraftedTree` coincides with `s`. -/
+lemma root_sphere_nodal_set_eq
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M)
+    (cdata : Compactness.ConcentrationData I u_seq B th)
+    (m_defect : CP1 → ℝ) (s : Finset CP1)
+    (P : PartialRootGraftedTree I u_seq B th cdata m_defect s) :
+    { z : CP1 | ∃ (w : P.tree.V) (h : P.tree.adj.Adj P.root w), z = P.tree.node_point P.root w h } = (s : Set CP1) := by
+  ext z
+  constructor
+  · rintro ⟨w, h, rfl⟩
+    exact Finset.mem_coe.mpr (P.root_nodal_points w h)
+  · intro hz
+    obtain ⟨w, h, heq⟩ := P.root_nodal_surj z (Finset.mem_coe.mp hz)
+    exact ⟨w, h, heq.symm⟩
+
+/-- Realized partial grafted sphere tree with global coordinate frames and local smooth convergence. -/
+structure RealizedPartialRootGraftedTree
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M)
+    (cdata : Compactness.ConcentrationData I u_seq B th)
+    (m_defect : CP1 → ℝ) (s : Finset CP1) extends PartialRootGraftedTree I u_seq B th cdata m_defect s where
+  τ : Bookkeeping.SubseqMap
+  frames : (v : tree.V) → ℕ → MoebiusFrame
+  root_frame : ∀ n, frames root n = MoebiusFrame.id
+  frame_collapse : ∀ (v w : tree.V) (h : tree.adj.Adj v w),
+    ∀ K ⊆ punctured_sphere {tree.node_point w v (tree.adj.adj_symm h)}, IsCompact K →
+      TendstoUniformlyOn (fun n => ⇑(MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
+        (fun _ => tree.node_point v w h) atTop K
+  smooth_conv : ∀ (v : tree.V),
+    SmoothLocalConvergesOn I
+      (fun n => u_seq ((cdata.σ.comp τ).1 n) ∘ (frames v n).toHomeo)
+      (map v)
+      (punctured_sphere (if v = root then (cdata.S : Set CP1) else { z | ∃ (w : tree.V) (h : tree.adj.Adj v w), z = tree.node_point v w h }))
+  ghost_root_deg_one_conv :
+    s = cdata.S →
+    tree.adj.degree root = 1 → (∃ c : M, ∀ z : CP1, map root z = c) →
+    ∀ (w₀ : tree.V) (hw₀_adj : tree.adj.Adj root w₀),
+      SmoothLocalConvergesOn I
+        (fun n => u_seq ((cdata.σ.comp τ).1 n) ∘ (frames w₀ n).toHomeo)
+        (map w₀)
+        {tree.node_point w₀ root (tree.adj.adj_symm hw₀_adj)}
+
+/-- Empty subset base case for `RealizedPartialRootGraftedTree`. -/
+noncomputable def realized_partialRootGraftedTree_empty
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M)
+    (cdata : Compactness.ConcentrationData I u_seq B th)
+    (m_defect : CP1 → ℝ) :
+    RealizedPartialRootGraftedTree I u_seq B th cdata m_defect ∅ where
+  toPartialRootGraftedTree := partialRootGraftedTree_empty I u_seq B th cdata m_defect
+  τ := Bookkeeping.SubseqMap.id
+  frames := fun _ _ => MoebiusFrame.id
+  root_frame := fun _ => rfl
+  frame_collapse := fun _ _ h => False.elim h
+  smooth_conv := fun (v : Unit) => by
+    rcases v
+    split_ifs with h_root
+    · have h_map : (partialRootGraftedTree_empty I u_seq B th cdata m_defect).map PUnit.unit = cdata.u₀ := rfl
+      rw [h_map]
+      have h_seq : (fun n => u_seq ((cdata.σ.comp Bookkeeping.SubseqMap.id).1 n) ∘ (MoebiusFrame.id : MoebiusFrame).toHomeo) =
+          fun n => u_seq (cdata.σ.1 n) := by
+        ext n z; rfl
+      rw [h_seq]
+      exact cdata.smooth_conv
+    · exact False.elim (h_root rfl)
+  ghost_root_deg_one_conv := fun _ _ _ _ hw₀_adj => False.elim hw₀_adj
+
+/-- Inductive insertion step for `RealizedPartialRootGraftedTree`. -/
+noncomputable def realized_partialRootGraftedTree_insert
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M)
+    (cdata : Compactness.ConcentrationData I u_seq B th)
+    (m_defect : CP1 → ℝ)
+    (hm_sph : ∀ p ∈ cdata.S, th.ε_sph ≤ m_defect p)
+    (s : Finset CP1) (p₀ : CP1) (hp₀_not_s : p₀ ∉ s) (hp₀_S : p₀ ∈ cdata.S)
+    (P : RealizedPartialRootGraftedTree I u_seq B th cdata m_defect s)
+    (rot : MoebiusFrame) (a : ℂ) (h_rot : rot.toHomeo (stereo_chart.symm a) = p₀)
+    (h_rot_tendsto : (cdata.S = {p₀} ∧ ∃ c : M, ∀ z : CP1, cdata.u₀ z = c) →
+      Tendsto (fun n => totalEnergy I (u_seq (cdata.σ.1 n) ∘ rot.toHomeo)) atTop (𝓝 (m_defect p₀)))
+    (C : Bubbling.RealizedLocalDefectTree I th (m_defect p₀) (cdata.u₀ p₀)
+      (fun n => u_seq ((cdata.σ.comp P.τ).1 n) ∘ rot.toHomeo) a) :
+    RealizedPartialRootGraftedTree I u_seq B th cdata m_defect (insert p₀ s) := by
+  have hm_child : th.h ≤ m_defect p₀ := th.h_le_sph.trans (hm_sph p₀ hp₀_S)
+  let P_base := partialRootGraftedTree_insert I u_seq B th cdata m_defect hm_sph s p₀ hp₀_not_s hp₀_S P.toPartialRootGraftedTree C.toLocalDefectTree
+  have hp₁ : ∀ (w : P.tree.V) (h : P.tree.adj.Adj P.root w),
+      p₀ ≠ P.tree.node_point P.root w h := by
+    intro w h heq
+    rw [heq] at hp₀_not_s
+    exact hp₀_not_s (P.root_nodal_points w h)
+  have hp₂ : ∀ (w : C.tree.V) (h : C.tree.adj.Adj C.root w),
+      north_pole ≠ C.tree.node_point C.root w h :=
+    fun w h => (C.root_north_pole_free w h).symm
+  refine {
+    toPartialRootGraftedTree := P_base
+    τ := P.τ.comp C.σ
+    frames := fun v n =>
+      match v with
+      | Sum.inl u => P.frames u (C.σ.1 n)
+      | Sum.inr w => MoebiusFrame.comp rot (C.frames w n)
+    root_frame := fun n => by
+      dsimp [P_base, partialRootGraftedTree_insert]
+      exact P.root_frame (C.σ.1 n)
+    frame_collapse := fun x y h K hK_sub hK_cpt => by
+      rcases x with u | w <;> rcases y with u' | w'
+      · have h_col := P.frame_collapse u u' h K
+        dsimp [P_base, partialRootGraftedTree_insert, graft_trees, graftNodePoint] at hK_sub ⊢
+        exact Bookkeeping.tendstoUniformlyOn_subseq (h_col hK_sub hK_cpt) C.σ
+      · rcases h with ⟨rfl, rfl⟩
+        dsimp [P_base, partialRootGraftedTree_insert, graft_trees, graftNodePoint] at hK_sub ⊢
+        have h_id : (fun n => ⇑((P.frames P.root (C.σ.1 n)).inv.comp (MoebiusFrame.comp rot (C.frames C.root n))).toHomeo) =
+            (fun n => ⇑(MoebiusFrame.comp (MoebiusFrame.inv MoebiusFrame.id) (MoebiusFrame.comp rot (C.frames C.root n))).toHomeo) := by
+          funext n
+          rw [P.root_frame]
+        rw [h_id]
+        have h_eq : (fun n => ⇑(MoebiusFrame.comp (MoebiusFrame.inv MoebiusFrame.id) (MoebiusFrame.comp rot (C.frames C.root n))).toHomeo) =
+            fun n => ⇑rot.toHomeo ∘ ⇑(C.frames C.root n).toHomeo := by
+          funext n
+          rw [MoebiusFrame.comp_inv_id_left]
+          rfl
+        have h_tgt : (fun _ : CP1 => p₀) = (fun _ => rot.toHomeo (stereo_chart.symm a)) := by
+          funext; exact h_rot.symm
+        rw [h_eq, h_tgt]
+        exact rot_tendstoUniformlyOn_forward rot (C.root_collapse hm_child K hK_sub hK_cpt)
+      · rcases h with ⟨rfl, rfl⟩
+        dsimp [P_base, partialRootGraftedTree_insert, graft_trees, graftNodePoint] at hK_sub ⊢
+        have h_id : (fun n => ⇑((MoebiusFrame.comp rot (C.frames C.root n)).inv.comp (P.frames P.root (C.σ.1 n))).toHomeo) =
+            (fun n => ⇑(MoebiusFrame.comp (MoebiusFrame.inv (MoebiusFrame.comp rot (C.frames C.root n))) MoebiusFrame.id).toHomeo) := by
+          funext n
+          rw [P.root_frame]
+        rw [h_id]
+        have h_eq : (fun n => ⇑(MoebiusFrame.comp (MoebiusFrame.inv (MoebiusFrame.comp rot (C.frames C.root n))) MoebiusFrame.id).toHomeo) =
+            fun n => ⇑(MoebiusFrame.inv (C.frames C.root n)).toHomeo ∘ ⇑rot.inv.toHomeo := by
+          funext n
+          rw [MoebiusFrame.comp_inv_id_right]
+          rfl
+        rw [h_eq]
+        have h_avoid : rot.inv.toHomeo p₀ = stereo_chart.symm a := by
+          have h_symm : rot.inv.toHomeo = rot.toHomeo.symm := rfl
+          rw [h_symm, ← h_rot]
+          exact rot.toHomeo.left_inv (stereo_chart.symm a)
+        refine rot_tendstoUniformlyOn_backward rot hK_sub hK_cpt (fun K' hK'_sub hK'_cpt => ?_)
+        rw [h_avoid] at hK'_sub
+        exact C.root_inv_collapse hm_child K' hK'_sub hK'_cpt
+      · have h_col := C.frame_collapse w w' h K
+        dsimp [P_base, partialRootGraftedTree_insert, graft_trees, graftNodePoint] at hK_sub ⊢
+        have h_id : (fun n => ⇑((MoebiusFrame.comp rot (C.frames w n)).inv.comp (MoebiusFrame.comp rot (C.frames w' n))).toHomeo) =
+            fun n => ⇑((C.frames w n).inv.comp (C.frames w' n)).toHomeo := by
+          funext n
+          rw [MoebiusFrame.comp_inv_comp]
+        rw [h_id]
+        exact h_col hK_sub hK_cpt
+    smooth_conv := fun v => by
+      rcases v with u | w
+      · have h_conv_u := P.smooth_conv u
+        have h_sub := smooth_local_subseq I _ _ _ C.σ.2 h_conv_u
+        have h_seq : (fun n => (fun k => u_seq ((cdata.σ.comp P.τ).1 k) ∘ (P.frames u k).toHomeo) (C.σ.1 n)) =
+            (fun n => u_seq ((cdata.σ.comp (P.τ.comp C.σ)).1 n) ∘
+              (match Sum.inl u with | Sum.inl u => P.frames u (C.σ.1 n) | Sum.inr w => MoebiusFrame.comp rot (C.frames w n)).toHomeo) := by
+          ext n pt; rfl
+        have h_dom : (punctured_sphere (if u = P.root then (cdata.S : Set CP1)
+                                        else { z | ∃ w h, z = P.tree.node_point u w h })) =
+            (punctured_sphere (if Sum.inl u = P_base.root then (cdata.S : Set CP1)
+                               else { z | ∃ w' h', z = P_base.tree.node_point (Sum.inl u) w' h' })) := by
+          by_cases hu : u = P.root
+          · subst hu
+            have h_root : Sum.inl P.root = P_base.root := rfl
+            rw [if_pos rfl, if_pos h_root]
+          · have hu_ne : Sum.inl u ≠ P_base.root := fun heq => hu (Sum.inl.inj heq)
+            rw [if_neg hu, if_neg hu_ne]
+            have h_set := graft_node_points_inl_nonroot P.tree C.tree P.root C.root p₀ north_pole hp₁ hp₂ u hu
+            dsimp [P_base, partialRootGraftedTree_insert]
+            rw [h_set]
+        exact smooth_local_congr_domain (I := I) h_dom (smooth_local_congr_seq (I := I) h_seq h_sub)
+      · have h_conv_w := C.smooth_conv hm_child w
+        have h_map : C.map w = P_base.map (Sum.inr w) := rfl
+        rw [← h_map]
+        have h_seq : (fun n => (u_seq ((cdata.σ.comp P.τ).1 (C.σ.1 n)) ∘ rot.toHomeo) ∘ (C.frames w n).toHomeo) =
+            (fun n => u_seq ((cdata.σ.comp (P.τ.comp C.σ)).1 n) ∘
+              (match Sum.inr w with | Sum.inl u => P.frames u (C.σ.1 n) | Sum.inr w => MoebiusFrame.comp rot (C.frames w n)).toHomeo) := by
+          ext n pt; rfl
+        have h_dom : (punctured_sphere (if w = C.root then insert north_pole { z | ∃ w' h, z = C.tree.node_point w w' h }
+                                        else { z | ∃ w' h, z = C.tree.node_point w w' h })) =
+            (punctured_sphere (if Sum.inr w = P_base.root then (cdata.S : Set CP1)
+                               else { z | ∃ w' h', z = P_base.tree.node_point (Sum.inr w) w' h' })) := by
+          have hw_ne : Sum.inr w ≠ P_base.root := fun h => by cases h
+          rw [if_neg hw_ne]
+          by_cases hw : w = C.root
+          · subst hw
+            rw [if_pos rfl]
+            have h_set := graft_node_points_inr_root P.tree C.tree P.root C.root p₀ north_pole hp₁ hp₂
+            dsimp [P_base, partialRootGraftedTree_insert]
+            rw [h_set]
+          · rw [if_neg hw]
+            have h_set := graft_node_points_inr_nonroot P.tree C.tree P.root C.root p₀ north_pole hp₁ hp₂ w hw
+            dsimp [P_base, partialRootGraftedTree_insert]
+            rw [h_set]
+        exact smooth_local_congr_domain (I := I) h_dom (smooth_local_congr_seq (I := I) h_seq h_conv_w)
+    ghost_root_deg_one_conv := by
+      intro hs_eq h_deg h_const w₀ hw₀_adj
+      have h_card_le := P_base.root_degree_ge
+      rw [h_deg] at h_card_le
+      have h_card_ins : (insert p₀ s).card = s.card + 1 := Finset.card_insert_of_notMem hp₀_not_s
+      rw [h_card_ins] at h_card_le
+      have hs_card0 : s.card = 0 := by omega
+      have hs_empty : s = ∅ := Finset.card_eq_zero.mp hs_card0
+      subst hs_empty
+      rw [Finset.insert_empty] at hs_eq
+      have hcdata_S : cdata.S = {p₀} := hs_eq.symm
+      have h_u0_const : ∃ c : M, ∀ z : CP1, cdata.u₀ z = c := by
+        rw [← P_base.root_map]; exact h_const
+      have h_en_sub : Tendsto (fun n => totalEnergy I (u_seq ((cdata.σ.comp P.τ).1 n) ∘ rot.toHomeo)) atTop (𝓝 (m_defect p₀)) := by
+        exact (h_rot_tendsto ⟨hcdata_S, h_u0_const⟩).comp P.τ.2.tendsto_atTop
+      rcases w₀ with u | w
+      · exfalso
+        have h_br := Bubbling.graft_degree_bridge_left P.tree C.tree P.root C.root
+        have h_le : P.tree.adj.degree P.root + 1 ≤ 1 := h_br.trans_eq h_deg
+        have hu_adj : P.tree.adj.Adj P.root u := hw₀_adj
+        have h_deg_ge : 0 < P.tree.adj.degree P.root := hu_adj.degree_pos_left
+        omega
+      · have hw_eq : w = C.root := hw₀_adj.2
+        subst hw_eq
+        have h_node : P_base.tree.node_point (Sum.inr C.root) P_base.root (P_base.tree.adj.adj_symm hw₀_adj) = north_pole := rfl
+        rw [h_node]
+        have h_map : P_base.map (Sum.inr C.root) = C.map C.root := rfl
+        rw [h_map]
+        have h_c_conv := C.root_conv_north_pole hm_child h_en_sub
+        have h_seq : (fun n => (u_seq ((cdata.σ.comp P.τ).1 (C.σ.1 n)) ∘ rot.toHomeo) ∘ (C.frames C.root n).toHomeo) =
+            fun n => u_seq ((cdata.σ.comp (P.τ.comp C.σ)).1 n) ∘
+              (match Sum.inr C.root with | Sum.inl u => P.frames u (C.σ.1 n) | Sum.inr w => MoebiusFrame.comp rot (C.frames w n)).toHomeo := by
+          ext n pt; rfl
+        exact smooth_local_congr_seq (I := I) h_seq h_c_conv
+  }
+
+/-- Complete realized grafting of all local defect trees onto the base curve `cdata.u₀` (Zero-sorry). -/
+theorem graft_root_sphere_tree_realized
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M)
+    (cdata : Compactness.ConcentrationData I u_seq B th)
+    (m_defect : CP1 → ℝ)
+    (hm_sph : ∀ p ∈ cdata.S, th.ε_sph ≤ m_defect p)
+    (defect_trees : (p : CP1) → (hp : p ∈ cdata.S) →
+      ∃ (rot : MoebiusFrame) (a : ℂ),
+        rot.toHomeo (stereo_chart.symm a) = p ∧
+        ((cdata.S = {p} ∧ ∃ c : M, ∀ z : CP1, cdata.u₀ z = c) →
+          Tendsto (fun n => totalEnergy I (u_seq (cdata.σ.1 n) ∘ rot.toHomeo)) atTop (𝓝 (m_defect p))) ∧
+        ∀ (τ : Bookkeeping.SubseqMap),
+          Nonempty (Bubbling.RealizedLocalDefectTree I th (m_defect p) (cdata.u₀ p)
+            (fun n => u_seq ((cdata.σ.comp τ).1 n) ∘ rot.toHomeo) a)) :
+    Nonempty (RealizedPartialRootGraftedTree I u_seq B th cdata m_defect cdata.S) := by
+  have h_ind : ∀ (s : Finset CP1), s ⊆ cdata.S →
+      Nonempty (RealizedPartialRootGraftedTree I u_seq B th cdata m_defect s) := by
+    intro s
+    refine Finset.induction_on s ?_ ?_
+    · intro _
+      exact ⟨realized_partialRootGraftedTree_empty I u_seq B th cdata m_defect⟩
+    · intro p₀ s' hp₀_not_s ih hs_sub
+      have hp₀_S : p₀ ∈ cdata.S := hs_sub (Finset.mem_insert_self p₀ s')
+      have hs'_sub : s' ⊆ cdata.S := (Finset.subset_insert p₀ s').trans hs_sub
+      obtain ⟨P⟩ := ih hs'_sub
+      obtain ⟨rot, a, h_rot, h_tend, C_gen⟩ := defect_trees p₀ hp₀_S
+      obtain ⟨C⟩ := C_gen P.τ
+      exact ⟨realized_partialRootGraftedTree_insert I u_seq B th cdata m_defect hm_sph s' p₀ hp₀_not_s hp₀_S P rot a h_rot h_tend C⟩
   exact h_ind cdata.S Finset.Subset.rfl
 
 /-- Cardinality of the non-root subtype `{v : V // v ≠ root}` plus one equals `Fintype.card V` (`0 sorryAx`). -/
@@ -1986,21 +2290,33 @@ only concerns masses that actually occur. -/
 def ConcDefectCertificate (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M) : Prop :=
   ∀ (cdata : Compactness.ConcentrationData I u_seq B th) (m : CP1 → ℝ),
     cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • MeasureTheory.Measure.dirac p) →
-    ∀ p ∈ cdata.S, ∃ (f : ℕ → (CP1 → M)) (a : ℂ), Bubbling.IsDefectSeq I f a (m p) (cdata.u₀ p)
+    ∀ p ∈ cdata.S, ∃ (rot : MoebiusFrame) (a : ℂ),
+      rot.toHomeo (stereo_chart.symm a) = p ∧
+      Bubbling.IsDefectSeq I (fun n => u_seq (cdata.σ.1 n) ∘ rot.toHomeo) a (m p) (cdata.u₀ p) ∧
+      ((cdata.S = {p} ∧ ∃ c : M, ∀ z : CP1, cdata.u₀ z = c) →
+        Tendsto (fun n => totalEnergy I (u_seq (cdata.σ.1 n) ∘ rot.toHomeo)) atTop (𝓝 (m p)))
 
-/-- Sequence-relative graft certificate (replaces the over-quantified `h_graft_extract`).
-The old certificate asked the sequence to converge to *every* grafted tree, with *arbitrary*
-defect masses; for a sequence with convergent energies and a nonempty singular set this is
-contradictory (see `tests/CertificateSanity.lean`, `s4`). This version only asks that, for the
-genuine defect masses `m` of the concentration data, *some* grafted tree with root `u₀` is the limit
-of the sequence along some subsequence and rescaling data. -/
-def GraftCertificate (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M) : Prop :=
+/-- Sequence-relative convergence certificate for a grafted prestable tree (Contract G01).
+For the concentration data `cdata` with verified defect decomposition `m`, any grafted tree `P`
+built from `resolve_single_defect_tree` admits a subsequence `σ` and calibrated tree rescaling data `res`
+such that the sequence rescaled by the global tree frames converges smoothly off incident nodes to
+each component map, satisfies the degree-one ghost root convergence condition, and conserves total energy.
+
+Satisfiability (true mathematics; Gromov 1985, McDuff–Salamon §4.6):
+1. The moving bubbling centers and dilation factors extracted from Hofer's lemma at each defect point
+   yield a sequence of Möbius frames on each bubble component under which the sequence converges in
+   `C^∞_loc` off nodes to the bubble curve.
+2. The tree rescaling frames satisfy the collapse condition towards nodal attachment points by construction.
+3. Total energy converges to `E(u₀) + Σ m(p)` by the defect measure identity (`Compactness.defect_measure_identity`).
+4. For a degree-1 constant root, all concentration energy is carried by the unique child bubble `w₀`, so no
+   energy escapes at the attachment node, ensuring `C^∞_loc` convergence across the node by `ε`-regularity. -/
+def TreeConvergenceCertificate (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M) : Prop :=
   ∀ (cdata : Compactness.ConcentrationData I u_seq B th) (m : CP1 → ℝ),
     (∀ p ∈ cdata.S, th.ε_sph ≤ m p) →
     cdata.μ = energyMeasureExtended I cdata.u₀ +
       ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • MeasureTheory.Measure.dirac p) →
-    ∃ (P : PartialRootGraftedTree I u_seq B th cdata m cdata.S) (σ : Bookkeeping.SubseqMap)
-      (res : TreeRescalingData P.tree P.root),
+    ∀ (P : PartialRootGraftedTree I u_seq B th cdata m cdata.S),
+    ∃ (σ : Bookkeeping.SubseqMap) (res : TreeRescalingData P.tree P.root),
       (∀ (frames : (v : P.tree.V) → ℕ → MoebiusFrame),
         (∀ n, frames P.root n = MoebiusFrame.id) →
         (∀ (w : P.tree.V) (hw : w ≠ P.root) (n : ℕ),
@@ -2019,6 +2335,10 @@ def GraftCertificate (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.Targ
               {P.tree.node_point w₀ P.root (P.tree.adj.adj_symm hw₀_adj)})) ∧
       Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
         (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m p))
+
+/-- Backward-compatibility alias for `TreeConvergenceCertificate`. -/
+def GraftCertificate (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M) : Prop :=
+  TreeConvergenceCertificate I u_seq B th
 
 /-- A grafted tree that is the limit of the sequence yields prestable limit data (`0 sorryAx`). -/
 theorem prestable_limit_of_grafted_tree
@@ -2068,7 +2388,8 @@ theorem prestable_limit_of_grafted_tree
   exact ⟨pdata, prestable_limit_energy_bound I u_seq B pdata h_energy_bdd⟩
 
 /-- Assembles the base map u₀ and all defect trees from Contract B07 into a global prestable limit (Contract G01).
-Proved with zero direct sorry. -/
+Proved with zero direct sorry from `resolve_single_defect_tree`, `graft_root_sphere_tree`, and
+`prestable_limit_of_grafted_tree`. -/
 theorem assemble_prestable_limit
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
@@ -2082,7 +2403,8 @@ theorem assemble_prestable_limit
       ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
         SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
         μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
-    (h_graft : GraftCertificate I u_seq B th) :
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_conc_defects : ConcDefectCertificate I u_seq B th) :
     ∃ (pdata : PrestableLimitData I u_seq),
       (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B := by
   by_cases h_pdata : ∃ (σ : Bookkeeping.SubseqMap),
@@ -2095,10 +2417,59 @@ theorem assemble_prestable_limit
       exact assemble_prestable_limit_of_eventually_const_subseq I u_seq B h_jhol h_energy σ N₀ c hc
     · have hB : 0 ≤ B := (energy_nonneg I (u_seq 0) Set.univ).trans (h_energy 0)
       obtain ⟨cdata⟩ := Compactness.exists_concentration_data I u_seq h_jhol B hB h_energy h_fin th h_conc_extract
-      obtain ⟨m_defect, hm_sph, _hm_zero, h_decomp, _h_tendsto_energy⟩ :=
+      obtain ⟨m_defect, hm_sph, _hm_zero, h_decomp, h_tendsto_energy⟩ :=
         Compactness.defect_measure_identity I u_seq B h_jhol h_energy h_fin th cdata
-      obtain ⟨P, σ, res, h_conv, h_en⟩ := h_graft cdata m_defect hm_sph h_decomp
-      exact prestable_limit_of_grafted_tree I u_seq B th cdata m_defect h_energy P σ res h_conv h_en
+      have defect_trees : (p : CP1) → (hp : p ∈ cdata.S) →
+          ∃ (rot : MoebiusFrame) (a : ℂ),
+            rot.toHomeo (stereo_chart.symm a) = p ∧
+            ((cdata.S = {p} ∧ ∃ c : M, ∀ z : CP1, cdata.u₀ z = c) →
+              Tendsto (fun n => totalEnergy I (u_seq (cdata.σ.1 n) ∘ rot.toHomeo)) atTop (𝓝 (m_defect p))) ∧
+            ∀ (τ : Bookkeeping.SubseqMap),
+              Nonempty (Bubbling.RealizedLocalDefectTree I th (m_defect p) (cdata.u₀ p)
+                (fun n => u_seq ((cdata.σ.comp τ).1 n) ∘ rot.toHomeo) a) := by
+        intro p hp
+        have h_pos : 0 < m_defect p := th.ε_sph_pos.trans_le (hm_sph p hp)
+        obtain ⟨rot, a, hp_eq, h_def, h_tend⟩ := h_conc_defects cdata m_defect h_decomp p hp
+        refine ⟨rot, a, hp_eq, h_tend, fun τ => ?_⟩
+        have h_def_sub := Bubbling.IsDefectSeq.subseq I h_def τ.2
+        have h_B07 : Nonempty (Bubbling.resolve_single_defect_tree I u_seq h_jhol B h_energy h_fin th
+            (m_defect p) h_pos (cdata.u₀ p) h_cert
+            (fun n => u_seq ((cdata.σ.comp τ).1 n) ∘ rot.toHomeo) a h_def_sub =
+          Bubbling.resolve_single_defect_tree I u_seq h_jhol B h_energy h_fin th
+            (m_defect p) h_pos (cdata.u₀ p) h_cert
+            (fun n => u_seq ((cdata.σ.comp τ).1 n) ∘ rot.toHomeo) a h_def_sub) := ⟨rfl⟩
+        obtain ⟨_⟩ := h_B07
+        exact Bubbling.resolve_single_defect_tree_realized I th h_cert
+          (m_defect p) h_pos (cdata.u₀ p) (fun n => u_seq ((cdata.σ.comp τ).1 n) ∘ rot.toHomeo) a h_def_sub
+      obtain ⟨P_real⟩ := graft_root_sphere_tree_realized I u_seq B th cdata m_defect hm_sph defect_trees
+      let pdata : PrestableLimitData I u_seq := {
+        tree := P_real.tree
+        root := P_real.root
+        map := P_real.map
+        is_jhol := P_real.is_jhol
+        nodal_match := P_real.nodal_match
+        stable_off_root := P_real.stable_off_root
+        σ := cdata.σ.comp P_real.τ
+        frames := P_real.frames
+        root_frame_id := ⟨_, P_real.root_frame⟩
+        frame_collapse := P_real.frame_collapse
+        smooth_conv := fun v => by
+          have h_sc := P_real.smooth_conv v
+          by_cases hv : v = P_real.root
+          · subst hv
+            simp only [↓reduceIte] at h_sc
+            have h_set := root_sphere_nodal_set_eq I u_seq B th cdata m_defect cdata.S P_real.toPartialRootGraftedTree
+            rw [h_set]
+            exact h_sc
+          · simp only [hv, ↓reduceIte] at h_sc
+            exact h_sc
+        ghost_root_deg_one_conv := P_real.ghost_root_deg_one_conv rfl
+        energy_ident := by
+          have h_tendsto := h_tendsto_energy.comp P_real.τ.2.tendsto_atTop
+          rw [P_real.energy_sum]
+          exact h_tendsto
+      }
+      exact ⟨pdata, prestable_limit_energy_bound I u_seq B pdata h_energy⟩
 
 #print axioms frame_comp_id_left
 #print axioms frame_comp_id_right

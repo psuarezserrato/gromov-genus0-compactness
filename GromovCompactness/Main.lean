@@ -98,7 +98,8 @@ theorem gromov_compactness_genus_zero
       ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
         SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
         μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
-    (h_graft : Assembly.GraftCertificate I u_seq B th) :
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_conc_defects : Assembly.ConcDefectCertificate I u_seq B th) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) ∧
       let P := Fintype.card { v : u_lim.tree.V // is_principal_component I u_lim v }
@@ -108,7 +109,7 @@ theorem gromov_compactness_genus_zero
       ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2)) :=
   gromov_compactness_genus_zero_of_core I th u_seq B h_energy
     (gromov_compactness_core I th u_seq B h_nonconst h_jhol h_energy h_fin
-      h_conc_extract h_graft)
+      h_conc_extract h_cert h_conc_defects)
 
 /-- Zero-sorry Genus 0 Gromov Compactness when a subsequence converges smoothly on `CP1` to a
 non-constant map with energy conservation (`0 sorryAx`). -/

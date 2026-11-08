@@ -655,12 +655,6 @@ noncomputable instance CP1_ClosedTameTarget : ClosedTameTarget I_CP1 CP1 where
   J_smooth _ := contDiffOn_const
   tame _ v hv := stdOmega_tame v hv
 
-lemma north_pole_ne_south_pole : north_pole ≠ south_pole := by
-  intro h_eq
-  have h2 : (north_pole.1 : EuclideanSpace ℝ (Fin 3)) 2 = (south_pole.1 : EuclideanSpace ℝ (Fin 3)) 2 := by rw [h_eq]
-  dsimp [north_pole, south_pole] at h2
-  norm_num at h2
-
 /-- The identity map on CP1 is nonconstant. -/
 lemma concrete_nonconstant_map_nonconstant :
     ∃ z₁ z₂ : CP1, (id : CP1 → CP1) z₁ ≠ (id : CP1 → CP1) z₂ :=
