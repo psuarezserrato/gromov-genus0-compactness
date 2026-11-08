@@ -1,19 +1,18 @@
-/-
-Copyright (c) 2026 Autoformalization Team. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Autoformalization Team
--/
 import Mathlib.Geometry.Manifold.Instances.Sphere
 import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.Analysis.InnerProductSpace.LinearMap
 import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
 import Mathlib.Geometry.Manifold.ContMDiff.Basic
 import Mathlib.Geometry.Manifold.ContMDiff.NormedSpace
 import Mathlib.Analysis.SpecialFunctions.Complex.Log
 import Mathlib.Topology.Compactification.OnePoint.Basic
 import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+import Mathlib.Tactic.LinearCombination
+import Mathlib.Tactic.Positivity
+import Mathlib.Tactic.Ring
 import GromovCompactness.Geometry.Target
 
-open scoped Manifold ContDiff Topology
+open scoped Manifold ContDiff Topology RealInnerProductSpace
 open Metric Set MeasureTheory
 
 namespace GromovCompactness
@@ -1104,215 +1103,6 @@ theorem dil_homeo_symm_is_smooth (l : ℝ) (hl : 0 < l) :
     ContMDiff I_CP1 I_CP1 ∞ (dil_homeo l hl).symm := by
   exact dil_homeo_is_smooth l⁻¹ (inv_pos.mpr hl)
 
-/- =========================================================================
-   MOEBIUS FRAME STRUCTURE
-   ========================================================================= -/
-
-/-- A Möbius transformation frame $\phi \in \operatorname{PSL}(2, \mathbb{C})$ acting on $\mathbb{CP}^1$. -/
-structure MoebiusFrame where
-  /-- Associated matrix in PGL(2, ℂ). -/
-  matrix : MoebiusMatrix
-  /-- Underlying topological homeomorphism of the sphere. -/
-  toHomeo : CP1 ≃ₜ CP1
-  /-- Smoothness in both directions. -/
-  is_smooth : ContMDiff I_CP1 I_CP1 ∞ toHomeo
-  is_smooth_symm : ContMDiff I_CP1 I_CP1 ∞ toHomeo.symm
-
-instance : TopologicalSpace MoebiusFrame :=
-  TopologicalSpace.induced (fun ϕ => (ϕ.toHomeo : CP1 → CP1)) inferInstance
-
-namespace MoebiusFrame
-
-/-- Identity Möbius frame. -/
-def id : MoebiusFrame where
-  matrix := MoebiusMatrix.id
-  toHomeo := Homeomorph.refl CP1
-  is_smooth := contMDiff_id
-  is_smooth_symm := contMDiff_id
-
-/-- Composition of Möbius frames: $\phi_1 \circ \phi_2$. -/
-def comp (ϕ₁ ϕ₂ : MoebiusFrame) : MoebiusFrame where
-  matrix := MoebiusMatrix.comp ϕ₁.matrix ϕ₂.matrix
-  toHomeo := ϕ₂.toHomeo.trans ϕ₁.toHomeo
-  is_smooth := ϕ₁.is_smooth.comp ϕ₂.is_smooth
-  is_smooth_symm := ϕ₂.is_smooth_symm.comp ϕ₁.is_smooth_symm
-
-/-- Inverse Möbius frame: $\phi^{-1}$. -/
-def inv (ϕ : MoebiusFrame) : MoebiusFrame where
-  matrix := MoebiusMatrix.inv ϕ.matrix
-  toHomeo := ϕ.toHomeo.symm
-  is_smooth := ϕ.is_smooth_symm
-  is_smooth_symm := ϕ.is_smooth
-
-end MoebiusFrame
-
-/-- Extensionality lemma for MoebiusMatrix. -/
-theorem MoebiusMatrix.ext {M₁ M₂ : MoebiusMatrix}
-    (ha : M₁.a = M₂.a) (hb : M₁.b = M₂.b) (hc : M₁.c = M₂.c) (hd : M₁.d = M₂.d) : M₁ = M₂ := by
-  cases M₁; cases M₂
-  dsimp at ha hb hc hd
-  subst ha hb hc hd
-  rfl
-
-/-- Extensionality lemma for MoebiusFrame. -/
-theorem MoebiusFrame.ext {ϕ₁ ϕ₂ : MoebiusFrame}
-    (h_mat : ϕ₁.matrix = ϕ₂.matrix)
-    (h_homeo : ϕ₁.toHomeo = ϕ₂.toHomeo) : ϕ₁ = ϕ₂ := by
-  cases ϕ₁; cases ϕ₂
-  dsimp at h_mat h_homeo
-  subst h_mat h_homeo
-  rfl
-
-/-- Groupoid identity theorem: right identity ϕ ∘ id = ϕ. -/
-theorem moebius_frame_comp_id (ϕ : MoebiusFrame) :
-    MoebiusFrame.comp ϕ MoebiusFrame.id = ϕ := by
-  apply MoebiusFrame.ext
-  · apply MoebiusMatrix.ext <;> dsimp [MoebiusFrame.comp, MoebiusFrame.id, MoebiusMatrix.comp, MoebiusMatrix.mul, MoebiusMatrix.id] <;> ring
-  · apply Homeomorph.ext; intro x; rfl
-
-/-- Groupoid identity theorem: left identity id ∘ ϕ = ϕ. -/
-theorem moebius_frame_id_comp (ϕ : MoebiusFrame) :
-    MoebiusFrame.comp MoebiusFrame.id ϕ = ϕ := by
-  apply MoebiusFrame.ext
-  · apply MoebiusMatrix.ext <;> dsimp [MoebiusFrame.comp, MoebiusFrame.id, MoebiusMatrix.comp, MoebiusMatrix.mul, MoebiusMatrix.id] <;> ring
-  · apply Homeomorph.ext; intro x; rfl
-
-/-- Groupoid associativity: (ϕ₁ ∘ ϕ₂) ∘ ϕ₃ = ϕ₁ ∘ (ϕ₂ ∘ ϕ₃). -/
-theorem moebius_frame_comp_assoc (ϕ₁ ϕ₂ ϕ₃ : MoebiusFrame) :
-    MoebiusFrame.comp (MoebiusFrame.comp ϕ₁ ϕ₂) ϕ₃ =
-    MoebiusFrame.comp ϕ₁ (MoebiusFrame.comp ϕ₂ ϕ₃) := by
-  apply MoebiusFrame.ext
-  · apply MoebiusMatrix.ext <;> dsimp [MoebiusFrame.comp, MoebiusMatrix.comp, MoebiusMatrix.mul] <;> ring
-  · apply Homeomorph.ext; intro x; rfl
-
-/-- Groupoid inverse law on homeomorphisms: ϕ⁻¹ ∘ ϕ = id. -/
-theorem moebius_frame_inv_comp_toHomeo (ϕ : MoebiusFrame) :
-    (MoebiusFrame.comp (MoebiusFrame.inv ϕ) ϕ).toHomeo = MoebiusFrame.id.toHomeo := by
-  apply Homeomorph.ext; intro x
-  exact ϕ.toHomeo.left_inv x
-
-/-- Groupoid inverse law on homeomorphisms: ϕ ∘ ϕ⁻¹ = id. -/
-theorem moebius_frame_comp_inv_toHomeo (ϕ : MoebiusFrame) :
-    (MoebiusFrame.comp ϕ (MoebiusFrame.inv ϕ)).toHomeo = MoebiusFrame.id.toHomeo := by
-  apply Homeomorph.ext; intro x
-  exact ϕ.toHomeo.right_inv x
-
-/-- Groupoid inverse law on matrices: ϕ⁻¹ ∘ ϕ ~ id (modulo PGL projective equivalence). -/
-theorem moebius_frame_inv_comp_matrix (ϕ : MoebiusFrame) :
-    PglEquiv (MoebiusFrame.comp (MoebiusFrame.inv ϕ) ϕ).matrix MoebiusMatrix.id := by
-  intro p
-  dsimp [MoebiusFrame.comp, MoebiusFrame.inv, MoebiusMatrix.comp, MoebiusMatrix.inv]
-  rw [act_comp]
-  have h := act_adj_cancel ϕ.matrix p
-  dsimp [MoebiusMatrix.id, MoebiusMatrix.act]
-  have hid : ((1 : ℂ) * p.1 + (0 : ℂ) * p.2, (0 : ℂ) * p.1 + (1 : ℂ) * p.2) = p := by
-    ext <;> ring
-  rw [hid]
-  exact h
-
-/-- Groupoid inverse law on matrices: ϕ ∘ ϕ⁻¹ ~ id (modulo PGL projective equivalence). -/
-theorem moebius_frame_comp_inv_matrix (ϕ : MoebiusFrame) :
-    PglEquiv (MoebiusFrame.comp ϕ (MoebiusFrame.inv ϕ)).matrix MoebiusMatrix.id := by
-  intro p
-  dsimp [MoebiusFrame.comp, MoebiusFrame.inv, MoebiusMatrix.comp, MoebiusMatrix.inv]
-  rw [act_comp]
-  dsimp [MoebiusMatrix.adj, MoebiusMatrix.act, ProjEquiv, MoebiusMatrix.id]
-  have h1 : ϕ.matrix.a * (ϕ.matrix.d * p.1 + -ϕ.matrix.b * p.2) + ϕ.matrix.b * (-ϕ.matrix.c * p.1 + ϕ.matrix.a * p.2) =
-            (ϕ.matrix.a * ϕ.matrix.d - ϕ.matrix.b * ϕ.matrix.c) * p.1 := by ring
-  have h2 : ϕ.matrix.c * (ϕ.matrix.d * p.1 + -ϕ.matrix.b * p.2) + ϕ.matrix.d * (-ϕ.matrix.c * p.1 + ϕ.matrix.a * p.2) =
-            (ϕ.matrix.a * ϕ.matrix.d - ϕ.matrix.b * ϕ.matrix.c) * p.2 := by ring
-  rw [h1, h2]
-  ring
-
-/-- Groupoid inverse law on homeomorphisms (alias): ϕ⁻¹ ∘ ϕ = id. -/
-theorem moebius_frame_inv_comp (ϕ : MoebiusFrame) :
-    (MoebiusFrame.comp (MoebiusFrame.inv ϕ) ϕ).toHomeo = MoebiusFrame.id.toHomeo :=
-  moebius_frame_inv_comp_toHomeo ϕ
-
-/-- Groupoid inverse law on homeomorphisms (alias): ϕ ∘ ϕ⁻¹ = id. -/
-theorem moebius_frame_comp_inv (ϕ : MoebiusFrame) :
-    (MoebiusFrame.comp ϕ (MoebiusFrame.inv ϕ)).toHomeo = MoebiusFrame.id.toHomeo :=
-  moebius_frame_comp_inv_toHomeo ϕ
-
-namespace MoebiusFrame
-
-theorem comp_id (ϕ : MoebiusFrame) : comp ϕ id = ϕ := moebius_frame_comp_id ϕ
-theorem id_comp (ϕ : MoebiusFrame) : comp id ϕ = ϕ := moebius_frame_id_comp ϕ
-theorem comp_assoc (ϕ₁ ϕ₂ ϕ₃ : MoebiusFrame) : comp (comp ϕ₁ ϕ₂) ϕ₃ = comp ϕ₁ (comp ϕ₂ ϕ₃) := moebius_frame_comp_assoc ϕ₁ ϕ₂ ϕ₃
-theorem inv_comp_toHomeo (ϕ : MoebiusFrame) : (comp (inv ϕ) ϕ).toHomeo = id.toHomeo := moebius_frame_inv_comp_toHomeo ϕ
-theorem comp_inv_toHomeo (ϕ : MoebiusFrame) : (comp ϕ (inv ϕ)).toHomeo = id.toHomeo := moebius_frame_comp_inv_toHomeo ϕ
-theorem inv_comp (ϕ : MoebiusFrame) : (comp (inv ϕ) ϕ).toHomeo = id.toHomeo := moebius_frame_inv_comp_toHomeo ϕ
-theorem comp_inv (ϕ : MoebiusFrame) : (comp ϕ (inv ϕ)).toHomeo = id.toHomeo := moebius_frame_comp_inv_toHomeo ϕ
-theorem inv_comp_matrix (ϕ : MoebiusFrame) : PglEquiv (comp (inv ϕ) ϕ).matrix MoebiusMatrix.id := moebius_frame_inv_comp_matrix ϕ
-theorem comp_inv_matrix (ϕ : MoebiusFrame) : PglEquiv (comp ϕ (inv ϕ)).matrix MoebiusMatrix.id := moebius_frame_comp_inv_matrix ϕ
-
-end MoebiusFrame
-
-
-noncomputable def inversion : MoebiusFrame where
-  matrix := MoebiusMatrix.inversion
-  toHomeo := inv_homeo
-  is_smooth := by
-    have h_comp : ContMDiff I_CP1 𝓘(ℝ, EuclideanSpace ℝ (Fin 3)) ∞ (inv_lin ∘ ((↑) : CP1 → EuclideanSpace ℝ (Fin 3))) :=
-      inv_lin.contMDiff.comp contMDiff_coe_sphere
-    have h_mem (z : CP1) : (inv_lin ∘ ((↑) : CP1 → EuclideanSpace ℝ (Fin 3))) z ∈ sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 := by
-      simp only [Function.comp_apply, mem_sphere_zero_iff_norm]
-      exact inv_lin_norm z.1 (mem_sphere_zero_iff_norm.mp z.2)
-    exact ContMDiff.codRestrict_sphere h_comp h_mem
-  is_smooth_symm := by
-    have h_comp : ContMDiff I_CP1 𝓘(ℝ, EuclideanSpace ℝ (Fin 3)) ∞ (inv_lin ∘ ((↑) : CP1 → EuclideanSpace ℝ (Fin 3))) :=
-      inv_lin.contMDiff.comp contMDiff_coe_sphere
-    have h_mem (z : CP1) : (inv_lin ∘ ((↑) : CP1 → EuclideanSpace ℝ (Fin 3))) z ∈ sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 := by
-      simp only [Function.comp_apply, mem_sphere_zero_iff_norm]
-      exact inv_lin_norm z.1 (mem_sphere_zero_iff_norm.mp z.2)
-    exact ContMDiff.codRestrict_sphere h_comp h_mem
-
-/-- Rotation by angle $\theta \in \mathbb{R}$: $z \mapsto e^{i\theta} z$. -/
-noncomputable def rotation (θ : ℝ) : MoebiusFrame where
-  matrix := MoebiusMatrix.rotation θ
-  toHomeo := rot_homeo θ
-  is_smooth := by
-    have h_comp : ContMDiff I_CP1 𝓘(ℝ, EuclideanSpace ℝ (Fin 3)) ∞ (rot_lin θ ∘ ((↑) : CP1 → EuclideanSpace ℝ (Fin 3))) :=
-      (rot_lin θ).contMDiff.comp contMDiff_coe_sphere
-    have h_mem (z : CP1) : (rot_lin θ ∘ ((↑) : CP1 → EuclideanSpace ℝ (Fin 3))) z ∈ sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 := by
-      simp only [Function.comp_apply, mem_sphere_zero_iff_norm]
-      exact rot_lin_norm θ z.1 (mem_sphere_zero_iff_norm.mp z.2)
-    exact ContMDiff.codRestrict_sphere h_comp h_mem
-  is_smooth_symm := by
-    have h_comp : ContMDiff I_CP1 𝓘(ℝ, EuclideanSpace ℝ (Fin 3)) ∞ (rot_lin (-θ) ∘ ((↑) : CP1 → EuclideanSpace ℝ (Fin 3))) :=
-      (rot_lin (-θ)).contMDiff.comp contMDiff_coe_sphere
-    have h_mem (z : CP1) : (rot_lin (-θ) ∘ ((↑) : CP1 → EuclideanSpace ℝ (Fin 3))) z ∈ sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 := by
-      simp only [Function.comp_apply, mem_sphere_zero_iff_norm]
-      exact rot_lin_norm (-θ) z.1 (mem_sphere_zero_iff_norm.mp z.2)
-    exact ContMDiff.codRestrict_sphere h_comp h_mem
-
-/-- Standard affine scaling $z \mapsto a + \lambda z$ on $\mathbb{C} \subset \mathbb{CP}^1$ for center $a \in \mathbb{C}$
-and scaling parameter $\lambda > 0$, implemented via authentic stereographic dilation `dil_homeo`. -/
-noncomputable def affine_scaling (a : ℂ) (scale : ℝ) (hscale : 0 < scale) : MoebiusFrame where
-  matrix := MoebiusMatrix.affine_scaling a scale hscale
-  toHomeo := dil_homeo scale hscale
-  is_smooth := dil_homeo_is_smooth scale hscale
-  is_smooth_symm := dil_homeo_symm_is_smooth scale hscale
-
-/-- Anti-facade theorem: affine_scaling.toHomeo is strictly non-identity when scale ≠ 1. -/
-theorem affine_scaling_toHomeo_ne_id (a : ℂ) (scale : ℝ) (hscale : 0 < scale) (hne : scale ≠ 1) :
-    (affine_scaling a scale hscale).toHomeo ≠ Homeomorph.refl CP1 :=
-  dil_homeo_ne_id scale hscale hne
-
-/-- Anti-facade theorem: affine_scaling.toHomeo ≠ MoebiusFrame.id.toHomeo when scale ≠ 1. -/
-theorem affine_scaling_toHomeo_ne_id_frame (a : ℂ) (scale : ℝ) (hscale : 0 < scale) (hne : scale ≠ 1) :
-    (affine_scaling a scale hscale).toHomeo ≠ MoebiusFrame.id.toHomeo :=
-  dil_homeo_ne_id scale hscale hne
-
-theorem affine_scaling_matrix (a : ℂ) (scale : ℝ) (hscale : 0 < scale) :
-    (affine_scaling a scale hscale).matrix = MoebiusMatrix.affine_scaling a scale hscale :=
-  rfl
-
-theorem inversion_matrix : inversion.matrix = MoebiusMatrix.inversion :=
-  rfl
-
-theorem rotation_matrix (θ : ℝ) : (rotation θ).matrix = MoebiusMatrix.rotation θ :=
-  rfl
 
 /- =========================================================================
    PROJECTIVE EQUIVALENCE AND ONEPOINT ℂ EVALUATION RIGIDITY
@@ -1426,5 +1216,906 @@ theorem PglEquiv.eval_eq_of_id {M : MoebiusMatrix} (h : PglEquiv M MoebiusMatrix
     have hnum : M.a * z + M.b = M.d * z := by rw [had, hb, add_zero]
     rw [hden, hnum]
     simp [hd_ne]
+
+lemma act_ne_zero (M : MoebiusMatrix) {v : ℂ × ℂ} (hv : v ≠ (0, 0)) :
+    M.act v ≠ (0, 0) := by
+  intro h
+  have hdet := M.det_ne_zero
+  dsimp [MoebiusMatrix.act] at h
+  have h1 : M.a * v.1 + M.b * v.2 = 0 := congr_arg Prod.fst h
+  have h2 : M.c * v.1 + M.d * v.2 = 0 := congr_arg Prod.snd h
+  have hv1 : (M.a * M.d - M.b * M.c) * v.1 = 0 := by
+    linear_combination M.d * h1 - M.b * h2
+  have hv2 : (M.a * M.d - M.b * M.c) * v.2 = 0 := by
+    linear_combination -M.c * h1 + M.a * h2
+  cases mul_eq_zero.mp hv1 with
+  | inl hd => exact hdet hd
+  | inr hv1' =>
+    cases mul_eq_zero.mp hv2 with
+    | inl hd => exact hdet hd
+    | inr hv2' => exact hv (Prod.ext hv1' hv2')
+
+lemma act_projEquiv (M : MoebiusMatrix) {v w : ℂ × ℂ} (h : ProjEquiv v w) :
+    ProjEquiv (M.act v) (M.act w) := by
+  dsimp [MoebiusMatrix.act, ProjEquiv] at *
+  linear_combination (M.a * M.d - M.b * M.c) * h
+
+lemma projEquiv_onePointToProj_inj {p q : OnePoint ℂ}
+    (h : ProjEquiv (onePointToProj p) (onePointToProj q)) : p = q := by
+  by_contra hne
+  exact not_projEquiv_onePointToProj hne h
+
+theorem eval_comp (M₁ M₂ : MoebiusMatrix) (p : OnePoint ℂ) :
+    (MoebiusMatrix.comp M₁ M₂).eval p = M₁.eval (M₂.eval p) := by
+  apply projEquiv_onePointToProj_inj
+  have h1 := (projEquiv_act_onePointToProj_eval (MoebiusMatrix.comp M₁ M₂) p).symm
+  have h2 : ProjEquiv ((MoebiusMatrix.comp M₁ M₂).act (onePointToProj p))
+                      (M₁.act (M₂.act (onePointToProj p))) := by
+    dsimp [MoebiusMatrix.comp]; rw [act_comp]; exact ProjEquiv.refl _
+  have h3 : ProjEquiv (M₁.act (M₂.act (onePointToProj p)))
+                      (M₁.act (onePointToProj (M₂.eval p))) :=
+    act_projEquiv M₁ (projEquiv_act_onePointToProj_eval M₂ p)
+  have h4 := projEquiv_act_onePointToProj_eval M₁ (M₂.eval p)
+  have n2 : M₂.act (onePointToProj p) ≠ (0, 0) :=
+    act_ne_zero M₂ (onePointToProj_ne_zero p)
+  have n1 : (MoebiusMatrix.comp M₁ M₂).act (onePointToProj p) ≠ (0, 0) :=
+    act_ne_zero (MoebiusMatrix.comp M₁ M₂) (onePointToProj_ne_zero p)
+  have n3 : M₁.act (M₂.act (onePointToProj p)) ≠ (0, 0) :=
+    act_ne_zero M₁ n2
+  have n4 : M₁.act (onePointToProj (M₂.eval p)) ≠ (0, 0) :=
+    act_ne_zero M₁ (onePointToProj_ne_zero _)
+  exact ProjEquiv.trans n4 (ProjEquiv.trans n3 (ProjEquiv.trans n1 h1 h2) h3) h4
+
+theorem eval_inv_eval (M : MoebiusMatrix) (p : OnePoint ℂ) :
+    (MoebiusMatrix.inv M).eval (M.eval p) = p := by
+  apply projEquiv_onePointToProj_inj
+  have h1 : ProjEquiv (onePointToProj ((MoebiusMatrix.inv M).eval (M.eval p)))
+                      ((MoebiusMatrix.inv M).act (onePointToProj (M.eval p))) :=
+    (projEquiv_act_onePointToProj_eval (MoebiusMatrix.inv M) (M.eval p)).symm
+  have h2 : ProjEquiv ((MoebiusMatrix.inv M).act (onePointToProj (M.eval p)))
+                      ((MoebiusMatrix.inv M).act (M.act (onePointToProj p))) :=
+    act_projEquiv (MoebiusMatrix.inv M) (projEquiv_act_onePointToProj_eval M p).symm
+  have h3 : ProjEquiv ((MoebiusMatrix.inv M).act (M.act (onePointToProj p)))
+                      (onePointToProj p) := by
+    change ProjEquiv (M.adj.act (M.act (onePointToProj p))) (onePointToProj p)
+    exact act_adj_cancel M (onePointToProj p)
+  have n1 : (MoebiusMatrix.inv M).act (onePointToProj (M.eval p)) ≠ (0, 0) :=
+    act_ne_zero (MoebiusMatrix.inv M) (onePointToProj_ne_zero _)
+  have n2 : (MoebiusMatrix.inv M).act (M.act (onePointToProj p)) ≠ (0, 0) :=
+    act_ne_zero (MoebiusMatrix.inv M) (act_ne_zero M (onePointToProj_ne_zero p))
+  exact ProjEquiv.trans n2 (ProjEquiv.trans n1 h1 h2) h3
+
+/- =========================================================================
+   STEREOGRAPHIC AFFINE SCALING AND CP1 MOEBIUS MAPPING
+   ========================================================================= -/
+
+/-- Map from `CP1` to the one-point compactification `OnePoint ℂ` via stereographic projection. -/
+noncomputable def cp1ToOnePoint (z : CP1) : OnePoint ℂ :=
+  open Classical in if z = north_pole then OnePoint.infty else OnePoint.some (stereo_chart z)
+
+theorem south_pole_neg_north : (south_pole : CP1) = - (north_pole : CP1) := by
+  ext i; fin_cases i
+  · change (!₂[0, 0, -1] : EuclideanSpace ℝ (Fin 3)) 0 = (- (!₂[0, 0, 1] : EuclideanSpace ℝ (Fin 3))) 0; simp
+  · change (!₂[0, 0, -1] : EuclideanSpace ℝ (Fin 3)) 1 = (- (!₂[0, 0, 1] : EuclideanSpace ℝ (Fin 3))) 1; simp
+  · change (!₂[0, 0, -1] : EuclideanSpace ℝ (Fin 3)) 2 = (- (!₂[0, 0, 1] : EuclideanSpace ℝ (Fin 3))) 2; simp
+
+theorem stereo_chart_south_pole : stereo_chart south_pole = 0 := by
+  rw [south_pole_neg_north]
+  dsimp [stereo_chart, stereographic']
+  simp
+
+theorem north_pole_ne_south_pole : (north_pole : CP1) ≠ south_pole := by
+  intro h
+  have h2 : (north_pole : EuclideanSpace ℝ (Fin 3)) 2 = (south_pole : EuclideanSpace ℝ (Fin 3)) 2 :=
+    congr_arg (fun (p : CP1) => p.1 2) h
+  change (1 : ℝ) = -1 at h2
+  norm_num at h2
+
+theorem south_pole_ne_north_pole : (south_pole : CP1) ≠ north_pole :=
+  north_pole_ne_south_pole.symm
+
+noncomputable def stereo_U : (ℝ ∙ (north_pole : EuclideanSpace ℝ (Fin 3)))ᗮ ≃ₗᵢ[ℝ] EuclideanSpace ℝ (Fin 2) :=
+  (OrthonormalBasis.fromOrthogonalSpanSingleton (𝕜 := ℝ) 2 (ne_zero_of_mem_unit_sphere north_pole)).repr
+
+noncomputable def stereo_iso : ℂ ≃ₗᵢ[ℝ] (ℝ ∙ (north_pole : EuclideanSpace ℝ (Fin 3)))ᗮ :=
+  Complex.orthonormalBasisOneI.repr.trans stereo_U.symm
+
+noncomputable def stereo_vec (a : ℂ) : EuclideanSpace ℝ (Fin 3) := (stereo_iso a).1
+
+theorem stereo_vec_add (a b : ℂ) : stereo_vec (a + b) = stereo_vec a + stereo_vec b := by
+  dsimp [stereo_vec, stereo_iso]; simp
+
+theorem stereo_vec_smul (c : ℝ) (a : ℂ) : stereo_vec ((c : ℂ) * a) = c • stereo_vec a := by
+  dsimp [stereo_vec, stereo_iso]
+  have h : Complex.orthonormalBasisOneI.repr ((c : ℂ) * a) = c • Complex.orthonormalBasisOneI.repr a := by
+    ext i; fin_cases i <;> simp
+  rw [h]; simp
+
+theorem stereo_vec_coord_2 (a : ℂ) : stereo_vec a 2 = 0 := by
+  let v : EuclideanSpace ℝ (Fin 3) := (stereo_iso a).1
+  have h : ⟪(north_pole : EuclideanSpace ℝ (Fin 3)), v⟫ = 0 := by
+    have hmem := (stereo_iso a).2
+    rw [Submodule.mem_orthogonal_singleton_iff_inner_right] at hmem
+    exact hmem
+  have h_np : (north_pole : EuclideanSpace ℝ (Fin 3)) = EuclideanSpace.single 2 1 := by
+    ext i; fin_cases i <;> rfl
+  have h2 : ⟪EuclideanSpace.single 2 (1:ℝ), v⟫ = 0 := by
+    rw [← h_np]; exact h
+  have h_inner := EuclideanSpace.inner_single_left (2 : Fin 3) (1 : ℝ) v
+  rw [h_inner] at h2
+  simp only [starRingEnd_apply, star_trivial, one_mul] at h2
+  exact h2
+
+theorem stereo_inner_isometry (a b : ℂ) :
+    stereo_vec a 0 * stereo_vec b 0 + stereo_vec a 1 * stereo_vec b 1 = ⟪a, b⟫ := by
+  have h_inner : ⟪stereo_vec a, stereo_vec b⟫ =
+      stereo_vec a 0 * stereo_vec b 0 + stereo_vec a 1 * stereo_vec b 1 + stereo_vec a 2 * stereo_vec b 2 := by
+    simp [inner, Fin.sum_univ_three]; ring
+  have h2a := stereo_vec_coord_2 a
+  have h2b := stereo_vec_coord_2 b
+  rw [h2a, h2b, mul_zero, add_zero] at h_inner
+  have h_iso : ⟪stereo_vec a, stereo_vec b⟫ = ⟪stereo_iso a, stereo_iso b⟫ := rfl
+  rw [LinearIsometryEquiv.inner_map_map] at h_iso
+  rw [← h_iso, h_inner]
+
+theorem inner_comb_norm_sq (a w : ℂ) (l : ℝ) :
+    ‖a + (l : ℂ) * w‖^2 = ‖a‖^2 + 2 * l * ⟪a, w⟫ + l^2 * ‖w‖^2 := by
+  have h_smul : (l : ℂ) * w = l • w := by simp
+  have h_norm (z : ℂ) : ‖z‖^2 = ⟪z, z⟫ := by
+    rw [pow_two, real_inner_self_eq_norm_mul_norm]
+  rw [h_smul, h_norm, real_inner_add_add_self, h_norm, h_norm]
+  rw [inner_smul_right, inner_smul_left]
+  simp only [starRingEnd_apply, star_trivial, inner_smul_right]
+  ring
+
+theorem norm_sq_target (a w : ℂ) (l : ℝ) :
+    ‖a + (l : ℂ) * w‖^2 = ‖a‖^2 + 2 * l * (stereo_vec a 0 * stereo_vec w 0 + stereo_vec a 1 * stereo_vec w 1) + l^2 * ‖w‖^2 := by
+  rw [inner_comb_norm_sq, stereo_inner_isometry]
+
+theorem stereo_vec_norm_sq (a : ℂ) : (stereo_vec a 0)^2 + (stereo_vec a 1)^2 = ‖a‖^2 := by
+  have h_self := stereo_inner_isometry a a
+  have h_norm : ‖a‖^2 = ⟪a, a⟫ := by
+    rw [pow_two, real_inner_self_eq_norm_mul_norm]
+  rw [pow_two, pow_two, h_self, ← h_norm]
+
+noncomputable def D_aff (a : ℂ) (l : ℝ) (v : EuclideanSpace ℝ (Fin 3)) : ℝ :=
+  let s := stereo_vec a
+  (1 - v 2) * (4 + (s 0^2 + s 1^2)) + 4 * l * (s 0 * v 0 + s 1 * v 1) + 4 * l^2 * (1 + v 2)
+
+noncomputable def N0 (a : ℂ) (l : ℝ) (v : EuclideanSpace ℝ (Fin 3)) : ℝ :=
+  let s := stereo_vec a
+  4 * ((1 - v 2) * s 0 + 2 * l * v 0)
+
+noncomputable def N1 (a : ℂ) (l : ℝ) (v : EuclideanSpace ℝ (Fin 3)) : ℝ :=
+  let s := stereo_vec a
+  4 * ((1 - v 2) * s 1 + 2 * l * v 1)
+
+noncomputable def N2 (a : ℂ) (l : ℝ) (v : EuclideanSpace ℝ (Fin 3)) : ℝ :=
+  let s := stereo_vec a
+  (1 - v 2) * ((s 0^2 + s 1^2) - 4) + 4 * l * (s 0 * v 0 + s 1 * v 1) + 4 * l^2 * (1 + v 2)
+
+theorem aff_norm_identity (a : ℂ) (l : ℝ) (v : EuclideanSpace ℝ (Fin 3))
+    (hv : (v 0)^2 + (v 1)^2 + (v 2)^2 = 1) :
+    (N0 a l v)^2 + (N1 a l v)^2 + (N2 a l v)^2 = (D_aff a l v)^2 := by
+  dsimp [N0, N1, N2, D_aff]
+  linear_combination 64 * l^2 * hv
+
+theorem D_aff_sub_N2 (a : ℂ) (l : ℝ) (v : EuclideanSpace ℝ (Fin 3)) :
+    D_aff a l v - N2 a l v = 8 * (1 - v 2) := by
+  dsimp [D_aff, N2]; ring
+
+theorem D_aff_ne_zero (a : ℂ) (l : ℝ) (hl : 0 < l) (v : EuclideanSpace ℝ (Fin 3))
+    (hv : (v 0)^2 + (v 1)^2 + (v 2)^2 = 1) :
+    D_aff a l v ≠ 0 := by
+  intro hD
+  have h_norm := aff_norm_identity a l v hv
+  rw [hD, zero_pow (by norm_num : 2 ≠ 0)] at h_norm
+  have hN2 : N2 a l v = 0 := by
+    have h_sq0 : 0 ≤ (N0 a l v)^2 := sq_nonneg _
+    have h_sq1 : 0 ≤ (N1 a l v)^2 := sq_nonneg _
+    have h_sq2 : 0 ≤ (N2 a l v)^2 := sq_nonneg _
+    have h_N2_sq : (N2 a l v)^2 = 0 := by linarith
+    exact sq_eq_zero_iff.mp h_N2_sq
+  have h_diff := D_aff_sub_N2 a l v
+  rw [hD, hN2, sub_zero] at h_diff
+  have hv2 : v 2 = 1 := by linarith
+  have h_D_at_1 : D_aff a l v = 8 * l^2 := by
+    dsimp [D_aff]; rw [hv2]
+    have h_v0 : v 0 = 0 := by
+      have h_sum := hv; rw [hv2] at h_sum
+      have h0 : (v 0)^2 = 0 := by nlinarith [sq_nonneg (v 1)]
+      exact sq_eq_zero_iff.mp h0
+    have h_v1 : v 1 = 0 := by
+      have h_sum := hv; rw [hv2] at h_sum
+      have h1 : (v 1)^2 = 0 := by nlinarith [sq_nonneg (v 0)]
+      exact sq_eq_zero_iff.mp h1
+    rw [h_v0, h_v1]; ring
+  rw [hD] at h_D_at_1
+  have h_pos : 8 * l^2 > 0 := by positivity
+  linarith
+
+noncomputable def aff_fun (a : ℂ) (l : ℝ) (v : EuclideanSpace ℝ (Fin 3)) : EuclideanSpace ℝ (Fin 3) :=
+  !₂[N0 a l v / D_aff a l v, N1 a l v / D_aff a l v, N2 a l v / D_aff a l v]
+
+theorem aff_fun_north_pole (a : ℂ) (l : ℝ) (hl : 0 < l) :
+    aff_fun a l north_pole.1 = north_pole.1 := by
+  ext i; fin_cases i
+  · change N0 a l north_pole.1 / D_aff a l north_pole.1 = 0
+    dsimp [N0, north_pole]
+    have h_num : 4 * ((1 - (1:ℝ)) * (stereo_vec a 0) + 2 * l * 0) = 0 := by ring
+    rw [h_num, zero_div]
+  · change N1 a l north_pole.1 / D_aff a l north_pole.1 = 0
+    dsimp [N1, north_pole]
+    have h_num : 4 * ((1 - (1:ℝ)) * (stereo_vec a 1) + 2 * l * 0) = 0 := by ring
+    rw [h_num, zero_div]
+  · change N2 a l north_pole.1 / D_aff a l north_pole.1 = 1
+    dsimp [N2, D_aff, north_pole]
+    have h_num : (1 - (1:ℝ)) * (stereo_vec a 0^2 + stereo_vec a 1^2 - 4) + 4 * l * (stereo_vec a 0 * 0 + stereo_vec a 1 * 0) + 4 * l^2 * (1 + 1) = 8 * l^2 := by ring
+    have h_den : (1 - (1:ℝ)) * (4 + (stereo_vec a 0^2 + stereo_vec a 1^2)) + 4 * l * (stereo_vec a 0 * 0 + stereo_vec a 1 * 0) + 4 * l^2 * (1 + 1) = 8 * l^2 := by ring
+    rw [h_num, h_den]
+    have h_pos : 8 * l^2 ≠ 0 := by positivity
+    exact div_self h_pos
+
+theorem contDiffAt_aff_fun (a : ℂ) (l : ℝ) (v : EuclideanSpace ℝ (Fin 3)) (hD : D_aff a l v ≠ 0) :
+    ContDiffAt ℝ ∞ (aff_fun a l) v := by
+  let E := EuclideanSpace.equiv (Fin 3) ℝ
+  have h_eq : aff_fun a l = E.symm ∘ (E ∘ aff_fun a l) := by
+    ext x; simp only [Function.comp_apply, ContinuousLinearEquiv.symm_apply_apply]
+  rw [h_eq]
+  apply ContDiff.comp_contDiffAt v E.symm.contDiff
+  rw [contDiffAt_pi]
+  intro i
+  fin_cases i
+  · change ContDiffAt ℝ ∞ (fun x => N0 a l x / D_aff a l x) v
+    apply ContDiffAt.div
+    · refine contDiffAt_const.mul ((contDiffAt_const.sub (contDiffAt_euclidean_coord 2 v)).mul contDiffAt_const |>.add
+        (contDiffAt_const.mul (contDiffAt_euclidean_coord 0 v)))
+    · refine (contDiffAt_const.sub (contDiffAt_euclidean_coord 2 v)).mul contDiffAt_const |>.add
+        (contDiffAt_const.mul ((contDiffAt_const.mul (contDiffAt_euclidean_coord 0 v)).add (contDiffAt_const.mul (contDiffAt_euclidean_coord 1 v)))) |>.add
+        (contDiffAt_const.mul (contDiffAt_const.add (contDiffAt_euclidean_coord 2 v)))
+    · exact hD
+  · change ContDiffAt ℝ ∞ (fun x => N1 a l x / D_aff a l x) v
+    apply ContDiffAt.div
+    · refine contDiffAt_const.mul ((contDiffAt_const.sub (contDiffAt_euclidean_coord 2 v)).mul contDiffAt_const |>.add
+        (contDiffAt_const.mul (contDiffAt_euclidean_coord 1 v)))
+    · refine (contDiffAt_const.sub (contDiffAt_euclidean_coord 2 v)).mul contDiffAt_const |>.add
+        (contDiffAt_const.mul ((contDiffAt_const.mul (contDiffAt_euclidean_coord 0 v)).add (contDiffAt_const.mul (contDiffAt_euclidean_coord 1 v)))) |>.add
+        (contDiffAt_const.mul (contDiffAt_const.add (contDiffAt_euclidean_coord 2 v)))
+    · exact hD
+  · change ContDiffAt ℝ ∞ (fun x => N2 a l x / D_aff a l x) v
+    apply ContDiffAt.div
+    · refine (contDiffAt_const.sub (contDiffAt_euclidean_coord 2 v)).mul contDiffAt_const |>.add
+        (contDiffAt_const.mul ((contDiffAt_const.mul (contDiffAt_euclidean_coord 0 v)).add (contDiffAt_const.mul (contDiffAt_euclidean_coord 1 v)))) |>.add
+        (contDiffAt_const.mul (contDiffAt_const.add (contDiffAt_euclidean_coord 2 v)))
+    · refine (contDiffAt_const.sub (contDiffAt_euclidean_coord 2 v)).mul contDiffAt_const |>.add
+        (contDiffAt_const.mul ((contDiffAt_const.mul (contDiffAt_euclidean_coord 0 v)).add (contDiffAt_const.mul (contDiffAt_euclidean_coord 1 v)))) |>.add
+        (contDiffAt_const.mul (contDiffAt_const.add (contDiffAt_euclidean_coord 2 v)))
+    · exact hD
+
+theorem continuous_aff_fun_on_cp1 (a : ℂ) (l : ℝ) (hl : 0 < l) :
+    Continuous (fun (z : CP1) => aff_fun a l z.1) := by
+  dsimp [aff_fun]
+  refine (PiLp.continuous_toLp 2 (fun _ : Fin 3 => ℝ)).comp ?_
+  apply continuous_pi
+  intro i
+  fin_cases i
+  · change Continuous (fun (z : CP1) => N0 a l z.1 / D_aff a l z.1)
+    apply Continuous.div
+    · dsimp [N0]
+      refine continuous_const.mul ((continuous_const.sub (continuous_cp1_coord 2)).mul continuous_const |>.add
+        (continuous_const.mul (continuous_cp1_coord 0)))
+    · dsimp [D_aff]
+      refine (continuous_const.sub (continuous_cp1_coord 2)).mul continuous_const |>.add
+        (continuous_const.mul ((continuous_const.mul (continuous_cp1_coord 0)).add (continuous_const.mul (continuous_cp1_coord 1)))) |>.add
+        (continuous_const.mul (continuous_const.add (continuous_cp1_coord 2)))
+    · intro z
+      have hz_norm : (z.1 0)^2 + (z.1 1)^2 + (z.1 2)^2 = 1 := by
+        have hz := mem_sphere_zero_iff_norm.mp z.2
+        rw [EuclideanSpace.norm_eq] at hz
+        have h_sq := congr_arg (fun x => x^2) hz
+        simp only [Fin.sum_univ_three] at h_sq
+        have h_pos : 0 ≤ ‖z.1 0‖ ^ 2 + ‖z.1 1‖ ^ 2 + ‖z.1 2‖ ^ 2 := by positivity
+        rw [Real.sq_sqrt h_pos] at h_sq
+        have h_norm_sq (x : ℝ) : ‖x‖ ^ 2 = x ^ 2 := by simp [Real.norm_eq_abs, sq_abs]
+        rw [h_norm_sq, h_norm_sq, h_norm_sq] at h_sq
+        norm_num at h_sq; exact h_sq
+      exact D_aff_ne_zero a l hl z.1 hz_norm
+  · change Continuous (fun (z : CP1) => N1 a l z.1 / D_aff a l z.1)
+    apply Continuous.div
+    · dsimp [N1]
+      refine continuous_const.mul ((continuous_const.sub (continuous_cp1_coord 2)).mul continuous_const |>.add
+        (continuous_const.mul (continuous_cp1_coord 1)))
+    · dsimp [D_aff]
+      refine (continuous_const.sub (continuous_cp1_coord 2)).mul continuous_const |>.add
+        (continuous_const.mul ((continuous_const.mul (continuous_cp1_coord 0)).add (continuous_const.mul (continuous_cp1_coord 1)))) |>.add
+        (continuous_const.mul (continuous_const.add (continuous_cp1_coord 2)))
+    · intro z
+      have hz_norm : (z.1 0)^2 + (z.1 1)^2 + (z.1 2)^2 = 1 := by
+        have hz := mem_sphere_zero_iff_norm.mp z.2
+        rw [EuclideanSpace.norm_eq] at hz
+        have h_sq := congr_arg (fun x => x^2) hz
+        simp only [Fin.sum_univ_three] at h_sq
+        have h_pos : 0 ≤ ‖z.1 0‖ ^ 2 + ‖z.1 1‖ ^ 2 + ‖z.1 2‖ ^ 2 := by positivity
+        rw [Real.sq_sqrt h_pos] at h_sq
+        have h_norm_sq (x : ℝ) : ‖x‖ ^ 2 = x ^ 2 := by simp [Real.norm_eq_abs, sq_abs]
+        rw [h_norm_sq, h_norm_sq, h_norm_sq] at h_sq
+        norm_num at h_sq; exact h_sq
+      exact D_aff_ne_zero a l hl z.1 hz_norm
+  · change Continuous (fun (z : CP1) => N2 a l z.1 / D_aff a l z.1)
+    apply Continuous.div
+    · dsimp [N2]
+      refine (continuous_const.sub (continuous_cp1_coord 2)).mul continuous_const |>.add
+        (continuous_const.mul ((continuous_const.mul (continuous_cp1_coord 0)).add (continuous_const.mul (continuous_cp1_coord 1)))) |>.add
+        (continuous_const.mul (continuous_const.add (continuous_cp1_coord 2)))
+    · dsimp [D_aff]
+      refine (continuous_const.sub (continuous_cp1_coord 2)).mul continuous_const |>.add
+        (continuous_const.mul ((continuous_const.mul (continuous_cp1_coord 0)).add (continuous_const.mul (continuous_cp1_coord 1)))) |>.add
+        (continuous_const.mul (continuous_const.add (continuous_cp1_coord 2)))
+    · intro z
+      have hz_norm : (z.1 0)^2 + (z.1 1)^2 + (z.1 2)^2 = 1 := by
+        have hz := mem_sphere_zero_iff_norm.mp z.2
+        rw [EuclideanSpace.norm_eq] at hz
+        have h_sq := congr_arg (fun x => x^2) hz
+        simp only [Fin.sum_univ_three] at h_sq
+        have h_pos : 0 ≤ ‖z.1 0‖ ^ 2 + ‖z.1 1‖ ^ 2 + ‖z.1 2‖ ^ 2 := by positivity
+        rw [Real.sq_sqrt h_pos] at h_sq
+        have h_norm_sq (x : ℝ) : ‖x‖ ^ 2 = x ^ 2 := by simp [Real.norm_eq_abs, sq_abs]
+        rw [h_norm_sq, h_norm_sq, h_norm_sq] at h_sq
+        norm_num at h_sq; exact h_sq
+      exact D_aff_ne_zero a l hl z.1 hz_norm
+
+theorem check_symm_simp (a : ℂ) :
+    ((stereo_chart.symm a : CP1) : EuclideanSpace ℝ (Fin 3)) =
+    (‖a‖^2 + 4)⁻¹ • ((4 : ℝ) • stereo_vec a + (‖a‖^2 - 4) • (north_pole : EuclideanSpace ℝ (Fin 3))) := by
+  have h1 : stereo_chart.symm a = (stereographic (norm_eq_of_mem_sphere north_pole)).symm (stereo_iso a) := by
+    dsimp [stereo_chart, stereographic', stereo_iso, c_equiv_e2, stereo_U]; rfl
+  rw [h1]
+  change (stereoInvFun (norm_eq_of_mem_sphere north_pole) (stereo_iso a) : EuclideanSpace ℝ (Fin 3)) = _
+  rw [stereoInvFun_apply, stereo_iso.norm_map a]; rfl
+
+theorem check_symm_coord_0 (w : ℂ) :
+    ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 0 = (4 * stereo_vec w 0) / (‖w‖^2 + 4) := by
+  rw [check_symm_simp]; dsimp [north_pole]; simp [div_eq_inv_mul]
+
+theorem check_symm_coord_1 (w : ℂ) :
+    ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 1 = (4 * stereo_vec w 1) / (‖w‖^2 + 4) := by
+  rw [check_symm_simp]; dsimp [north_pole]; simp [div_eq_inv_mul]
+
+theorem check_symm_coord_2 (w : ℂ) :
+    ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 2 = (‖w‖^2 - 4) / (‖w‖^2 + 4) := by
+  rw [check_symm_simp]
+  have h_s2 : stereo_vec w 2 = 0 := stereo_vec_coord_2 w
+  dsimp [north_pole]
+  have h2 : (stereo_vec w 2) = 0 := h_s2
+  simp [h2, div_eq_inv_mul]
+
+theorem ring_match_0 (sa0 sw0 a_sq w_sq sy l : ℝ)
+    (h_pos : w_sq + 4 ≠ 0) :
+    let v2 := (w_sq - 4) / (w_sq + 4)
+    let v0 := 4 * sw0 / (w_sq + 4)
+    let D := (1 - v2) * (4 + a_sq) + 4 * l * (4 * sy / (w_sq + 4)) + 4 * l^2 * (1 + v2)
+    let N0 := 4 * ((1 - v2) * sa0 + 2 * l * v0)
+    N0 / D = 4 * (sa0 + l * sw0) / (4 + a_sq + 2 * l * sy + l^2 * w_sq) := by
+  intro v2 v0 D N0
+  dsimp [D, N0, v2, v0]
+  have h_D : (1 - (w_sq - 4) / (w_sq + 4)) * (4 + a_sq) + 4 * l * (4 * sy / (w_sq + 4)) + 4 * l^2 * (1 + (w_sq - 4) / (w_sq + 4)) =
+      8 * (4 + a_sq + 2 * l * sy + l^2 * w_sq) / (w_sq + 4) := by
+    field_simp; ring
+  have h_N0 : 4 * ((1 - (w_sq - 4) / (w_sq + 4)) * sa0 + 2 * l * (4 * sw0 / (w_sq + 4))) =
+      32 * (sa0 + l * sw0) / (w_sq + 4) := by
+    field_simp; ring
+  rw [h_D, h_N0]
+  have h_cancel : (32 * (sa0 + l * sw0) / (w_sq + 4)) / (8 * (4 + a_sq + 2 * l * sy + l ^ 2 * w_sq) / (w_sq + 4)) =
+      (32 * (sa0 + l * sw0)) / (8 * (4 + a_sq + 2 * l * sy + l ^ 2 * w_sq)) := by
+    rw [div_div_div_comm, div_self h_pos, div_one]
+  rw [h_cancel]
+  have h32 : 32 * (sa0 + l * sw0) = 8 * (4 * (sa0 + l * sw0)) := by ring
+  rw [h32]
+  exact mul_div_mul_left _ _ (by norm_num : (8:ℝ) ≠ 0)
+
+theorem ring_match_1 (sa1 sw1 a_sq w_sq sy l : ℝ)
+    (h_pos : w_sq + 4 ≠ 0) :
+    let v2 := (w_sq - 4) / (w_sq + 4)
+    let v1 := 4 * sw1 / (w_sq + 4)
+    let D := (1 - v2) * (4 + a_sq) + 4 * l * (4 * sy / (w_sq + 4)) + 4 * l^2 * (1 + v2)
+    let N1 := 4 * ((1 - v2) * sa1 + 2 * l * v1)
+    N1 / D = 4 * (sa1 + l * sw1) / (4 + a_sq + 2 * l * sy + l^2 * w_sq) := by
+  intro v2 v1 D N1
+  dsimp [D, N1, v2, v1]
+  have h_D : (1 - (w_sq - 4) / (w_sq + 4)) * (4 + a_sq) + 4 * l * (4 * sy / (w_sq + 4)) + 4 * l^2 * (1 + (w_sq - 4) / (w_sq + 4)) =
+      8 * (4 + a_sq + 2 * l * sy + l^2 * w_sq) / (w_sq + 4) := by
+    field_simp; ring
+  have h_N1 : 4 * ((1 - (w_sq - 4) / (w_sq + 4)) * sa1 + 2 * l * (4 * sw1 / (w_sq + 4))) =
+      32 * (sa1 + l * sw1) / (w_sq + 4) := by
+    field_simp; ring
+  rw [h_D, h_N1]
+  have h_cancel : (32 * (sa1 + l * sw1) / (w_sq + 4)) / (8 * (4 + a_sq + 2 * l * sy + l ^ 2 * w_sq) / (w_sq + 4)) =
+      (32 * (sa1 + l * sw1)) / (8 * (4 + a_sq + 2 * l * sy + l ^ 2 * w_sq)) := by
+    rw [div_div_div_comm, div_self h_pos, div_one]
+  rw [h_cancel]
+  have h32 : 32 * (sa1 + l * sw1) = 8 * (4 * (sa1 + l * sw1)) := by ring
+  rw [h32]
+  exact mul_div_mul_left _ _ (by norm_num : (8:ℝ) ≠ 0)
+
+theorem ring_match_2 (a_sq w_sq sy l : ℝ)
+    (h_pos : w_sq + 4 ≠ 0) :
+    let v2 := (w_sq - 4) / (w_sq + 4)
+    let D := (1 - v2) * (4 + a_sq) + 4 * l * (4 * sy / (w_sq + 4)) + 4 * l^2 * (1 + v2)
+    let N2 := (1 - v2) * (a_sq - 4) + 4 * l * (4 * sy / (w_sq + 4)) + 4 * l^2 * (1 + v2)
+    N2 / D = ((a_sq + 2 * l * sy + l^2 * w_sq) - 4) / (4 + a_sq + 2 * l * sy + l^2 * w_sq) := by
+  intro v2 D N2
+  dsimp [D, N2, v2]
+  have h_D : (1 - (w_sq - 4) / (w_sq + 4)) * (4 + a_sq) + 4 * l * (4 * sy / (w_sq + 4)) + 4 * l^2 * (1 + (w_sq - 4) / (w_sq + 4)) =
+      8 * (4 + a_sq + 2 * l * sy + l^2 * w_sq) / (w_sq + 4) := by
+    field_simp; ring
+  have h_N2 : (1 - (w_sq - 4) / (w_sq + 4)) * (a_sq - 4) + 4 * l * (4 * sy / (w_sq + 4)) + 4 * l^2 * (1 + (w_sq - 4) / (w_sq + 4)) =
+      8 * ((a_sq + 2 * l * sy + l^2 * w_sq) - 4) / (w_sq + 4) := by
+    field_simp; ring
+  rw [h_D, h_N2]
+  have h_cancel : (8 * ((a_sq + 2 * l * sy + l^2 * w_sq) - 4) / (w_sq + 4)) / (8 * (4 + a_sq + 2 * l * sy + l ^ 2 * w_sq) / (w_sq + 4)) =
+      (8 * ((a_sq + 2 * l * sy + l^2 * w_sq) - 4)) / (8 * (4 + a_sq + 2 * l * sy + l ^ 2 * w_sq)) := by
+    rw [div_div_div_comm, div_self h_pos, div_one]
+  rw [h_cancel]
+  exact mul_div_mul_left _ _ (by norm_num : (8:ℝ) ≠ 0)
+
+theorem aff_fun_stereo_chart_symm (a : ℂ) (l : ℝ) (hl : 0 < l) (w : ℂ) :
+    aff_fun a l (stereo_chart.symm w).1 = ((stereo_chart.symm (a + (l : ℂ) * w) : CP1) : EuclideanSpace ℝ (Fin 3)) := by
+  ext i
+  fin_cases i
+  · -- coord 0
+    change N0 a l (stereo_chart.symm w).1 / D_aff a l (stereo_chart.symm w).1 = ((stereo_chart.symm (a + (l : ℂ) * w) : CP1) : EuclideanSpace ℝ (Fin 3)) 0
+    rw [check_symm_coord_0 (a + (l : ℂ) * w)]
+    have h_w_pos : ‖w‖^2 + 4 ≠ 0 := by positivity
+    have h_m0 := ring_match_0 (stereo_vec a 0) (stereo_vec w 0) (‖a‖^2) (‖w‖^2)
+      (stereo_vec a 0 * stereo_vec w 0 + stereo_vec a 1 * stereo_vec w 1) l h_w_pos
+    dsimp at h_m0
+    have hv2 : ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 2 = (‖w‖^2 - 4) / (‖w‖^2 + 4) := check_symm_coord_2 w
+    have hv0 : ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 0 = 4 * stereo_vec w 0 / (‖w‖^2 + 4) := check_symm_coord_0 w
+    have hv1 : ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 1 = 4 * stereo_vec w 1 / (‖w‖^2 + 4) := check_symm_coord_1 w
+    have ha_sq : (stereo_vec a 0)^2 + (stereo_vec a 1)^2 = ‖a‖^2 := stereo_vec_norm_sq a
+    have h_dot : stereo_vec a 0 * ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 0 +
+        stereo_vec a 1 * ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 1 =
+        4 * (stereo_vec a 0 * stereo_vec w 0 + stereo_vec a 1 * stereo_vec w 1) / (‖w‖^2 + 4) := by
+      rw [hv0, hv1]; ring
+    have h_D_eq : D_aff a l (stereo_chart.symm w).1 =
+        (1 - (‖w‖^2 - 4) / (‖w‖^2 + 4)) * (4 + ‖a‖^2) +
+        4 * l * (4 * (stereo_vec a 0 * stereo_vec w 0 + stereo_vec a 1 * stereo_vec w 1) / (‖w‖^2 + 4)) +
+        4 * l^2 * (1 + (‖w‖^2 - 4) / (‖w‖^2 + 4)) := by
+      dsimp [D_aff]; rw [ha_sq, hv2, h_dot]
+    have h_N0_eq : N0 a l (stereo_chart.symm w).1 =
+        4 * ((1 - (‖w‖^2 - 4) / (‖w‖^2 + 4)) * stereo_vec a 0 + 2 * l * (4 * stereo_vec w 0 / (‖w‖^2 + 4))) := by
+      dsimp [N0]; rw [hv2, hv0]
+    rw [h_D_eq, h_N0_eq, h_m0]
+    have h_target_norm : ‖a + (l : ℂ) * w‖^2 = ‖a‖^2 + 2 * l * (stereo_vec a 0 * stereo_vec w 0 + stereo_vec a 1 * stereo_vec w 1) + l^2 * ‖w‖^2 :=
+      norm_sq_target a w l
+    rw [h_target_norm]
+    have h_add : stereo_vec (a + (l : ℂ) * w) 0 = stereo_vec a 0 + l * stereo_vec w 0 := by
+      rw [stereo_vec_add, stereo_vec_smul]; rfl
+    rw [h_add]; ring
+  · -- coord 1
+    change N1 a l (stereo_chart.symm w).1 / D_aff a l (stereo_chart.symm w).1 = ((stereo_chart.symm (a + (l : ℂ) * w) : CP1) : EuclideanSpace ℝ (Fin 3)) 1
+    rw [check_symm_coord_1 (a + (l : ℂ) * w)]
+    have h_w_pos : ‖w‖^2 + 4 ≠ 0 := by positivity
+    have h_m1 := ring_match_1 (stereo_vec a 1) (stereo_vec w 1) (‖a‖^2) (‖w‖^2)
+      (stereo_vec a 0 * stereo_vec w 0 + stereo_vec a 1 * stereo_vec w 1) l h_w_pos
+    dsimp at h_m1
+    have hv2 : ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 2 = (‖w‖^2 - 4) / (‖w‖^2 + 4) := check_symm_coord_2 w
+    have hv0 : ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 0 = 4 * stereo_vec w 0 / (‖w‖^2 + 4) := check_symm_coord_0 w
+    have hv1 : ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 1 = 4 * stereo_vec w 1 / (‖w‖^2 + 4) := check_symm_coord_1 w
+    have ha_sq : (stereo_vec a 0)^2 + (stereo_vec a 1)^2 = ‖a‖^2 := stereo_vec_norm_sq a
+    have h_dot : stereo_vec a 0 * ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 0 +
+        stereo_vec a 1 * ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 1 =
+        4 * (stereo_vec a 0 * stereo_vec w 0 + stereo_vec a 1 * stereo_vec w 1) / (‖w‖^2 + 4) := by
+      rw [hv0, hv1]; ring
+    have h_D_eq : D_aff a l (stereo_chart.symm w).1 =
+        (1 - (‖w‖^2 - 4) / (‖w‖^2 + 4)) * (4 + ‖a‖^2) +
+        4 * l * (4 * (stereo_vec a 0 * stereo_vec w 0 + stereo_vec a 1 * stereo_vec w 1) / (‖w‖^2 + 4)) +
+        4 * l^2 * (1 + (‖w‖^2 - 4) / (‖w‖^2 + 4)) := by
+      dsimp [D_aff]; rw [ha_sq, hv2, h_dot]
+    have h_N1_eq : N1 a l (stereo_chart.symm w).1 =
+        4 * ((1 - (‖w‖^2 - 4) / (‖w‖^2 + 4)) * stereo_vec a 1 + 2 * l * (4 * stereo_vec w 1 / (‖w‖^2 + 4))) := by
+      dsimp [N1]; rw [hv2, hv1]
+    rw [h_D_eq, h_N1_eq, h_m1]
+    have h_target_norm : ‖a + (l : ℂ) * w‖^2 = ‖a‖^2 + 2 * l * (stereo_vec a 0 * stereo_vec w 0 + stereo_vec a 1 * stereo_vec w 1) + l^2 * ‖w‖^2 :=
+      norm_sq_target a w l
+    rw [h_target_norm]
+    have h_add : stereo_vec (a + (l : ℂ) * w) 1 = stereo_vec a 1 + l * stereo_vec w 1 := by
+      rw [stereo_vec_add, stereo_vec_smul]; rfl
+    rw [h_add]; ring
+  · -- coord 2
+    change N2 a l (stereo_chart.symm w).1 / D_aff a l (stereo_chart.symm w).1 = ((stereo_chart.symm (a + (l : ℂ) * w) : CP1) : EuclideanSpace ℝ (Fin 3)) 2
+    rw [check_symm_coord_2 (a + (l : ℂ) * w)]
+    have h_w_pos : ‖w‖^2 + 4 ≠ 0 := by positivity
+    have h_m2 := ring_match_2 (‖a‖^2) (‖w‖^2)
+      (stereo_vec a 0 * stereo_vec w 0 + stereo_vec a 1 * stereo_vec w 1) l h_w_pos
+    dsimp at h_m2
+    have hv2 : ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 2 = (‖w‖^2 - 4) / (‖w‖^2 + 4) := check_symm_coord_2 w
+    have hv0 : ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 0 = 4 * stereo_vec w 0 / (‖w‖^2 + 4) := check_symm_coord_0 w
+    have hv1 : ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 1 = 4 * stereo_vec w 1 / (‖w‖^2 + 4) := check_symm_coord_1 w
+    have ha_sq : (stereo_vec a 0)^2 + (stereo_vec a 1)^2 = ‖a‖^2 := stereo_vec_norm_sq a
+    have h_dot : stereo_vec a 0 * ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 0 +
+        stereo_vec a 1 * ((stereo_chart.symm w : CP1) : EuclideanSpace ℝ (Fin 3)) 1 =
+        4 * (stereo_vec a 0 * stereo_vec w 0 + stereo_vec a 1 * stereo_vec w 1) / (‖w‖^2 + 4) := by
+      rw [hv0, hv1]; ring
+    have h_D_eq : D_aff a l (stereo_chart.symm w).1 =
+        (1 - (‖w‖^2 - 4) / (‖w‖^2 + 4)) * (4 + ‖a‖^2) +
+        4 * l * (4 * (stereo_vec a 0 * stereo_vec w 0 + stereo_vec a 1 * stereo_vec w 1) / (‖w‖^2 + 4)) +
+        4 * l^2 * (1 + (‖w‖^2 - 4) / (‖w‖^2 + 4)) := by
+      dsimp [D_aff]; rw [ha_sq, hv2, h_dot]
+    have h_N2_eq : N2 a l (stereo_chart.symm w).1 =
+        (1 - (‖w‖^2 - 4) / (‖w‖^2 + 4)) * (‖a‖^2 - 4) +
+        4 * l * (4 * (stereo_vec a 0 * stereo_vec w 0 + stereo_vec a 1 * stereo_vec w 1) / (‖w‖^2 + 4)) +
+        4 * l^2 * (1 + (‖w‖^2 - 4) / (‖w‖^2 + 4)) := by
+      dsimp [N2]; rw [ha_sq, hv2, h_dot]
+    rw [h_D_eq, h_N2_eq, h_m2]
+    have h_target_norm : ‖a + (l : ℂ) * w‖^2 = ‖a‖^2 + 2 * l * (stereo_vec a 0 * stereo_vec w 0 + stereo_vec a 1 * stereo_vec w 1) + l^2 * ‖w‖^2 :=
+      norm_sq_target a w l
+    rw [h_target_norm]; ring
+
+noncomputable def aff_toFun (a : ℂ) (l : ℝ) (z : CP1) : CP1 :=
+  open Classical in
+  if z = north_pole then north_pole
+  else stereo_chart.symm (a + (l : ℂ) * stereo_chart z)
+
+theorem aff_toFun_north_pole (a : ℂ) (l : ℝ) :
+    aff_toFun a l north_pole = north_pole := by
+  dsimp [aff_toFun]; exact if_pos rfl
+
+theorem aff_toFun_stereo_chart_symm (a : ℂ) (l : ℝ) (w : ℂ) :
+    aff_toFun a l (stereo_chart.symm w) = stereo_chart.symm (a + (l : ℂ) * w) := by
+  dsimp [aff_toFun]
+  have h_ne : stereo_chart.symm w ≠ north_pole := by
+    intro h
+    have h_source := stereo_chart.map_target (show w ∈ stereo_chart.target by simp [stereo_chart])
+    rw [h] at h_source
+    dsimp [stereo_chart] at h_source
+    simp only [OpenPartialHomeomorph.transHomeomorph_source, stereographic'_source] at h_source
+    exact h_source rfl
+  rw [if_neg h_ne]
+  congr 1
+  have hw : stereo_chart (stereo_chart.symm w) = w :=
+    stereo_chart.right_inv (show w ∈ stereo_chart.target by simp [stereo_chart])
+  rw [hw]
+
+theorem aff_toFun_inv (a : ℂ) (l : ℝ) (hl : 0 < l) (z : CP1) :
+    aff_toFun (- ((l⁻¹ : ℝ) : ℂ) * a) l⁻¹ (aff_toFun a l z) = z := by
+  by_cases hz : z = north_pole
+  · subst hz
+    rw [aff_toFun_north_pole, aff_toFun_north_pole]
+  · have h_src : z ∈ stereo_chart.source := by
+      rw [stereo_chart_source]; exact hz
+    have h_in : aff_toFun a l z = stereo_chart.symm (a + (l : ℂ) * stereo_chart z) := by
+      dsimp [aff_toFun]; rw [if_neg hz]
+    rw [h_in, aff_toFun_stereo_chart_symm]
+    have h_inv : ((l⁻¹ : ℝ) : ℂ) * (l : ℂ) = 1 := by
+      rw [← Complex.ofReal_mul, inv_mul_cancel₀ (ne_of_gt hl), Complex.ofReal_one]
+    have h_alg : - ((l⁻¹ : ℝ) : ℂ) * a + ((l⁻¹ : ℝ) : ℂ) * (a + (l : ℂ) * stereo_chart z) = stereo_chart z := by
+      calc - ((l⁻¹ : ℝ) : ℂ) * a + ((l⁻¹ : ℝ) : ℂ) * (a + (l : ℂ) * stereo_chart z)
+        _ = (- (((l⁻¹ : ℝ) : ℂ) * a) + ((l⁻¹ : ℝ) : ℂ) * a) + (((l⁻¹ : ℝ) : ℂ) * (l : ℂ)) * stereo_chart z := by ring
+        _ = 0 + 1 * stereo_chart z := by rw [neg_add_cancel, h_inv]
+        _ = stereo_chart z := by ring
+    rw [h_alg]
+    exact stereo_chart.left_inv h_src
+
+theorem aff_toFun_right_inv (a : ℂ) (l : ℝ) (hl : 0 < l) (z : CP1) :
+    aff_toFun a l (aff_toFun (- ((l⁻¹ : ℝ) : ℂ) * a) l⁻¹ z) = z := by
+  have h_inv := aff_toFun_inv (- ((l⁻¹ : ℝ) : ℂ) * a) l⁻¹ (inv_pos.mpr hl) z
+  have hl_inv : (((l⁻¹ : ℝ)⁻¹ : ℝ) : ℂ) = (l : ℂ) := by rw [inv_inv]
+  have ha_inv : - (((l⁻¹ : ℝ)⁻¹ : ℝ) : ℂ) * (- ((l⁻¹ : ℝ) : ℂ) * a) = a := by
+    rw [hl_inv]
+    have h1 : (l : ℂ) * ((l⁻¹ : ℝ) : ℂ) = 1 := by
+      rw [← Complex.ofReal_mul, mul_inv_cancel₀ (ne_of_gt hl), Complex.ofReal_one]
+    calc - (l : ℂ) * (- ((l⁻¹ : ℝ) : ℂ) * a)
+      _ = ((l : ℂ) * ((l⁻¹ : ℝ) : ℂ)) * a := by ring
+      _ = 1 * a := by rw [h1]
+      _ = a := by ring
+  have h_inv_inv : (l⁻¹ : ℝ)⁻¹ = l := inv_inv l
+  rw [ha_inv, h_inv_inv] at h_inv
+  exact h_inv
+
+theorem aff_toFun_south_pole (a : ℂ) (l : ℝ) :
+    aff_toFun a l south_pole = stereo_chart.symm a := by
+  dsimp [aff_toFun]
+  have h_ne : south_pole ≠ north_pole := south_pole_ne_north_pole
+  rw [if_neg h_ne, stereo_chart_south_pole, mul_zero, add_zero]
+
+theorem aff_toFun_south_pole_ne (a : ℂ) (ha : a ≠ 0) :
+    aff_toFun a 1 south_pole ≠ south_pole := by
+  rw [aff_toFun_south_pole]
+  intro h
+  have h_chart := congr_arg stereo_chart h
+  have h_a_src : a ∈ stereo_chart.target := by simp [stereo_chart]
+  rw [stereo_chart.right_inv h_a_src, stereo_chart_south_pole] at h_chart
+  exact ha h_chart
+
+theorem aff_toFun_is_moebius (a : ℂ) (l : ℝ) (hl : 0 < l) (z : CP1) :
+    cp1ToOnePoint (aff_toFun a l z) = (MoebiusMatrix.affine_scaling a l hl).eval (cp1ToOnePoint z) := by
+  by_cases hz : z = north_pole
+  · subst hz
+    rw [aff_toFun_north_pole]
+    dsimp [cp1ToOnePoint]
+    rw [if_pos rfl]
+    exact (MoebiusMatrix.eval_affine_scaling_infty a l hl).symm
+  · dsimp [cp1ToOnePoint]
+    have h_ne : aff_toFun a l z ≠ north_pole := by
+      intro h_np
+      have h_inv := aff_toFun_inv a l hl z
+      rw [h_np, aff_toFun_north_pole] at h_inv
+      exact hz h_inv.symm
+    rw [if_neg hz, if_neg h_ne]
+    have h_src : z ∈ stereo_chart.source := by
+      rw [stereo_chart_source]; exact hz
+    have h_in : aff_toFun a l z = stereo_chart.symm (a + (l : ℂ) * stereo_chart z) := by
+      dsimp [aff_toFun]; rw [if_neg hz]
+    rw [h_in]
+    have hw : stereo_chart (stereo_chart.symm (a + (l : ℂ) * stereo_chart z)) = a + (l : ℂ) * stereo_chart z :=
+      stereo_chart.right_inv (show a + (l : ℂ) * stereo_chart z ∈ stereo_chart.target by simp [stereo_chart])
+    rw [hw]
+    exact (MoebiusMatrix.eval_affine_scaling a l hl (stereo_chart z)).symm
+
+theorem aff_toFun_eq_aff_fun (a : ℂ) (l : ℝ) (hl : 0 < l) (z : CP1) :
+    (aff_toFun a l z).1 = aff_fun a l z.1 := by
+  by_cases hz : z = north_pole
+  · subst hz
+    rw [aff_toFun_north_pole]
+    exact (aff_fun_north_pole a l hl).symm
+  · have h_src : z ∈ stereo_chart.source := by
+      rw [stereo_chart_source]; exact hz
+    have h_z_symm : z = stereo_chart.symm (stereo_chart z) :=
+      (stereo_chart.left_inv h_src).symm
+    nth_rw 2 [h_z_symm]
+    rw [aff_fun_stereo_chart_symm a l hl (stereo_chart z)]
+    dsimp [aff_toFun]; rw [if_neg hz]
+
+theorem continuous_aff_toFun (a : ℂ) (l : ℝ) (hl : 0 < l) :
+    Continuous (aff_toFun a l) := by
+  have h_eq : (fun (z : CP1) => (aff_toFun a l z).1) = (fun (z : CP1) => aff_fun a l z.1) := by
+    funext z; exact aff_toFun_eq_aff_fun a l hl z
+  rw [continuous_induced_rng]
+  change Continuous (fun z => (aff_toFun a l z).1)
+  rw [h_eq]
+  exact continuous_aff_fun_on_cp1 a l hl
+
+/-- The authentic stereographic affine scaling homeomorphism $w \mapsto a + \lambda w$. -/
+noncomputable def aff_homeo (a : ℂ) (l : ℝ) (hl : 0 < l) : CP1 ≃ₜ CP1 where
+  toFun := aff_toFun a l
+  invFun := aff_toFun (- ((l⁻¹ : ℝ) : ℂ) * a) l⁻¹
+  left_inv := aff_toFun_inv a l hl
+  right_inv := aff_toFun_right_inv a l hl
+  continuous_toFun := continuous_aff_toFun a l hl
+  continuous_invFun := continuous_aff_toFun (- ((l⁻¹ : ℝ) : ℂ) * a) l⁻¹ (inv_pos.mpr hl)
+
+theorem cp1_norm_sq (z : CP1) : (z.1 0)^2 + (z.1 1)^2 + (z.1 2)^2 = 1 := by
+  have hz : ‖z.1‖ = 1 := mem_sphere_zero_iff_norm.mp z.2
+  rw [EuclideanSpace.norm_eq] at hz
+  have h_pos : 0 ≤ ‖z.1 0‖ ^ 2 + ‖z.1 1‖ ^ 2 + ‖z.1 2‖ ^ 2 := by positivity
+  have h_sq := congr_arg (fun x => x^2) hz
+  simp only [Fin.sum_univ_three] at h_sq
+  rw [Real.sq_sqrt h_pos] at h_sq
+  have h_norm_sq (x : ℝ) : ‖x‖ ^ 2 = x ^ 2 := by simp [Real.norm_eq_abs, sq_abs]
+  rw [h_norm_sq, h_norm_sq, h_norm_sq] at h_sq
+  norm_num at h_sq
+  exact h_sq
+
+theorem cp1_D_aff_ne_zero (a : ℂ) (l : ℝ) (hl : 0 < l) (z : CP1) : D_aff a l z.1 ≠ 0 :=
+  D_aff_ne_zero a l hl z.1 (cp1_norm_sq z)
+
+theorem aff_toFun_is_smooth (a : ℂ) (l : ℝ) (hl : 0 < l) :
+    ContMDiff I_CP1 I_CP1 ∞ (aff_toFun a l) := by
+  have h_comp : ContMDiff I_CP1 𝓘(ℝ, EuclideanSpace ℝ (Fin 3)) ∞
+      (fun (z : CP1) => (aff_toFun a l z).1) := by
+    have h_fun_eq : (fun (z : CP1) => (aff_toFun a l z).1) =
+        (aff_fun a l ∘ ((↑) : CP1 → EuclideanSpace ℝ (Fin 3))) := by
+      funext z; exact aff_toFun_eq_aff_fun a l hl z
+    rw [h_fun_eq]
+    intro z
+    have hD := cp1_D_aff_ne_zero a l hl z
+    have hg := contDiffAt_aff_fun a l z.1 hD
+    have hf := (contMDiff_coe_sphere (m := ∞) (n := 2)).contMDiffAt (x := z)
+    exact hg.comp_contMDiffAt hf
+  have h_mem (z : CP1) : (aff_toFun a l z).1 ∈ Metric.sphere (0 : EuclideanSpace ℝ (Fin 3)) 1 :=
+    (aff_toFun a l z).2
+  exact ContMDiff.codRestrict_sphere (n := 2) h_comp h_mem
+
+theorem aff_homeo_is_smooth (a : ℂ) (l : ℝ) (hl : 0 < l) :
+    ContMDiff I_CP1 I_CP1 ∞ (aff_homeo a l hl) :=
+  aff_toFun_is_smooth a l hl
+
+theorem aff_homeo_symm_is_smooth (a : ℂ) (l : ℝ) (hl : 0 < l) :
+    ContMDiff I_CP1 I_CP1 ∞ (aff_homeo a l hl).symm :=
+  aff_toFun_is_smooth (- ((l⁻¹ : ℝ) : ℂ) * a) l⁻¹ (inv_pos.mpr hl)
+
+/- =========================================================================
+   MOEBIUS FRAME STRUCTURE
+   ========================================================================= -/
+
+/-- A Möbius transformation frame $\phi \in \operatorname{PSL}(2, \mathbb{C})$ acting on $\mathbb{CP}^1$. -/
+structure MoebiusFrame where
+  /-- Associated matrix in PGL(2, ℂ). -/
+  matrix : MoebiusMatrix
+  /-- Underlying topological homeomorphism of the sphere. -/
+  toHomeo : CP1 ≃ₜ CP1
+  /-- Smoothness in both directions. -/
+  is_smooth : ContMDiff I_CP1 I_CP1 ∞ toHomeo
+  is_smooth_symm : ContMDiff I_CP1 I_CP1 ∞ toHomeo.symm
+  /-- Compatibility between the geometric homeomorphism and projective matrix action. -/
+  is_moebius : ∀ z : CP1, cp1ToOnePoint (toHomeo z) = matrix.eval (cp1ToOnePoint z)
+
+instance : TopologicalSpace MoebiusFrame := ⊥
+
+instance : DiscreteTopology MoebiusFrame := ⟨rfl⟩
+
+namespace MoebiusFrame
+
+/-- Identity Möbius frame. -/
+def id : MoebiusFrame where
+  matrix := MoebiusMatrix.id
+  toHomeo := Homeomorph.refl CP1
+  is_smooth := contMDiff_id
+  is_smooth_symm := contMDiff_id
+  is_moebius z := by
+    change cp1ToOnePoint z = MoebiusMatrix.id.eval (cp1ToOnePoint z)
+    exact (MoebiusMatrix.eval_id (cp1ToOnePoint z)).symm
+
+/-- Composition of Möbius frames: $\phi_1 \circ \phi_2$. -/
+def comp (ϕ₁ ϕ₂ : MoebiusFrame) : MoebiusFrame where
+  matrix := MoebiusMatrix.comp ϕ₁.matrix ϕ₂.matrix
+  toHomeo := ϕ₂.toHomeo.trans ϕ₁.toHomeo
+  is_smooth := ϕ₁.is_smooth.comp ϕ₂.is_smooth
+  is_smooth_symm := ϕ₂.is_smooth_symm.comp ϕ₁.is_smooth_symm
+  is_moebius z := by
+    change cp1ToOnePoint (ϕ₁.toHomeo (ϕ₂.toHomeo z)) = (MoebiusMatrix.comp ϕ₁.matrix ϕ₂.matrix).eval (cp1ToOnePoint z)
+    rw [ϕ₁.is_moebius (ϕ₂.toHomeo z), ϕ₂.is_moebius z, eval_comp]
+
+/-- Inverse Möbius frame: $\phi^{-1}$. -/
+def inv (ϕ : MoebiusFrame) : MoebiusFrame where
+  matrix := MoebiusMatrix.inv ϕ.matrix
+  toHomeo := ϕ.toHomeo.symm
+  is_smooth := ϕ.is_smooth_symm
+  is_smooth_symm := ϕ.is_smooth
+  is_moebius z := by
+    have h := ϕ.is_moebius (ϕ.toHomeo.symm z)
+    have h_apply : ϕ.toHomeo (ϕ.toHomeo.symm z) = z := ϕ.toHomeo.apply_symm_apply z
+    rw [h_apply] at h
+    have h_inv := congr_arg (MoebiusMatrix.inv ϕ.matrix).eval h.symm
+    rw [eval_inv_eval] at h_inv
+    exact h_inv
+
+end MoebiusFrame
+
+/-- Extensionality lemma for MoebiusMatrix. -/
+theorem MoebiusMatrix.ext {M₁ M₂ : MoebiusMatrix}
+    (ha : M₁.a = M₂.a) (hb : M₁.b = M₂.b) (hc : M₁.c = M₂.c) (hd : M₁.d = M₂.d) : M₁ = M₂ := by
+  cases M₁; cases M₂
+  dsimp at ha hb hc hd
+  subst ha hb hc hd
+  rfl
+
+/-- Extensionality lemma for MoebiusFrame. -/
+theorem MoebiusFrame.ext {ϕ₁ ϕ₂ : MoebiusFrame}
+    (h_mat : ϕ₁.matrix = ϕ₂.matrix)
+    (h_homeo : ϕ₁.toHomeo = ϕ₂.toHomeo) : ϕ₁ = ϕ₂ := by
+  cases ϕ₁; cases ϕ₂
+  dsimp at h_mat h_homeo
+  subst h_mat h_homeo
+  rfl
+
+/-- Groupoid identity theorem: right identity ϕ ∘ id = ϕ. -/
+theorem moebius_frame_comp_id (ϕ : MoebiusFrame) :
+    MoebiusFrame.comp ϕ MoebiusFrame.id = ϕ := by
+  apply MoebiusFrame.ext
+  · apply MoebiusMatrix.ext <;> dsimp [MoebiusFrame.comp, MoebiusFrame.id, MoebiusMatrix.comp, MoebiusMatrix.mul, MoebiusMatrix.id] <;> ring
+  · apply Homeomorph.ext; intro x; rfl
+
+/-- Groupoid identity theorem: left identity id ∘ ϕ = ϕ. -/
+theorem moebius_frame_id_comp (ϕ : MoebiusFrame) :
+    MoebiusFrame.comp MoebiusFrame.id ϕ = ϕ := by
+  apply MoebiusFrame.ext
+  · apply MoebiusMatrix.ext <;> dsimp [MoebiusFrame.comp, MoebiusFrame.id, MoebiusMatrix.comp, MoebiusMatrix.mul, MoebiusMatrix.id] <;> ring
+  · apply Homeomorph.ext; intro x; rfl
+
+/-- Groupoid associativity: (ϕ₁ ∘ ϕ₂) ∘ ϕ₃ = ϕ₁ ∘ (ϕ₂ ∘ ϕ₃). -/
+theorem moebius_frame_comp_assoc (ϕ₁ ϕ₂ ϕ₃ : MoebiusFrame) :
+    MoebiusFrame.comp (MoebiusFrame.comp ϕ₁ ϕ₂) ϕ₃ =
+    MoebiusFrame.comp ϕ₁ (MoebiusFrame.comp ϕ₂ ϕ₃) := by
+  apply MoebiusFrame.ext
+  · apply MoebiusMatrix.ext <;> dsimp [MoebiusFrame.comp, MoebiusMatrix.comp, MoebiusMatrix.mul] <;> ring
+  · apply Homeomorph.ext; intro x; rfl
+
+/-- Groupoid inverse law on homeomorphisms: ϕ⁻¹ ∘ ϕ = id. -/
+theorem moebius_frame_inv_comp_toHomeo (ϕ : MoebiusFrame) :
+    (MoebiusFrame.comp (MoebiusFrame.inv ϕ) ϕ).toHomeo = MoebiusFrame.id.toHomeo := by
+  apply Homeomorph.ext; intro x
+  exact ϕ.toHomeo.left_inv x
+
+/-- Groupoid inverse law on homeomorphisms: ϕ ∘ ϕ⁻¹ = id. -/
+theorem moebius_frame_comp_inv_toHomeo (ϕ : MoebiusFrame) :
+    (MoebiusFrame.comp ϕ (MoebiusFrame.inv ϕ)).toHomeo = MoebiusFrame.id.toHomeo := by
+  apply Homeomorph.ext; intro x
+  exact ϕ.toHomeo.right_inv x
+
+/-- Groupoid inverse law on matrices: ϕ⁻¹ ∘ ϕ ~ id (modulo PGL projective equivalence). -/
+theorem moebius_frame_inv_comp_matrix (ϕ : MoebiusFrame) :
+    PglEquiv (MoebiusFrame.comp (MoebiusFrame.inv ϕ) ϕ).matrix MoebiusMatrix.id := by
+  intro p
+  dsimp [MoebiusFrame.comp, MoebiusFrame.inv, MoebiusMatrix.comp, MoebiusMatrix.inv]
+  rw [act_comp]
+  have h := act_adj_cancel ϕ.matrix p
+  dsimp [MoebiusMatrix.id, MoebiusMatrix.act]
+  have hid : ((1 : ℂ) * p.1 + (0 : ℂ) * p.2, (0 : ℂ) * p.1 + (1 : ℂ) * p.2) = p := by
+    ext <;> ring
+  rw [hid]
+  exact h
+
+/-- Groupoid inverse law on matrices: ϕ ∘ ϕ⁻¹ ~ id (modulo PGL projective equivalence). -/
+theorem moebius_frame_comp_inv_matrix (ϕ : MoebiusFrame) :
+    PglEquiv (MoebiusFrame.comp ϕ (MoebiusFrame.inv ϕ)).matrix MoebiusMatrix.id := by
+  intro p
+  dsimp [MoebiusFrame.comp, MoebiusFrame.inv, MoebiusMatrix.comp, MoebiusMatrix.inv]
+  rw [act_comp]
+  dsimp [MoebiusMatrix.adj, MoebiusMatrix.act, ProjEquiv, MoebiusMatrix.id]
+  have h1 : ϕ.matrix.a * (ϕ.matrix.d * p.1 + -ϕ.matrix.b * p.2) + ϕ.matrix.b * (-ϕ.matrix.c * p.1 + ϕ.matrix.a * p.2) =
+            (ϕ.matrix.a * ϕ.matrix.d - ϕ.matrix.b * ϕ.matrix.c) * p.1 := by ring
+  have h2 : ϕ.matrix.c * (ϕ.matrix.d * p.1 + -ϕ.matrix.b * p.2) + ϕ.matrix.d * (-ϕ.matrix.c * p.1 + ϕ.matrix.a * p.2) =
+            (ϕ.matrix.a * ϕ.matrix.d - ϕ.matrix.b * ϕ.matrix.c) * p.2 := by ring
+  rw [h1, h2]
+  ring
+
+/-- Groupoid inverse law on homeomorphisms (alias): ϕ⁻¹ ∘ ϕ = id. -/
+theorem moebius_frame_inv_comp (ϕ : MoebiusFrame) :
+    (MoebiusFrame.comp (MoebiusFrame.inv ϕ) ϕ).toHomeo = MoebiusFrame.id.toHomeo :=
+  moebius_frame_inv_comp_toHomeo ϕ
+
+/-- Groupoid inverse law on homeomorphisms (alias): ϕ ∘ ϕ⁻¹ = id. -/
+theorem moebius_frame_comp_inv (ϕ : MoebiusFrame) :
+    (MoebiusFrame.comp ϕ (MoebiusFrame.inv ϕ)).toHomeo = MoebiusFrame.id.toHomeo :=
+  moebius_frame_comp_inv_toHomeo ϕ
+
+namespace MoebiusFrame
+
+theorem comp_id (ϕ : MoebiusFrame) : comp ϕ id = ϕ := moebius_frame_comp_id ϕ
+theorem id_comp (ϕ : MoebiusFrame) : comp id ϕ = ϕ := moebius_frame_id_comp ϕ
+theorem comp_assoc (ϕ₁ ϕ₂ ϕ₃ : MoebiusFrame) : comp (comp ϕ₁ ϕ₂) ϕ₃ = comp ϕ₁ (comp ϕ₂ ϕ₃) := moebius_frame_comp_assoc ϕ₁ ϕ₂ ϕ₃
+theorem inv_comp_toHomeo (ϕ : MoebiusFrame) : (comp (inv ϕ) ϕ).toHomeo = id.toHomeo := moebius_frame_inv_comp_toHomeo ϕ
+theorem comp_inv_toHomeo (ϕ : MoebiusFrame) : (comp ϕ (inv ϕ)).toHomeo = id.toHomeo := moebius_frame_comp_inv_toHomeo ϕ
+theorem inv_comp (ϕ : MoebiusFrame) : (comp (inv ϕ) ϕ).toHomeo = id.toHomeo := moebius_frame_inv_comp_toHomeo ϕ
+theorem comp_inv (ϕ : MoebiusFrame) : (comp ϕ (inv ϕ)).toHomeo = id.toHomeo := moebius_frame_comp_inv_toHomeo ϕ
+theorem inv_comp_matrix (ϕ : MoebiusFrame) : PglEquiv (comp (inv ϕ) ϕ).matrix MoebiusMatrix.id := moebius_frame_inv_comp_matrix ϕ
+theorem comp_inv_matrix (ϕ : MoebiusFrame) : PglEquiv (comp ϕ (inv ϕ)).matrix MoebiusMatrix.id := moebius_frame_comp_inv_matrix ϕ
+
+end MoebiusFrame
+
+/-- Standard affine scaling $z \mapsto a + \lambda z$ on $\mathbb{C} \subset \mathbb{CP}^1$ for center $a \in \mathbb{C}$
+and scaling parameter $\lambda > 0$, implemented via authentic stereographic affine homeomorphism `aff_homeo`. -/
+noncomputable def affine_scaling (a : ℂ) (scale : ℝ) (hscale : 0 < scale) : MoebiusFrame where
+  matrix := MoebiusMatrix.affine_scaling a scale hscale
+  toHomeo := aff_homeo a scale hscale
+  is_smooth := aff_homeo_is_smooth a scale hscale
+  is_smooth_symm := aff_homeo_symm_is_smooth a scale hscale
+  is_moebius := aff_toFun_is_moebius a scale hscale
+
+theorem affine_scaling_north_pole (a : ℂ) (scale : ℝ) (hscale : 0 < scale) :
+    (affine_scaling a scale hscale).toHomeo north_pole = north_pole := by
+  change aff_toFun a scale north_pole = north_pole
+  exact aff_toFun_north_pole a scale
+
+theorem affine_scaling_stereo_chart_symm (a : ℂ) (scale : ℝ) (hscale : 0 < scale) (w : ℂ) :
+    (affine_scaling a scale hscale).toHomeo (stereo_chart.symm w) = stereo_chart.symm (a + (scale : ℂ) * w) := by
+  change aff_toFun a scale (stereo_chart.symm w) = stereo_chart.symm (a + (scale : ℂ) * w)
+  exact aff_toFun_stereo_chart_symm a scale w
+
+theorem affine_scaling_south_pole (a : ℂ) (scale : ℝ) (hscale : 0 < scale) :
+    (affine_scaling a scale hscale).toHomeo south_pole = stereo_chart.symm a := by
+  change aff_toFun a scale south_pole = stereo_chart.symm a
+  exact aff_toFun_south_pole a scale
+
+theorem affine_scaling_south_pole_ne (a : ℂ) (ha : a ≠ 0) :
+    (affine_scaling a 1 one_pos).toHomeo south_pole ≠ south_pole := by
+  change aff_toFun a 1 south_pole ≠ south_pole
+  exact aff_toFun_south_pole_ne a ha
+
+theorem affine_scaling_matrix (a : ℂ) (scale : ℝ) (hscale : 0 < scale) :
+    (affine_scaling a scale hscale).matrix = MoebiusMatrix.affine_scaling a scale hscale :=
+  rfl
 
 end GromovCompactness

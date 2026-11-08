@@ -394,6 +394,50 @@ theorem smoothLocalConvergesOn_of_eventually_const
     ⟨N₀, fun n hn => (funext (hN₀ n hn)).symm⟩
     (smoothLocalConvergesOn_const_map I c Ω)
 
+/-- In a discrete topological space, any converging sequence is eventually constant (`0 sorryAx`). -/
+theorem tendsto_discrete {α : Type*} [TopologicalSpace α] [DiscreteTopology α]
+    {s : ℕ → α} {l : α} (h : Tendsto s atTop (nhds l)) :
+    ∃ N, ∀ n ≥ N, s n = l := by
+  have h_open : IsOpen ({l} : Set α) := isOpen_discrete {l}
+  have h_nhds : {l} ∈ nhds l := h_open.mem_nhds rfl
+  obtain ⟨N, hN⟩ := (Filter.eventually_atTop.mp (h h_nhds))
+  exact ⟨N, fun n hn => mem_singleton_iff.mp (hN n hn)⟩
+
+/-- Under discrete frame topology, `applyFramesSeq frames (fun _ => u_lim) n` is eventually equal to `applyFramesLim frames u_lim` (`0 sorryAx`). -/
+lemma applyFramesSeq_eventually_applyFramesLim (frames : List ConvergingFrame) (u_lim : CP1 → M) :
+    ∃ N, ∀ n ≥ N, applyFramesSeq frames (fun _ => u_lim) n = applyFramesLim frames u_lim := by
+  induction frames generalizing u_lim with
+  | nil =>
+    exact ⟨0, fun _ _ => rfl⟩
+  | cons F Fs ih =>
+    obtain ⟨N_F, hF⟩ := tendsto_discrete F.tendsto
+    obtain ⟨N_ih, h_ih⟩ := ih (u_lim ∘ F.lim.toHomeo)
+    refine ⟨max N_F N_ih, fun n hn => ?_⟩
+    have hnF : N_F ≤ n := (le_max_left N_F N_ih).trans hn
+    have hnih : N_ih ≤ n := (le_max_right N_F N_ih).trans hn
+    change applyFramesSeq Fs (fun k => u_lim ∘ (F.seq k).toHomeo) n =
+      applyFramesLim Fs (u_lim ∘ F.lim.toHomeo)
+    have h_step : (fun k => u_lim ∘ (F.seq k).toHomeo) n =
+        (fun _ => u_lim ∘ F.lim.toHomeo) n := by
+      dsimp
+      rw [hF n hnF]
+    have h_cong := applyFramesSeq_congr_at Fs (u_seq₁ := fun k => u_lim ∘ (F.seq k).toHomeo)
+      (u_seq₂ := fun _ => u_lim ∘ F.lim.toHomeo) (n := n) h_step
+    rw [h_cong]
+    exact h_ih n hnih
+
+/-- Constant sequence of any smooth map converges in `SmoothLocalConvergesOn` (`0 sorryAx`). -/
+theorem smoothLocalConvergesOn_const
+    (u_lim : CP1 → M) (Ω : Set CP1) (h_smooth : ContMDiff I_CP1 I ∞ u_lim) :
+    SmoothLocalConvergesOn I (fun _ => u_lim) u_lim Ω := by
+  intro frames
+  obtain ⟨N, hN⟩ := applyFramesSeq_eventually_applyFramesLim frames u_lim
+  have h_lim_smooth : ContMDiffOn I_CP1 I ∞ (applyFramesLim frames u_lim) (applyFramesDomain frames Ω) :=
+    contMDiffOn_applyFramesLim_of_univ I frames u_lim Ω (h_smooth.contMDiffOn)
+  have h_const_conv := coreSmoothLocalConvergesOn_const I (applyFramesLim frames u_lim)
+    (applyFramesDomain frames Ω) h_lim_smooth
+  exact coreSmoothLocalConvergesOn_congr_eventually I ⟨N, fun n hn => (hN n hn).symm⟩ h_const_conv
+
 /-- Uniform convergence on a set is preserved along any strictly monotone subsequence (`0 sorryAx`). -/
 theorem tendstoUniformlyOn_subseq {α β : Type*} [UniformSpace β]
     {F : ℕ → α → β} {f : α → β} {K : Set α} {φ : ℕ → ℕ}

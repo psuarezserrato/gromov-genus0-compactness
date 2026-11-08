@@ -541,7 +541,7 @@ theorem extract_smooth_limit_off_singular_set_of_const_subseq
     ext n z
     exact hc n z
   rw [h_eq]
-  exact smoothLocalConvergesOn_const I c (Set.univ \ S)
+  exact smoothLocalConvergesOn_const_map I c (Set.univ \ S)
 
 /-- Unconditional smooth limit extraction off any singular set `S` on `[DiscreteTopology M]` targets (`0 sorryAx`). -/
 theorem extract_smooth_limit_off_singular_set_of_discrete [DiscreteTopology M]
@@ -921,7 +921,7 @@ theorem exists_concentration_data_of_const_subseq
       ext n z
       exact congr_fun (hc n) z
     rw [h_eq]
-    exact smoothLocalConvergesOn_const I c (Set.univ \ S)
+    exact smoothLocalConvergesOn_const_map I c (Set.univ \ S)
   have h_decomp : μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p) := by
     have hμ0 : energyMeasureExtended I (fun _ : CP1 => c) = 0 := energyMeasureExtended_const I c
     change energyMeasureExtended I (fun _ : CP1 => c) =
