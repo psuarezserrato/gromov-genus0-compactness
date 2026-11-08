@@ -346,7 +346,7 @@ theorem test_centeredNormalChart_dmetric_zero {r : ℝ} (p : M) (C : CenteredNor
     fderiv ℝ (fun z => ClosedTameTarget.metric I (C.chart.symm z) v w) 0 = 0 :=
   C.dmetric_zero v w
 
-omit [Nonempty M] in
+omit [I.Boundaryless] [Nonempty M] in
 /-- Test 11.3: Existence of CenteredNormalChart at every point of closed tame target. -/
 theorem test_exists_centeredNormalChart [FiniteDimensional ℝ E] (fam : UniformNormalChartFamily I (M := M)) (p : M) :
     ∃ r > 0, Nonempty (CenteredNormalChart I p r) :=
@@ -358,7 +358,7 @@ theorem test_uniformNormalChartFamily_properties (fam : UniformNormalChartFamily
     0 < fam.r_norm ∧ 1 ≤ fam.L_dist :=
   ⟨fam.r_norm_pos, fam.L_dist_ge⟩
 
-omit [Nonempty M] in
+omit [I.Boundaryless] [Nonempty M] in
 /-- Test 11.5: Existence of UniformNormalChartFamily on closed tame target. -/
 theorem test_exists_uniform_normal_chart_family [FiniteDimensional ℝ E] (fam : UniformNormalChartFamily I (M := M)) :
     Nonempty (UniformNormalChartFamily I (M := M)) :=
@@ -368,9 +368,10 @@ theorem test_exists_uniform_normal_chart_family [FiniteDimensional ℝ E] (fam :
 -- Test 12: Milestone N3 bridge signatures
 --------------------------------------------------------------------------------
 
-omit [Nonempty M] in
+omit [I.Boundaryless] [Nonempty M] in
 /-- Test 12.1: Discharge of h_weitz (Bochner curvature inequality) via uniform normal charts. -/
-theorem test_discharge_h_weitz (fam : UniformNormalChartFamily I (M := M)) :
+theorem test_discharge_h_weitz (fam : UniformNormalChartFamily I (M := M))
+    (certs : UniformNormalChartCertificates I fam) :
     ∃ (b c : ℝ), 0 ≤ b ∧ c = 0 ∧
       ∀ (u : CP1 → M),
         JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
@@ -382,11 +383,12 @@ theorem test_discharge_h_weitz (fam : UniformNormalChartFamily I (M := M)) :
             |curvTerm| ≤
               b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
               c * (riemannianEnergyDensity I u (stereo_chart.symm w)) :=
-  discharge_h_weitz I fam
+  discharge_h_weitz I fam certs
 
-omit [Nonempty M] in
+omit [I.Boundaryless] [Nonempty M] in
 /-- Test 12.2: Discharge of h_hit_exit (monotonicity & exit) via uniform normal charts. -/
-theorem test_discharge_h_hit_exit (fam : UniformNormalChartFamily I (M := M)) :
+theorem test_discharge_h_hit_exit (fam : UniformNormalChartFamily I (M := M))
+    (certs : UniformNormalChartCertificates I fam) :
     (∀ (u : CP1 → M) (x : M) (r : ℝ),
       0 < r → r ≤ 1 → x ∈ Set.range u →
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
@@ -402,45 +404,98 @@ theorem test_discharge_h_hit_exit (fam : UniformNormalChartFamily I (M := M)) :
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
       (¬ ∃ c : M, ∀ z, u z = c) →
       Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
-  discharge_h_hit_exit I fam
+  discharge_h_hit_exit I fam certs
 
-omit [Nonempty M] in
+omit [I.Boundaryless] [Nonempty M] in
 /-- Test 12.3: Discharge of h_osc (collar oscillation) via uniform normal charts. -/
 theorem test_discharge_h_osc (fam : UniformNormalChartFamily I (M := M))
-    (u : CP1 → M) (a : ℂ) (r R : ℝ) :
+    (certs : UniformNormalChartCertificates I fam)
+    (u : CP1 → M) (a : ℂ) (r R : ℝ)
+    (hr : 0 < r)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
     Analysis.SatisfiesCylinderCollarOscillation I u a r R :=
-  discharge_h_osc I fam u a r R
+  discharge_h_osc I fam certs u a r R hr hu
 
-omit [Nonempty M] in
+omit [I.Boundaryless] [Nonempty M] in
 /-- Test 12.4: Discharge of h_decay (collar exponential decay) via uniform normal charts. -/
 theorem test_discharge_h_decay (fam : UniformNormalChartFamily I (M := M))
-    (u : CP1 → M) (center : ℂ) (r R : ℝ) :
+    (certs : UniformNormalChartCertificates I fam)
+    (u : CP1 → M) (center : ℂ) (r R : ℝ)
+    (hr : 0 < r) (h2rR : 2 * r < R)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
     Analysis.SatisfiesCylinderEnergyDecay I u center r R :=
-  discharge_h_decay I fam u center r R
+  discharge_h_decay I fam certs u center r R hr h2rR hu
 
-omit [Nonempty M] in
+omit [I.Boundaryless] [Nonempty M] in
 /-- Test 12.5: Discharge of h_punc (removable singularity extension) via uniform normal charts. -/
 theorem test_discharge_h_punc (fam : UniformNormalChartFamily I (M := M))
-    (u : CP1 → M) (p : CP1) :
+    (certs : UniformNormalChartCertificates I fam)
+    (u : CP1 → M) (p : CP1)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (h_energy : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤) :
     Analysis.SatisfiesPunctureSobolevExtension I u p :=
-  discharge_h_punc I fam u p
+  discharge_h_punc I fam certs u p hu h_energy
 
-omit [Nonempty M] in
+omit [I.Boundaryless] [Nonempty M] in
 /-- Test 12.6: Discharge of h_tower (elliptic regularity tower) via uniform normal charts. -/
 theorem test_discharge_h_tower (fam : UniformNormalChartFamily I (M := M))
+    (certs : UniformNormalChartCertificates I fam)
     (u : CP1 → M) (Ω : Set CP1) (hΩ : IsOpen Ω)
     (h_weak : Analysis.WeakJHolomorphicOn I u Ω) (n : ℕ) :
     ContMDiffOn I_CP1 I (n : WithTop ℕ∞) u Ω :=
-  discharge_h_tower I fam u Ω hΩ h_weak n
+  discharge_h_tower I fam certs u Ω hΩ h_weak n
 
-omit [Nonempty M] in
+omit [I.Boundaryless] [Nonempty M] in
 /-- Test 12.7: Discharge of h_aa (Arzelà-Ascoli smooth extraction) via uniform normal charts. -/
 theorem test_discharge_h_aa (fam : UniformNormalChartFamily I (M := M))
+    (certs : UniformNormalChartCertificates I fam)
     (u_seq : ℕ → CP1 → M) (Ω : Set CP1) (h_open : IsOpen Ω)
     (h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) :
     ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
       SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
-  discharge_h_aa I fam u_seq Ω h_open h_grad_bdd
+  discharge_h_aa I fam certs u_seq Ω h_open h_grad_bdd
+
+omit [I.Boundaryless] [Nonempty M] in
+/-- Test 12.8: Discharge of h_hit_exit on constant curves via discharge_h_hit_exit_const. -/
+theorem test_discharge_h_hit_exit_const (fam : UniformNormalChartFamily I (M := M)) (c : M) :
+    (∀ (x : M) (r : ℝ),
+      0 < r → r ≤ 1 → x ∈ Set.range (fun _ : CP1 => c) →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) (fun _ : CP1 => c) Set.univ →
+      (¬ ∃ c' : M, ∀ z : CP1, (fun _ : CP1 => c) z = c') →
+      ∀ z_hit : CP1, z_hit ∈ frontier ((fun _ : CP1 => c) ⁻¹' (Metric.ball x r)) →
+        dist ((fun _ : CP1 => c) z_hit) x = r →
+        (r^2 ≤ energyMeasure I (fun _ : CP1 => c) ((fun _ : CP1 => c) ⁻¹' (Metric.ball x r)) ∨
+          ∃ s : Set CP1, s ⊆ (fun _ : CP1 => c) ⁻¹' (Metric.ball x r) ∧
+            energyMeasureExtended I (fun _ : CP1 => c) ((fun _ : CP1 => c) ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
+            r^2 ≤ energyMeasure I (fun _ : CP1 => c) s)) ∧
+    (∀ (x : M),
+      x ∈ Set.range (fun _ : CP1 => c) →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) (fun _ : CP1 => c) Set.univ →
+      (¬ ∃ c' : M, ∀ z : CP1, (fun _ : CP1 => c) z = c') →
+      Continuous (riemannianEnergyDensity I (fun _ : CP1 => c)) ∧ (∃ z : CP1, 1 ≤ dist ((fun _ : CP1 => c) z) x)) :=
+  discharge_h_hit_exit_const I fam c
+
+/-- Test 12.9: Concrete model instance on CP1. -/
+theorem test_concrete_CP1 :
+    Nonempty (UniformNormalChartFamily I_CP1 (M := CP1)) :=
+  ⟨UniformNormalChartFamily.concrete_CP1⟩
+
+omit [I.Boundaryless] [Nonempty M] in
+/-- Test 12.10: Conditioned certificates inhabited on constant-reduction targets. -/
+theorem test_conditioned_certificates_inhabited_of_all_const
+    (fam : UniformNormalChartFamily I (M := M))
+    (h_all_const : ∀ (u : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ → ∃ c : M, ∀ z, u z = c)
+    (h_punc_const : ∀ (u : CP1 → M) (p : CP1),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}) →
+      energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤ → ∃ c : M, EqOn u (fun _ => c) (punctured_sphere {p}))
+    (h_tower_const : ∀ (u : CP1 → M) (Ω : Set CP1), IsOpen Ω → Analysis.WeakJHolomorphicOn I u Ω →
+      ∃ c : M, EqOn u (fun _ => c) Ω)
+    (h_aa_extract : ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C),
+      ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+        SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω) :
+    Nonempty (UniformNormalChartCertificates I fam) :=
+  conditioned_certificates_inhabited_of_all_const I fam h_all_const h_punc_const h_tower_const h_aa_extract
 
 --------------------------------------------------------------------------------
 -- Test 13: Axiom census audit for Milestone N2 declarations
@@ -475,5 +530,8 @@ theorem test_discharge_h_aa (fam : UniformNormalChartFamily I (M := M))
 #print axioms test_discharge_h_punc
 #print axioms test_discharge_h_tower
 #print axioms test_discharge_h_aa
+#print axioms test_discharge_h_hit_exit_const
+#print axioms test_concrete_CP1
+#print axioms test_conditioned_certificates_inhabited_of_all_const
 
 end GromovCompactness.Tests.NormalCharts

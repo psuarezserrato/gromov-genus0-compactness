@@ -33,9 +33,9 @@
 \newcommand{\code}[1]{\texttt{#1}}
 
 % ---- Numbers from the axiom census (tests/PhaseAxiomCensus.lean) ----
-\newcommand{\NdeclClean}{3{,}589}
+\newcommand{\NdeclClean}{3{,}642}
 \newcommand{\NdeclSorry}{0}
-\newcommand{\NthmClean}{2{,}774}
+\newcommand{\NthmClean}{2{,}819}
 \newcommand{\NthmSorry}{0}
 
 \lstdefinelanguage{lean}{
@@ -413,8 +413,9 @@ Definitions and hypotheses need their own adversarial checks, such as the Lean l
 
 \section{Remaining work and conclusion}\label{sec:remaining}
 
-The module \code{Geometry/NormalCharts.lean} (987 lines, verified by \code{tests/TestNormalCharts.lean})
-now provides the geometric chart infrastructure for milestones N1--N3:
+The module \code{Geometry/NormalCharts.lean} (1{,}836 lines, verified by
+\code{tests/TestNormalCharts.lean} and \code{tests/TestCertificatesCensus.lean}) now provides the
+geometric chart infrastructure for milestones N1--N3:
 \begin{itemize}
 \item \textbf{N1 (atlas and \code{mfderiv} factorization):} \code{FiniteGoodAtlas} and
   \code{exists\_finiteGoodAtlas} construct a finite precompact coordinate cover with a positive
@@ -424,17 +425,24 @@ now provides the geometric chart infrastructure for milestones N1--N3:
   \code{EnergyDensityCertificate} (unconditionally instantiated for constant maps and for
   $\mathrm{id}_{\CP}$). Proving continuity of \code{tangentCoordChange} on general manifolds to
   build \code{EnergyDensityCertificate} unconditionally for arbitrary smooth maps remains open.
-\item \textbf{N2 (quadratic Taylor normal charts):} \code{quadraticTaylorOpenPartialHomeomorph} and
-  \code{centeredChart} construct centered coordinate charts $\Psi_p$ with $\Psi_p(0)=p$ and
-  $d\Psi_p(0)=\mathrm{id}$ via the inverse function theorem, and
-  \code{pulled\_back\_metric\_deriv\_zero} and \code{christoffel\_zero\_of\_dmetric\_zero} prove the
-  algebraic Koszul cancellation of the first metric derivatives at the origin.
-\item \textbf{N3 (bridge theorems):} \code{UniformNormalChartFamily} packages uniform normal charts
-  and $C^3$ tensor bounds, and \code{discharge\_h\_weitz}, \code{discharge\_h\_hit\_exit},
-  \code{discharge\_h\_osc}, \code{discharge\_h\_decay}, \code{discharge\_h\_punc},
-  \code{discharge\_h\_tower} and \code{discharge\_h\_aa} connect it to the downstream analytic
-  contracts; proving the underlying coordinate PDE estimates to inhabit
-  \code{UniformNormalChartFamily} unconditionally from \code{ClosedTameTarget} remains open.
+\item \textbf{N2 (quadratic Taylor normal charts and $\CP$ model):}
+  \code{quadraticTaylorOpenPartialHomeomorph} and \code{centeredChart} construct centered coordinate
+  charts $\Psi_p$ with $\Psi_p(0)=p$ and $d\Psi_p(0)=\mathrm{id}$ via the inverse function theorem,
+  and \code{pulled\_back\_metric\_deriv\_zero} and \code{christoffel\_zero\_of\_dmetric\_zero} prove
+  the algebraic Koszul cancellation of the first metric derivatives at the origin.
+  \code{UniformNormalChartFamily} has been purified to 15 geometric fields (uniform radius,
+  bi-Lipschitz distance bounds, curvature and $C^3$ tensor bounds) and unconditionally instantiated
+  with zero \code{sorryAx} on $(\CP,\omega_{\mathrm{FS}},J_{\CP})$ via \code{concrete\_CP1}.
+\item \textbf{N3 (conditioned certificate bundle and bridge theorems):} The seven local-chart PDE
+  properties are separated into \code{UniformNormalChartCertificates} (conditioned on
+  $J$-holomorphicity and non-degenerate radii so discontinuous step functions cannot refute them, and
+  proved inhabited on constant curves via \code{conditioned\_certificates\_inhabited\_of\_all\_const}),
+  and \code{discharge\_h\_weitz}, \code{discharge\_h\_hit\_exit}, \code{discharge\_h\_osc},
+  \code{discharge\_h\_decay}, \code{discharge\_h\_punc}, \code{discharge\_h\_tower} and
+  \code{discharge\_h\_aa} connect it to the downstream analytic contracts. Proving the seven
+  underlying coordinate PDE estimates from first principles to inhabit
+  \code{UniformNormalChartCertificates} unconditionally from \code{ClosedTameTarget} for general
+  nonconstant curves remains open.
 \end{itemize}
 Beyond the chart PDE estimates: \code{h\_conc\_extract}, \code{OneLevelCertificate} and
 \code{ConcDefectCertificate} remain assumed extraction certificates, and energy quantization on
