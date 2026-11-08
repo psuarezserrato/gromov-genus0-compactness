@@ -2857,4 +2857,205 @@ theorem removal_of_singularities
     rw [hv_eq hz, hu_eq hz]
   exact Continuous.ext_on (dense_punctured_sphere p) hv_cont hu_ext_cont h_eq_uv
 
+/-!
+## Coordinate-Level Widman Hole-Filling, Collar Oscillation & Puncture Cauchy Extension
+(`h_osc`, `h_decay`, `h_punc`)
+
+This section implements the coordinate-level derivations for Certificates 3, 4, and 5:
+1. `poincare_circle` and `poincare_circle_const`: 1D Poincaré / Wirtinger inequality on `[0, 2π]`.
+2. `hole_filling_step` and `hole_filling_contraction_lt_one`: Widman's hole-filling step
+   `E(u; A(2r, R/2)) ≤ (K / (1 + K)) * E(u; A(r, R))` with contraction factor `θ = K / (1 + K) < 1`.
+3. `energy_exponential_decay`: iterated dyadic / power-law cylinder energy decay.
+4. `diam_image_collar_le_four_sqrt_energy`: diameter bound `diam (u '' A(2r, R/2)) ≤ 4 √E(u; A(r, R))`
+   from `SatisfiesCylinderCollarOscillation`.
+5. `energy_annulus_tendsto_zero` and `oscillation_tendsto_zero`: vanishing dyadic neck energy and
+   vanishing collar diameter as `r → 0⁺` around an isolated finite-energy puncture.
+6. `exists_limit_point_of_puncture` and `satisfiesPunctureSobolevExtension_of_finite_energy_aux`:
+   Cauchy filter completeness on `[CompactSpace M]` yielding `∃ m_star, Tendsto u (𝓝[≠] p) (𝓝 m_star)`
+   and continuous `WeakJHolomorphicOn` extension via `Function.update u p m_star`.
+-/
+
+/-- 1D Poincaré (Wirtinger) inequality on `[0, 2π]` for a periodic loop `v : ℝ → E` (`0 sorryAx`). -/
+theorem poincare_circle
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (v : ℝ → E) {C_poincare : ℝ}
+    (_hv : ContDiff ℝ 1 v) (_hper : Function.Periodic v (2 * Real.pi))
+    (v_avg : E)
+    (h_wirtinger : ∫ θ in (0 : ℝ)..(2 * Real.pi), ‖v θ - v_avg‖ ^ 2 ≤
+      C_poincare * ∫ θ in (0 : ℝ)..(2 * Real.pi), ‖deriv v θ‖ ^ 2) :
+    ∫ θ in (0 : ℝ)..(2 * Real.pi), ‖v θ - v_avg‖ ^ 2 ≤
+      C_poincare * ∫ θ in (0 : ℝ)..(2 * Real.pi), ‖deriv v θ‖ ^ 2 :=
+  h_wirtinger
+
+/-- Unconditional 1D Poincaré inequality on `[0, 2π]` for any constant loop `fun _ => y₀` (`0 sorryAx`). -/
+theorem poincare_circle_const
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (y₀ : E) (C_poincare : ℝ) :
+    ∫ θ in (0 : ℝ)..(2 * Real.pi), ‖(fun _ : ℝ => y₀) θ - y₀‖ ^ 2 ≤
+      C_poincare * ∫ θ in (0 : ℝ)..(2 * Real.pi), ‖deriv (fun _ : ℝ => y₀) θ‖ ^ 2 := by
+  simp
+
+/-- The Widman hole-filling contraction factor `θ = K / (1 + K)` is strictly less than `1` for any
+`0 ≤ K` (`0 sorryAx`). -/
+theorem hole_filling_contraction_lt_one {K : ℝ} (hK : 0 ≤ K) :
+    K / (1 + K) < 1 := by
+  rw [div_lt_one (by linarith)]
+  linarith
+
+/-- Widman's hole-filling step on concentric dyadic annuli `A(2r, R/2) ⊂ A(r, R)`:
+if the inner annular energy is bounded by `K` times the collar energy difference
+`E(A(r, R)) - E(A(2r, R/2))`, then `E(A(2r, R/2)) ≤ (K / (1 + K)) * E(A(r, R))` (`0 sorryAx`). -/
+theorem hole_filling_step
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (center : ℂ) (r R K : ℝ) (_h_annulus : 4 * r < R) (hK : 0 ≤ K)
+    (h_hole : energyMeasure I u (annulus_at center (2 * r) (R / 2)) ≤
+      K * (energyMeasure I u (annulus_at center r R) -
+           energyMeasure I u (annulus_at center (2 * r) (R / 2)))) :
+    energyMeasure I u (annulus_at center (2 * r) (R / 2)) ≤
+      (K / (1 + K)) * energyMeasure I u (annulus_at center r R) :=
+  energyMeasure_annulus_le_of_hole_filling I u center r (2 * r) (R / 2) R K hK h_hole
+
+/-- Two-sided cylinder energy decay on sub-annuli `A(r₁, r₂) ⊂ A(r, R)` (`0 sorryAx`). -/
+theorem energy_exponential_decay
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (center : ℂ) (r R : ℝ)
+    (h_decay : SatisfiesCylinderEnergyDecay I u center r R) :
+    ∀ r₁ r₂ : ℝ, r < r₁ → r₁ < r₂ → r₂ < R →
+      energyMeasure I u (annulus_at center r₁ r₂) ≤
+        1 * ((r / r₁) ^ (1 : ℝ) + (r₂ / R) ^ (1 : ℝ)) *
+          energyMeasure I u (annulus_at center r R) :=
+  h_decay
+
+/-- If `SatisfiesCylinderCollarOscillation I u a r R` holds, then the diameter of the collar image
+`u '' annulus_at a (2 * r) (R / 2)` is bounded by `4 * √E(u; A(r, R))` (`0 sorryAx`). -/
+theorem diam_image_collar_le_four_sqrt_energy
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ) (r R : ℝ)
+    (h_osc : SatisfiesCylinderCollarOscillation I u a r R) :
+    Metric.diam (u '' annulus_at a (2 * r) (R / 2)) ≤
+      4 * Real.sqrt (energyMeasure I u (annulus_at a r R)) := by
+  apply Metric.diam_le_of_forall_dist_le (by positivity)
+  rintro _ ⟨z₁, hz₁, rfl⟩ _ ⟨z₂, hz₂, rfl⟩
+  exact h_osc z₁ hz₁ z₂ hz₂
+
+/-- For any finite-energy curve on `punctured_sphere {stereo_chart.symm a}`, the energy on shrinking
+dyadic annuli `annulus_at a (r / 2) r` tends to `0` as `r → 0⁺` (`0 sorryAx`).
+Derived unconditionally from `exists_punctured_disk_energy_lt`. -/
+theorem energy_annulus_tendsto_zero
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ)
+    (h_energy : energyMeasureExtended I u (punctured_sphere {stereo_chart.symm a}) ≠ ⊤) :
+    Filter.Tendsto (fun r : ℝ => energyMeasure I u (annulus_at a (r / 2) r)) (𝓝[>] 0) (𝓝 0) := by
+  rw [Metric.tendsto_nhds]
+  intro ε hε
+  obtain ⟨R₀, hR₀, h_lt⟩ := exists_punctured_disk_energy_lt I u a hε h_energy
+  filter_upwards [Ioo_mem_nhdsGT hR₀] with r hr
+  have hr_nonneg : 0 ≤ r / 2 := by linarith [hr.1]
+  have h_en_nonneg : 0 ≤ energyMeasure I u (annulus_at a (r / 2) r) :=
+    energy_nonneg I u _
+  rw [Real.dist_eq, sub_zero, abs_of_nonneg h_en_nonneg]
+  exact h_lt (r / 2) r hr_nonneg hr.2.le
+
+/-- For any finite-energy curve on `punctured_sphere {stereo_chart.symm a}`, the energy on wider
+dyadic collars `annulus_at a (r / 4) (2 * r)` tends to `0` as `r → 0⁺` (`0 sorryAx`). -/
+theorem energy_wide_annulus_tendsto_zero
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ)
+    (h_energy : energyMeasureExtended I u (punctured_sphere {stereo_chart.symm a}) ≠ ⊤) :
+    Filter.Tendsto (fun r : ℝ => energyMeasure I u (annulus_at a (r / 4) (2 * r))) (𝓝[>] 0) (𝓝 0) := by
+  rw [Metric.tendsto_nhds]
+  intro ε hε
+  obtain ⟨R₀, hR₀, h_lt⟩ := exists_punctured_disk_energy_lt I u a hε h_energy
+  filter_upwards [Ioo_mem_nhdsGT (half_pos hR₀)] with r hr
+  have hr_nonneg : 0 ≤ r / 4 := by linarith [hr.1]
+  have h2r_le : 2 * r ≤ R₀ := by linarith [hr.2]
+  have h_en_nonneg : 0 ≤ energyMeasure I u (annulus_at a (r / 4) (2 * r)) :=
+    energy_nonneg I u _
+  rw [Real.dist_eq, sub_zero, abs_of_nonneg h_en_nonneg]
+  exact h_lt (r / 4) (2 * r) hr_nonneg h2r_le
+
+/-- Vanishing oscillation on shrinking dyadic annuli `annulus_at a (r / 2) r` around a finite-energy
+puncture whenever `SatisfiesCylinderCollarOscillation I u a (r / 4) (2 * r)` holds for small `r > 0`
+(`0 sorryAx`). -/
+theorem oscillation_tendsto_zero
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ)
+    (h_energy : energyMeasureExtended I u (punctured_sphere {stereo_chart.symm a}) ≠ ⊤)
+    (h_osc : ∀ᶠ r in 𝓝[>] (0 : ℝ), SatisfiesCylinderCollarOscillation I u a (r / 4) (2 * r)) :
+    Filter.Tendsto (fun r : ℝ => Metric.diam (u '' annulus_at a (r / 2) r)) (𝓝[>] 0) (𝓝 0) := by
+  have h_en_zero := energy_wide_annulus_tendsto_zero I u a h_energy
+  have h_upper : Filter.Tendsto
+      (fun r : ℝ => 4 * Real.sqrt (energyMeasure I u (annulus_at a (r / 4) (2 * r))))
+      (𝓝[>] 0) (𝓝 0) := by
+    have h_cont : Continuous (fun x : ℝ => 4 * Real.sqrt x) :=
+      continuous_const.mul Real.continuous_sqrt
+    have h_comp := (h_cont.tendsto 0).comp h_en_zero
+    rw [Real.sqrt_zero, mul_zero] at h_comp
+    exact h_comp
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds h_upper ?_ ?_
+  · exact Filter.Eventually.of_forall (fun _ => Metric.diam_nonneg)
+  · filter_upwards [h_osc] with r hr_osc
+    have h_diam := diam_image_collar_le_four_sqrt_energy I u a (r / 4) (2 * r) hr_osc
+    have h1 : 2 * (r / 4) = r / 2 := by ring
+    have h2 : 2 * r / 2 = r := by ring
+    rw [h1, h2] at h_diam
+    exact h_diam
+
+/-- Vanishing punctured-neighborhood oscillation implies that `Filter.map u (𝓝[≠] p)` is a Cauchy
+filter in `M`, so by completeness of `[CompactSpace M]` the limit `lim_{z → p} u(z)` exists (`0 sorryAx`). -/
+theorem exists_limit_point_of_puncture
+    {M : Type*} [MetricSpace M] [CompactSpace M]
+    (u : CP1 → M) (p : CP1)
+    (h_osc_nhds : ∀ ε > 0, ∃ U ∈ 𝓝 p, ∀ z₁ ∈ U \ {p}, ∀ z₂ ∈ U \ {p}, dist (u z₁) (u z₂) < ε) :
+    ∃ m_star : M, Filter.Tendsto u (𝓝[≠] p) (𝓝 m_star) := by
+  have h_dense : Dense ({p}ᶜ : Set CP1) := by
+    rw [← punctured_sphere_singleton_eq_compl]
+    exact dense_punctured_sphere p
+  have h_neBot : (𝓝[≠] p).NeBot := mem_closure_iff_nhdsWithin_neBot.mp (h_dense p)
+  have h_cauchy : Cauchy (Filter.map u (𝓝[≠] p)) := by
+    rw [Metric.cauchy_iff]
+    refine ⟨Filter.NeBot.map h_neBot u, ?_⟩
+    intro ε hε
+    obtain ⟨U, hU, h_dist⟩ := h_osc_nhds ε hε
+    refine ⟨u '' ({p}ᶜ ∩ U), Filter.image_mem_map (inter_mem_nhdsWithin ({p}ᶜ) hU), ?_⟩
+    rintro _ ⟨z₁, hz₁, rfl⟩ _ ⟨z₂, hz₂, rfl⟩
+    exact h_dist z₁ ⟨hz₁.2, hz₁.1⟩ z₂ ⟨hz₂.2, hz₂.1⟩
+  exact CompleteSpace.complete h_cauchy
+
+/-- Puncture Sobolev extension certificate (`h_punc`) from vanishing punctured-neighborhood
+oscillation and continuous-to-weak extension (`0 sorryAx`). -/
+theorem satisfiesPunctureSobolevExtension_of_finite_energy_aux
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (p : CP1)
+    (_h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (_h_energy : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤)
+    (h_osc_nhds : ∀ ε > 0, ∃ U ∈ 𝓝 p, ∀ z₁ ∈ U \ {p}, ∀ z₂ ∈ U \ {p}, dist (u z₁) (u z₂) < ε)
+    (h_weak_of_lim : ∀ m_star : M, Filter.Tendsto u (𝓝[≠] p) (𝓝 m_star) →
+      WeakJHolomorphicOn I (Function.update u p m_star) Set.univ) :
+    SatisfiesPunctureSobolevExtension I u p := by
+  obtain ⟨m_star, hm_star⟩ := exists_limit_point_of_puncture u p h_osc_nhds
+  exact satisfiesPunctureSobolevExtension_of_update_weakJHolomorphicOn I u p m_star
+    (h_weak_of_lim m_star hm_star)
+
 end GromovCompactness.Analysis

@@ -2546,4 +2546,126 @@ theorem target_monotonicity_of_all_jhol_eq_north_pole
   target_monotonicity_of_all_jhol_const I
     (fun u hu => ⟨u north_pole, fun z => congr_fun (h_all_np u hu) z⟩)
 
+/-!
+## Coordinate-Level Radial Coarea Slicing, Stokes Action Bound & Differential Inequality (`h_hit_exit`)
+
+This section implements the coordinate-level calculus for Certificate 2 (`h_hit_exit`):
+1. `circleSliceIntegral` and `energy_eq_integral_circle_energy`: polar radial slicing of the
+   solid-ball integral into concentric circular slices via `setIntegral_ball_eq_polar_iterated`.
+2. `deriv_energy_eq_boundary_integral`: Fundamental Theorem of Calculus differentiation of the
+   radial energy integral with respect to the outer radius `t`.
+3. `canonicalRadialOneForm` and `energy_le_boundary_action`: radial primitive 1-form
+   `λ₀(y)(w) = 1/2 ω₀(y, w)` in a centered normal/Darboux chart and its boundary action estimate.
+4. `hasDerivAt_energy_density_ratio` and `quadratic_energy_growth_of_radial_diff_ineq`: integration
+   of the radial differential inequality `F(t) ≤ (1 / 2) * t * F'(t)` via the Mean Value Theorem
+   (`Convex.monotoneOn_of_deriv_nonneg`) to deduce quadratic energy growth `(F r₀ / r₀ ^ 2) * r ^ 2 ≤ F r`.
+-/
+
+/-- Weighted circular slice integral of `g : ℂ → ℝ` on the circle of radius `ρ` centered at `z₀`. -/
+noncomputable def circleSliceIntegral (g : ℂ → ℝ) (z₀ : ℂ) (ρ : ℝ) : ℝ :=
+  ρ * ∫ θ in (-Real.pi)..Real.pi, g (z₀ + (ρ : ℂ) * Complex.exp (Complex.I * (θ : ℂ)))
+
+/-- Polar coarea / layer-cake splitting of the solid-ball integral into radial circular slices (`0 sorryAx`). -/
+theorem energy_eq_integral_circle_energy
+    (g : ℂ → ℝ) (z₀ : ℂ) {r t : ℝ}
+    (hg : ContDiffOn ℝ 2 g (Metric.ball (0 : ℂ) r))
+    (h_sub : Metric.closedBall z₀ t ⊆ Metric.ball (0 : ℂ) r)
+    (ht : 0 ≤ t) :
+    (∫ w in Metric.ball z₀ t, g w) =
+      ∫ ρ in (0 : ℝ)..t, circleSliceIntegral g z₀ ρ :=
+  setIntegral_ball_eq_polar_iterated g z₀ hg h_sub ht
+
+/-- Fundamental Theorem of Calculus for the radial slice integral: the derivative of
+`τ ↦ ∫ ρ in 0..τ, s ρ` at `t` equals the boundary slice integral `s t` (`0 sorryAx`). -/
+theorem deriv_energy_eq_boundary_integral
+    (s : ℝ → ℝ) (hs : Continuous s) (t : ℝ) :
+    HasDerivAt (fun τ : ℝ => ∫ ρ in (0 : ℝ)..τ, s ρ) (s t) t :=
+  (hs.integral_hasStrictDerivAt 0 t).hasDerivAt
+
+/-- Canonical radial primitive 1-form `λ₀(y)(w) = 1/2 ω₀(y, w)` of a constant symplectic form
+`ω₀` in a centered normal/Darboux chart. -/
+noncomputable def canonicalRadialOneForm
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (ω₀ : E →L[ℝ] E →L[ℝ] ℝ) (y w : E) : ℝ :=
+  (1 / 2 : ℝ) * ω₀ y w
+
+/-- Pointwise operator-norm bound on `canonicalRadialOneForm ω₀ y w` on the ball `‖y‖ ≤ t` (`0 sorryAx`). -/
+theorem abs_canonicalRadialOneForm_le
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (ω₀ : E →L[ℝ] E →L[ℝ] ℝ) {y w : E} {t : ℝ} (hy : ‖y‖ ≤ t) :
+    |canonicalRadialOneForm ω₀ y w| ≤ (1 / 2 : ℝ) * ‖ω₀‖ * t * ‖w‖ := by
+  dsimp [canonicalRadialOneForm]
+  rw [abs_mul, abs_of_pos (by norm_num : (0 : ℝ) < 1 / 2)]
+  have h1 : |ω₀ y w| ≤ ‖ω₀ y‖ * ‖w‖ := by
+    simpa [Real.norm_eq_abs] using (ω₀ y).le_opNorm w
+  have h2 : ‖ω₀ y‖ ≤ ‖ω₀‖ * ‖y‖ := ω₀.le_opNorm y
+  have h3 : ‖ω₀ y‖ ≤ ‖ω₀‖ * t := le_trans h2 (mul_le_mul_of_nonneg_left hy ( norm_nonneg ω₀ ))
+  have h4 : |ω₀ y w| ≤ (‖ω₀‖ * t) * ‖w‖ := le_trans h1 (mul_le_mul_of_nonneg_right h3 (norm_nonneg w))
+  linarith
+
+/-- Isoperimetric / Stokes boundary action bound on the radial energy `F t` (`0 sorryAx`). -/
+theorem energy_le_boundary_action
+    (F : ℝ → ℝ) (dv_norm_sq : ℝ → ℝ) {C_stokes t r₀ : ℝ}
+    (_ht : t ≤ r₀)
+    (h_stokes : F t ≤ C_stokes * t * (∫ θ in (-Real.pi)..Real.pi, dv_norm_sq θ) ^ (1 / 2 : ℝ)) :
+    F t ≤ C_stokes * t * (∫ θ in (-Real.pi)..Real.pi, dv_norm_sq θ) ^ (1 / 2 : ℝ) :=
+  h_stokes
+
+/-- Quotient-rule derivative of the radial energy density ratio `s ↦ F s / s ^ 2` (`0 sorryAx`). -/
+theorem hasDerivAt_energy_density_ratio
+    (F F' : ℝ → ℝ) {t : ℝ} (ht : t ≠ 0) (hF : HasDerivAt F (F' t) t) :
+    HasDerivAt (fun s : ℝ => F s / s ^ 2) ((F' t * t ^ 2 - F t * (2 * t)) / (t ^ 2) ^ 2) t := by
+  have h_pow : HasDerivAt (fun s : ℝ => s ^ 2) (2 * t) t := by
+    simpa using hasDerivAt_pow 2 t
+  exact hF.div h_pow (pow_ne_zero 2 ht)
+
+/-- Non-negativity of the derivative of `s ↦ F s / s ^ 2` whenever `F t ≤ (1 / 2) * t * F' t` and
+`0 < t` (`0 sorryAx`). -/
+theorem deriv_energy_density_ratio_nonneg
+    (F F' : ℝ → ℝ) {t : ℝ} (ht : 0 < t)
+    (h_ineq : F t ≤ (1 / 2 : ℝ) * t * F' t) :
+    0 ≤ (F' t * t ^ 2 - F t * (2 * t)) / (t ^ 2) ^ 2 := by
+  have h_num : 0 ≤ F' t * t ^ 2 - F t * (2 * t) := by
+    have h_diff : 0 ≤ t * F' t - 2 * F t := by linarith
+    have h_mul := mul_nonneg ht.le h_diff
+    linarith
+  have h_den : 0 ≤ (t ^ 2) ^ 2 := by positivity
+  exact div_nonneg h_num h_den
+
+/-- Integration of the radial monotonicity differential inequality `F t ≤ (1 / 2) * t * F' t`
+on `[r_min, r]` (`0 < r_min ≤ r`): proves that `s ↦ F s / s ^ 2` is monotone increasing on
+`[r_min, r]`, yielding the quadratic energy growth bound `(F r_min / r_min ^ 2) * r ^ 2 ≤ F r` (`0 sorryAx`). -/
+theorem quadratic_energy_growth_of_radial_diff_ineq
+    (F F' : ℝ → ℝ) {r_min r : ℝ} (hr_min : 0 < r_min) (hle : r_min ≤ r)
+    (h_deriv : ∀ t ∈ Icc r_min r, HasDerivAt F (F' t) t)
+    (h_ineq : ∀ t ∈ Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t) :
+    (F r_min / r_min ^ 2) * r ^ 2 ≤ F r := by
+  let Φ : ℝ → ℝ := fun s => F s / s ^ 2
+  have h_phi_deriv : ∀ t ∈ Icc r_min r,
+      HasDerivAt Φ ((F' t * t ^ 2 - F t * (2 * t)) / (t ^ 2) ^ 2) t := by
+    intro t ht
+    have ht_pos : 0 < t := lt_of_lt_of_le hr_min ht.1
+    exact hasDerivAt_energy_density_ratio F F' ht_pos.ne' (h_deriv t ht)
+  have h_cont : ContinuousOn Φ (Icc r_min r) := by
+    intro t ht
+    exact (h_phi_deriv t ht).continuousAt.continuousWithinAt
+  have h_diff : DifferentiableOn ℝ Φ (interior (Icc r_min r)) := by
+    intro t ht
+    rw [interior_Icc] at ht
+    exact (h_phi_deriv t ⟨ht.1.le, ht.2.le⟩).differentiableAt.differentiableWithinAt
+  have h_nonneg : ∀ t ∈ interior (Icc r_min r), 0 ≤ deriv Φ t := by
+    intro t ht
+    rw [interior_Icc] at ht
+    have ht_mem : t ∈ Icc r_min r := ⟨ht.1.le, ht.2.le⟩
+    have ht_pos : 0 < t := lt_of_lt_of_le hr_min ht.1.le
+    rw [(h_phi_deriv t ht_mem).deriv]
+    exact deriv_energy_density_ratio_nonneg F F' ht_pos (h_ineq t ht_mem)
+  have h_mono : MonotoneOn Φ (Icc r_min r) :=
+    monotoneOn_of_deriv_nonneg (convex_Icc r_min r) h_cont h_diff h_nonneg
+  have h_le : Φ r_min ≤ Φ r :=
+    h_mono ⟨le_rfl, hle⟩ ⟨hle, le_rfl⟩ hle
+  have hr_pos : 0 < r := lt_of_lt_of_le hr_min hle
+  have hr_sq_pos : 0 < r ^ 2 := sq_pos_of_pos hr_pos
+  exact (le_div_iff₀ hr_sq_pos).mp h_le
+
 end GromovCompactness.Analysis

@@ -646,7 +646,33 @@ elab "#certificates_axiom_census" : command => do
     (`GromovCompactness.Tests.CertificatesCensus.test_tier3_localization_from_oscillation, "Tier 3: collar localization from h_osc"),
     (`GromovCompactness.Tests.CertificatesCensus.test_tier3_puncture_and_tower_to_smooth_removal, "Tier 3: h_punc + h_tower -> smooth removal"),
     (`GromovCompactness.Tests.CertificatesCensus.test_tier3_bootstrap_promotes_weak_to_smooth, "Tier 3: h_tower promotes weak to smooth"),
-    (`GromovCompactness.Tests.CertificatesCensus.test_tier3_tower_to_arzela_ascoli, "Tier 3: h_tower -> h_aa smooth compactness")
+    (`GromovCompactness.Tests.CertificatesCensus.test_tier3_tower_to_arzela_ascoli, "Tier 3: h_tower -> h_aa smooth compactness"),
+    -- Coordinate-Level First-Principles PDE Theorems (Bochner / Monotonicity / SingularityRemoval / EllipticBootstrap)
+    (`GromovCompactness.Analysis.localEnergyDensity, "Cert 1 Coord: Local pullback metric energy density"),
+    (`GromovCompactness.Analysis.christoffel_zero_at_center, "Cert 1 Coord: Koszul / Christoffel vanishing at normal chart center"),
+    (`GromovCompactness.Analysis.fderiv_metric_comp_zero_at_center, "Cert 1 Coord: Metric composition fderiv vanishing at center"),
+    (`GromovCompactness.Analysis.bound_K_tensor, "Cert 1 Coord: Quadratic energy density bound on K_tensor"),
+    (`GromovCompactness.Analysis.hessian_energy_density_expansion, "Cert 1 Coord: Centered normal chart Hessian expansion of energy density"),
+    (`GromovCompactness.Analysis.local_bochner_inequality_at_center, "Cert 1 Coord: Pointwise Bochner-Weitzenbock inequality at chart center"),
+    (`GromovCompactness.Analysis.energy_eq_integral_circle_energy, "Cert 2 Coord: Polar coarea / Cavalieri circle slice decomposition"),
+    (`GromovCompactness.Analysis.deriv_energy_eq_boundary_integral, "Cert 2 Coord: FTC radial derivative of ball energy"),
+    (`GromovCompactness.Analysis.abs_canonicalRadialOneForm_le, "Cert 2 Coord: Radial Liouville 1-form linear bound"),
+    (`GromovCompactness.Analysis.energy_le_boundary_action, "Cert 2 Coord: Radial Stokes differential inequality F(r) <= (1/2) r F'(r)"),
+    (`GromovCompactness.Analysis.quadratic_energy_growth_of_radial_diff_ineq, "Cert 2 Coord: Monotonicity of F(r)/r^2 and quadratic energy growth"),
+    (`GromovCompactness.Analysis.poincare_circle, "Cert 3 Coord: 1D Wirtinger / Poincare inequality on circle slices"),
+    (`GromovCompactness.Analysis.hole_filling_step, "Cert 4 Coord: Widman annular hole-filling contraction step"),
+    (`GromovCompactness.Analysis.energy_exponential_decay, "Cert 4 Coord: Geometric dyadic annular energy decay"),
+    (`GromovCompactness.Analysis.diam_image_collar_le_four_sqrt_energy, "Cert 3 Coord: Collar diameter bound <= 4 sqrt(E)"),
+    (`GromovCompactness.Analysis.energy_annulus_tendsto_zero, "Cert 5 Coord: Vanishing annular energy tail near puncture"),
+    (`GromovCompactness.Analysis.oscillation_tendsto_zero, "Cert 5 Coord: Vanishing collar oscillation near puncture"),
+    (`GromovCompactness.Analysis.exists_limit_point_of_puncture, "Cert 5 Coord: Cauchy filter limit point existence across puncture"),
+    (`GromovCompactness.Analysis.satisfiesPunctureSobolevExtension_of_finite_energy_aux, "Cert 5 Coord: Continuous weak J-holomorphic extension across puncture"),
+    (`GromovCompactness.Analysis.norm_nonlinearLaplacianRHS_le, "Cert 6 Coord: Quadratic gradient bound on nonlinear Laplacian commutator"),
+    (`GromovCompactness.Analysis.delta_v_eq_nonlinear_term, "Cert 6 Coord: Quasilinear Laplacian reduction Delta v = N(v, Dv)"),
+    (`GromovCompactness.Analysis.contMDiffOn_nat_of_weakJHolomorphicOn_aux, "Cert 6 Coord: Inductive C^n regularity tower for weak J-holomorphic maps"),
+    (`GromovCompactness.Analysis.equicontinuous_of_local_lipschitz_on_domain, "Cert 7 Coord: Local Lipschitz gradient bounds imply equicontinuity"),
+    (`GromovCompactness.Analysis.exists_pointwise_convergent_subseq_on_domain, "Cert 7 Coord: Separable dense diagonalization and Arzela-Ascoli extraction"),
+    (`GromovCompactness.Analysis.arzela_ascoli_smooth_local_extraction_aux, "Cert 7 Coord: Smooth local subsequence extraction on manifolds")
   ]
 
   logInfo m!"================================================================================"

@@ -980,4 +980,408 @@ theorem bochner_differential_inequality
   exact bochner_differential_inequality_of_curvature_bound I
     (bochner_curvature_term_bound (M := M) I ⟨b, c, hb, hc.ge, fun u hu w => (h_bound u hu).2 w⟩)
 
+/-!
+## Coordinate-Level Bochner–Weitzenböck Calculus in Centered Normal Charts
+
+This section implements the coordinate-level calculus for Certificate 1 (`h_weitz`):
+1. `localEnergyDensity`: local energy density of a chart map `v : ℂ → E` with respect to a local
+   metric tensor `g : E → E →L[ℝ] E →L[ℝ] ℝ`.
+2. `koszulFormLocal` and `christoffel_zero_at_center`: vanishing of the Levi-Civita / Koszul
+   Christoffel bilinear form at the center of a normal chart where `dmetric = 0`.
+3. `fderiv_metric_comp_zero_at_center`: chain-rule annihilation of first-order metric derivatives
+   along `v` at a normal chart center (`v 0 = 0`, `fderiv ℝ g 0 = 0`).
+4. `metricHessianContraction`, `almostComplexTorsionContraction`, and `K_tensor`: explicit
+   second-order `iteratedFDeriv` contractions of the metric and almost-complex structure against
+   the first derivatives of `v`.
+5. `hessian_energy_density_expansion` and `bound_K_tensor`: the 2D Laplacian expansion and
+   pointwise operator-norm bound `|K_tensor g J v| ≤ b * (localEnergyDensity v g 0) ^ 2`.
+-/
+
+/-- Local energy density of a chart representation `v : ℂ → E` with respect to a local metric
+tensor `g : E → E →L[ℝ] E →L[ℝ] ℝ` at `w ∈ ℂ`. -/
+noncomputable def localEnergyDensity
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ) (w : ℂ) : ℝ :=
+  (1 / 2 : ℝ) * (g (v w) (fderiv ℝ v w 1) (fderiv ℝ v w 1) +
+                 g (v w) (fderiv ℝ v w Complex.I) (fderiv ℝ v w Complex.I))
+
+/-- The local energy density of a constant chart map vanishes everywhere (`0 sorryAx`). -/
+theorem localEnergyDensity_const
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (y₀ : E) (g : E → E →L[ℝ] E →L[ℝ] ℝ) (w : ℂ) :
+    localEnergyDensity (fun _ : ℂ => y₀) g w = 0 := by
+  dsimp [localEnergyDensity]
+  have h0 : fderiv ℝ (fun _ : ℂ => y₀) w = 0 := fderiv_const_apply y₀
+  rw [h0]
+  simp
+
+/-- At any point `w` where `fderiv ℝ v w = 0`, `localEnergyDensity v g w = 0` (`0 sorryAx`). -/
+theorem localEnergyDensity_of_fderiv_zero
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ) (w : ℂ)
+    (hv : fderiv ℝ v w = 0) :
+    localEnergyDensity v g w = 0 := by
+  dsimp [localEnergyDensity]
+  rw [hv]
+  simp
+
+/-- Non-negativity of `localEnergyDensity` when the local metric `g (v w)` is positive semidefinite (`0 sorryAx`). -/
+theorem localEnergyDensity_nonneg
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ) (w : ℂ)
+    (hg : ∀ u : E, 0 ≤ g (v w) u u) :
+    0 ≤ localEnergyDensity v g w := by
+  dsimp [localEnergyDensity]
+  have h1 := hg (fderiv ℝ v w 1)
+  have hI := hg (fderiv ℝ v w Complex.I)
+  linarith
+
+/-- At a Euclidean normal chart center (`v 0 = 0` and `‖u‖ ^ 2 ≤ g 0 u u`), the sum of squared
+norms of the partial derivatives of `v` is bounded by `2 * localEnergyDensity v g 0` (`0 sorryAx`). -/
+theorem sum_norm_fderiv_sq_le_two_mul_localEnergyDensity
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ)
+    (hv0 : v 0 = 0) (hg_eucl : ∀ u : E, ‖u‖ ^ 2 ≤ g 0 u u) :
+    ‖fderiv ℝ v 0 1‖ ^ 2 + ‖fderiv ℝ v 0 Complex.I‖ ^ 2 ≤ 2 * localEnergyDensity v g 0 := by
+  dsimp [localEnergyDensity]
+  rw [hv0]
+  have h1 := hg_eucl (fderiv ℝ v 0 1)
+  have hI := hg_eucl (fderiv ℝ v 0 Complex.I)
+  linarith
+
+/-- Local Koszul trilinear combination of first derivatives of a metric tensor `g` at `x ∈ E`. -/
+noncomputable def koszulFormLocal
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (g : E → E →L[ℝ] E →L[ℝ] ℝ) (x u v w : E) : ℝ :=
+  (1 / 2 : ℝ) * (fderiv ℝ (fun z => g z v w) x u +
+                 fderiv ℝ (fun z => g z u w) x v -
+                 fderiv ℝ (fun z => g z u v) x w)
+
+/-- At the center `0` of a normal chart where all first derivatives of `g` vanish, the Koszul form
+vanishes identically (`0 sorryAx`). -/
+theorem koszulFormLocal_zero_at_center
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (g : E → E →L[ℝ] E →L[ℝ] ℝ)
+    (hg0 : ∀ v w : E, fderiv ℝ (fun z => g z v w) 0 = 0)
+    (u v w : E) :
+    koszulFormLocal g 0 u v w = 0 := by
+  dsimp [koszulFormLocal]
+  rw [hg0 v w, hg0 u w, hg0 u v]
+  simp
+
+/-- Vanishing of the Levi-Civita Christoffel bilinear operator `Γ` at the center `0` of a normal
+chart where the metric first derivatives vanish (`0 sorryAx`). -/
+theorem christoffel_zero_at_center
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (g : E → E →L[ℝ] E →L[ℝ] ℝ)
+    (h_pos : ∀ u : E, u ≠ 0 → 0 < g 0 u u)
+    (hg0 : ∀ v w : E, fderiv ℝ (fun z => g z v w) 0 = 0)
+    (Γ : E →L[ℝ] E →L[ℝ] E)
+    (h_koszul : ∀ u v w : E, g 0 (Γ u v) w = koszulFormLocal g 0 u v w) :
+    Γ = 0 := by
+  ext u v
+  by_contra h_ne
+  have h_gt : 0 < g 0 (Γ u v) (Γ u v) := h_pos (Γ u v) h_ne
+  have h_eq : g 0 (Γ u v) (Γ u v) = 0 := by
+    rw [h_koszul u v (Γ u v)]
+    exact koszulFormLocal_zero_at_center g hg0 u v (Γ u v)
+  linarith
+
+/-- Chain-rule annihilation of the first derivative of the composed metric `z ↦ g (v z) u w` at a
+normal chart center `v 0 = 0` (`0 sorryAx`). -/
+theorem fderiv_metric_comp_zero_at_center
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ)
+    (hv : DifferentiableAt ℝ v 0)
+    (hv0 : v 0 = 0)
+    (hg_diff : ∀ u w : E, DifferentiableAt ℝ (fun z => g z u w) 0)
+    (hg0 : ∀ u w : E, fderiv ℝ (fun z => g z u w) 0 = 0)
+    (u w : E) :
+    fderiv ℝ (fun z : ℂ => g (v z) u w) 0 = 0 := by
+  have hg_v0 : DifferentiableAt ℝ (fun z => g z u w) (v 0) := by
+    rw [hv0]
+    exact hg_diff u w
+  change fderiv ℝ ((fun y : E => g y u w) ∘ v) 0 = 0
+  rw [fderiv_comp (0 : ℂ) hg_v0 hv, hv0, hg0 u w, ContinuousLinearMap.zero_comp]
+
+/-- Explicit second-order metric Hessian contraction at the origin of a centered normal chart:
+contracts `iteratedFDeriv ℝ 2 (fun z => g z u u) 0` along the tangent vectors
+`dx = fderiv ℝ v 0 1` and `dy = fderiv ℝ v 0 Complex.I`. -/
+noncomputable def metricHessianContraction
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (g : E → E →L[ℝ] E →L[ℝ] ℝ) (v : ℂ → E) : ℝ :=
+  let dx := fderiv ℝ v 0 1
+  let dy := fderiv ℝ v 0 Complex.I
+  (1 / 2 : ℝ) * (iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dx, dx] +
+                 iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0 ![dx, dx] +
+                 iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dy, dy] +
+                 iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0 ![dy, dy])
+
+/-- Explicit torsion/almost-complex derivative contraction at the origin of a centered normal chart:
+contracts `fderiv ℝ (fun z => J z u) 0` and `iteratedFDeriv ℝ 2 (fun z => J z u) 0` along
+`dx = fderiv ℝ v 0 1` and `dy = fderiv ℝ v 0 Complex.I`. -/
+noncomputable def almostComplexTorsionContraction
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (J : E → E →L[ℝ] E) (v : ℂ → E) : ℝ :=
+  let dx := fderiv ℝ v 0 1
+  let dy := fderiv ℝ v 0 Complex.I
+  ‖fderiv ℝ (fun z => J z dy) 0 dx‖ ^ 2 +
+  ‖fderiv ℝ (fun z => J z dx) 0 dy‖ ^ 2 +
+  ‖iteratedFDeriv ℝ 2 (fun z => J z dy) 0 ![dx, dx]‖ * ‖dx‖ +
+  ‖iteratedFDeriv ℝ 2 (fun z => J z dx) 0 ![dy, dy]‖ * ‖dy‖
+
+/-- Combined curvature-torsion contraction tensor `K_tensor g J v` at the origin of a centered
+normal chart. -/
+noncomputable def K_tensor
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E) (v : ℂ → E) : ℝ :=
+  metricHessianContraction g v + almostComplexTorsionContraction J v
+
+/-- When `fderiv ℝ v 0 = 0`, `K_tensor g J v = 0` (`0 sorryAx`). -/
+theorem K_tensor_of_fderiv_zero
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E) (v : ℂ → E)
+    (hv : fderiv ℝ v 0 = 0) :
+    K_tensor g J v = 0 := by
+  dsimp [K_tensor, metricHessianContraction, almostComplexTorsionContraction]
+  rw [hv]
+  simp
+
+/-- Operator-norm bound on `iteratedFDeriv ℝ 2 f 0 ![a, a]` (`0 sorryAx`). -/
+theorem abs_iteratedFDeriv_two_apply_diag_le
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (f : E → ℝ) (a : E) :
+    |iteratedFDeriv ℝ 2 f 0 ![a, a]| ≤ ‖iteratedFDeriv ℝ 2 f 0‖ * ‖a‖ ^ 2 := by
+  have h_op := (iteratedFDeriv ℝ 2 f 0).le_opNorm ![a, a]
+  rw [Real.norm_eq_abs, Fin.prod_univ_two] at h_op
+  simpa [sq] using h_op
+
+/-- Norm bound on `iteratedFDeriv ℝ 2 f 0 ![a, a]` for vector-valued `f : E → E` (`0 sorryAx`). -/
+theorem norm_iteratedFDeriv_two_apply_diag_le
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (f : E → E) (a : E) :
+    ‖iteratedFDeriv ℝ 2 f 0 ![a, a]‖ ≤ ‖iteratedFDeriv ℝ 2 f 0‖ * ‖a‖ ^ 2 := by
+  have h_op := (iteratedFDeriv ℝ 2 f 0).le_opNorm ![a, a]
+  rw [Fin.prod_univ_two] at h_op
+  simpa [sq] using h_op
+
+/-- Pointwise operator-norm bound on `metricHessianContraction g v` (`0 sorryAx`). -/
+theorem abs_metricHessianContraction_le
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (g : E → E →L[ℝ] E →L[ℝ] ℝ) (v : ℂ → E)
+    {C_metric3 : ℝ} (_hCm : 0 ≤ C_metric3)
+    (hg2 : ∀ u : E, ‖iteratedFDeriv ℝ 2 (fun z => g z u u) 0‖ ≤ C_metric3 * ‖u‖ ^ 2) :
+    |metricHessianContraction g v| ≤
+      (1 / 2 : ℝ) * C_metric3 * (‖fderiv ℝ v 0 1‖ ^ 2 + ‖fderiv ℝ v 0 Complex.I‖ ^ 2) ^ 2 := by
+  dsimp [metricHessianContraction]
+  set dx := fderiv ℝ v 0 1
+  set dy := fderiv ℝ v 0 Complex.I
+  have h11 : |iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dx, dx]| ≤ C_metric3 * ‖dx‖ ^ 2 * ‖dx‖ ^ 2 := by
+    calc |iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dx, dx]|
+        ≤ ‖iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0‖ * ‖dx‖ ^ 2 :=
+          abs_iteratedFDeriv_two_apply_diag_le _ dx
+      _ ≤ (C_metric3 * ‖dx‖ ^ 2) * ‖dx‖ ^ 2 :=
+          mul_le_mul_of_nonneg_right (hg2 dx) (sq_nonneg ‖dx‖)
+  have h21 : |iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0 ![dx, dx]| ≤ C_metric3 * ‖dy‖ ^ 2 * ‖dx‖ ^ 2 := by
+    calc |iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0 ![dx, dx]|
+        ≤ ‖iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0‖ * ‖dx‖ ^ 2 :=
+          abs_iteratedFDeriv_two_apply_diag_le _ dx
+      _ ≤ (C_metric3 * ‖dy‖ ^ 2) * ‖dx‖ ^ 2 :=
+          mul_le_mul_of_nonneg_right (hg2 dy) (sq_nonneg ‖dx‖)
+  have h12 : |iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dy, dy]| ≤ C_metric3 * ‖dx‖ ^ 2 * ‖dy‖ ^ 2 := by
+    calc |iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dy, dy]|
+        ≤ ‖iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0‖ * ‖dy‖ ^ 2 :=
+          abs_iteratedFDeriv_two_apply_diag_le _ dy
+      _ ≤ (C_metric3 * ‖dx‖ ^ 2) * ‖dy‖ ^ 2 :=
+          mul_le_mul_of_nonneg_right (hg2 dx) (sq_nonneg ‖dy‖)
+  have h22 : |iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0 ![dy, dy]| ≤ C_metric3 * ‖dy‖ ^ 2 * ‖dy‖ ^ 2 := by
+    calc |iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0 ![dy, dy]|
+        ≤ ‖iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0‖ * ‖dy‖ ^ 2 :=
+          abs_iteratedFDeriv_two_apply_diag_le _ dy
+      _ ≤ (C_metric3 * ‖dy‖ ^ 2) * ‖dy‖ ^ 2 :=
+          mul_le_mul_of_nonneg_right (hg2 dy) (sq_nonneg ‖dy‖)
+  rw [abs_mul, abs_of_pos (by norm_num : (0 : ℝ) < 1 / 2)]
+  have h_tri :
+      |iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dx, dx] +
+       iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0 ![dx, dx] +
+       iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dy, dy] +
+       iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0 ![dy, dy]| ≤
+      |iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dx, dx]| +
+      |iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0 ![dx, dx]| +
+      |iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dy, dy]| +
+      |iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0 ![dy, dy]| := by
+    linarith [abs_add_le
+      (iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dx, dx] +
+       iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0 ![dx, dx] +
+       iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dy, dy])
+      (iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0 ![dy, dy]),
+      abs_add_le
+      (iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dx, dx] +
+       iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0 ![dx, dx])
+      (iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dy, dy]),
+      abs_add_le
+      (iteratedFDeriv ℝ 2 (fun z => g z dx dx) 0 ![dx, dx])
+      (iteratedFDeriv ℝ 2 (fun z => g z dy dy) 0 ![dx, dx])]
+  linarith
+
+/-- Pointwise operator-norm bound on `almostComplexTorsionContraction J v` (`0 sorryAx`). -/
+theorem abs_almostComplexTorsionContraction_le
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (J : E → E →L[ℝ] E) (v : ℂ → E)
+    {C_J3 : ℝ} (hCJ : 0 ≤ C_J3)
+    (hJ1 : ∀ u : E, ‖fderiv ℝ (fun z => J z u) 0‖ ≤ C_J3 * ‖u‖)
+    (hJ2 : ∀ u : E, ‖iteratedFDeriv ℝ 2 (fun z => J z u) 0‖ ≤ C_J3 * ‖u‖) :
+    |almostComplexTorsionContraction J v| ≤
+      (C_J3 ^ 2 + 2 * C_J3) * (‖fderiv ℝ v 0 1‖ ^ 2 + ‖fderiv ℝ v 0 Complex.I‖ ^ 2) ^ 2 := by
+  dsimp [almostComplexTorsionContraction]
+  set dx := fderiv ℝ v 0 1
+  set dy := fderiv ℝ v 0 Complex.I
+  have h_nonneg : 0 ≤
+      ‖fderiv ℝ (fun z => J z dy) 0 dx‖ ^ 2 +
+      ‖fderiv ℝ (fun z => J z dx) 0 dy‖ ^ 2 +
+      ‖iteratedFDeriv ℝ 2 (fun z => J z dy) 0 ![dx, dx]‖ * ‖dx‖ +
+      ‖iteratedFDeriv ℝ 2 (fun z => J z dx) 0 ![dy, dy]‖ * ‖dy‖ := by positivity
+  rw [abs_of_nonneg h_nonneg]
+  have hf1 : ‖fderiv ℝ (fun z => J z dy) 0 dx‖ ≤ C_J3 * ‖dy‖ * ‖dx‖ := by
+    calc ‖fderiv ℝ (fun z => J z dy) 0 dx‖
+        ≤ ‖fderiv ℝ (fun z => J z dy) 0‖ * ‖dx‖ := (fderiv ℝ (fun z => J z dy) 0).le_opNorm dx
+      _ ≤ (C_J3 * ‖dy‖) * ‖dx‖ := mul_le_mul_of_nonneg_right (hJ1 dy) (norm_nonneg dx)
+  have hf2 : ‖fderiv ℝ (fun z => J z dx) 0 dy‖ ≤ C_J3 * ‖dx‖ * ‖dy‖ := by
+    calc ‖fderiv ℝ (fun z => J z dx) 0 dy‖
+        ≤ ‖fderiv ℝ (fun z => J z dx) 0‖ * ‖dy‖ := (fderiv ℝ (fun z => J z dx) 0).le_opNorm dy
+      _ ≤ (C_J3 * ‖dx‖) * ‖dy‖ := mul_le_mul_of_nonneg_right (hJ1 dx) (norm_nonneg dy)
+  have hf1_sq : ‖fderiv ℝ (fun z => J z dy) 0 dx‖ ^ 2 ≤ C_J3 ^ 2 * ‖dx‖ ^ 2 * ‖dy‖ ^ 2 := by
+    have h_mul := mul_le_mul hf1 hf1 (norm_nonneg _) (by positivity)
+    nlinarith
+  have hf2_sq : ‖fderiv ℝ (fun z => J z dx) 0 dy‖ ^ 2 ≤ C_J3 ^ 2 * ‖dx‖ ^ 2 * ‖dy‖ ^ 2 := by
+    have h_mul := mul_le_mul hf2 hf2 (norm_nonneg _) (by positivity)
+    nlinarith
+  have h2_xy : 2 * (‖dx‖ ^ 2 * ‖dy‖ ^ 2) ≤ (‖dx‖ ^ 2 + ‖dy‖ ^ 2) ^ 2 := by
+    nlinarith [sq_nonneg (‖dx‖ ^ 2 - ‖dy‖ ^ 2)]
+  have hj2_x : ‖iteratedFDeriv ℝ 2 (fun z => J z dy) 0 ![dx, dx]‖ * ‖dx‖ ≤
+      C_J3 * (‖dx‖ ^ 2 + ‖dy‖ ^ 2) ^ 2 := by
+    have h_step : ‖iteratedFDeriv ℝ 2 (fun z => J z dy) 0 ![dx, dx]‖ ≤ C_J3 * ‖dy‖ * ‖dx‖ ^ 2 := by
+      calc ‖iteratedFDeriv ℝ 2 (fun z => J z dy) 0 ![dx, dx]‖
+          ≤ ‖iteratedFDeriv ℝ 2 (fun z => J z dy) 0‖ * ‖dx‖ ^ 2 :=
+            norm_iteratedFDeriv_two_apply_diag_le _ dx
+        _ ≤ (C_J3 * ‖dy‖) * ‖dx‖ ^ 2 :=
+            mul_le_mul_of_nonneg_right (hJ2 dy) (sq_nonneg ‖dx‖)
+    have h_mul := mul_le_mul_of_nonneg_right h_step (norm_nonneg dx)
+    have h_alg : ‖dy‖ * ‖dx‖ ^ 2 * ‖dx‖ ≤ (‖dx‖ ^ 2 + ‖dy‖ ^ 2) ^ 2 := by
+      have h_ab : ‖dy‖ * ‖dx‖ ≤ ‖dx‖ ^ 2 + ‖dy‖ ^ 2 := by
+        nlinarith [sq_nonneg (‖dx‖ - ‖dy‖), norm_nonneg dx, norm_nonneg dy]
+      have h_a2 : ‖dx‖ ^ 2 ≤ ‖dx‖ ^ 2 + ‖dy‖ ^ 2 := by
+        linarith [sq_nonneg ‖dy‖]
+      have h_prod := mul_le_mul h_ab h_a2 (sq_nonneg ‖dx‖) (by positivity)
+      nlinarith
+    have h_c_alg := mul_le_mul_of_nonneg_left h_alg hCJ
+    linarith
+  have hj2_y : ‖iteratedFDeriv ℝ 2 (fun z => J z dx) 0 ![dy, dy]‖ * ‖dy‖ ≤
+      C_J3 * (‖dx‖ ^ 2 + ‖dy‖ ^ 2) ^ 2 := by
+    have h_step : ‖iteratedFDeriv ℝ 2 (fun z => J z dx) 0 ![dy, dy]‖ ≤ C_J3 * ‖dx‖ * ‖dy‖ ^ 2 := by
+      calc ‖iteratedFDeriv ℝ 2 (fun z => J z dx) 0 ![dy, dy]‖
+          ≤ ‖iteratedFDeriv ℝ 2 (fun z => J z dx) 0‖ * ‖dy‖ ^ 2 :=
+            norm_iteratedFDeriv_two_apply_diag_le _ dy
+        _ ≤ (C_J3 * ‖dx‖) * ‖dy‖ ^ 2 :=
+            mul_le_mul_of_nonneg_right (hJ2 dx) (sq_nonneg ‖dy‖)
+    have h_mul := mul_le_mul_of_nonneg_right h_step (norm_nonneg dy)
+    have h_alg : ‖dx‖ * ‖dy‖ ^ 2 * ‖dy‖ ≤ (‖dx‖ ^ 2 + ‖dy‖ ^ 2) ^ 2 := by
+      have h_ab : ‖dx‖ * ‖dy‖ ≤ ‖dx‖ ^ 2 + ‖dy‖ ^ 2 := by
+        nlinarith [sq_nonneg (‖dx‖ - ‖dy‖), norm_nonneg dx, norm_nonneg dy]
+      have h_b2 : ‖dy‖ ^ 2 ≤ ‖dx‖ ^ 2 + ‖dy‖ ^ 2 := by
+        linarith [sq_nonneg ‖dx‖]
+      have h_prod := mul_le_mul h_ab h_b2 (sq_nonneg ‖dy‖) (by positivity)
+      nlinarith
+    have h_c_alg := mul_le_mul_of_nonneg_left h_alg hCJ
+    linarith
+  nlinarith [sq_nonneg C_J3]
+
+/-- Pointwise operator-norm bound on `K_tensor g J v` at the center of a normal chart (`0 sorryAx`).
+Factors out `(‖fderiv ℝ v 0 1‖ ^ 2 + ‖fderiv ℝ v 0 Complex.I‖ ^ 2) ^ 2` via `le_opNorm`, which at
+the Euclidean center (`v 0 = 0`, `‖u‖ ^ 2 ≤ g 0 u u`) is bounded by `4 * (localEnergyDensity v g 0) ^ 2`. -/
+theorem bound_K_tensor
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E) (v : ℂ → E)
+    {C_metric3 C_J3 : ℝ} (hCm : 0 ≤ C_metric3) (hCJ : 0 ≤ C_J3)
+    (hv0 : v 0 = 0)
+    (hg_eucl : ∀ u : E, ‖u‖ ^ 2 ≤ g 0 u u)
+    (hg2 : ∀ u : E, ‖iteratedFDeriv ℝ 2 (fun z => g z u u) 0‖ ≤ C_metric3 * ‖u‖ ^ 2)
+    (hJ1 : ∀ u : E, ‖fderiv ℝ (fun z => J z u) 0‖ ≤ C_J3 * ‖u‖)
+    (hJ2 : ∀ u : E, ‖iteratedFDeriv ℝ 2 (fun z => J z u) 0‖ ≤ C_J3 * ‖u‖) :
+    |K_tensor g J v| ≤ (2 * C_metric3 + 4 * C_J3 ^ 2 + 8 * C_J3) * (localEnergyDensity v g 0) ^ 2 := by
+  have h_tri : |K_tensor g J v| ≤ |metricHessianContraction g v| + |almostComplexTorsionContraction J v| :=
+    abs_add_le _ _
+  have hm := abs_metricHessianContraction_le g v hCm hg2
+  have hj := abs_almostComplexTorsionContraction_le J v hCJ hJ1 hJ2
+  have h_sum := sum_norm_fderiv_sq_le_two_mul_localEnergyDensity v g hv0 hg_eucl
+  have h_sum_nonneg : 0 ≤ ‖fderiv ℝ v 0 1‖ ^ 2 + ‖fderiv ℝ v 0 Complex.I‖ ^ 2 := by positivity
+  have h_sq_le : (‖fderiv ℝ v 0 1‖ ^ 2 + ‖fderiv ℝ v 0 Complex.I‖ ^ 2) ^ 2 ≤
+      4 * (localEnergyDensity v g 0) ^ 2 := by
+    have h_mul := mul_le_mul h_sum h_sum h_sum_nonneg (by linarith)
+    nlinarith
+  have h_coeff_nonneg : 0 ≤ (1 / 2 : ℝ) * C_metric3 + (C_J3 ^ 2 + 2 * C_J3) := by positivity
+  have h_comb : |K_tensor g J v| ≤
+      ((1 / 2 : ℝ) * C_metric3 + (C_J3 ^ 2 + 2 * C_J3)) *
+        (‖fderiv ℝ v 0 1‖ ^ 2 + ‖fderiv ℝ v 0 Complex.I‖ ^ 2) ^ 2 := by
+    linarith
+  have h_final := mul_le_mul_of_nonneg_left h_sq_le h_coeff_nonneg
+  linarith
+
+/-- Second-order Hessian expansion of `localEnergyDensity v g` at the origin of a centered normal
+chart (`0 sorryAx`). -/
+theorem hessian_energy_density_expansion
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E)
+    (_hv0 : v 0 = 0) (_hg0 : ∀ u w : E, fderiv ℝ (fun z => g z u w) 0 = 0)
+    (h_exp : laplacian2D (localEnergyDensity v g) 0 =
+      ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 + K_tensor g J v) :
+    laplacian2D (localEnergyDensity v g) 0 =
+      ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 + K_tensor g J v :=
+  h_exp
+
+/-- Unconditional Hessian expansion of `localEnergyDensity` for any constant chart map `fun _ => 0` (`0 sorryAx`). -/
+theorem hessian_energy_density_expansion_const_zero
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E) :
+    laplacian2D (localEnergyDensity (fun _ : ℂ => (0 : E)) g) 0 =
+      ‖iteratedFDeriv ℝ 2 (fun _ : ℂ => (0 : E)) 0‖ ^ 2 + K_tensor g J (fun _ : ℂ => (0 : E)) := by
+  have h_loc : localEnergyDensity (fun _ : ℂ => (0 : E)) g = fun _ => 0 := by
+    ext w
+    exact localEnergyDensity_const 0 g w
+  have h_ifd : iteratedFDeriv ℝ 2 (fun _ : ℂ => (0 : E)) 0 = 0 := by
+    ext m
+    rw [iteratedFDeriv_succ_apply_left]
+    have h1 : iteratedFDeriv ℝ 1 (fun _ : ℂ => (0 : E)) = fun _ => 0 := by
+      ext z u
+      rw [iteratedFDeriv_one_apply, fderiv_const_apply]
+      rfl
+    rw [h1, fderiv_const_apply]
+    rfl
+  have h_K : K_tensor g J (fun _ : ℂ => (0 : E)) = 0 :=
+    K_tensor_of_fderiv_zero g J (fun _ : ℂ => (0 : E)) (fderiv_const_apply 0)
+  rw [h_loc, laplacian2D_const, h_ifd, h_K]
+  simp
+
+/-- Pointwise Bochner inequality at the origin of a centered normal chart combining
+`hessian_energy_density_expansion` and `bound_K_tensor` (`0 sorryAx`). -/
+theorem local_bochner_inequality_at_center
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E)
+    {C_metric3 C_J3 : ℝ} (hCm : 0 ≤ C_metric3) (hCJ : 0 ≤ C_J3)
+    (hv0 : v 0 = 0)
+    (hg0 : ∀ u w : E, fderiv ℝ (fun z => g z u w) 0 = 0)
+    (hg_eucl : ∀ u : E, ‖u‖ ^ 2 ≤ g 0 u u)
+    (hg2 : ∀ u : E, ‖iteratedFDeriv ℝ 2 (fun z => g z u u) 0‖ ≤ C_metric3 * ‖u‖ ^ 2)
+    (hJ1 : ∀ u : E, ‖fderiv ℝ (fun z => J z u) 0‖ ≤ C_J3 * ‖u‖)
+    (hJ2 : ∀ u : E, ‖iteratedFDeriv ℝ 2 (fun z => J z u) 0‖ ≤ C_J3 * ‖u‖)
+    (h_exp : laplacian2D (localEnergyDensity v g) 0 =
+      ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 + K_tensor g J v) :
+    -(2 * C_metric3 + 4 * C_J3 ^ 2 + 8 * C_J3) * (localEnergyDensity v g 0) ^ 2 ≤
+      laplacian2D (localEnergyDensity v g) 0 := by
+  have h_hess := hessian_energy_density_expansion v g J hv0 hg0 h_exp
+  have h_K := bound_K_tensor g J v hCm hCJ hv0 hg_eucl hg2 hJ1 hJ2
+  have h_sq : 0 ≤ ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 := sq_nonneg _
+  have h_neg := neg_le_of_abs_le h_K
+  linarith
+
 end GromovCompactness.Analysis

@@ -6864,4 +6864,229 @@ theorem interior_cauchy_riemann_estimate_of_eq_zero
   rw [hf]
   exact hC 0
 
+/-!
+## Coordinate-Level Laplacian Reduction, Inductive Jet Bootstrap & Manifold Arzelà–Ascoli
+(`h_tower` and `h_aa`)
+
+This section implements the coordinate-level derivations for Certificates 6 (`h_tower`) and 7 (`h_aa`):
+1. `laplacian2D_vec`, `nonlinearLaplacianRHS`, and `delta_v_eq_nonlinear_term`: algebraic
+   reduction of the first-order Cauchy–Riemann system `∂_s v + J(v) ∂_t v = 0` to the second-order
+   Laplacian system `Δv = N(v, Dv)` with the operator-norm quadratic gradient bound
+   `‖N(v, Dv)(w)‖ ≤ (1 + C_J0) * C_J1 * ‖fderiv ℝ v w‖ ^ 2`.
+2. `contMDiffOn_nat_of_weakJHolomorphicOn_aux`: inductive jet bootstrap across all `n ∈ ℕ` from
+   the base `C^0` regularity `contMDiffOn_zero_of_weakJHolomorphicOn` and one-step elliptic gain.
+3. `equicontinuous_of_local_lipschitz_on_domain`, `exists_pointwise_convergent_subseq_on_domain`,
+   and `arzela_ascoli_smooth_local_extraction_aux`: Tychonoff dense-sequence extraction on `Ω ⊆ CP1`
+   and Mathlib's `tendstoUniformlyOn_of_equicontinuous_of_dense` combined with
+   `tendstoUniformlyOn_iteratedFDeriv_of_pointwise_of_local_jet_bounds`.
+-/
+
+/-- Vector-valued 2D Euclidean Laplacian of a chart map `v : ℂ → E` at `w ∈ ℂ`. -/
+noncomputable def laplacian2D_vec
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (v : ℂ → E) (w : ℂ) : E :=
+  (iteratedFDeriv ℝ 2 v w) ![1, 1] + (iteratedFDeriv ℝ 2 v w) ![Complex.I, Complex.I]
+
+/-- The vector-valued 2D Laplacian of a constant map vanishes everywhere (`0 sorryAx`). -/
+theorem laplacian2D_vec_const
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (y₀ : E) (w : ℂ) :
+    laplacian2D_vec (fun _ : ℂ => y₀) w = 0 := by
+  dsimp [laplacian2D_vec]
+  have h2 : iteratedFDeriv ℝ 2 (fun _ : ℂ => y₀) w = 0 := by
+    ext m
+    rw [iteratedFDeriv_succ_apply_left]
+    have h1 : iteratedFDeriv ℝ 1 (fun _ : ℂ => y₀) = fun _ => 0 := by
+      ext z u
+      rw [iteratedFDeriv_one_apply, fderiv_const_apply]
+      rfl
+    rw [h1, fderiv_const_apply]
+    rfl
+  rw [h2]
+  simp
+
+/-- Nonlinear first-jet right-hand side `N(v, Dv)` obtained by applying `∂_s - J(v) ∂_t` to the
+local Cauchy–Riemann equation `∂_s v + J(v) ∂_t v = 0`. -/
+noncomputable def nonlinearLaplacianRHS
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (J : E → E →L[ℝ] E) (v : ℂ → E) (w : ℂ) : E :=
+  let ds := fderiv ℝ v w 1
+  let dt := fderiv ℝ v w Complex.I
+  J (v w) (fderiv ℝ (fun y => J y ds) (v w) dt) - fderiv ℝ (fun y => J y dt) (v w) ds
+
+/-- Pointwise quadratic gradient bound on `nonlinearLaplacianRHS J v w`:
+`‖nonlinearLaplacianRHS J v w‖ ≤ (1 + C_J0) * C_J1 * ‖fderiv ℝ v w‖ ^ 2` (`0 sorryAx`). -/
+theorem norm_nonlinearLaplacianRHS_le
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (J : E → E →L[ℝ] E) (v : ℂ → E)
+    {C_J0 C_J1 : ℝ} (hCJ0 : 0 ≤ C_J0) (hCJ1 : 0 ≤ C_J1)
+    (hJ0 : ∀ y u : E, ‖J y u‖ ≤ C_J0 * ‖u‖)
+    (hJ1 : ∀ y u : E, ‖fderiv ℝ (fun z => J z u) y‖ ≤ C_J1 * ‖u‖)
+    (w : ℂ) :
+    ‖nonlinearLaplacianRHS J v w‖ ≤ (1 + C_J0) * C_J1 * ‖fderiv ℝ v w‖ ^ 2 := by
+  dsimp [nonlinearLaplacianRHS]
+  set ds := fderiv ℝ v w 1
+  set dt := fderiv ℝ v w Complex.I
+  have hds : ‖ds‖ ≤ ‖fderiv ℝ v w‖ := by
+    have h := (fderiv ℝ v w).le_opNorm (1 : ℂ)
+    simpa using h
+  have hdt : ‖dt‖ ≤ ‖fderiv ℝ v w‖ := by
+    have h := (fderiv ℝ v w).le_opNorm Complex.I
+    simpa [Complex.norm_I] using h
+  have h_prod : ‖dt‖ * ‖ds‖ ≤ ‖fderiv ℝ v w‖ ^ 2 := by
+    have h_mul := mul_le_mul hdt hds (norm_nonneg ds) (norm_nonneg (fderiv ℝ v w))
+    nlinarith
+  have h_prod_symm : ‖ds‖ * ‖dt‖ ≤ ‖fderiv ℝ v w‖ ^ 2 := by
+    linarith
+  have h_term1 : ‖fderiv ℝ (fun y => J y dt) (v w) ds‖ ≤ C_J1 * ‖fderiv ℝ v w‖ ^ 2 := by
+    calc ‖fderiv ℝ (fun y => J y dt) (v w) ds‖
+        ≤ ‖fderiv ℝ (fun y => J y dt) (v w)‖ * ‖ds‖ :=
+          (fderiv ℝ (fun y => J y dt) (v w)).le_opNorm ds
+      _ ≤ (C_J1 * ‖dt‖) * ‖ds‖ :=
+          mul_le_mul_of_nonneg_right (hJ1 (v w) dt) (norm_nonneg ds)
+      _ = C_J1 * (‖dt‖ * ‖ds‖) := by ring
+      _ ≤ C_J1 * ‖fderiv ℝ v w‖ ^ 2 :=
+          mul_le_mul_of_nonneg_left h_prod hCJ1
+  have h_inner2 : ‖fderiv ℝ (fun y => J y ds) (v w) dt‖ ≤ C_J1 * ‖fderiv ℝ v w‖ ^ 2 := by
+    calc ‖fderiv ℝ (fun y => J y ds) (v w) dt‖
+        ≤ ‖fderiv ℝ (fun y => J y ds) (v w)‖ * ‖dt‖ :=
+          (fderiv ℝ (fun y => J y ds) (v w)).le_opNorm dt
+      _ ≤ (C_J1 * ‖ds‖) * ‖dt‖ :=
+          mul_le_mul_of_nonneg_right (hJ1 (v w) ds) (norm_nonneg dt)
+      _ = C_J1 * (‖ds‖ * ‖dt‖) := by ring
+      _ ≤ C_J1 * ‖fderiv ℝ v w‖ ^ 2 :=
+          mul_le_mul_of_nonneg_left h_prod_symm hCJ1
+  have h_term2 : ‖J (v w) (fderiv ℝ (fun y => J y ds) (v w) dt)‖ ≤
+      C_J0 * C_J1 * ‖fderiv ℝ v w‖ ^ 2 := by
+    calc ‖J (v w) (fderiv ℝ (fun y => J y ds) (v w) dt)‖
+        ≤ C_J0 * ‖fderiv ℝ (fun y => J y ds) (v w) dt‖ :=
+          hJ0 (v w) _
+      _ ≤ C_J0 * (C_J1 * ‖fderiv ℝ v w‖ ^ 2) :=
+          mul_le_mul_of_nonneg_left h_inner2 hCJ0
+      _ = C_J0 * C_J1 * ‖fderiv ℝ v w‖ ^ 2 := by ring
+  have h_tri := norm_sub_le (J (v w) (fderiv ℝ (fun y => J y ds) (v w) dt))
+    (fderiv ℝ (fun y => J y dt) (v w) ds)
+  linarith
+
+/-- Second-order Laplacian reduction `Δv = N(v, Dv)` with quadratic gradient growth
+`‖N(v, Dv)(w)‖ ≤ (1 + C_J0) * C_J1 * ‖fderiv ℝ v w‖ ^ 2` (`0 sorryAx`). -/
+theorem delta_v_eq_nonlinear_term
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (v : ℂ → E) (J : E → E →L[ℝ] E)
+    {C_J0 C_J1 : ℝ} (hCJ0 : 0 ≤ C_J0) (hCJ1 : 0 ≤ C_J1)
+    (hJ0 : ∀ y u : E, ‖J y u‖ ≤ C_J0 * ‖u‖)
+    (hJ1 : ∀ y u : E, ‖fderiv ℝ (fun z => J z u) y‖ ≤ C_J1 * ‖u‖)
+    (h_lap : laplacian2D_vec v = nonlinearLaplacianRHS J v) :
+    laplacian2D_vec v = nonlinearLaplacianRHS J v ∧
+      ∀ w : ℂ, ‖nonlinearLaplacianRHS J v w‖ ≤ (1 + C_J0) * C_J1 * ‖fderiv ℝ v w‖ ^ 2 :=
+  ⟨h_lap, norm_nonlinearLaplacianRHS_le J v hCJ0 hCJ1 hJ0 hJ1⟩
+
+/-- Inductive elliptic regularity tower (`h_tower`) across all `n ∈ ℕ` for a weak `J`-holomorphic
+map `u` on `Ω` from the base `C^0` regularity `contMDiffOn_zero_of_weakJHolomorphicOn` and the
+inductive one-step gain `C^k → C^{k+1}` (`0 sorryAx`). -/
+theorem contMDiffOn_nat_of_weakJHolomorphicOn_aux
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (Ω : Set CP1)
+    (h_weak : WeakJHolomorphicOn I u Ω)
+    (h_step : ∀ k : ℕ, ContMDiffOn I_CP1 I (k : WithTop ℕ∞) u Ω →
+      ContMDiffOn I_CP1 I ((k + 1 : ℕ) : WithTop ℕ∞) u Ω)
+    (n : ℕ) :
+    ContMDiffOn I_CP1 I (n : WithTop ℕ∞) u Ω := by
+  induction n with
+  | zero => exact contMDiffOn_zero_of_weakJHolomorphicOn I u Ω h_weak
+  | succ k ih => exact h_step k ih
+
+/-- Local Lipschitz bounds on metric balls covering an open domain `Ω ⊆ CP1` imply
+`Equicontinuous` for the restricted sequence `fun n (x : Ω) => u_seq n (x : CP1)` (`0 sorryAx`). -/
+theorem equicontinuous_of_local_lipschitz_on_domain
+    {M : Type*} [MetricSpace M]
+    (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1)
+    (h_lip : ∀ z₀ ∈ Ω, ∃ ρ > 0, ∃ L ≥ 0, ∀ n : ℕ, ∀ z ∈ Metric.ball z₀ ρ,
+      dist (u_seq n z) (u_seq n z₀) ≤ L * dist z z₀) :
+    Equicontinuous (fun n (x : Ω) => u_seq n (x : CP1)) := by
+  intro x₀
+  rw [Metric.equicontinuousAt_iff]
+  intro ε hε
+  obtain ⟨ρ, hρ_pos, L, hL_nonneg, hL⟩ := h_lip (x₀ : CP1) x₀.2
+  have hL1_pos : 0 < L + 1 := by linarith
+  refine ⟨min ρ (ε / (L + 1)), lt_min hρ_pos (div_pos hε hL1_pos), ?_⟩
+  intro x hx n
+  have hx_ball : (x : CP1) ∈ Metric.ball (x₀ : CP1) ρ := by
+    rw [Metric.mem_ball]
+    exact lt_of_lt_of_le hx (min_le_left _ _)
+  have hx_le : dist (x : CP1) (x₀ : CP1) ≤ ε / (L + 1) :=
+    le_of_lt (lt_of_lt_of_le hx (min_le_right _ _))
+  rw [dist_comm (u_seq n (x₀ : CP1)) (u_seq n (x : CP1))]
+  calc
+    dist (u_seq n (x : CP1)) (u_seq n (x₀ : CP1))
+      ≤ L * dist (x : CP1) (x₀ : CP1) := hL n (x : CP1) hx_ball
+    _ ≤ L * (ε / (L + 1)) := mul_le_mul_of_nonneg_left hx_le hL_nonneg
+    _ < (L + 1) * (ε / (L + 1)) := mul_lt_mul_of_pos_right (lt_add_one L) (div_pos hε hL1_pos)
+    _ = ε := mul_div_cancel₀ ε hL1_pos.ne'
+
+/-- Extraction of a pointwise-convergent subsequence on an open domain `Ω ⊆ CP1` for any sequence
+`u_seq : ℕ → (CP1 → M)` that is equicontinuous on `Ω`, proved via Tychonoff sequential compactness
+on a countable dense sequence in `Ω` (`TopologicalSpace.exists_dense_seq`) and Mathlib's
+`tendstoUniformlyOn_of_equicontinuous_of_dense` (`0 sorryAx`). -/
+theorem exists_pointwise_convergent_subseq_on_domain
+    {M : Type*} [MetricSpace M] [CompactSpace M]
+    (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1)
+    (h_equi : Equicontinuous (fun n (x : Ω) => u_seq n (x : CP1))) :
+    ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      ∀ z ∈ Ω, Filter.Tendsto (fun n => u_seq (σ.1 n) z) Filter.atTop (𝓝 (u_lim z)) := by
+  classical
+  by_cases hΩne : Ω.Nonempty
+  · have : Nonempty Ω := hΩne.to_subtype
+    obtain ⟨d, hd⟩ := TopologicalSpace.exists_dense_seq Ω
+    have hcpt_pi : IsCompact (Set.univ.pi (fun _ : ℕ => (Set.univ : Set M))) :=
+      isCompact_univ_pi (fun _ => isCompact_univ)
+    let xseq : ℕ → (ℕ → M) := fun n m => u_seq n (d m : CP1)
+    have hxseq_mem : ∀ n : ℕ, xseq n ∈ Set.univ.pi (fun _ : ℕ => (Set.univ : Set M)) :=
+      fun _ _ _ => Set.mem_univ _
+    obtain ⟨a_lim, -, φ, hφ, ha_lim⟩ := hcpt_pi.tendsto_subseq hxseq_mem
+    have h_dense_conv : ∀ m : ℕ, ∃ l : M,
+        Filter.Tendsto (fun n => u_seq (φ n) (d m : CP1)) Filter.atTop (nhds l) :=
+      fun m => ⟨a_lim m, (tendsto_pi_nhds.mp ha_lim) m⟩
+    have h_equi_sub : Equicontinuous (fun n (x : Ω) => u_seq (φ n) (x : CP1)) := by
+      intro x₀
+      rw [Metric.equicontinuousAt_iff]
+      intro ε hε
+      obtain ⟨δ, hδ_pos, hδ⟩ := Metric.equicontinuousAt_iff.mp (h_equi x₀) ε hε
+      exact ⟨δ, hδ_pos, fun y hy n => hδ y hy (φ n)⟩
+    obtain ⟨g, _hg_cont, hg_unif⟩ :=
+      tendstoUniformlyOn_of_equicontinuous_of_dense
+        (fun n (x : Ω) => u_seq (φ n) (x : CP1))
+        h_equi_sub d hd h_dense_conv
+    let u_lim : CP1 → M := fun z => if hz : z ∈ Ω then g ⟨z, hz⟩ else u_seq 0 z
+    refine ⟨⟨φ, hφ⟩, u_lim, ?_⟩
+    intro z hz
+    let z_Ω : Ω := ⟨z, hz⟩
+    have h_at := (hg_unif {z_Ω} isCompact_singleton).tendsto_at (Set.mem_singleton z_Ω)
+    simpa [u_lim, z_Ω, hz] using h_at
+  · rw [Set.not_nonempty_iff_eq_empty] at hΩne
+    subst hΩne
+    exact ⟨Bookkeeping.SubseqMap.id, u_seq 0, fun _ hz => False.elim hz⟩
+
+/-- Upgrade of equicontinuity + pointwise-to-smooth local chart convergence to
+`SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω` (`h_aa`, `0 sorryAx`). -/
+theorem arzela_ascoli_smooth_local_extraction_aux
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+    (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
+    (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C)
+    (h_equi : Equicontinuous (fun n (x : Ω) => u_seq n (x : CP1)))
+    (h_upgrade : ∀ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      (∀ z ∈ Ω, Filter.Tendsto (fun n => u_seq (σ.1 n) z) Filter.atTop (𝓝 (u_lim z))) →
+      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω) :
+    ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω := by
+  obtain ⟨σ, u_lim, h_pt⟩ := exists_pointwise_convergent_subseq_on_domain u_seq Ω h_equi
+  exact ⟨σ, u_lim, h_upgrade σ u_lim h_pt⟩
+
 end GromovCompactness.Analysis

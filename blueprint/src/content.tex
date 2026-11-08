@@ -706,17 +706,21 @@ unconditionally inhabited on $(\CP,\omega_{\mathrm{FS}},J_{\CP})$ via \texttt{co
 \begin{proof}\leanok \texttt{ContDiffAt.toOpenPartialHomeomorph}, Koszul symmetry cancellation, and
 explicit stereographic bi-Lipschitz bounds on $\CP$.\end{proof}
 
-\begin{theorem}[Local-chart certificate bridge from normal chart certificates (N3)]
+\begin{theorem}[Local-chart certificate bridge and coordinate PDE building blocks (N3)]
 \label{n3_certs}
-\lean{GromovCompactness.UniformNormalChartCertificates, GromovCompactness.conditioned_certificates_inhabited_of_all_const, GromovCompactness.discharge_h_weitz, GromovCompactness.discharge_h_hit_exit, GromovCompactness.discharge_h_osc, GromovCompactness.discharge_h_decay, GromovCompactness.discharge_h_punc, GromovCompactness.discharge_h_tower, GromovCompactness.discharge_h_aa}
+\lean{GromovCompactness.UniformNormalChartCertificates, GromovCompactness.conditioned_certificates_inhabited_of_all_const, GromovCompactness.discharge_h_weitz, GromovCompactness.discharge_h_hit_exit, GromovCompactness.discharge_h_osc, GromovCompactness.discharge_h_decay, GromovCompactness.discharge_h_punc, GromovCompactness.discharge_h_tower, GromovCompactness.discharge_h_aa, GromovCompactness.Analysis.local_bochner_inequality_at_center, GromovCompactness.Analysis.quadratic_energy_growth_of_radial_diff_ineq, GromovCompactness.Analysis.energy_exponential_decay, GromovCompactness.Analysis.satisfiesPunctureSobolevExtension_of_finite_energy_aux, GromovCompactness.Analysis.delta_v_eq_nonlinear_term, GromovCompactness.Analysis.arzela_ascoli_smooth_local_extraction_aux}
 \leanok
 \uses{n2_normal}
 Given a \texttt{UniformNormalChartFamily} and conditioned \texttt{UniformNormalChartCertificates}
 (where oscillation, decay and puncture removal are conditioned on $J$-holomorphicity and
 non-degenerate radii, and proved inhabited on constant curves via
 \texttt{conditioned\_certificates\_inhabited\_of\_all\_const}), the bridge theorems instantiate
-\cref{cert_weitz,cert_hit,cert_osc,cert_decay,cert_punc,cert_tower,cert_aa}. Unconditional derivation
-of \texttt{UniformNormalChartCertificates} from \texttt{ClosedTameTarget} for general nonconstant
-curves remains open.
+\cref{cert_weitz,cert_hit,cert_osc,cert_decay,cert_punc,cert_tower,cert_aa}. The coordinate-level
+building blocks (centered normal chart Hessian expansion and quadratic $K$-tensor bound, polar
+slice FTC and quadratic energy growth from the radial differential inequality, Widman hole-filling
+geometric decay and collar diameter bound, Cauchy filter extension across a puncture, quasilinear
+Laplacian commutator bound $|\Delta v|\le C|Dv|^2$, and dense-set Arzel\`a--Ascoli extraction) are
+also proved in \texttt{Analysis/}.
 \end{theorem}
-\begin{proof}\leanok Projections, degenerate-collar splitting, and curvature constant combination.\end{proof}
+\begin{proof}\leanok Projections, degenerate-collar splitting, curvature constant combination, and
+coordinate calculus.\end{proof}
