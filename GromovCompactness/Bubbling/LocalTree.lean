@@ -1054,7 +1054,7 @@ theorem resolve_single_defect_tree_of_certificate
           child_rank_strict_decrease I thresh m b decomp h_ge z hz
         have h_pos : 0 < decomp.m_child z :=
           thresh.h_pos.trans_le (decomp.m_child_pos z hz)
-        exact ih (decomp.m_child z) h_rel h_pos (sdecomp.child_seq z) z _ (sdecomp.child_defect z hz)
+        exact ih (decomp.m_child z) h_rel h_pos (fun n => f (sdecomp.σ.1 n) ∘ (sdecomp.frame n).toHomeo) z _ (sdecomp.child_defect z hz)
       let child_trees : (z : ℂ) → z ∈ decomp.q →
           LocalDefectTree I thresh (decomp.m_child z) (decomp.v (stereo_chart.symm z)) :=
         fun z hz => Classical.choice (h_children z hz)

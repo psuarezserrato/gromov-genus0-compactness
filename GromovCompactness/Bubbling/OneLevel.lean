@@ -5,6 +5,8 @@ Authors: Autoformalization Team
 -/
 import GromovCompactness.Analysis.HoferRescaling
 import GromovCompactness.Bubbling.Neck
+import GromovCompactness.Topology.SmoothLocal
+import GromovCompactness.Topology.Subsequence
 
 open scoped Manifold ContDiff Topology
 open Metric Set MeasureTheory Filter GromovCompactness GromovCompactness.Analysis Finset Classical
@@ -1244,18 +1246,70 @@ def IsDefectSeq (f : ℕ → (CP1 → M)) (a : ℂ) (m : ℝ) (b : M) : Prop :=
   (∀ ε : ℝ, 0 < ε → ∃ r₀ : ℝ, 0 < r₀ ∧ ∀ r : ℝ, 0 < r → r ≤ r₀ →
     ∀ᶠ n in atTop, ∀ z ∈ annulus_at a (r / 2) r, dist (f n z) b < ε)
 
-/-- A one-level decomposition whose children are again genuine defects of some sequence
-(in the intended proof: the rescaled subsequence). -/
+/-- `IsDefectSeq` is stable under passing to a subsequence (`0 sorryAx`). -/
+theorem IsDefectSeq.subseq {f : ℕ → (CP1 → M)} {a : ℂ} {m : ℝ} {b : M}
+    (h : IsDefectSeq I f a m b) {φ : ℕ → ℕ} (hφ : StrictMono φ) :
+    IsDefectSeq I (fun n => f (φ n)) a m b := by
+  obtain ⟨hj, ⟨B, hB⟩, hfin, hmass, hann⟩ := h
+  refine ⟨fun n => hj (φ n), ⟨B, fun n => hB (φ n)⟩, fun n => hfin (φ n), ?_, ?_⟩
+  · intro ε hε
+    obtain ⟨r₀, hr₀, hr_fn⟩ := hmass ε hε
+    exact ⟨r₀, hr₀, fun r hr hrr => hφ.tendsto_atTop.eventually (hr_fn r hr hrr)⟩
+  · intro ε hε
+    obtain ⟨r₀, hr₀, hr_fn⟩ := hann ε hε
+    exact ⟨r₀, hr₀, fun r hr hrr => hφ.tendsto_atTop.eventually (hr_fn r hr hrr)⟩
+
+/-- A one-level decomposition of a genuine defect `IsDefectSeq I f a m_defect base_val`, realized
+by an actual rescaling of the sequence `f` (Contract B04, sequence-relative form).
+
+Data: a subsequence `σ`, centers `center n → a` and scales `scale n → 0`, and Möbius frames
+`frame n = affine_scaling (center n) (scale n) (scale_pos n)`.
+The rescaled sequence `g n = f (σ n) ∘ frame n` converges to the bubble `v` away from `∞` and the
+child points `q`, and each child point is again a genuine defect *of `g` itself*.
+
+Satisfiability (true mathematics; Gromov, McDuff–Salamon §4.6, Hofer rescaling): given a genuine
+defect of mass `m ≥ h` at `a`, choose `σ`, centers and scales by the calibrated Hofer rescaling
+(unit disk carries mass `m - h/2`); the rescaled maps have bounded energy and, after a further
+subsequence, converge in `C^∞_loc` off a finite set `q` to a `J`-holomorphic `v` with removable
+singularity at `∞`, `v(∞) = b` (neck/annulus condition), and every `z ∈ q` is a defect of `g`
+with mass `m_child z ≥ h`. The collapse fields are elementary consequences of the affine law
+together with `center → a`, `scale → 0`: `w ↦ c_n + λ_n w → a` uniformly on compacts of `ℂ`, and
+`z ↦ (z - c_n)/λ_n → ∞` uniformly on compacts avoiding `a`. The field `conv_north_pole` holds
+because if *all* energy of `f` concentrates at `a` (`E(f n) → m`), then the energy of `g n` near
+`∞` tends to `E(v; nbhd of ∞)`, which is below `ε_reg` for small neighbourhoods, so
+`ε`-regularity gives convergence across `∞` as well. -/
 structure SeqOneLevelDecomposition (thresh : TargetThresholds I M) (m_defect : ℝ) (base_val : M)
+    (f : ℕ → (CP1 → M)) (a : ℂ)
     extends OneLevelDecomposition I thresh m_defect base_val where
-  child_seq : ℂ → ℕ → (CP1 → M)
-  child_defect : ∀ z ∈ q, IsDefectSeq I (child_seq z) z (m_child z) (v (stereo_chart.symm z))
+  σ : Bookkeeping.SubseqMap
+  center : ℕ → ℂ
+  scale : ℕ → ℝ
+  scale_pos : ∀ n, 0 < scale n
+  center_tendsto : Tendsto center atTop (𝓝 a)
+  scale_tendsto : Tendsto scale atTop (𝓝 0)
+  frame : ℕ → MoebiusFrame := fun n => affine_scaling (center n) (scale n) (scale_pos n)
+  frame_affine : ∀ (n : ℕ) (w : ℂ),
+    (frame n).toHomeo (stereo_chart.symm w) = stereo_chart.symm (center n + (scale n : ℂ) * w) := by
+    intro n w; exact affine_scaling_stereo_chart_symm (center n) (scale n) (scale_pos n) w
+  frame_north_pole : ∀ n, (frame n).toHomeo north_pole = north_pole := by
+    intro n; exact affine_scaling_north_pole (center n) (scale n) (scale_pos n)
+  frame_collapse : ∀ K ⊆ punctured_sphere {north_pole}, IsCompact K →
+    TendstoUniformlyOn (fun n => (frame n).toHomeo) (fun _ => stereo_chart.symm a) atTop K
+  frame_inv_collapse : ∀ K ⊆ punctured_sphere {stereo_chart.symm a}, IsCompact K →
+    TendstoUniformlyOn (fun n => (MoebiusFrame.inv (frame n)).toHomeo) (fun _ => north_pole) atTop K
+  conv : SmoothLocalConvergesOn I (fun n => f (σ.1 n) ∘ (frame n).toHomeo) v
+    (punctured_sphere (insert north_pole (stereo_chart.symm '' (q : Set ℂ))))
+  conv_north_pole : Tendsto (fun n => totalEnergy I (f n)) atTop (𝓝 m_defect) →
+    SmoothLocalConvergesOn I (fun n => f (σ.1 n) ∘ (frame n).toHomeo) v {north_pole}
+  child_defect : ∀ z ∈ q,
+    IsDefectSeq I (fun n => f (σ.1 n) ∘ (frame n).toHomeo) z (m_child z) (v (stereo_chart.symm z))
 
 /-- Sequence-relative form of Contract B04: every genuine defect of mass `m ≥ h` admits a one-level
-decomposition whose children are genuine defects. This replaces the over-quantified
-`h_one_level`. -/
+decomposition realized by a rescaling of the sequence itself, whose children are genuine defects
+of the rescaled sequence. This replaces the over-quantified `h_one_level`. See
+`SeqOneLevelDecomposition` for the satisfiability argument. -/
 def OneLevelCertificate (thresh : TargetThresholds I M) : Prop :=
   ∀ (f : ℕ → (CP1 → M)) (a : ℂ) (m : ℝ) (b : M), thresh.h ≤ m →
-    IsDefectSeq I f a m b → Nonempty (SeqOneLevelDecomposition I thresh m b)
+    IsDefectSeq I f a m b → Nonempty (SeqOneLevelDecomposition I thresh m b f a)
 
 end GromovCompactness.Bubbling

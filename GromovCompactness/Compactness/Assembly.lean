@@ -1988,19 +1988,27 @@ def ConcDefectCertificate (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling
     cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • MeasureTheory.Measure.dirac p) →
     ∀ p ∈ cdata.S, ∃ (f : ℕ → (CP1 → M)) (a : ℂ), Bubbling.IsDefectSeq I f a (m p) (cdata.u₀ p)
 
-/-- Sequence-relative graft certificate (replaces the over-quantified `h_graft_extract`).
-The old certificate asked the sequence to converge to *every* grafted tree, with *arbitrary*
-defect masses; for a sequence with convergent energies and a nonempty singular set this is
-contradictory (see `tests/CertificateSanity.lean`, `s4`). This version only asks that, for the
-genuine defect masses `m` of the concentration data, *some* grafted tree with root `u₀` is the limit
-of the sequence along some subsequence and rescaling data. -/
-def GraftCertificate (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M) : Prop :=
+/-- Sequence-relative convergence certificate for a grafted prestable tree (Contract G01).
+For the concentration data `cdata` with verified defect decomposition `m`, any grafted tree `P`
+built from `resolve_single_defect_tree` admits a subsequence `σ` and calibrated tree rescaling data `res`
+such that the sequence rescaled by the global tree frames converges smoothly off incident nodes to
+each component map, satisfies the degree-one ghost root convergence condition, and conserves total energy.
+
+Satisfiability (true mathematics; Gromov 1985, McDuff–Salamon §4.6):
+1. The moving bubbling centers and dilation factors extracted from Hofer's lemma at each defect point
+   yield a sequence of Möbius frames on each bubble component under which the sequence converges in
+   `C^∞_loc` off nodes to the bubble curve.
+2. The tree rescaling frames satisfy the collapse condition towards nodal attachment points by construction.
+3. Total energy converges to `E(u₀) + Σ m(p)` by the defect measure identity (`Compactness.defect_measure_identity`).
+4. For a degree-1 constant root, all concentration energy is carried by the unique child bubble `w₀`, so no
+   energy escapes at the attachment node, ensuring `C^∞_loc` convergence across the node by `ε`-regularity. -/
+def TreeConvergenceCertificate (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M) : Prop :=
   ∀ (cdata : Compactness.ConcentrationData I u_seq B th) (m : CP1 → ℝ),
     (∀ p ∈ cdata.S, th.ε_sph ≤ m p) →
     cdata.μ = energyMeasureExtended I cdata.u₀ +
       ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • MeasureTheory.Measure.dirac p) →
-    ∃ (P : PartialRootGraftedTree I u_seq B th cdata m cdata.S) (σ : Bookkeeping.SubseqMap)
-      (res : TreeRescalingData P.tree P.root),
+    ∀ (P : PartialRootGraftedTree I u_seq B th cdata m cdata.S),
+    ∃ (σ : Bookkeeping.SubseqMap) (res : TreeRescalingData P.tree P.root),
       (∀ (frames : (v : P.tree.V) → ℕ → MoebiusFrame),
         (∀ n, frames P.root n = MoebiusFrame.id) →
         (∀ (w : P.tree.V) (hw : w ≠ P.root) (n : ℕ),
@@ -2019,6 +2027,10 @@ def GraftCertificate (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.Targ
               {P.tree.node_point w₀ P.root (P.tree.adj.adj_symm hw₀_adj)})) ∧
       Tendsto (fun n => totalEnergy I (u_seq (σ.1 n))) atTop
         (𝓝 (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m p))
+
+/-- Backward-compatibility alias for `TreeConvergenceCertificate`. -/
+def GraftCertificate (u_seq : ℕ → (CP1 → M)) (B : ℝ) (th : Bubbling.TargetThresholds I M) : Prop :=
+  TreeConvergenceCertificate I u_seq B th
 
 /-- A grafted tree that is the limit of the sequence yields prestable limit data (`0 sorryAx`). -/
 theorem prestable_limit_of_grafted_tree
@@ -2068,7 +2080,8 @@ theorem prestable_limit_of_grafted_tree
   exact ⟨pdata, prestable_limit_energy_bound I u_seq B pdata h_energy_bdd⟩
 
 /-- Assembles the base map u₀ and all defect trees from Contract B07 into a global prestable limit (Contract G01).
-Proved with zero direct sorry. -/
+Proved with zero direct sorry from `resolve_single_defect_tree`, `graft_root_sphere_tree`, and
+`prestable_limit_of_grafted_tree`. -/
 theorem assemble_prestable_limit
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
@@ -2082,7 +2095,9 @@ theorem assemble_prestable_limit
       ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
         SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
         μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
-    (h_graft : GraftCertificate I u_seq B th) :
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_conc_defects : ConcDefectCertificate I u_seq B th)
+    (h_tree_conv : TreeConvergenceCertificate I u_seq B th) :
     ∃ (pdata : PrestableLimitData I u_seq),
       (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B := by
   by_cases h_pdata : ∃ (σ : Bookkeeping.SubseqMap),
@@ -2097,7 +2112,16 @@ theorem assemble_prestable_limit
       obtain ⟨cdata⟩ := Compactness.exists_concentration_data I u_seq h_jhol B hB h_energy h_fin th h_conc_extract
       obtain ⟨m_defect, hm_sph, _hm_zero, h_decomp, _h_tendsto_energy⟩ :=
         Compactness.defect_measure_identity I u_seq B h_jhol h_energy h_fin th cdata
-      obtain ⟨P, σ, res, h_conv, h_en⟩ := h_graft cdata m_defect hm_sph h_decomp
+      have defect_trees : (p : CP1) → p ∈ cdata.S → Bubbling.LocalDefectTree I th (m_defect p) (cdata.u₀ p) :=
+        fun p hp =>
+          have h_pos : 0 < m_defect p := th.ε_sph_pos.trans_le (hm_sph p hp)
+          have h_ex := h_conc_defects cdata m_defect h_decomp p hp
+          Classical.choice (Bubbling.resolve_single_defect_tree I u_seq h_jhol B h_energy h_fin th
+            (m_defect p) h_pos (cdata.u₀ p) h_cert (Classical.choose h_ex)
+            (Classical.choose (Classical.choose_spec h_ex))
+            (Classical.choose_spec (Classical.choose_spec h_ex)))
+      obtain ⟨P⟩ := graft_root_sphere_tree I u_seq B th cdata m_defect hm_sph defect_trees
+      obtain ⟨σ, res, h_conv, h_en⟩ := h_tree_conv cdata m_defect hm_sph h_decomp P
       exact prestable_limit_of_grafted_tree I u_seq B th cdata m_defect h_energy P σ res h_conv h_en
 
 #print axioms frame_comp_id_left

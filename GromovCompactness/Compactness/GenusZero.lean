@@ -871,7 +871,9 @@ theorem gromov_compactness_core
       ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
         SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
         μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
-    (h_graft : Assembly.GraftCertificate I u_seq B th) :
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_conc_defects : Assembly.ConcDefectCertificate I u_seq B th)
+    (h_tree_conv : Assembly.TreeConvergenceCertificate I u_seq B th) :
     ∃ (u_lim : StableSphereTreeLimit I (M := M)),
       Nonempty (CompactnessWitness I u_seq u_lim) := by
   by_cases h_wit : ∃ (σ : Bookkeeping.SubseqMap) (u_lim : StableSphereTreeLimit I (M := M)),
@@ -881,7 +883,7 @@ theorem gromov_compactness_core
   · by_cases h_lt : B < th.ε_sph
     · exact gromov_compactness_core_of_lt_eps_sph I th u_seq B h_nonconst h_jhol h_energy h_lt
     · obtain ⟨pdata, _h_en_le⟩ := assemble_prestable_limit I th u_seq B h_jhol h_energy h_fin
-        h_conc_extract h_graft
+        h_conc_extract h_cert h_conc_defects h_tree_conv
       exact gromov_compactness_core_of_assemble_and_stabilize I u_seq pdata
         (stabilize_prestable_tree I th u_seq pdata h_nonconst h_jhol)
 
@@ -961,7 +963,9 @@ theorem gromov_subsequence_alternative
       ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
         SmoothLocalConvergesOn I (fun n => v ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
         μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
-    (h_graft : ∀ v : ℕ → (CP1 → M), Assembly.GraftCertificate I v B th) :
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_conc_defects : ∀ v : ℕ → (CP1 → M), Assembly.ConcDefectCertificate I v B th)
+    (h_tree_conv : ∀ v : ℕ → (CP1 → M), Assembly.TreeConvergenceCertificate I v B th) :
     (∃ (σ : Bookkeeping.SubseqMap) (c : M),
       Tendsto (fun n => u_seq (σ.1 n)) atTop (𝓝 (fun _ => c))) ∨
     (∃ (σ : Bookkeeping.SubseqMap) (u_lim : StableSphereTreeLimit I (M := M)),
@@ -969,7 +973,7 @@ theorem gromov_subsequence_alternative
   gromov_subsequence_alternative_of_core I th u_seq B h_jhol h_energy h_fin
     (fun v hv_nc hv_jhol hv_en hv_fin =>
       gromov_compactness_core I th v B hv_nc hv_jhol hv_en hv_fin
-        (h_conc_extract v) (h_graft v))
+        (h_conc_extract v) h_cert (h_conc_defects v) (h_tree_conv v))
 
 #print axioms compactnessWitness_energy_le
 #print axioms compactnessWitness_subseq_strictMono
