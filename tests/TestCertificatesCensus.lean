@@ -672,7 +672,17 @@ elab "#certificates_axiom_census" : command => do
     (`GromovCompactness.Analysis.contMDiffOn_nat_of_weakJHolomorphicOn_aux, "Cert 6 Coord: Inductive C^n regularity tower for weak J-holomorphic maps"),
     (`GromovCompactness.Analysis.equicontinuous_of_local_lipschitz_on_domain, "Cert 7 Coord: Local Lipschitz gradient bounds imply equicontinuity"),
     (`GromovCompactness.Analysis.exists_pointwise_convergent_subseq_on_domain, "Cert 7 Coord: Separable dense diagonalization and Arzela-Ascoli extraction"),
-    (`GromovCompactness.Analysis.arzela_ascoli_smooth_local_extraction_aux, "Cert 7 Coord: Smooth local subsequence extraction on manifolds")
+    (`GromovCompactness.Analysis.arzela_ascoli_smooth_local_extraction_aux, "Cert 7 Coord: Smooth local subsequence extraction on manifolds"),
+    -- Phase 1 First-Principles Extensions (Cert 5 Puncture Extension & Cert 7 Arzela-Ascoli Jet Upgrade)
+    (`GromovCompactness.Analysis.punctured_disk_oscillation_of_collar_oscillation, "Phase 1 Cert 5: Vanishing punctured-neighborhood oscillation from collar oscillation"),
+    (`GromovCompactness.Analysis.exists_limit_point_of_collar_oscillation, "Phase 1 Cert 5: Unconditional puncture limit point existence from collar oscillation"),
+    (`GromovCompactness.Analysis.exists_continuous_extension_of_collar_oscillation, "Phase 1 Cert 5: Unconditional C^0 extension across puncture from collar oscillation"),
+    (`GromovCompactness.Analysis.weakJHolomorphicOn_univ_of_c1_and_continuousAt_cr_at_puncture, "Phase 1 Cert 5: Global WeakJHolomorphicOn extension via punctured-sphere density"),
+    (`GromovCompactness.Analysis.satisfiesPunctureSobolevExtension_of_collar_oscillation_and_c1, "Phase 1 Cert 5: Full SatisfiesPunctureSobolevExtension synthesis from collar oscillation"),
+    (`GromovCompactness.Analysis.applyFramesSeq_eventually_eq_moebius, "Phase 1 Cert 7: Eventual reduction of ConvergingFrame lists to single MoebiusFrame"),
+    (`GromovCompactness.Analysis.smoothLocalConvergesOn_of_moebius_core, "Phase 1 Cert 7: Reduction of SmoothLocalConvergesOn to Moebius-frame CoreSmoothLocalConvergesOn"),
+    (`GromovCompactness.Analysis.tendsto_iteratedFDeriv_writtenInExtChartAt_of_local_jet_bounds, "Phase 1 Cert 7: Chartwise higher-jet convergence from pointwise limit and local jet bounds"),
+    (`GromovCompactness.Analysis.exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_moebius_core, "Phase 1 Cert 7: Equicontinuous subsequence extraction and Moebius-core smooth upgrade")
   ]
 
   logInfo m!"================================================================================"

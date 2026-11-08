@@ -7089,4 +7089,110 @@ theorem arzela_ascoli_smooth_local_extraction_aux
   obtain ⟨σ, u_lim, h_pt⟩ := exists_pointwise_convergent_subseq_on_domain u_seq Ω h_equi
   exact ⟨σ, u_lim, h_upgrade σ u_lim h_pt⟩
 
+/-- Under `DiscreteTopology MoebiusFrame`, any finite list of `ConvergingFrame`s eventually acts
+by precomposition with a single composite `ϕ : MoebiusFrame` (`0 sorryAx`). -/
+theorem applyFramesSeq_eventually_eq_moebius
+    {M : Type*} (frames : List ConvergingFrame) :
+    ∃ (ϕ : MoebiusFrame) (N : ℕ),
+      (∀ (u_seq : ℕ → (CP1 → M)) (n : ℕ), n ≥ N →
+        applyFramesSeq frames u_seq n = u_seq n ∘ ϕ.toHomeo) ∧
+      (∀ u_lim : CP1 → M, applyFramesLim frames u_lim = u_lim ∘ ϕ.toHomeo) ∧
+      (∀ Ω : Set CP1, applyFramesDomain frames Ω = ϕ.toHomeo ⁻¹' Ω) := by
+  induction frames with
+  | nil =>
+    exact ⟨MoebiusFrame.id, 0, fun _ _ _ => rfl, fun _ => rfl, fun _ => rfl⟩
+  | cons F Fs ih =>
+    obtain ⟨N_F, hF⟩ := tendsto_discrete F.tendsto
+    obtain ⟨ϕ_Fs, N_Fs, h_seq, h_lim, h_dom⟩ := ih
+    refine ⟨F.lim.comp ϕ_Fs, max N_F N_Fs, fun u_seq n hn => ?_, fun u_lim => ?_, fun Ω => ?_⟩
+    · have hnF : N_F ≤ n := (le_max_left N_F N_Fs).trans hn
+      have hnFs : N_Fs ≤ n := (le_max_right N_F N_Fs).trans hn
+      change applyFramesSeq Fs (fun k => u_seq k ∘ (F.seq k).toHomeo) n =
+        u_seq n ∘ (F.lim.comp ϕ_Fs).toHomeo
+      have h_step : (fun k => u_seq k ∘ (F.seq k).toHomeo) n =
+          (fun k => u_seq k ∘ F.lim.toHomeo) n := by
+        dsimp
+        rw [hF n hnF]
+      have h_cong := applyFramesSeq_congr_at Fs
+        (u_seq₁ := fun k => u_seq k ∘ (F.seq k).toHomeo)
+        (u_seq₂ := fun k => u_seq k ∘ F.lim.toHomeo) (n := n) h_step
+      rw [h_cong, h_seq (fun k => u_seq k ∘ F.lim.toHomeo) n hnFs]
+      rfl
+    · change applyFramesLim Fs (u_lim ∘ F.lim.toHomeo) = u_lim ∘ (F.lim.comp ϕ_Fs).toHomeo
+      rw [h_lim (u_lim ∘ F.lim.toHomeo)]
+      rfl
+    · change applyFramesDomain Fs (F.lim.toHomeo ⁻¹' Ω) = (F.lim.comp ϕ_Fs).toHomeo ⁻¹' Ω
+      rw [h_dom (F.lim.toHomeo ⁻¹' Ω)]
+      rfl
+
+/-- Frame-invariant `SmoothLocalConvergesOn` reduces to `CoreSmoothLocalConvergesOn` under fixed
+Möbius homeomorphisms `ϕ : MoebiusFrame` (`0 sorryAx`). -/
+theorem smoothLocalConvergesOn_of_moebius_core
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M]
+    (u_seq : ℕ → (CP1 → M)) (u_lim : CP1 → M) (Ω : Set CP1)
+    (h_core : ∀ ϕ : MoebiusFrame,
+      CoreSmoothLocalConvergesOn I (fun n => u_seq n ∘ ϕ.toHomeo) (u_lim ∘ ϕ.toHomeo) (ϕ.toHomeo ⁻¹' Ω)) :
+    SmoothLocalConvergesOn I u_seq u_lim Ω := by
+  intro frames
+  obtain ⟨ϕ, N, h_seq, h_lim, h_dom⟩ := applyFramesSeq_eventually_eq_moebius (M := M) frames
+  rw [h_lim u_lim, h_dom Ω]
+  exact coreSmoothLocalConvergesOn_congr_eventually I
+    ⟨N, fun n hn => (h_seq u_seq n hn).symm⟩ (h_core ϕ)
+
+/-- Chartwise jet-upgrade from `tendstoUniformlyOn_iteratedFDeriv_of_pointwise_of_local_jet_bounds`:
+at any point `z : CP1`, if `writtenInExtChartAt I_CP1 I z (u_seq n)` is smooth with uniform local
+jet bounds on an open neighborhood `U_z` of `extChartAt I_CP1 z z` and converges pointwise on `U_z`
+to `writtenInExtChartAt I_CP1 I z u_lim`, then the limit chart representation is $C^\infty$ on `U_z`
+and all higher jets `iteratedFDeriv ℝ k` converge at `extChartAt I_CP1 z z` without passing to a
+further subsequence (`0 sorryAx`). -/
+theorem tendsto_iteratedFDeriv_writtenInExtChartAt_of_local_jet_bounds
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    (u_seq : ℕ → (CP1 → M)) (u_lim : CP1 → M) (z : CP1)
+    {U_z : Set (EuclideanSpace ℝ (Fin 2))} (hU_z : IsOpen U_z)
+    (hx_z : (extChartAt I_CP1 z) z ∈ U_z)
+    (hf : ∀ n, ContDiffOn ℝ (⊤ : ℕ∞) (writtenInExtChartAt I_CP1 I z (u_seq n)) U_z)
+    (hbdd : ∀ (r : ℕ) (K : Set (EuclideanSpace ℝ (Fin 2))), IsCompact K → K ⊆ U_z →
+      ∃ C : ℝ, ∀ n : ℕ, ∀ x ∈ K,
+        ‖iteratedFDeriv ℝ r (writtenInExtChartAt I_CP1 I z (u_seq n)) x‖ ≤ C)
+    (hpoint : ∀ x ∈ U_z, Filter.Tendsto
+      (fun n => writtenInExtChartAt I_CP1 I z (u_seq n) x) Filter.atTop
+      (nhds (writtenInExtChartAt I_CP1 I z u_lim x))) :
+    ContDiffOn ℝ (⊤ : ℕ∞) (writtenInExtChartAt I_CP1 I z u_lim) U_z ∧
+      ∀ k : ℕ, Filter.Tendsto
+        (fun n => iteratedFDeriv ℝ k (writtenInExtChartAt I_CP1 I z (u_seq n)) ((extChartAt I_CP1 z) z))
+        Filter.atTop
+        (nhds (iteratedFDeriv ℝ k (writtenInExtChartAt I_CP1 I z u_lim) ((extChartAt I_CP1 z) z))) := by
+  obtain ⟨hsmooth, hunif⟩ :=
+    tendstoUniformlyOn_iteratedFDeriv_of_pointwise_of_local_jet_bounds hU_z
+      (fun n => writtenInExtChartAt I_CP1 I z (u_seq n))
+      (writtenInExtChartAt I_CP1 I z u_lim) hf hbdd hpoint
+  refine ⟨hsmooth, fun k => ?_⟩
+  exact (hunif k {(extChartAt I_CP1 z) z} isCompact_singleton
+    (Set.singleton_subset_iff.mpr hx_z)).tendsto_at (Set.mem_singleton _)
+
+/-- Synthesis of `exists_pointwise_convergent_subseq_on_domain` and `smoothLocalConvergesOn_of_moebius_core`
+for Certificate 7 (`h_aa`, `0 sorryAx`). -/
+theorem exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_moebius_core
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M]
+    (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1)
+    (h_equi : Equicontinuous (fun n (x : Ω) => u_seq n (x : CP1)))
+    (h_core : ∀ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      (∀ z ∈ Ω, Filter.Tendsto (fun n => u_seq (σ.1 n) z) Filter.atTop (𝓝 (u_lim z))) →
+      ∀ ϕ : MoebiusFrame,
+        CoreSmoothLocalConvergesOn I
+          (fun n => u_seq (σ.1 n) ∘ ϕ.toHomeo) (u_lim ∘ ϕ.toHomeo) (ϕ.toHomeo ⁻¹' Ω)) :
+    ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω := by
+  obtain ⟨σ, u_lim, h_pt⟩ := exists_pointwise_convergent_subseq_on_domain u_seq Ω h_equi
+  exact ⟨σ, u_lim, smoothLocalConvergesOn_of_moebius_core I
+    (fun n => u_seq (σ.1 n)) u_lim Ω (h_core σ u_lim h_pt)⟩
+
 end GromovCompactness.Analysis

@@ -734,11 +734,32 @@ bounds yield equicontinuity and separable dense-set Arzel\`a--Ascoli extraction 
 \begin{proof}\leanok Dyadic induction, \texttt{CompleteSpace.complete} on $M$, operator-norm bounds,
 and \texttt{tendstoUniformlyOn\_of\_equicontinuous\_of\_dense}.\end{proof}
 
+\begin{theorem}[Phase 1: Unconditional $C^0$ puncture extension and Möbius-frame Arzelà--Ascoli jet upgrade]
+\label{n3_phase1_punc_aa}
+\lean{GromovCompactness.Analysis.punctured_disk_oscillation_of_collar_oscillation, GromovCompactness.Analysis.exists_limit_point_of_collar_oscillation, GromovCompactness.Analysis.exists_continuous_extension_of_collar_oscillation, GromovCompactness.Analysis.weakJHolomorphicOn_univ_of_c1_and_continuousAt_cr_at_puncture, GromovCompactness.Analysis.satisfiesPunctureSobolevExtension_of_collar_oscillation_and_c1, GromovCompactness.Analysis.applyFramesSeq_eventually_eq_moebius, GromovCompactness.Analysis.smoothLocalConvergesOn_of_moebius_core, GromovCompactness.Analysis.tendsto_iteratedFDeriv_writtenInExtChartAt_of_local_jet_bounds, GromovCompactness.Analysis.exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_moebius_core}
+\leanok
+\uses{n3_coord_sing_boot, def_cinf_loc}
+(1) From finite punctured-sphere energy and collar oscillation (\texttt{h\_osc}) alone, any two points in
+a punctured disk lie in a single collar of energy $<(\varepsilon/5)^2$, yielding vanishing punctured-disk
+oscillation, unconditional existence of the puncture limit $m_*\in M$, unconditional continuous extension
+$u_{\mathrm{ext}}=\mathrm{update}\,u\,p\,m_*$, and global \texttt{WeakJHolomorphicOn} extension across $p$
+by punctured-sphere density whenever $u_{\mathrm{ext}}$ is $C^1$ with continuous Cauchy--Riemann defect at $p$.
+(2) Under discrete frame topology, any finite list of \texttt{ConvergingFrame}s eventually acts by a single
+composite $\phi\in\mathrm{MoebiusFrame}$, reducing \texttt{SmoothLocalConvergesOn} to
+\texttt{CoreSmoothLocalConvergesOn} under fixed Möbius frames, while
+\texttt{tendsto\_iteratedFDeriv\_writtenInExtChartAt\_of\_local\_jet\_bounds} upgrades pointwise chart
+convergence and local jet bounds to $C^\infty$ smoothness of the limit and convergence of all higher jets
+\texttt{iteratedFDeriv} $\R$ $k$ without passing to a further subsequence.
+\end{theorem}
+\begin{proof}\leanok Single-collar placement $r=\tfrac14\min(|w_1-a|,|w_2-a|)$,
+\texttt{dense\_punctured\_sphere}, \texttt{tendsto\_discrete}, and
+\texttt{tendstoUniformlyOn\_iteratedFDeriv\_of\_pointwise\_of\_local\_jet\_bounds}.\end{proof}
+
 \begin{theorem}[Local-chart certificate bridge from normal chart certificates (N3)]
 \label{n3_certs}
 \lean{GromovCompactness.UniformNormalChartCertificates, GromovCompactness.conditioned_certificates_inhabited_of_all_const, GromovCompactness.discharge_h_weitz, GromovCompactness.discharge_h_hit_exit, GromovCompactness.discharge_h_osc, GromovCompactness.discharge_h_decay, GromovCompactness.discharge_h_punc, GromovCompactness.discharge_h_tower, GromovCompactness.discharge_h_aa}
 \leanok
-\uses{n2_normal, n3_coord_bochner_mono, n3_coord_sing_boot}
+\uses{n2_normal, n3_coord_bochner_mono, n3_coord_sing_boot, n3_phase1_punc_aa}
 Given a \texttt{UniformNormalChartFamily} and conditioned \texttt{UniformNormalChartCertificates}
 (where oscillation, decay and puncture removal are conditioned on $J$-holomorphicity and
 non-degenerate radii, and proved inhabited on constant curves via

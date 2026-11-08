@@ -3058,4 +3058,176 @@ theorem satisfiesPunctureSobolevExtension_of_finite_energy_aux
   exact satisfiesPunctureSobolevExtension_of_update_weakJHolomorphicOn I u p m_star
     (h_weak_of_lim m_star hm_star)
 
+/-- Unconditional derivation of vanishing punctured-neighborhood oscillation from finite punctured-sphere
+energy and collar oscillation `SatisfiesCylinderCollarOscillation` (`0 sorryAx`).
+For any two points `z₁, z₂` in `disk_at a (R₀ / 2) \ {stereo_chart.symm a}`, both have strictly
+positive stereographic distance from `a`, so choosing `r = (1 / 4) * min (dist w₁ a) (dist w₂ a) > 0`
+places both `z₁` and `z₂` inside a single collar `annulus_at a (2 * r) (R₀ / 2)` whose parent annulus
+`annulus_at a r R₀` has energy `< (ε / 5) ^ 2` by `exists_punctured_disk_energy_lt`. -/
+theorem punctured_disk_oscillation_of_collar_oscillation
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ)
+    (h_energy : energyMeasureExtended I u (punctured_sphere {stereo_chart.symm a}) ≠ ⊤)
+    (h_osc : ∀ r R : ℝ, 0 < r → 2 * r < R / 2 → SatisfiesCylinderCollarOscillation I u a r R) :
+    ∀ ε > 0, ∃ U ∈ 𝓝 (stereo_chart.symm a),
+      ∀ z₁ ∈ U \ {stereo_chart.symm a}, ∀ z₂ ∈ U \ {stereo_chart.symm a},
+        dist (u z₁) (u z₂) < ε := by
+  intro ε hε
+  have hε5_sq : 0 < (ε / 5) ^ 2 := by positivity
+  obtain ⟨R₀, hR₀_pos, hR₀_energy⟩ := exists_punctured_disk_energy_lt I u a hε5_sq h_energy
+  have hR₀_half : 0 < R₀ / 2 := by linarith
+  refine ⟨disk_at a (R₀ / 2), (is_open_disk_at a (R₀ / 2)).mem_nhds (center_mem_disk_at a hR₀_half), ?_⟩
+  rintro z₁ ⟨⟨w₁, hw₁_ball, rfl⟩, hz₁_ne⟩ z₂ ⟨⟨w₂, hw₂_ball, rfl⟩, hz₂_ne⟩
+  have hw₁_ne : w₁ ≠ a := fun h => hz₁_ne (by rw [Set.mem_singleton_iff, h])
+  have hw₂_ne : w₂ ≠ a := fun h => hz₂_ne (by rw [Set.mem_singleton_iff, h])
+  have hd₁_pos : 0 < dist w₁ a := dist_pos.mpr hw₁_ne
+  have hd₂_pos : 0 < dist w₂ a := dist_pos.mpr hw₂_ne
+  have hd₁_lt : dist w₁ a < R₀ / 2 := Metric.mem_ball.mp hw₁_ball
+  have hd₂_lt : dist w₂ a < R₀ / 2 := Metric.mem_ball.mp hw₂_ball
+  let r := (1 / 4 : ℝ) * min (dist w₁ a) (dist w₂ a)
+  have hr_pos : 0 < r := by
+    dsimp [r]
+    exact mul_pos (by norm_num) (lt_min hd₁_pos hd₂_pos)
+  have h2r_lt_d1 : 2 * r < dist w₁ a := by
+    have h_le : min (dist w₁ a) (dist w₂ a) ≤ dist w₁ a := min_le_left _ _
+    dsimp [r]
+    linarith
+  have h2r_lt_d2 : 2 * r < dist w₂ a := by
+    have h_le : min (dist w₁ a) (dist w₂ a) ≤ dist w₂ a := min_le_right _ _
+    dsimp [r]
+    linarith
+  have h2r_lt_half : 2 * r < R₀ / 2 := lt_trans h2r_lt_d1 hd₁_lt
+  have hz₁_ann : stereo_chart.symm w₁ ∈ annulus_at a (2 * r) (R₀ / 2) :=
+    ⟨w₁, ⟨h2r_lt_d1, hd₁_lt⟩, rfl⟩
+  have hz₂_ann : stereo_chart.symm w₂ ∈ annulus_at a (2 * r) (R₀ / 2) :=
+    ⟨w₂, ⟨h2r_lt_d2, hd₂_lt⟩, rfl⟩
+  have h_dist_le := h_osc r R₀ hr_pos h2r_lt_half (stereo_chart.symm w₁) hz₁_ann (stereo_chart.symm w₂) hz₂_ann
+  have h_en_lt : energyMeasure I u (annulus_at a r R₀) < (ε / 5) ^ 2 :=
+    hR₀_energy r R₀ hr_pos.le le_rfl
+  have h_sqrt_le : Real.sqrt (energyMeasure I u (annulus_at a r R₀)) ≤ ε / 5 := by
+    rw [← Real.sqrt_sq (by positivity : 0 ≤ ε / 5)]
+    exact Real.sqrt_le_sqrt h_en_lt.le
+  linarith
+
+/-- Unconditional existence of the puncture limit `lim_{z → stereo_chart.symm a} u(z)` from
+finite energy and collar oscillation (`0 sorryAx`). -/
+theorem exists_limit_point_of_collar_oscillation
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ)
+    (h_energy : energyMeasureExtended I u (punctured_sphere {stereo_chart.symm a}) ≠ ⊤)
+    (h_osc : ∀ r R : ℝ, 0 < r → 2 * r < R / 2 → SatisfiesCylinderCollarOscillation I u a r R) :
+    ∃ m_star : M, Filter.Tendsto u (𝓝[≠] (stereo_chart.symm a)) (𝓝 m_star) :=
+  exists_limit_point_of_puncture u (stereo_chart.symm a)
+    (punctured_disk_oscillation_of_collar_oscillation I u a h_energy h_osc)
+
+/-- Unconditional continuous extension across `stereo_chart.symm a` of any finite-energy punctured
+`J`-holomorphic map satisfying collar oscillation (`0 sorryAx`). -/
+theorem exists_continuous_extension_of_collar_oscillation
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ)
+    (h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {stereo_chart.symm a}))
+    (h_energy : energyMeasureExtended I u (punctured_sphere {stereo_chart.symm a}) ≠ ⊤)
+    (h_osc : ∀ r R : ℝ, 0 < r → 2 * r < R / 2 → SatisfiesCylinderCollarOscillation I u a r R) :
+    ∃ (u_ext : CP1 → M),
+      Continuous u_ext ∧
+      ContMDiffOn I_CP1 I ((0 : ℕ) : WithTop ℕ∞) u_ext Set.univ ∧
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u_ext (punctured_sphere {stereo_chart.symm a}) ∧
+      EqOn u_ext u (punctured_sphere {stereo_chart.symm a}) := by
+  obtain ⟨m_star, hm_star⟩ := exists_limit_point_of_collar_oscillation I u a h_energy h_osc
+  let p := stereo_chart.symm a
+  have h_eq : EqOn (Function.update u p m_star) u (punctured_sphere {p}) :=
+    eqOn_update_punctured_sphere u p m_star
+  have h_cont : Continuous (Function.update u p m_star) :=
+    continuous_update_of_tendsto_punctured_sphere u p m_star h_jhol.1.continuousOn hm_star
+  refine ⟨Function.update u p m_star, h_cont, contMDiffOn_zero_iff.mpr h_cont.continuousOn, ?_, h_eq⟩
+  exact jholomorphicOn_congr I (isOpen_punctured_sphere p) h_eq.symm h_jhol
+
+/-- By density of `punctured_sphere {p}` in `CP1` (`dense_punctured_sphere p`) and Hausdorffness of `E`,
+if `u_ext` is $C^1$ on `CP1`, agrees with a punctured `J`-holomorphic map `u` on `punctured_sphere {p}`,
+and its Cauchy–Riemann defect is continuous at `p`, then the Cauchy–Riemann equation holds at `p`
+as well, so `u_ext` is globally `WeakJHolomorphicOn` (`0 sorryAx`). -/
+theorem weakJHolomorphicOn_univ_of_c1_and_continuousAt_cr_at_puncture
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u u_ext : CP1 → M) (p : CP1)
+    (h_c1 : ContMDiffOn I_CP1 I 1 u_ext Set.univ)
+    (h_eq : EqOn u_ext u (punctured_sphere {p}))
+    (h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (h_cr_cont : ∀ v : TangentSpace I_CP1 p,
+      ContinuousAt (fun z : CP1 =>
+        mfderiv I_CP1 I u_ext z (RiemannDomain.j z v) -
+          (ClosedTameTarget.J (I := I) (u_ext z)) (mfderiv I_CP1 I u_ext z v)) p) :
+    WeakJHolomorphicOn I u_ext Set.univ := by
+  have h_ext_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u_ext (punctured_sphere {p}) :=
+    jholomorphicOn_congr I (isOpen_punctured_sphere p) h_eq.symm h_jhol
+  refine ⟨h_c1, ?_⟩
+  intro z _hz v
+  by_cases hzp : z = p
+  · subst hzp
+    have h_dense : Dense ({z}ᶜ : Set CP1) := by
+      rw [← punctured_sphere_singleton_eq_compl]
+      exact dense_punctured_sphere z
+    have : (𝓝[≠] z).NeBot := mem_closure_iff_nhdsWithin_neBot.mp (h_dense z)
+    let φ : CP1 → E := fun w =>
+      mfderiv I_CP1 I u_ext w (RiemannDomain.j w v) -
+        (ClosedTameTarget.J (I := I) (u_ext w)) (mfderiv I_CP1 I u_ext w v)
+    have h_tendsto_phi : Filter.Tendsto φ (𝓝[≠] z) (𝓝 (φ z)) :=
+      (h_cr_cont v).tendsto.mono_left nhdsWithin_le_nhds
+    have h_zero_on : EqOn φ (fun _ => 0) ({z}ᶜ : Set CP1) := by
+      intro w hw
+      have hw_punc : w ∈ punctured_sphere {z} := by
+        rwa [punctured_sphere_singleton_eq_compl]
+      exact sub_eq_zero.mpr (h_ext_jhol.2 w hw_punc v)
+    have h_tendsto_zero : Filter.Tendsto φ (𝓝[≠] z) (𝓝 0) :=
+      tendsto_const_nhds.congr' (h_zero_on.symm.eventuallyEq_of_mem self_mem_nhdsWithin)
+    have h_phi_z_zero : φ z = 0 := tendsto_nhds_unique h_tendsto_phi h_tendsto_zero
+    exact sub_eq_zero.mp h_phi_z_zero
+  · have hz_punct : z ∈ punctured_sphere {p} := by
+      rw [punctured_sphere_singleton_eq_compl]
+      exact hzp
+    exact h_ext_jhol.2 z hz_punct v
+
+/-- First-principles synthesis for `h_punc` (`SatisfiesPunctureSobolevExtension`):
+combining `exists_limit_point_of_collar_oscillation` and
+`weakJHolomorphicOn_univ_of_c1_and_continuousAt_cr_at_puncture` constructs the explicit extension
+`u_ext = Function.update u (stereo_chart.symm a) m_star` and proves `SatisfiesPunctureSobolevExtension`
+once the updated map is $C^1$ with continuous Cauchy–Riemann defect at the puncture (`0 sorryAx`). -/
+theorem satisfiesPunctureSobolevExtension_of_collar_oscillation_and_c1
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ)
+    (h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {stereo_chart.symm a}))
+    (h_energy : energyMeasureExtended I u (punctured_sphere {stereo_chart.symm a}) ≠ ⊤)
+    (h_osc : ∀ r R : ℝ, 0 < r → 2 * r < R / 2 → SatisfiesCylinderCollarOscillation I u a r R)
+    (h_c1 : ∀ m_star : M, Filter.Tendsto u (𝓝[≠] (stereo_chart.symm a)) (𝓝 m_star) →
+      ContMDiffOn I_CP1 I 1 (Function.update u (stereo_chart.symm a) m_star) Set.univ ∧
+      ∀ v : TangentSpace I_CP1 (stereo_chart.symm a),
+        ContinuousAt (fun z : CP1 =>
+          mfderiv I_CP1 I (Function.update u (stereo_chart.symm a) m_star) z (RiemannDomain.j z v) -
+            (ClosedTameTarget.J (I := I) (Function.update u (stereo_chart.symm a) m_star z))
+              (mfderiv I_CP1 I (Function.update u (stereo_chart.symm a) m_star) z v))
+          (stereo_chart.symm a)) :
+    SatisfiesPunctureSobolevExtension I u (stereo_chart.symm a) := by
+  obtain ⟨m_star, hm_star⟩ := exists_limit_point_of_collar_oscillation I u a h_energy h_osc
+  obtain ⟨hc1, hcr⟩ := h_c1 m_star hm_star
+  let p := stereo_chart.symm a
+  have h_weak : WeakJHolomorphicOn I (Function.update u p m_star) Set.univ :=
+    weakJHolomorphicOn_univ_of_c1_and_continuousAt_cr_at_puncture I u
+      (Function.update u p m_star) p hc1 (eqOn_update_punctured_sphere u p m_star) h_jhol hcr
+  exact satisfiesPunctureSobolevExtension_of_update_weakJHolomorphicOn I u p m_star h_weak
+
+
 end GromovCompactness.Analysis
