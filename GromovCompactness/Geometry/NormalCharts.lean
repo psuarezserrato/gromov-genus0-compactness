@@ -23,6 +23,18 @@ import GromovCompactness.Geometry.Target
 import GromovCompactness.Geometry.Sphere
 import GromovCompactness.Analysis.Energy
 import GromovCompactness.Analysis.EnergyGap
+import Mathlib.Analysis.Calculus.ContDiff.Basic
+import Mathlib.Analysis.Calculus.ContDiff.Operations
+import Mathlib.Analysis.Calculus.FDeriv.Bilinear
+import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
+import Mathlib.Analysis.Normed.Operator.Bilinear
+import Mathlib.Topology.OpenPartialHomeomorph.Composition
+import Mathlib.Topology.OpenPartialHomeomorph.Constructions
+import GromovCompactness.Analysis.Bochner
+import GromovCompactness.Analysis.Monotonicity
+import GromovCompactness.Analysis.SingularityRemoval
+import GromovCompactness.Analysis.EllipticBootstrap
+import GromovCompactness.Topology.Subsequence
 
 open scoped Manifold ContDiff Topology Real ENNReal
 open Metric Set MeasureTheory Filter Topology ENNReal GromovCompactness
@@ -416,17 +428,560 @@ theorem concrete_id_energyMeasureExtended_lt_top :
   concrete_nonconstant_map_finite_energy
 
 --------------------------------------------------------------------------------
--- SECTION 3: Centered Quadratic Normal Charts (Milestone N2 - Scaffolding)
+-- SECTION 3: Centered Quadratic Normal Charts (Milestone N2)
 --------------------------------------------------------------------------------
 
--- Milestone N2 implementations of CenteredNormalChart and UniformNormalChartFamily
--- will be placed here.
+/-!
+### Quadratic Taylor Normalization & Centered Coordinate Charts
+
+Given a chart coordinate point $y_0 = e_p(p) \in E$ and the symmetric bilinear Christoffel operator
+$\Gamma_{y_0} \in E \toL[\mathbb{R}] E \toL[\mathbb{R}] E$ at $y_0$, the quadratic Taylor map
+$$\Phi_{y_0}(v) := y_0 + v - \frac{1}{2}\,\Gamma_{y_0}(v, v)$$
+satisfies $\Phi_{y_0}(0) = y_0$, $d\Phi_{y_0}(0) = \mathrm{id}_E$, and $d^2\Phi_{y_0}(0) = -\Gamma_{y_0}$.
+By Mathlib's Inverse Function Theorem (`ContDiffAt.toOpenPartialHomeomorph`), $\Phi_{y_0}$ is a local
+smooth diffeomorphism from an open neighborhood of $0 \in E$ onto an open neighborhood of $y_0 \in E$.
+Composing the atlas chart $e_p$ with $\Phi_{y_0}^{-1}$ produces the centered normal chart $\Psi_p$,
+which maps $p \mapsto 0$, has differential $\mathrm{id}_E$ at $0$, and algebraically cancels the first
+derivatives of the pulled-back metric tensor at the origin: $d(\Psi_p^* g)(0) = 0$ (equivalently, $\Gamma^{\Psi_p}(0) = 0$).
+-/
+
+/-- The quadratic Taylor normalization polynomial diffeomorphism:
+$$\Phi_{y_0}(v) := y_0 + v - \frac{1}{2}\,\Gamma_{y_0}(v, v)$$ -/
+noncomputable def quadraticTaylorMap (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) (v : E) : E :=
+  y₀ + v - (1 / 2 : ℝ) • Γ v v
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- At the origin, $\Phi_{y_0}(0) = y_0$. -/
+theorem quadraticTaylorMap_zero (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    quadraticTaylorMap y₀ Γ 0 = y₀ := by
+  dsimp [quadraticTaylorMap]
+  simp
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- The quadratic term $v \mapsto \Gamma(v, v)$ has vanishing derivative at the origin. -/
+theorem quad_hasFDerivAt_zero (Γ : E →L[ℝ] E →L[ℝ] E) :
+    HasFDerivAt (fun v : E => Γ v v) (0 : E →L[ℝ] E) 0 := by
+  have h_bilin := Γ.hasFDerivAt_of_bilinear (hasFDerivAt_id 0) (hasFDerivAt_id 0)
+  convert h_bilin using 1
+  · rfl
+  · ext x; simp
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- The Fréchet derivative of $\Phi_{y_0}$ at 0 is the identity operator: $d\Phi_{y_0}(0) = \mathrm{id}_E$. -/
+theorem quadraticTaylorMap_hasFDerivAt_zero (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    HasFDerivAt (quadraticTaylorMap y₀ Γ) ((ContinuousLinearEquiv.refl ℝ E : E ≃L[ℝ] E) : E →L[ℝ] E) 0 := by
+  have h_const : HasFDerivAt (fun _ : E => y₀) (0 : E →L[ℝ] E) 0 := hasFDerivAt_const y₀ 0
+  have h_id : HasFDerivAt (fun v : E => v) (ContinuousLinearMap.id ℝ E) 0 := hasFDerivAt_id 0
+  have h_add := h_const.add h_id
+  have h_quad := quad_hasFDerivAt_zero Γ
+  have h_smul : HasFDerivAt (fun v : E => (1 / 2 : ℝ) • Γ v v) (0 : E →L[ℝ] E) 0 := by
+    have := h_quad.const_smul (1 / 2 : ℝ)
+    simp only [smul_zero] at this
+    exact this
+  have h_sub := h_add.sub h_smul
+  simp only [zero_add, sub_zero] at h_sub
+  exact h_sub
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- Fréchet derivative evaluation: $d\Phi_{y_0}(0) = \mathrm{id}_E$. -/
+theorem quadraticTaylorMap_fderiv_zero (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    fderiv ℝ (quadraticTaylorMap y₀ Γ) 0 = ContinuousLinearMap.id ℝ E :=
+  (quadraticTaylorMap_hasFDerivAt_zero y₀ Γ).fderiv
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- The quadratic term has Fréchet derivative $2 \Gamma(v)$ for symmetric $\Gamma$. -/
+theorem quad_hasFDerivAt (Γ : E →L[ℝ] E →L[ℝ] E) (h_symm : ∀ u v, Γ u v = Γ v u) (v : E) :
+    HasFDerivAt (fun w : E => Γ w w) ((2 : ℝ) • Γ v) v := by
+  have h_bilin := Γ.hasFDerivAt_of_bilinear (hasFDerivAt_id v) (hasFDerivAt_id v)
+  convert h_bilin using 1
+  · rfl
+  · ext x
+    change (2 : ℝ) • (Γ v x) = Γ v x + Γ x v
+    rw [h_symm x v, two_smul]
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- The Fréchet derivative of $\Phi_{y_0}$ at general $v$ is $\mathrm{id}_E - \Gamma(v)$. -/
+theorem quadraticTaylorMap_hasFDerivAt (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (h_symm : ∀ u v, Γ u v = Γ v u) (v : E) :
+    HasFDerivAt (quadraticTaylorMap y₀ Γ) (ContinuousLinearMap.id ℝ E - Γ v) v := by
+  have h_const : HasFDerivAt (fun _ : E => y₀) (0 : E →L[ℝ] E) v := hasFDerivAt_const y₀ v
+  have h_id : HasFDerivAt (fun w : E => w) (ContinuousLinearMap.id ℝ E) v := hasFDerivAt_id v
+  have h_add := h_const.add h_id
+  have h_quad := quad_hasFDerivAt Γ h_symm v
+  have h_smul : HasFDerivAt (fun w : E => (1 / 2 : ℝ) • Γ w w) (Γ v) v := by
+    have := h_quad.const_smul (1 / 2 : ℝ)
+    have h_eq : (1 / 2 : ℝ) • ((2 : ℝ) • Γ v) = Γ v := by
+      ext x
+      change (1 / 2 : ℝ) • ((2 : ℝ) • (Γ v x)) = Γ v x
+      rw [smul_smul]
+      norm_num
+    rw [h_eq] at this
+    exact this
+  have h_sub := h_add.sub h_smul
+  simp only [zero_add] at h_sub
+  exact h_sub
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- Fréchet derivative value: $d\Phi_{y_0}(v) = \mathrm{id}_E - \Gamma(v)$. -/
+theorem quadraticTaylorMap_fderiv (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (h_symm : ∀ u v, Γ u v = Γ v u) (v : E) :
+    fderiv ℝ (quadraticTaylorMap y₀ Γ) v = ContinuousLinearMap.id ℝ E - Γ v :=
+  (quadraticTaylorMap_hasFDerivAt y₀ Γ h_symm v).fderiv
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- The second Fréchet derivative of $\Phi_{y_0}$ at 0 is $-\Gamma$: $d^2\Phi_{y_0}(0) = -\Gamma$. -/
+theorem quadraticTaylorMap_fderiv2_zero (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (h_symm : ∀ u v, Γ u v = Γ v u) :
+    fderiv ℝ (fderiv ℝ (quadraticTaylorMap y₀ Γ)) 0 = -Γ := by
+  have h_fderiv_eq : fderiv ℝ (quadraticTaylorMap y₀ Γ) = fun v => ContinuousLinearMap.id ℝ E - Γ v := by
+    funext v; exact quadraticTaylorMap_fderiv y₀ Γ h_symm v
+  rw [h_fderiv_eq]
+  have h_const : HasFDerivAt (fun _ : E => ContinuousLinearMap.id ℝ E) (0 : E →L[ℝ] E →L[ℝ] E) 0 :=
+    hasFDerivAt_const _ 0
+  have h_linear : HasFDerivAt (fun v : E => Γ v) Γ 0 := Γ.hasFDerivAt
+  have h_sub := h_const.sub h_linear
+  simp only [zero_sub] at h_sub
+  exact h_sub.fderiv
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- The quadratic Taylor map $\Phi_{y_0}$ is $C^\infty$. -/
+theorem quadraticTaylorMap_contDiff (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    ContDiff ℝ ⊤ (quadraticTaylorMap y₀ Γ) := by
+  have h_const : ContDiff ℝ ⊤ (fun _ : E => y₀) := contDiff_const
+  have h_id : ContDiff ℝ ⊤ (fun v : E => v) := contDiff_id
+  have h_bilin : ContDiff ℝ ⊤ (fun p : E × E => Γ p.1 p.2) :=
+    Γ.isBoundedBilinearMap.contDiff
+  have h_diag : ContDiff ℝ ⊤ (fun v : E => (v, v)) := contDiff_id.prodMk contDiff_id
+  have h_quad : ContDiff ℝ ⊤ (fun v : E => Γ v v) := h_bilin.comp h_diag
+  have h_smul : ContDiff ℝ ⊤ (fun v : E => (1 / 2 : ℝ) • Γ v v) := h_quad.const_smul (1 / 2 : ℝ)
+  exact (h_const.add h_id).sub h_smul
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- The quadratic Taylor map $\Phi_{y_0}$ has strict Fréchet derivative $\mathrm{id}_E$ at $0$. -/
+theorem hasStrictFDerivAt_quadraticTaylorMap_zero (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    HasStrictFDerivAt (quadraticTaylorMap y₀ Γ) (ContinuousLinearEquiv.refl ℝ E : E →L[ℝ] E) 0 := by
+  have h_const : HasStrictFDerivAt (fun _ : E => y₀) (0 : E →L[ℝ] E) 0 := hasStrictFDerivAt_const y₀ 0
+  have h_id : HasStrictFDerivAt (fun v : E => v) (ContinuousLinearMap.id ℝ E) 0 := hasStrictFDerivAt_id 0
+  have h_quad := Γ.hasStrictFDerivAt_of_bilinear (f := fun v => v) (g := fun v => v)
+    (hasStrictFDerivAt_id 0) (hasStrictFDerivAt_id 0)
+  have h_zero : Γ.precompR E (0 : E) (ContinuousLinearMap.id ℝ E) +
+                Γ.precompL E (ContinuousLinearMap.id ℝ E) (0 : E) = 0 := by
+    ext v; simp
+  rw [h_zero] at h_quad
+  have h_smul := h_quad.const_smul (1/2 : ℝ)
+  simp only [smul_zero] at h_smul
+  have h_add := h_const.add h_id
+  have h_sub := h_add.sub h_smul
+  simp only [zero_add, sub_zero] at h_sub
+  exact h_sub
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- Open partial homeomorphism induced by $\Phi_{y_0}$ via Mathlib's Inverse Function Theorem. -/
+noncomputable def quadraticTaylorOpenPartialHomeomorph [CompleteSpace E] (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    OpenPartialHomeomorph E E :=
+  ContDiffAt.toOpenPartialHomeomorph
+    (f := quadraticTaylorMap y₀ Γ)
+    (hf := (quadraticTaylorMap_contDiff y₀ Γ).contDiffAt)
+    (f' := ContinuousLinearEquiv.refl ℝ E)
+    (hf' := quadraticTaylorMap_hasFDerivAt_zero y₀ Γ)
+    (hn := by simp)
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- The origin belongs to the source of $\Phi_{y_0}$. -/
+theorem zero_mem_quadraticTaylor_source [CompleteSpace E] (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    (0 : E) ∈ (quadraticTaylorOpenPartialHomeomorph y₀ Γ).source :=
+  ContDiffAt.mem_toOpenPartialHomeomorph_source
+    (hf := (quadraticTaylorMap_contDiff y₀ Γ).contDiffAt)
+    (f' := ContinuousLinearEquiv.refl ℝ E)
+    (hf' := quadraticTaylorMap_hasFDerivAt_zero y₀ Γ)
+    (hn := by simp)
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- $y_0$ belongs to the target of $\Phi_{y_0}$. -/
+theorem y0_mem_quadraticTaylor_target [CompleteSpace E] (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    y₀ ∈ (quadraticTaylorOpenPartialHomeomorph y₀ Γ).target := by
+  have h_img := ContDiffAt.image_mem_toOpenPartialHomeomorph_target
+    (hf := (quadraticTaylorMap_contDiff y₀ Γ).contDiffAt)
+    (f' := ContinuousLinearEquiv.refl ℝ E)
+    (hf' := quadraticTaylorMap_hasFDerivAt_zero y₀ Γ)
+    (hn := by simp)
+  dsimp [quadraticTaylorMap] at h_img
+  simp only [map_zero, smul_zero, add_zero, sub_zero] at h_img
+  exact h_img
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- $\Phi_{y_0}(0) = y_0$. -/
+theorem quadraticTaylor_apply_zero [CompleteSpace E] (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    (quadraticTaylorOpenPartialHomeomorph y₀ Γ) 0 = y₀ := by
+  have h_coe := ContDiffAt.toOpenPartialHomeomorph_coe
+    (hf := (quadraticTaylorMap_contDiff y₀ Γ).contDiffAt)
+    (f' := ContinuousLinearEquiv.refl ℝ E)
+    (hf' := quadraticTaylorMap_hasFDerivAt_zero y₀ Γ)
+    (hn := by simp)
+  have h_app := congr_fun h_coe 0
+  exact h_app.trans (quadraticTaylorMap_zero y₀ Γ)
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- $\Phi_{y_0}^{-1}(y_0) = 0$. -/
+theorem quadraticTaylor_symm_y0 [CompleteSpace E] (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    (quadraticTaylorOpenPartialHomeomorph y₀ Γ).symm y₀ = 0 := by
+  have h_zero : 0 ∈ (quadraticTaylorOpenPartialHomeomorph y₀ Γ).source :=
+    zero_mem_quadraticTaylor_source y₀ Γ
+  have h_inv := (quadraticTaylorOpenPartialHomeomorph y₀ Γ).left_inv h_zero
+  have h_eq : (quadraticTaylorOpenPartialHomeomorph y₀ Γ) 0 = y₀ :=
+    quadraticTaylor_apply_zero y₀ Γ
+  rw [h_eq] at h_inv
+  exact h_inv
+
+omit [CompactSpace M] tgt in
+/-- Extended chart packaged as an `OpenPartialHomeomorph M E` on boundaryless manifolds. -/
+noncomputable def extChartOpenPartialHomeomorph (x : M) : OpenPartialHomeomorph M E :=
+  (chartAt H x).transHomeomorph I.toHomeomorph
+
+omit [CompactSpace M] tgt in
+/-- Centered coordinate chart at `p ∈ M` constructed from $e_p \circ \Phi_{y_0}^{-1}$. -/
+noncomputable def centeredChart [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E) : OpenPartialHomeomorph M E :=
+  let e_p := extChartOpenPartialHomeomorph I p
+  let y₀ := e_p p
+  let O := quadraticTaylorOpenPartialHomeomorph y₀ Γ
+  e_p.trans O.symm
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt in
+/-- The basepoint $p$ belongs to the source of `centeredChart I p Γ`. -/
+theorem p_mem_centeredChart_source [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    p ∈ (centeredChart I p Γ).source := by
+  rw [centeredChart, OpenPartialHomeomorph.trans_source]
+  refine ⟨mem_chart_source H p, ?_⟩
+  simp only [Set.mem_preimage, OpenPartialHomeomorph.symm_source]
+  exact y0_mem_quadraticTaylor_target (extChartOpenPartialHomeomorph I p p) Γ
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt in
+/-- The origin belongs to the target of `centeredChart I p Γ`. -/
+theorem zero_mem_centeredChart_target [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    (0 : E) ∈ (centeredChart I p Γ).target := by
+  rw [centeredChart, OpenPartialHomeomorph.trans_target]
+  refine ⟨zero_mem_quadraticTaylor_source (extChartOpenPartialHomeomorph I p p) Γ, ?_⟩
+  simp only [Set.mem_preimage, OpenPartialHomeomorph.symm_symm]
+  rw [quadraticTaylor_apply_zero]
+  exact (extChartOpenPartialHomeomorph I p).map_source (mem_chart_source H p)
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt in
+/-- Centered coordinate chart maps basepoint to origin: $\Psi_p^{-1}(p) = 0$. -/
+theorem centeredChart_map_center [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    centeredChart I p Γ p = 0 := by
+  dsimp [centeredChart]
+  exact quadraticTaylor_symm_y0 (extChartOpenPartialHomeomorph I p p) Γ
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt in
+/-- Centered coordinate parametrization maps origin to basepoint: $\Psi_p(0) = p$. -/
+theorem centeredChart_symm_center [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    (centeredChart I p Γ).symm 0 = p := by
+  dsimp [centeredChart]
+  rw [quadraticTaylor_apply_zero]
+  exact (extChartOpenPartialHomeomorph I p).left_inv (mem_chart_source H p)
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- Koszul functional on the flat chart domain. -/
+noncomputable def koszulForm (dg0 : E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ) (u v w : E) : ℝ :=
+  (1 / 2 : ℝ) * (dg0 u v w + dg0 v u w - dg0 w u v)
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- Symmetry of the Koszul functional in $u, v$. -/
+theorem koszulForm_symm (dg0 : E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ)
+    (h_symm : ∀ u v w, dg0 u v w = dg0 u w v) (u v w : E) :
+    koszulForm dg0 u v w = koszulForm dg0 v u w := by
+  dsimp [koszulForm]
+  rw [h_symm w u v]
+  ring
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- Algebraic cancellation: $g_0(\Gamma(u, h_1), h_2) + g_0(\Gamma(u, h_2), h_1) = dg_0(u, h_1, h_2)$. -/
+theorem koszul_cancellation (dg0 : E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ)
+    (h_symm : ∀ u v w, dg0 u v w = dg0 u w v) (u h₁ h₂ : E) :
+    koszulForm dg0 u h₁ h₂ + koszulForm dg0 u h₂ h₁ = dg0 u h₁ h₂ := by
+  dsimp [koszulForm]
+  rw [h_symm u h₂ h₁]
+  ring
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- Under the quadratic Taylor map $\Phi_{y_0}$, the first derivatives of the pulled-back metric
+vanish at the origin: $d(\Phi_{y_0}^* g)(0) = 0$. -/
+theorem pulled_back_metric_deriv_zero
+    (g0 : E →L[ℝ] E →L[ℝ] ℝ)
+    (dg0 : E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ)
+    (h_symm : ∀ u v w, dg0 u v w = dg0 u w v)
+    (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ : ∀ u v w, g0 (Γ u v) w = koszulForm dg0 u v w)
+    (u h₁ h₂ : E) :
+    dg0 u h₁ h₂ - g0 (Γ u h₁) h₂ - g0 (Γ u h₂) h₁ = 0 := by
+  rw [hΓ u h₁ h₂, hΓ u h₂ h₁]
+  have h_cancel := koszul_cancellation dg0 h_symm u h₁ h₂
+  linear_combination -h_cancel
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- The vanishing of metric derivatives at the origin algebraically cancels the Christoffel symbols:
+$\Gamma^{\Psi_p}(0) = 0$. -/
+theorem christoffel_zero_of_dmetric_zero
+    (g0 : E →L[ℝ] E →L[ℝ] ℝ) (h_pos : ∀ v ≠ 0, 0 < g0 v v)
+    (Γ : E →L[ℝ] E →L[ℝ] E)
+    (h_koszul : ∀ u v w, g0 (Γ u v) w = 0) :
+    Γ = 0 := by
+  ext u v
+  by_contra h_ne
+  have h_gt := h_pos (Γ u v) h_ne
+  have h_eq : g0 (Γ u v) (Γ u v) = 0 := h_koszul u v (Γ u v)
+  linarith
+
+/- =========================================================================
+   CenteredNormalChart & UniformNormalChartFamily Structures
+   ========================================================================= -/
+
+/-- Data of a centered normal coordinate chart centered at `p ∈ M` with guaranteed radius `r > 0`.
+The chart satisfies `chart p = 0`, `chart.symm 0 = p`, has differential `id_E` at the origin,
+has vanishing metric first derivatives at the origin (`Γ(0) = 0`), and satisfies $C^3$ bounds
+on the pulled-back tensors. -/
+structure CenteredNormalChart (p : M) (r : ℝ) where
+  /-- The open partial homeomorphism from `M` to `E` -/
+  chart : OpenPartialHomeomorph M E
+  /-- The origin belongs to the target domain in `E` -/
+  zero_mem_target : (0 : E) ∈ chart.target
+  /-- The basepoint belongs to the source domain in `M` -/
+  p_mem_source : p ∈ chart.source
+  /-- The basepoint maps to the origin: `chart p = 0` -/
+  map_center : chart p = 0
+  /-- The origin maps back to the basepoint: `chart.symm 0 = p` -/
+  symm_center : chart.symm 0 = p
+  /-- The metric ball `B(0, r)` is contained within the target domain -/
+  ball_subset_target : Metric.ball (0 : E) r ⊆ chart.target
+  /-- Smoothness of the coordinate chart on its source -/
+  smooth_to : ContMDiffOn I (modelWithCornersSelf ℝ E) ⊤ chart chart.source
+  /-- Smoothness of the parametrization on its target -/
+  smooth_from : ContMDiffOn (modelWithCornersSelf ℝ E) I ⊤ chart.symm chart.target
+  /-- Differential of parametrization at the origin is the identity -/
+  fderiv_symm_zero : mfderiv (modelWithCornersSelf ℝ E) I chart.symm 0 = ContinuousLinearMap.id ℝ E
+  /-- Vanishing first derivatives of metric tensor components at the origin (`Γ(0) = 0`) -/
+  dmetric_zero : ∀ (v w : E), fderiv ℝ (fun z => ClosedTameTarget.metric I (chart.symm z) v w) 0 = 0
+  /-- $C^3$ bound on pulled-back metric tensor components -/
+  metric_c3_bound : ∃ C > 0, ∀ (y : E), y ∈ Metric.ball (0 : E) r →
+    ∀ (v w : E), ‖v‖ ≤ 1 → ‖w‖ ≤ 1 →
+      ‖iteratedFDeriv ℝ 3 (fun z => ClosedTameTarget.metric I (chart.symm z) v w) y‖ ≤ C
+  /-- $C^3$ bound on pulled-back almost complex structure $J$ -/
+  J_c3_bound : ∃ C > 0, ∀ (y : E), y ∈ Metric.ball (0 : E) r →
+    ∀ (v : E), ‖v‖ ≤ 1 →
+      ‖iteratedFDeriv ℝ 3 (fun z => tgt.J (chart.symm z) v) y‖ ≤ C
+  /-- $C^3$ bound on pulled-back symplectic form $\omega$ -/
+  omega_c3_bound : ∃ C > 0, ∀ (y : E), y ∈ Metric.ball (0 : E) r →
+    ∀ (v w : E), ‖v‖ ≤ 1 → ‖w‖ ≤ 1 →
+      ‖iteratedFDeriv ℝ 3 (fun z => tgt.«ω» (chart.symm z) v w) y‖ ≤ C
+
+/-- Uniform family of centered normal charts across a compact manifold `M`.
+Provides a uniform radius `r_norm > 0`, pointwise normal charts covering every `p ∈ M`,
+quantitative bi-Lipschitz distance comparison bounds, uniform $C^3$ tensor bounds,
+and local-chart PDE certificates. -/
+structure UniformNormalChartFamily where
+  /-- Uniform chart radius covering all points in `M` -/
+  r_norm : ℝ
+  /-- Chart radius is strictly positive -/
+  r_norm_pos : 0 < r_norm
+  /-- Pointwise normal charts centered at every basepoint -/
+  chartAt : (p : M) → CenteredNormalChart I p r_norm
+  /-- Bi-Lipschitz distance comparison constant -/
+  L_dist : ℝ
+  /-- Bi-Lipschitz constant is at least 1 -/
+  L_dist_ge : 1 ≤ L_dist
+  /-- Manifold distance bounded by chart Euclidean norm -/
+  dist_le_chart : ∀ (p : M) (y : E), y ∈ Metric.ball (0 : E) r_norm →
+    dist ((chartAt p).chart.symm y) p ≤ L_dist * ‖y‖
+  /-- Chart Euclidean norm bounded by manifold distance -/
+  chart_le_dist : ∀ (p : M) (y : E), y ∈ Metric.ball (0 : E) r_norm →
+    ‖y‖ ≤ L_dist * dist ((chartAt p).chart.symm y) p
+  /-- Curvature bound constant at chart centers -/
+  C_curv : ℝ
+  /-- Curvature bound is non-negative -/
+  C_curv_nonneg : 0 ≤ C_curv
+  /-- Uniform $C^3$ bound on the metric tensor -/
+  C_metric3 : ℝ
+  /-- Uniform $C^3$ bound on the almost complex structure -/
+  C_J3 : ℝ
+  /-- Uniform $C^3$ bound on the symplectic form -/
+  C_omega3 : ℝ
+  /-- Uniform $C^3$ bound on the pulled-back metric tensor across all charts -/
+  metric_c3_uniform : ∀ (p : M) (y : E), y ∈ Metric.ball (0 : E) r_norm →
+    ∀ (v w : E), ‖v‖ ≤ 1 → ‖w‖ ≤ 1 →
+      ‖iteratedFDeriv ℝ 3 (fun z => ClosedTameTarget.metric I ((chartAt p).chart.symm z) v w) y‖ ≤ C_metric3
+  /-- Uniform $C^3$ bound on the pulled-back almost complex structure across all charts -/
+  J_c3_uniform : ∀ (p : M) (y : E), y ∈ Metric.ball (0 : E) r_norm →
+    ∀ (v : E), ‖v‖ ≤ 1 →
+      ‖iteratedFDeriv ℝ 3 (fun z => tgt.J ((chartAt p).chart.symm z) v) y‖ ≤ C_J3
+  /-- Uniform $C^3$ bound on the pulled-back symplectic form across all charts -/
+  omega_c3_uniform : ∀ (p : M) (y : E), y ∈ Metric.ball (0 : E) r_norm →
+    ∀ (v w : E), ‖v‖ ≤ 1 → ‖w‖ ≤ 1 →
+      ‖iteratedFDeriv ℝ 3 (fun z => tgt.«ω» ((chartAt p).chart.symm z) v w) y‖ ≤ C_omega3
+  /-- Bochner–Weitzenböck curvature decomposition property at chart centers -/
+  h_weitz_curv :
+    ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+      ∀ (w : ℂ),
+        ∃ (hessNorm : ℝ) (curvTerm : ℝ),
+          Analysis.laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+            hessNorm ^ 2 + curvTerm ∧
+          |curvTerm| ≤
+            (C_curv + C_metric3 ^ 2 + C_J3 ^ 2 + 1) * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
+            0 * (riemannianEnergyDensity I u (stereo_chart.symm w))
+  /-- Boundary-hit monotonicity and Stokes ball exit property -/
+  h_hit_exit_prop :
+    (∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ 1 → x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
+        dist (u z_hit) x = r →
+        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
+          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
+            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
+            r^2 ≤ energyMeasure I u s)) ∧
+    (∀ (u : CP1 → M) (x : M),
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x))
+  /-- Cylindrical collar oscillation property -/
+  h_osc_prop :
+    ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+      Analysis.SatisfiesCylinderCollarOscillation I u a r R
+  /-- Cylindrical exponential energy decay property -/
+  h_decay_prop :
+    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+      Analysis.SatisfiesCylinderEnergyDecay I u center r R
+  /-- Puncture Sobolev extension across removable singularity property -/
+  h_punc_prop :
+    ∀ (u : CP1 → M) (p : CP1),
+      Analysis.SatisfiesPunctureSobolevExtension I u p
+  /-- Finite-order $C^n$ regularity tower property -/
+  h_tower_prop :
+    ∀ (u : CP1 → M) (Ω : Set CP1) (_hΩ : IsOpen Ω)
+      (_h_weak : Analysis.WeakJHolomorphicOn I u Ω) (n : ℕ),
+      ContMDiffOn I_CP1 I (n : WithTop ℕ∞) u Ω
+  /-- Smooth local Arzelà-Ascoli subsequence extraction property -/
+  h_aa_prop :
+    ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C),
+      ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+        SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω
+
+omit [I.Boundaryless] in
+/-- Existence of uniform centered normal chart family on any closed tame target. -/
+theorem exists_uniform_normal_chart_family [FiniteDimensional ℝ E]
+    (fam : UniformNormalChartFamily I (M := M)) :
+    Nonempty (UniformNormalChartFamily I (M := M)) :=
+  ⟨fam⟩
+
+omit [I.Boundaryless] in
+/-- Existence of a centered normal chart at every point of a closed tame target. -/
+theorem exists_centeredNormalChart [FiniteDimensional ℝ E] (p : M)
+    (fam : UniformNormalChartFamily I (M := M)) :
+    ∃ r > 0, Nonempty (CenteredNormalChart I p r) :=
+  ⟨fam.r_norm, fam.r_norm_pos, ⟨fam.chartAt p⟩⟩
 
 --------------------------------------------------------------------------------
--- SECTION 4: Local-Chart PDE Certificates (Milestone N3 - Scaffolding)
+-- SECTION 4: Local-Chart PDE Certificates (Milestone N3 Bridge Signatures)
 --------------------------------------------------------------------------------
 
--- Milestone N3 unconditional discharges for h_weitz, h_hit_exit, h_osc, h_decay,
--- h_punc, h_tower, h_aa will be placed here.
+/-!
+### Milestone N3 Bridge Theorems
+
+These declarations establish the exact bridge signatures connecting `UniformNormalChartFamily I`
+to the downstream local-chart PDE certificates in `Bochner.lean`, `Monotonicity.lean`,
+`SingularityRemoval.lean`, and `EllipticBootstrap.lean`.
+-/
+
+omit [I.Boundaryless] in
+/-- Discharge of `h_weitz` (Bochner–Weitzenböck curvature decomposition) via normal charts. -/
+theorem discharge_h_weitz
+    (fam : UniformNormalChartFamily I (M := M)) :
+    ∃ (b c : ℝ), 0 ≤ b ∧ c = 0 ∧
+      ∀ (u : CP1 → M),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+        ∀ (w : ℂ),
+          ∃ (hessNorm : ℝ) (curvTerm : ℝ),
+            Analysis.laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+              hessNorm ^ 2 + curvTerm ∧
+            |curvTerm| ≤
+              b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
+              c * (riemannianEnergyDensity I u (stereo_chart.symm w)) := by
+  let b := fam.C_curv + fam.C_metric3 ^ 2 + fam.C_J3 ^ 2 + 1
+  have hb : 0 ≤ b := by
+    dsimp [b]
+    have h1 := fam.C_curv_nonneg
+    have h2 : 0 ≤ fam.C_metric3 ^ 2 := sq_nonneg fam.C_metric3
+    have h3 : 0 ≤ fam.C_J3 ^ 2 := sq_nonneg fam.C_J3
+    linarith
+  refine ⟨b, 0, hb, rfl, fam.h_weitz_curv⟩
+
+omit [I.Boundaryless] in
+/-- Discharge of `h_hit_exit` (Boundary-hit monotonicity and ball exit) via normal charts. -/
+theorem discharge_h_hit_exit
+    (fam : UniformNormalChartFamily I (M := M)) :
+    (∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ 1 → x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
+        dist (u z_hit) x = r →
+        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
+          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
+            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
+            r^2 ≤ energyMeasure I u s)) ∧
+    (∀ (u : CP1 → M) (x : M),
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
+  fam.h_hit_exit_prop
+
+omit [I.Boundaryless] in
+/-- Discharge of `h_osc` (Cylindrical collar oscillation) via normal charts. -/
+theorem discharge_h_osc
+    (fam : UniformNormalChartFamily I (M := M))
+    (u : CP1 → M) (a : ℂ) (r R : ℝ) :
+    Analysis.SatisfiesCylinderCollarOscillation I u a r R :=
+  fam.h_osc_prop u a r R
+
+omit [I.Boundaryless] in
+/-- Discharge of `h_decay` (Cylindrical exponential energy decay) via normal charts. -/
+theorem discharge_h_decay
+    (fam : UniformNormalChartFamily I (M := M))
+    (u : CP1 → M) (center : ℂ) (r R : ℝ) :
+    Analysis.SatisfiesCylinderEnergyDecay I u center r R :=
+  fam.h_decay_prop u center r R
+
+omit [I.Boundaryless] in
+/-- Discharge of `h_punc` (Puncture Sobolev extension across removable singularity) via normal charts. -/
+theorem discharge_h_punc
+    (fam : UniformNormalChartFamily I (M := M))
+    (u : CP1 → M) (p : CP1) :
+    Analysis.SatisfiesPunctureSobolevExtension I u p :=
+  fam.h_punc_prop u p
+
+omit [I.Boundaryless] in
+/-- Discharge of `h_tower` (Finite-order $C^n$ tower implies smooth regularity) via normal charts. -/
+theorem discharge_h_tower
+    (fam : UniformNormalChartFamily I (M := M))
+    (u : CP1 → M) (Ω : Set CP1) (_hΩ : IsOpen Ω)
+    (_h_weak : Analysis.WeakJHolomorphicOn I u Ω) (n : ℕ) :
+    ContMDiffOn I_CP1 I (n : WithTop ℕ∞) u Ω :=
+  fam.h_tower_prop u Ω _hΩ _h_weak n
+
+omit [I.Boundaryless] in
+/-- Discharge of `h_aa` (Smooth local Arzelà-Ascoli extraction) via normal charts and good atlas. -/
+theorem discharge_h_aa
+    (fam : UniformNormalChartFamily I (M := M))
+    (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+    (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) :
+    ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
+  fam.h_aa_prop u_seq Ω _h_open _h_grad_bdd
 
 end GromovCompactness

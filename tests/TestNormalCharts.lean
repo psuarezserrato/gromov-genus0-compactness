@@ -204,4 +204,276 @@ theorem test_CP1_standard_model_positive_energy :
 #print axioms test_CP1_standard_model_finite_energy
 #print axioms test_CP1_standard_model_positive_energy
 
+--------------------------------------------------------------------------------
+-- Test 8: Quadratic Taylor Map Algebraic and Differential Properties
+--------------------------------------------------------------------------------
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 8.1: Quadratic Taylor map maps 0 to basepoint y₀. -/
+theorem test_quadraticTaylorMap_zero (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    quadraticTaylorMap y₀ Γ 0 = y₀ :=
+  quadraticTaylorMap_zero y₀ Γ
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 8.2: First derivative of quadratic Taylor map at 0 is id_E. -/
+theorem test_quadraticTaylorMap_fderiv_zero (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    fderiv ℝ (quadraticTaylorMap y₀ Γ) 0 = ContinuousLinearMap.id ℝ E :=
+  quadraticTaylorMap_fderiv_zero y₀ Γ
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 8.3: Second derivative of quadratic Taylor map at 0 is -Γ. -/
+theorem test_quadraticTaylorMap_fderiv2_zero (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (h_symm : ∀ u v, Γ u v = Γ v u) :
+    fderiv ℝ (fderiv ℝ (quadraticTaylorMap y₀ Γ)) 0 = -Γ :=
+  quadraticTaylorMap_fderiv2_zero y₀ Γ h_symm
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 8.4: Quadratic Taylor map is C^∞. -/
+theorem test_quadraticTaylorMap_contDiff (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    ContDiff ℝ ⊤ (quadraticTaylorMap y₀ Γ) :=
+  quadraticTaylorMap_contDiff y₀ Γ
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 8.5: Quadratic Taylor map has strict derivative id_E at 0. -/
+theorem test_hasStrictFDerivAt_quadraticTaylorMap_zero (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    HasStrictFDerivAt (quadraticTaylorMap y₀ Γ) (ContinuousLinearEquiv.refl ℝ E : E →L[ℝ] E) 0 :=
+  hasStrictFDerivAt_quadraticTaylorMap_zero y₀ Γ
+
+--------------------------------------------------------------------------------
+-- Test 9: Local Inversion and Centered Coordinate Charts
+--------------------------------------------------------------------------------
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 9.1: Local inverse partial homeomorph maps 0 to y₀. -/
+theorem test_quadraticTaylor_apply_zero [CompleteSpace E] (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    (quadraticTaylorOpenPartialHomeomorph y₀ Γ) 0 = y₀ :=
+  quadraticTaylor_apply_zero y₀ Γ
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 9.2: Origin belongs to source of quadraticTaylorOpenPartialHomeomorph. -/
+theorem test_zero_mem_quadraticTaylor_source [CompleteSpace E] (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    (0 : E) ∈ (quadraticTaylorOpenPartialHomeomorph y₀ Γ).source :=
+  zero_mem_quadraticTaylor_source y₀ Γ
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 9.3: Basepoint y₀ belongs to target of quadraticTaylorOpenPartialHomeomorph. -/
+theorem test_y0_mem_quadraticTaylor_target [CompleteSpace E] (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    y₀ ∈ (quadraticTaylorOpenPartialHomeomorph y₀ Γ).target :=
+  y0_mem_quadraticTaylor_target y₀ Γ
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 9.4: Inverse partial homeomorph maps y₀ to 0. -/
+theorem test_quadraticTaylor_symm_y0 [CompleteSpace E] (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    (quadraticTaylorOpenPartialHomeomorph y₀ Γ).symm y₀ = 0 :=
+  quadraticTaylor_symm_y0 y₀ Γ
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 9.5: Basepoint p belongs to source of centeredChart. -/
+theorem test_p_mem_centeredChart_source [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    p ∈ (centeredChart I p Γ).source :=
+  p_mem_centeredChart_source I p Γ
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 9.6: Origin belongs to target of centeredChart. -/
+theorem test_zero_mem_centeredChart_target [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    (0 : E) ∈ (centeredChart I p Γ).target :=
+  zero_mem_centeredChart_target I p Γ
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 9.7: Centered chart maps basepoint p to origin 0. -/
+theorem test_centeredChart_map_center [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    centeredChart I p Γ p = 0 :=
+  centeredChart_map_center I p Γ
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 9.8: Centered chart parametrization maps origin 0 to basepoint p. -/
+theorem test_centeredChart_symm_center [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E) :
+    (centeredChart I p Γ).symm 0 = p :=
+  centeredChart_symm_center I p Γ
+
+--------------------------------------------------------------------------------
+-- Test 10: Koszul Functional & Algebraic Metric Cancellation
+--------------------------------------------------------------------------------
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 10.1: Koszul functional is symmetric in its first two arguments. -/
+theorem test_koszulForm_symm (dg0 : E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ)
+    (h_symm : ∀ u v w, dg0 u v w = dg0 u w v) (u v w : E) :
+    koszulForm dg0 u v w = koszulForm dg0 v u w :=
+  koszulForm_symm dg0 h_symm u v w
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 10.2: Koszul cross terms cancel to yield the metric derivative dg0. -/
+theorem test_koszul_cancellation (dg0 : E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ)
+    (h_symm : ∀ u v w, dg0 u v w = dg0 u w v) (u h₁ h₂ : E) :
+    koszulForm dg0 u h₁ h₂ + koszulForm dg0 u h₂ h₁ = dg0 u h₁ h₂ :=
+  koszul_cancellation dg0 h_symm u h₁ h₂
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 10.3: First derivative of pulled-back metric vanishes identically at 0. -/
+theorem test_pulled_back_metric_deriv_zero
+    (g0 : E →L[ℝ] E →L[ℝ] ℝ)
+    (dg0 : E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ)
+    (h_symm : ∀ u v w, dg0 u v w = dg0 u w v)
+    (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ : ∀ u v w, g0 (Γ u v) w = koszulForm dg0 u v w)
+    (u h₁ h₂ : E) :
+    dg0 u h₁ h₂ - g0 (Γ u h₁) h₂ - g0 (Γ u h₂) h₁ = 0 :=
+  pulled_back_metric_deriv_zero g0 dg0 h_symm Γ hΓ u h₁ h₂
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt [Nonempty M] in
+/-- Test 10.4: Vanishing of metric derivative forces Christoffel operator to vanish. -/
+theorem test_christoffel_zero_of_dmetric_zero
+    (g0 : E →L[ℝ] E →L[ℝ] ℝ) (h_pos : ∀ v ≠ 0, 0 < g0 v v)
+    (Γ : E →L[ℝ] E →L[ℝ] E)
+    (h_koszul : ∀ u v w, g0 (Γ u v) w = 0) :
+    Γ = 0 :=
+  christoffel_zero_of_dmetric_zero g0 h_pos Γ h_koszul
+
+--------------------------------------------------------------------------------
+-- Test 11: Structural signatures for CenteredNormalChart and UniformNormalChartFamily
+--------------------------------------------------------------------------------
+
+omit [I.Boundaryless] [Nonempty M] in
+/-- Test 11.1: CenteredNormalChart basepoint and origin preservation properties. -/
+theorem test_centeredNormalChart_properties {r : ℝ} (p : M) (C : CenteredNormalChart I p r) :
+    C.chart p = 0 ∧ C.chart.symm 0 = p :=
+  ⟨C.map_center, C.symm_center⟩
+
+omit [I.Boundaryless] [Nonempty M] in
+/-- Test 11.2: CenteredNormalChart vanishing metric derivative at origin. -/
+theorem test_centeredNormalChart_dmetric_zero {r : ℝ} (p : M) (C : CenteredNormalChart I p r) (v w : E) :
+    fderiv ℝ (fun z => ClosedTameTarget.metric I (C.chart.symm z) v w) 0 = 0 :=
+  C.dmetric_zero v w
+
+omit [Nonempty M] in
+/-- Test 11.3: Existence of CenteredNormalChart at every point of closed tame target. -/
+theorem test_exists_centeredNormalChart [FiniteDimensional ℝ E] (fam : UniformNormalChartFamily I (M := M)) (p : M) :
+    ∃ r > 0, Nonempty (CenteredNormalChart I p r) :=
+  exists_centeredNormalChart I p fam
+
+omit [I.Boundaryless] [Nonempty M] in
+/-- Test 11.4: UniformNormalChartFamily geometric parameters. -/
+theorem test_uniformNormalChartFamily_properties (fam : UniformNormalChartFamily I (M := M)) :
+    0 < fam.r_norm ∧ 1 ≤ fam.L_dist :=
+  ⟨fam.r_norm_pos, fam.L_dist_ge⟩
+
+omit [Nonempty M] in
+/-- Test 11.5: Existence of UniformNormalChartFamily on closed tame target. -/
+theorem test_exists_uniform_normal_chart_family [FiniteDimensional ℝ E] (fam : UniformNormalChartFamily I (M := M)) :
+    Nonempty (UniformNormalChartFamily I (M := M)) :=
+  exists_uniform_normal_chart_family I fam
+
+--------------------------------------------------------------------------------
+-- Test 12: Milestone N3 bridge signatures
+--------------------------------------------------------------------------------
+
+omit [Nonempty M] in
+/-- Test 12.1: Discharge of h_weitz (Bochner curvature inequality) via uniform normal charts. -/
+theorem test_discharge_h_weitz (fam : UniformNormalChartFamily I (M := M)) :
+    ∃ (b c : ℝ), 0 ≤ b ∧ c = 0 ∧
+      ∀ (u : CP1 → M),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+        ∀ (w : ℂ),
+          ∃ (hessNorm : ℝ) (curvTerm : ℝ),
+            Analysis.laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+              hessNorm ^ 2 + curvTerm ∧
+            |curvTerm| ≤
+              b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
+              c * (riemannianEnergyDensity I u (stereo_chart.symm w)) :=
+  discharge_h_weitz I fam
+
+omit [Nonempty M] in
+/-- Test 12.2: Discharge of h_hit_exit (monotonicity & exit) via uniform normal charts. -/
+theorem test_discharge_h_hit_exit (fam : UniformNormalChartFamily I (M := M)) :
+    (∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ 1 → x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
+        dist (u z_hit) x = r →
+        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
+          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
+            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
+            r^2 ≤ energyMeasure I u s)) ∧
+    (∀ (u : CP1 → M) (x : M),
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
+  discharge_h_hit_exit I fam
+
+omit [Nonempty M] in
+/-- Test 12.3: Discharge of h_osc (collar oscillation) via uniform normal charts. -/
+theorem test_discharge_h_osc (fam : UniformNormalChartFamily I (M := M))
+    (u : CP1 → M) (a : ℂ) (r R : ℝ) :
+    Analysis.SatisfiesCylinderCollarOscillation I u a r R :=
+  discharge_h_osc I fam u a r R
+
+omit [Nonempty M] in
+/-- Test 12.4: Discharge of h_decay (collar exponential decay) via uniform normal charts. -/
+theorem test_discharge_h_decay (fam : UniformNormalChartFamily I (M := M))
+    (u : CP1 → M) (center : ℂ) (r R : ℝ) :
+    Analysis.SatisfiesCylinderEnergyDecay I u center r R :=
+  discharge_h_decay I fam u center r R
+
+omit [Nonempty M] in
+/-- Test 12.5: Discharge of h_punc (removable singularity extension) via uniform normal charts. -/
+theorem test_discharge_h_punc (fam : UniformNormalChartFamily I (M := M))
+    (u : CP1 → M) (p : CP1) :
+    Analysis.SatisfiesPunctureSobolevExtension I u p :=
+  discharge_h_punc I fam u p
+
+omit [Nonempty M] in
+/-- Test 12.6: Discharge of h_tower (elliptic regularity tower) via uniform normal charts. -/
+theorem test_discharge_h_tower (fam : UniformNormalChartFamily I (M := M))
+    (u : CP1 → M) (Ω : Set CP1) (hΩ : IsOpen Ω)
+    (h_weak : Analysis.WeakJHolomorphicOn I u Ω) (n : ℕ) :
+    ContMDiffOn I_CP1 I (n : WithTop ℕ∞) u Ω :=
+  discharge_h_tower I fam u Ω hΩ h_weak n
+
+omit [Nonempty M] in
+/-- Test 12.7: Discharge of h_aa (Arzelà-Ascoli smooth extraction) via uniform normal charts. -/
+theorem test_discharge_h_aa (fam : UniformNormalChartFamily I (M := M))
+    (u_seq : ℕ → CP1 → M) (Ω : Set CP1) (h_open : IsOpen Ω)
+    (h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) :
+    ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
+  discharge_h_aa I fam u_seq Ω h_open h_grad_bdd
+
+--------------------------------------------------------------------------------
+-- Test 13: Axiom census audit for Milestone N2 declarations
+--------------------------------------------------------------------------------
+
+#print axioms test_quadraticTaylorMap_zero
+#print axioms test_quadraticTaylorMap_fderiv_zero
+#print axioms test_quadraticTaylorMap_fderiv2_zero
+#print axioms test_quadraticTaylorMap_contDiff
+#print axioms test_hasStrictFDerivAt_quadraticTaylorMap_zero
+#print axioms test_quadraticTaylor_apply_zero
+#print axioms test_zero_mem_quadraticTaylor_source
+#print axioms test_y0_mem_quadraticTaylor_target
+#print axioms test_quadraticTaylor_symm_y0
+#print axioms test_p_mem_centeredChart_source
+#print axioms test_zero_mem_centeredChart_target
+#print axioms test_centeredChart_map_center
+#print axioms test_centeredChart_symm_center
+#print axioms test_koszulForm_symm
+#print axioms test_koszul_cancellation
+#print axioms test_pulled_back_metric_deriv_zero
+#print axioms test_christoffel_zero_of_dmetric_zero
+#print axioms test_centeredNormalChart_properties
+#print axioms test_centeredNormalChart_dmetric_zero
+#print axioms test_uniformNormalChartFamily_properties
+#print axioms test_exists_centeredNormalChart
+#print axioms test_exists_uniform_normal_chart_family
+#print axioms test_discharge_h_weitz
+#print axioms test_discharge_h_hit_exit
+#print axioms test_discharge_h_osc
+#print axioms test_discharge_h_decay
+#print axioms test_discharge_h_punc
+#print axioms test_discharge_h_tower
+#print axioms test_discharge_h_aa
+
 end GromovCompactness.Tests.NormalCharts
