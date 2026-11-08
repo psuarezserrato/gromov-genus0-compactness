@@ -71,9 +71,10 @@ $J$-holomorphicity is preserved by biholomorphic reparametrization of the domain
 
 \begin{definition}[M\"obius frames]
 \label{def_moebius}
-\lean{GromovCompactness.MoebiusFrame}
+\lean{GromovCompactness.MoebiusFrame, GromovCompactness.affine_scaling, GromovCompactness.aff_homeo}
 \leanok
-M\"obius transformations of $\CP$, with composition and inverse.
+M\"obius transformations of $\CP$, with projective compatibility (\texttt{is\_moebius}), composition,
+inverse, and centered stereographic affine rescalings $w\mapsto a+\lambda w$ (\texttt{affine\_scaling}).
 \end{definition}
 
 \begin{theorem}[Three-point transitivity]
@@ -275,9 +276,10 @@ the maps eventually stay close to $b$.
 \label{cert_onelevel}
 \lean{GromovCompactness.Bubbling.OneLevelCertificate, GromovCompactness.Bubbling.SeqOneLevelDecomposition}
 \leanok
-\uses{def_defect_seq, def_onelevel}
-Every genuine defect of mass $m\ge h$ admits a one-level decomposition whose children are genuine
-defects.
+\uses{def_defect_seq, def_onelevel, def_moebius, def_cinf_loc}
+Every genuine defect of mass $m\ge h$ admits a realized one-level decomposition (subsequence,
+moving centers and scales, M\"obius rescaling frames, frame collapse, $C^\infty_{\mathrm{loc}}$
+convergence off nodes, and genuine child defects).
 \end{proposition}
 \begin{proof} Not formalized (this is the analytic core of bubbling). \end{proof}
 
@@ -285,19 +287,9 @@ defects.
 \label{cert_concdefect}
 \lean{GromovCompactness.Assembly.ConcDefectCertificate}
 \leanok
-\uses{def_defect_seq, def_concentration}
-Every atom of the concentration measure is a genuine defect, with its true mass and base value
-$u_0(p)$.
-\end{proposition}
-\begin{proof} Not formalized. \end{proof}
-
-\begin{proposition}[Certificate \texttt{GraftCertificate}]
-\label{cert_graft}
-\lean{GromovCompactness.Assembly.GraftCertificate}
-\leanok
-\uses{def_concentration, def_grafted_tree}
-For the genuine defect masses, some grafted sphere tree rooted at $u_0$ is the limit of the sequence
-along a subsequence and rescaling data. (Being replaced by a theorem; see \cref{chap_remaining}.)
+\uses{def_defect_seq, def_concentration, def_moebius}
+Every atom of the concentration measure is a genuine defect of a rotated subsequence of $u_{\sigma(n)}$,
+with its true mass and base value $u_0(p)$.
 \end{proposition}
 \begin{proof} Not formalized. \end{proof}
 
@@ -526,23 +518,25 @@ $\lfloor m_i/h\rfloor<\lfloor m/h\rfloor$; well-founded induction on this rank.
 \end{lemma}
 \begin{proof}\leanok Children have mass at most $m-h$.\end{proof}
 
-\begin{definition}[Local defect tree]
+\begin{definition}[Local and realized defect trees]
 \label{def_local_tree}
-\lean{GromovCompactness.Bubbling.LocalDefectTree}
+\lean{GromovCompactness.Bubbling.LocalDefectTree, GromovCompactness.Bubbling.RealizedLocalDefectTree}
 \leanok
-\uses{def_onelevel}
-A finite stable tree of $J$-holomorphic spheres of total energy $m$ attached at $b$.
+\uses{def_onelevel, def_moebius, def_cinf_loc}
+A finite stable tree of $J$-holomorphic spheres of total energy $m$ attached at $b$; a realized local
+defect tree also records the subsequence, per-vertex M\"obius frames, transition collapse and
+$C^\infty_{\mathrm{loc}}$ convergence off incident nodes.
 \end{definition}
 
 \begin{theorem}[Resolution of a genuine defect (B07)]
 \label{b07_resolve}
-\lean{GromovCompactness.Bubbling.resolve_single_defect_tree_of_certificate, GromovCompactness.Bubbling.resolve_single_defect_tree}
+\lean{GromovCompactness.Bubbling.resolve_single_defect_tree_realized, GromovCompactness.Bubbling.resolve_single_defect_tree_of_certificate, GromovCompactness.Bubbling.resolve_single_defect_tree}
 \leanok
 \uses{cert_onelevel, b06_rank, b05_ghost, def_local_tree, def_defect_seq}
-Every genuine defect of mass $m>0$ is resolved by a local defect tree.
+Every genuine defect of mass $m>0$ is resolved by a realized local defect tree.
 \end{theorem}
-\begin{proof}\leanok Energy-rank induction; children are grafted
-(\texttt{graft\_child\_defect\_trees}).\end{proof}
+\begin{proof}\leanok Energy-rank induction; realized children are grafted sequentially along
+composed subsequences and telescoped frames (\texttt{graft\_child\_defect\_trees\_realized}).\end{proof}
 
 % =========================================================================
 \chapter{Assembly and the master theorem}
@@ -558,30 +552,34 @@ Rescaling data on a rooted tree determine global M\"obius frames with the transi
 
 \begin{definition}[Grafted tree and prestable limit data]
 \label{def_grafted_tree}
-\lean{GromovCompactness.Assembly.PartialRootGraftedTree, GromovCompactness.Assembly.PrestableLimitData}
+\lean{GromovCompactness.Assembly.PartialRootGraftedTree, GromovCompactness.Assembly.RealizedPartialRootGraftedTree, GromovCompactness.Assembly.PrestableLimitData}
 \leanok
 \uses{def_concentration, def_local_tree, def_limit}
-A tree rooted at $u_0$ with defect trees attached at $S$; prestable limit data add the subsequence,
-frames and convergence.
+A tree rooted at $u_0$ with defect trees attached at $S$; realized grafted trees and prestable limit
+data carry the subsequence, M\"obius frames, transition collapse and $C^\infty_{\mathrm{loc}}$ convergence.
 \end{definition}
 
-\begin{lemma}[Prestable data from a convergent grafted tree]
+\begin{theorem}[Realized root-sphere grafting theorem]
 \label{g01_grafted}
-\lean{GromovCompactness.Assembly.prestable_limit_of_grafted_tree}
+\lean{GromovCompactness.Assembly.graft_root_sphere_tree_realized, GromovCompactness.Assembly.prestable_limit_of_grafted_tree}
 \leanok
-\uses{def_grafted_tree, g01_frames}
-A grafted tree that is the limit of the sequence yields prestable limit data.
-\end{lemma}
-\begin{proof}\leanok Frames from \cref{g01_frames}; energy identity from the tree.\end{proof}
+\uses{def_grafted_tree, g01_frames, b07_resolve}
+Grafting realized local defect trees onto the root curve $u_0$ across all concentration atoms $p\in S$
+produces a realized grafted tree with global frame collapse and $C^\infty_{\mathrm{loc}}$ convergence
+off nodes.
+\end{theorem}
+\begin{proof}\leanok Finite-set induction over $s\subseteq S$, composing subsequences and rotating/telescoping
+child frames.\end{proof}
 
 \begin{theorem}[Prestable limit (G01)]
 \label{g01_assemble}
 \lean{GromovCompactness.Assembly.assemble_prestable_limit}
 \leanok
-\uses{c02_concentration, c03_defect, cert_graft, g01_grafted}
+\uses{c02_concentration, c03_defect, cert_onelevel, cert_concdefect, b07_resolve, g01_grafted}
 Every bounded-energy sequence of $J$-holomorphic spheres has prestable limit data.
 \end{theorem}
-\begin{proof}\leanok Concentration data, defect identity, and \cref{cert_graft}.\end{proof}
+\begin{proof}\leanok Concentration data, defect identity, realized B07 resolution at each atom of $S$ via
+\cref{cert_concdefect,cert_onelevel}, and \cref{g01_grafted}.\end{proof}
 
 \begin{theorem}[Stabilization (G02)]
 \label{g02_stabilize}
@@ -596,7 +594,7 @@ Unstable ghost roots can be pruned or suppressed, yielding a stable limit.
 \label{g03_core}
 \lean{GromovCompactness.gromov_compactness_core, GromovCompactness.gromov_subsequence_alternative}
 \leanok
-\uses{g01_assemble, g02_stabilize, cert_fin, cert_conc, cert_graft}
+\uses{g01_assemble, g02_stabilize, cert_fin, cert_conc, cert_onelevel, cert_concdefect}
 A subsequence converges to a stable sphere tree limit.
 \end{theorem}
 \begin{proof}\leanok Assembly followed by stabilization.\end{proof}
@@ -655,55 +653,63 @@ $\overline{\mathcal M}_{0,k}(M,J,\le B)$ and its class-$A$ part are compact Haus
 \chapter{Certificate audit}
 \label{chap_audit}
 
-\begin{remark}[Withdrawn certificates]
+\begin{remark}[Withdrawn certificates and definition repairs]
 Up to commit \texttt{0a3de26} the master theorem assumed \texttt{h\_one\_level} (a decomposition
 for \emph{every} mass $m\ge h$) and \texttt{h\_graft\_extract} (convergence to \emph{every} grafted
 tree with arbitrary masses). \texttt{tests/CertificateSanity.lean} proves: S2, the former forces a
 sphere of energy exactly $m$ for each $m\in[h,2h)$ and so fails on any target missing one such
 value (e.g.\ $\CP$); S4, the latter is contradictory for sequences with convergent energies and two
 admissible trees. S1 checks that $u_n=\mathrm{id}_{\CP}$ satisfies the non-certificate hypotheses,
-and S3 that \cref{def_defect_seq} fails without energy concentration. Both certificates were
-replaced by \cref{cert_onelevel,cert_concdefect,cert_graft}.
+S3 that \cref{def_defect_seq} fails without energy concentration, S5 that \texttt{affine\_scaling}
+genuinely translates by its center $a\in\C$, and S6 that \texttt{SmoothLocalConvergesOn} holds for
+the nonconstant identity map on $\CP$. Both over-strong certificates were replaced by
+\cref{cert_onelevel,cert_concdefect}, and \texttt{GraftCertificate} was eliminated in favour of the
+proved theorem \cref{g01_grafted}.
 \end{remark}
 
 % =========================================================================
-\chapter{Remaining work}
+\chapter{Normal-chart infrastructure (N1--N3)}
 \label{chap_remaining}
 
-\begin{theorem}[Finite good atlas (N1)]
+\begin{theorem}[Finite good atlas and \texttt{mfderiv} factorization (N1)]
 \label{n1_atlas}
-\notready
+\lean{GromovCompactness.FiniteGoodAtlas, GromovCompactness.exists_finiteGoodAtlas, GromovCompactness.mfderiv_eq_tangentCoordChange_comp_apply}
+\leanok
+\uses{def_target}
 A compact manifold has a finite atlas with a positive Lebesgue radius, and \texttt{mfderiv}
 factors through its charts via \texttt{tangentCoordChange}.
 \end{theorem}
+\begin{proof}\leanok Finite subcover of precompact coordinate balls and Lebesgue number lemma;
+chain rule for \texttt{extChartAt} and \texttt{tangentCoordChange\_comp}.\end{proof}
 
-\begin{theorem}[Finite energy of $J$-holomorphic spheres (N1)]
+\begin{theorem}[Energy density certificate and \texttt{h\_fin} discharge (N1)]
 \label{n1_hfin}
-\notready
-\uses{n1_atlas}
-The energy density of a smooth map $\CP\to M$ is bounded; hence \cref{cert_fin}.
+\lean{GromovCompactness.EnergyDensityCertificate, GromovCompactness.energyMeasureExtended_lt_top_of_certificate, GromovCompactness.energyMeasureExtended_lt_top_of_bddAbove}
+\leanok
+\uses{n1_atlas, def_energy}
+Bounded Riemannian energy density on $\CP$ implies finite extended energy (\cref{cert_fin}).
 \end{theorem}
+\begin{proof}\leanok Comparison with the finite area of $\CP$ under the spherical Jacobian.\end{proof}
 
-\begin{theorem}[Centered normal charts (N2)]
+\begin{theorem}[Quadratic Taylor normal charts and Koszul cancellation (N2)]
 \label{n2_normal}
-\notready
-\uses{n1_atlas}
-Charts $\Psi_p$ with $\Psi_p(0)=p$, $d\Psi_p(0)=\mathrm{id}$, vanishing Christoffel symbols at $0$,
-uniform radius and $C^3$ bounds.
+\lean{GromovCompactness.quadraticTaylorOpenPartialHomeomorph, GromovCompactness.centeredChart, GromovCompactness.pulled_back_metric_deriv_zero, GromovCompactness.christoffel_zero_of_dmetric_zero, GromovCompactness.CenteredNormalChart, GromovCompactness.UniformNormalChartFamily}
+\leanok
+\uses{n1_atlas, def_metric}
+Quadratic Taylor normalization $\Phi_{y_0}(v)=y_0+v-\tfrac12\Gamma_{y_0}(v,v)$ yields local
+diffeomorphisms via the inverse function theorem; composing with atlas charts produces centered
+charts $\Psi_p$ with $\Psi_p(0)=p$, $d\Psi_p(0)=\mathrm{id}$, and algebraic Koszul cancellation of
+the first metric derivatives at $0$.
 \end{theorem}
+\begin{proof}\leanok \texttt{ContDiffAt.toOpenPartialHomeomorph} and Koszul symmetry cancellation.\end{proof}
 
-\begin{theorem}[Local-chart certificates (N3)]
+\begin{theorem}[Local-chart certificate bridge from a uniform normal chart family (N3)]
 \label{n3_certs}
-\notready
+\lean{GromovCompactness.discharge_h_weitz, GromovCompactness.discharge_h_hit_exit, GromovCompactness.discharge_h_osc, GromovCompactness.discharge_h_decay, GromovCompactness.discharge_h_punc, GromovCompactness.discharge_h_tower, GromovCompactness.discharge_h_aa}
+\leanok
 \uses{n2_normal}
-\cref{cert_weitz,cert_hit,cert_osc,cert_decay,cert_punc,cert_tower,cert_aa} hold in normal charts.
+From a \texttt{UniformNormalChartFamily}, the bridge theorems instantiate
+\cref{cert_weitz,cert_hit,cert_osc,cert_decay,cert_punc,cert_tower,cert_aa}. Unconditional construction
+of the PDE fields of \texttt{UniformNormalChartFamily} from \texttt{ClosedTameTarget} remains open.
 \end{theorem}
-
-\begin{theorem}[Realized bubble trees and the graft theorem]
-\label{rt_graft}
-\notready
-\uses{b07_resolve, cert_onelevel, cert_concdefect}
-Local defect trees carry their rescaling, subsequence and convergence data through the
-energy-rank induction, so that \cref{cert_graft} becomes a theorem and B04/B07 are load-bearing for
-\cref{thm_main}.
-\end{theorem}
+\begin{proof}\leanok Projections and curvature constant combination from \texttt{UniformNormalChartFamily}.\end{proof}

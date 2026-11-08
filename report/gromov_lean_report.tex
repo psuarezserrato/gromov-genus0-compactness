@@ -32,10 +32,10 @@
 \newcommand{\eps}{\varepsilon}
 \newcommand{\code}[1]{\texttt{#1}}
 
-% ---- Numbers from the axiom census (tests/PhaseAxiomCensus.lean) at commit b78e3d4 ----
-\newcommand{\NdeclClean}{3{,}260}
+% ---- Numbers from the axiom census (tests/PhaseAxiomCensus.lean) ----
+\newcommand{\NdeclClean}{3{,}589}
 \newcommand{\NdeclSorry}{0}
-\newcommand{\NthmClean}{2{,}565}
+\newcommand{\NthmClean}{2{,}774}
 \newcommand{\NthmSorry}{0}
 
 \lstdefinelanguage{lean}{
@@ -60,25 +60,29 @@ Built with a Multi-Agent Harness and Local Gemma Models}
 \begin{abstract}
 We report a Lean~4/Mathlib formalization project for Gromov's compactness theorem for genus-zero
 pseudo-holomorphic curves in closed symplectic manifolds with tame almost-complex structure.
-The development (37 modules, about 43{,}000 lines, Lean and Mathlib \code{v4.35.0}) states the
+The development (38 modules, about 46{,}000 lines, Lean and Mathlib \code{v4.35.0}) states the
 theorem with concrete definitions: energy as an integral of the energy density with the correct
 spherical Jacobian, $C^\infty_{\mathrm{loc}}$ convergence under moving M\"obius frames, and stable
 sphere trees with nodal matching. All \NdeclClean{} declarations of the library (\NthmClean{}
 theorems) depend only on Lean's standard axioms; none contains \code{sorry}. This does \emph{not}
 mean that Gromov compactness has been formally proved. The master theorem is a checked
 \emph{reduction} to explicitly stated hypotheses (``certificates''): the deepest analytic estimates
-in coordinates, smooth extraction off the singular set, and the existence of a convergent bubble
-tree. Of 45 tracked open declarations, 19 are proved unconditionally and 26 from certificates.
+in coordinates, smooth extraction off the singular set, and sequence-relative one-level bubbling.
+Of 45 tracked open declarations, 19 are proved unconditionally and 26 from certificates.
 While preparing this revision we proved in Lean that two certificates of the master theorem were
 too strong---one is refuted on any target missing a single sphere energy in $[h,2h)$, such as
 $\CP$, the other for any sequence with convergent energies and two admissible trees---and replaced
-both by sequence-relative versions. We also withdrew a commit that had obtained ``unconditional''
-proofs through an incorrect definition of $J$-holomorphicity. Work to discharge the local-chart
-certificates on an abstract smooth manifold has started. The project ran from 3 to 7 November 2026
-in an agentic workflow in Google Antigravity, with groups of 3--5 agents (implementers, reviewers,
-adversarial challengers and a forensic auditor). We describe the decomposition, the formal status,
-the measured limits of a locally served Gemma~2 9B model, the failure modes of the workflow, and
-the remaining work.
+them by sequence-relative versions (\code{OneLevelCertificate} and \code{ConcDefectCertificate}),
+while restructuring the bubble-tree induction (`RealizedLocalDefectTree`) so that the global
+tree-grafting step (\code{graft\_root\_sphere\_tree\_realized}) is now a proved theorem rather than
+a certificate. We also repaired \code{MoebiusFrame} and \code{affine\_scaling} to include moving
+centers $a\in\C$ and projective compatibility, withdrew an earlier commit that had obtained
+``unconditional'' proofs through an incorrect definition of $J$-holomorphicity, and added
+normal-chart infrastructure (\code{Geometry/NormalCharts.lean}). The project ran from 3 to 7
+November 2026 in an agentic workflow in Google Antigravity, with groups of 3--5 agents
+(implementers, reviewers, adversarial challengers and a forensic auditor). We describe the
+decomposition, the formal status, the measured limits of a locally served Gemma~2 9B model, the
+failure modes of the workflow, and the remaining work.
 \end{abstract}
 
 \section{Introduction}
@@ -143,18 +147,24 @@ completion claims must cite kernel output, never agent summaries.
 \section{The Lean development}
 
 \paragraph{Setup.} Lean and Mathlib \code{v4.35.0} (migrated from \code{v4.16.0} on
-6~November), built with \code{lake} (3{,}089 jobs). The library has 37 modules and
-$\approx$43{,}000 lines. Adversarial test files (44 files, $\approx$11{,}600 lines) written by
+6~November), built with \code{lake} (3{,}092 jobs). The library has 38 modules and
+$\approx$46{,}000 lines. Adversarial test files (49 files, $\approx$12{,}800 lines) written by
 challenger agents are kept under \code{tests/}. Three older test files still state the pre-certificate
 signatures and no longer compile; they predate the changes described here.
 
 \paragraph{Definitions and repairs.} The target is a type class \code{ClosedTameTarget} carrying
 pointwise bilinear forms $\omega_x$, an endomorphism $J_x$ with $J^2=-1$, and tameness. The first
-version of this note listed serious defects in the definitions. These were repaired in a dedicated
-phase (``Phase~5'', certified at commit \code{e77a1e7}):
+version of this note listed serious defects in the definitions. These were repaired in dedicated
+phases (``Phase~5'', certified at commit \code{e77a1e7}, and the subsequent M\"obius/bubble-tree
+refactor):
 \begin{itemize}
 \item The energy measure now carries the spherical Jacobian $4/(1+|w|^2)^2$; the identity
   $\CP\to\CP$ has finite energy $4\pi$, and conformal invariance is proved rather than assumed.
+\item \code{MoebiusFrame} now carries projective compatibility (\code{is\_moebius}) tying its
+  homeomorphism on $\CP\simeq\mathrm{OnePoint}\,\C$ to its $2\times2$ matrix action, and
+  \code{affine\_scaling a scale hscale} acts by the genuine stereographic affine homeomorphism
+  $w\mapsto a+\lambda w$ fixing the north pole (\code{aff\_homeo}), rather than a dilation around
+  $0$ that ignored $a$.
 \item Closedness of $\omega$ and smoothness of $J$ are concrete chartwise \code{extDeriv} and
   \code{ContMDiff} predicates instead of opaque \code{Prop}s.
 \item The Gromov convergence relation, the topology on the moduli space and the class-$A$
@@ -164,25 +174,32 @@ phase (``Phase~5'', certified at commit \code{e77a1e7}):
 \end{itemize}
 One statement change remains open: because $E(u)$ is the \code{toReal} of an extended measure, a
 map of infinite energy has $E(u)=0$, so statements that need finiteness carry an explicit
-hypothesis \code{h\_fin} (finiteness of \code{energyMeasureExtended}). Proving it for
-$J$-holomorphic spheres is the first task of the ongoing chart work (\S\ref{sec:remaining}).
+hypothesis \code{h\_fin} (finiteness of \code{energyMeasureExtended}). Discharging it from bounded
+energy density is part of the chart infrastructure (\S\ref{sec:remaining}).
 
-\paragraph{Main statement.} At commit \code{b78e3d4} the master theorem reads (abbreviated):
+\paragraph{Main statement.} The master theorem now reads (abbreviated):
 \begin{lstlisting}
 theorem gromov_compactness_genus_zero (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ) (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
     (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
-    (h_fin : ...) (h_conc_extract : ...) (h_graft : Assembly.GraftCertificate I u_seq B th) :
+    (h_fin : ...) (h_conc_extract : ...)
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_conc_defects : Assembly.ConcDefectCertificate I u_seq B th) :
     ∃ u_lim : StableSphereTreeLimit I, Nonempty (CompactnessWitness I u_seq u_lim) ∧
       (P * th.h ≤ B) ∧ (1 < |V| → G + 2 ≤ P ∧ |V| + 2 ≤ 2 * P) ∧ ((|V| : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2))
 \end{lstlisting}
-Here \code{h\_conc\_extract} is smooth extraction of a limit $u_0$ off the singular set together
-with the measure decomposition, and \code{h\_graft} asserts that, for the genuine defect masses, the
-sequence converges along some subsequence and rescaling to some grafted sphere tree rooted at
-$u_0$. The parameter \code{th} is itself a bundle of analytic estimates ($\eps$-regularity, the
-energy gap, neck decay); its existence for a given target is not yet proved. The component bounds
-are proved unconditionally.
+Here \code{h\_conc\_extract} is smooth extraction of a limit $u_0$ off the singular set $S$ together
+with the measure decomposition, \code{h\_cert} (\code{OneLevelCertificate}) is the sequence-relative
+Contract~B04 producing a realized one-level bubble decomposition for any genuine defect, and
+\code{h\_conc\_defects} (\code{ConcDefectCertificate}) states that each concentration atom $p\in S$
+is a genuine defect of a rotated subsequence of $u_{\sigma(n)}$ with mass $m_p$ and base value
+$u_0(p)$. From these, the multi-level bubble tree resolution (\code{resolve\_single\_defect\_tree\_realized},
+Contract~B07) and the global root-sphere grafting (\code{graft\_root\_sphere\_tree\_realized},
+Contract~G01) are proved as theorems, eliminating the earlier \code{GraftCertificate}. The parameter
+\code{th} is a bundle of analytic estimates ($\eps$-regularity, the energy gap, neck decay); its
+existence is proved from \code{h\_weitz}, \code{h\_hit\_exit} and \code{h\_decay} (B01). The
+component bounds are proved unconditionally.
 
 \paragraph{What is fully checked.}
 For every declaration in the \code{GromovCompactness} namespace we computed the axioms of its full
@@ -241,24 +258,23 @@ from it directly.
 \midrule
 \multicolumn{4}{@{}l}{\emph{Extraction certificates}}\\
 \code{h\_conc\_extract} & Smooth limit $u_0$ off $S$ and $\mu=\mu_{u_0}+\sum\mu\{p\}\delta_p$. & C02, master & Finiteness of $S$ and packaging, proved.\\
-\code{Assembly.\allowbreak GraftCertificate} & For the genuine defect masses, some grafted tree rooted at $u_0$ is the limit. & G01, master & Frames, stabilization, energy identity, bounds (proved); being replaced by a theorem.\\
-\code{Bubbling.\allowbreak OneLevel\allowbreak Certificate} & B04 for genuine defects (\code{IsDefectSeq}); children are genuine defects. & B07 (not yet used by master) & Energy-rank induction to a finite tree (proved).\\
-\code{Assembly.\allowbreak ConcDefect\allowbreak Certificate} & Each atom of $\mu$ is a genuine defect with mass $\mu\{p\}$ and base $u_0(p)$. & (not yet used by master) & ---\\
+\code{Bubbling.\allowbreak OneLevel\allowbreak Certificate} & Realized B04 for genuine defects (\code{IsDefectSeq}): subsequence, centers/scales, M\"obius frames, collapse, $C^\infty_{\mathrm{loc}}$ convergence off nodes, and genuine child defects. & B07, G01, master & Energy-rank induction to a realized finite bubble tree (\code{RealizedLocalDefectTree}), proved.\\
+\code{Assembly.\allowbreak ConcDefect\allowbreak Certificate} & Each atom $p\in S$ of $\mu$ is a genuine defect of a rotated subsequence of $u_{\sigma(n)}$ with mass $m_p$ and base $u_0(p)$. & G01, master & Realized root-sphere grafting (\code{graft\_root\_sphere\_tree\_realized}), stabilization, energy identity and component bounds, proved.\\
 \midrule
 \multicolumn{4}{@{}l}{\emph{Extensions}}\\
 \code{h\_rigidity}, \code{h\_finite\_symm} & Three-point rigidity of homeomorphisms; finite component symmetries. & E04 & Fibrewise finiteness (proved).\\
 \code{h\_metr}, \code{h\_extract} & Metrizability of the moduli space; limit extraction for marked curves, moduli space, varying $J$. & E01, E02, E05 & Compactness from sequential compactness; component bounds (proved).\\
 \bottomrule
 \end{tabularx}
-\caption{Certificates currently assumed (commit \code{b78e3d4}). ``Serves'' lists the contracts whose
+\caption{Certificates currently assumed. ``Serves'' lists the contracts whose
 Lean proofs take the certificate as a hypothesis.}
 \label{tab:certificates}
 \end{table}
 
-\paragraph{Two over-strong certificates, and their replacements.} A reduction is only as
-meaningful as the satisfiability of its hypotheses. Up to commit \code{0a3de26} the master theorem
-assumed two bubbling certificates that we have now shown to be too strong. All results below are in
-\code{tests/CertificateSanity.lean} and use only the standard axioms.
+\paragraph{Two over-strong certificates, their replacements, and the realized bubble-tree refactor.}
+A reduction is only as meaningful as the satisfiability of its hypotheses. Up to commit
+\code{0a3de26} the master theorem assumed two bubbling certificates that we have now shown to be too
+strong. All results below are in \code{tests/CertificateSanity.lean} and use only the standard axioms.
 \begin{itemize}
 \item \code{h\_one\_level} asked for a one-level decomposition for \emph{every} mass $m\ge h$ and
   base point, ignoring the sequence. Together with any \code{TargetThresholds} it forces a
@@ -270,27 +286,27 @@ assumed two bubbling certificates that we have now shown to be too strong. All r
   \emph{arbitrary} defect masses. If the energies of the sequence converge and two admissible trees
   with different total mass exist, this is contradictory (\code{s4\_old\_graft\_contradiction}).
 \end{itemize}
-The master theorem at \code{0a3de26} was therefore vacuous on standard targets. In the replacement
-(commits \code{2ee4331}, \code{cbaf551}), a predicate \code{IsDefectSeq f a m b} says that the
-$J$-holomorphic sequence $f$ has bounded finite energy, that $\lim_{r\to0}\lim_n E(f_n;D_r(a))=m$,
-and that near $a$ the maps eventually stay close to $b$. \code{OneLevelCertificate} asks for a
-one-level decomposition only for genuine defects, with children that are again genuine defects;
-this is Contract~B04 for all sequences. Contract~B07 is re-proved from it by energy-rank induction.
-\code{GraftCertificate} asks only that, for the genuine defect masses, \emph{some} grafted tree
-rooted at $u_0$ be the limit of the sequence. Checks \code{s1} and \code{s3} show that the
-non-certificate hypotheses are satisfied by $u_n=\mathrm{id}_{\CP}$ and that \code{IsDefectSeq}
-fails wherever energy does not concentrate.
+The master theorem at \code{0a3de26} was therefore vacuous on standard targets. In the replacement,
+a predicate \code{IsDefectSeq f a m b} says that the $J$-holomorphic sequence $f$ has bounded finite
+energy, that $\lim_{r\to0}\lim_n E(f_n;D_r(a))=m$, and that near $a$ the maps eventually stay close
+to $b$, and is stable under passing to subsequences (\code{IsDefectSeq.subseq}).
+\code{OneLevelCertificate} asks for a realized one-level decomposition (\code{SeqOneLevelDecomposition})
+only for genuine defects, carrying its subsequence $\sigma$, centers $c_n\to a$, scales
+$\lambda_n\to 0$, centered affine frames $\phi_n(w)=c_n+\lambda_n w$, forward and inverse frame
+collapse, $C^\infty_{\mathrm{loc}}$ convergence off $\infty$ and the child defect points $q$, and
+the fact that each $z\in q$ is again a genuine defect of the rescaled sequence $f_{\sigma(n)}\circ\phi_n$.
 
-The price of honesty is visible in the call-graph audit. With the existential
-\code{GraftCertificate}, the bubbling induction (B07), the nonlinear bootstrap (A05) and puncture
-extension (A11) are no longer in the dependency closure of the master theorem. A05 and A11 had been
-connected only through unused \code{have} statements; B07 was connected through the old
-\code{h\_graft\_extract}, which is exactly the over-strong certificate. We did not reinstate such
-links. Making B04/B07 load-bearing requires the bubble trees to carry their rescaling and
-convergence data, so that the graft step can be proved from the tree rather than assumed; this is
-the main structural refactor ahead. In its current form the reduction therefore assumes the
-existence of a convergent bubble tree, and proves around it the concentration analysis,
-stabilization, frame assembly and component bounds.
+By carrying the subsequence, telescoped M\"obius frames, transition collapse and
+$C^\infty_{\mathrm{loc}}$ convergence through the well-founded energy-rank induction on
+$\lfloor m/h\rfloor$ (\code{RealizedLocalDefectTree} and \code{resolve\_single\_defect\_tree\_realized}),
+and then inducting over the finite singular set $S$ on the root sphere
+(\code{graft\_root\_sphere\_tree\_realized}), the global tree-grafting step becomes a proved theorem
+and \code{GraftCertificate} is eliminated. All nine core contracts (G03, G02, G01, C02, C03, B07,
+B01, A05, A11) are now connected in the mechanical call-graph audit (\code{\#audit\_wiring}). Checks
+\code{s1}, \code{s3}, \code{s5} and \code{s6} verify that the non-certificate hypotheses hold for
+$u_n=\mathrm{id}_{\CP}$, that \code{IsDefectSeq} fails without concentration, that
+\code{affine\_scaling} genuinely translates by its center $a\in\C$, and that
+\code{SmoothLocalConvergesOn} is satisfied by the nonconstant identity map on $\CP$.
 
 \section{Workflow: Antigravity, Gemma and 3--5 agents}
 
@@ -342,15 +358,14 @@ converted into certificates, and finally the certificates were audited.
 
 \paragraph{Blueprint.} Following the \code{leanblueprint} workflow used for the PFR project
 \cite{TaoPFR}, the repository contains a blueprint (\code{blueprint/src/content.tex}) with one node
-per definition, certificate and contributed result: 72 nodes, each linked to its Lean declarations
-(82 names, all checked to exist) and to its dependencies via \verb|\uses|. A statement carries
+per definition, certificate and contributed result: 70 nodes, each linked to its Lean declarations
+(95 names, all checked to exist) and to its dependencies via \verb|\uses|. A statement carries
 \verb|\leanok| when it is formalized; a proof carries \verb|\leanok| only when it is formalized without
 \code{sorry}. Certificates are entered as propositions whose statements are formalized but whose
 proofs are not. In the generated dependency graph every conditional theorem is therefore shown as
 proved but not fully proved, and its unproved ancestors are exactly the certificates of
-Table~\ref{tab:certificates}. Planned work (milestones N1--N3 and realized bubble trees) is marked
-\verb|\notready|. The blueprint is built to HTML with its dependency graph, and to PDF, by a
-GitHub Actions workflow.
+Table~\ref{tab:certificates}. The blueprint is built to HTML with its dependency graph, and to PDF,
+by \code{leanblueprint} and a GitHub Actions workflow.
 
 \paragraph{Local compute with Gemma.} A stdlib-only Python client exposes \code{autoformalize},
 \code{suggest-tactic} and \code{repair} commands against Ollama. The model \code{gemma-lean4} is
@@ -398,25 +413,32 @@ Definitions and hypotheses need their own adversarial checks, such as the Lean l
 
 \section{Remaining work and conclusion}\label{sec:remaining}
 
-An effort to discharge the local-chart certificates on an abstract compact smooth manifold,
-without adding chart-compatibility axioms to \code{ClosedTameTarget}, started on 7~November and now
-works on top of the corrected certificates. It has three milestones.
+The module \code{Geometry/NormalCharts.lean} (987 lines, verified by \code{tests/TestNormalCharts.lean})
+now provides the geometric chart infrastructure for milestones N1--N3:
 \begin{itemize}
-\item \textbf{N1 (in progress):} a finite good atlas with a positive Lebesgue radius from
-  compactness, factorization of \code{mfderiv} through fixed atlas charts via
-  \code{tangentCoordChange}, a uniform bound on the energy density of smooth maps, and hence
-  \code{h\_fin}. The atlas existence and the \code{mfderiv} factorization are verified; the module
-  \code{Geometry/NormalCharts.lean} is being written.
-\item \textbf{N2 (planned):} centered normal charts $\Psi_p$ with $\Psi_p(0)=p$,
-  $d\Psi_p(0)=\mathrm{id}$ and vanishing Christoffel symbols at $0$, from a quadratic Taylor
-  normalization and the inverse function theorem, with uniform radius and $C^3$ bounds.
-\item \textbf{N3 (planned):} instantiating \code{h\_weitz}, \code{h\_hit\_exit}, \code{h\_osc},
-  \code{h\_decay}, \code{h\_punc}, \code{h\_tower} and \code{h\_aa} in these charts.
+\item \textbf{N1 (atlas and \code{mfderiv} factorization):} \code{FiniteGoodAtlas} and
+  \code{exists\_finiteGoodAtlas} construct a finite precompact coordinate cover with a positive
+  Lebesgue radius from compactness, \code{mfderiv\_eq\_tangentCoordChange\_comp\_apply} factors
+  \code{mfderiv} through fixed atlas charts via \code{tangentCoordChange}, and
+  \code{energyMeasureExtended\_lt\_top\_of\_certificate} discharges \code{h\_fin} from an
+  \code{EnergyDensityCertificate} (unconditionally instantiated for constant maps and for
+  $\mathrm{id}_{\CP}$). Proving continuity of \code{tangentCoordChange} on general manifolds to
+  build \code{EnergyDensityCertificate} unconditionally for arbitrary smooth maps remains open.
+\item \textbf{N2 (quadratic Taylor normal charts):} \code{quadraticTaylorOpenPartialHomeomorph} and
+  \code{centeredChart} construct centered coordinate charts $\Psi_p$ with $\Psi_p(0)=p$ and
+  $d\Psi_p(0)=\mathrm{id}$ via the inverse function theorem, and
+  \code{pulled\_back\_metric\_deriv\_zero} and \code{christoffel\_zero\_of\_dmetric\_zero} prove the
+  algebraic Koszul cancellation of the first metric derivatives at the origin.
+\item \textbf{N3 (bridge theorems):} \code{UniformNormalChartFamily} packages uniform normal charts
+  and $C^3$ tensor bounds, and \code{discharge\_h\_weitz}, \code{discharge\_h\_hit\_exit},
+  \code{discharge\_h\_osc}, \code{discharge\_h\_decay}, \code{discharge\_h\_punc},
+  \code{discharge\_h\_tower} and \code{discharge\_h\_aa} connect it to the downstream analytic
+  contracts; proving the underlying coordinate PDE estimates to inhabit
+  \code{UniformNormalChartFamily} unconditionally from \code{ClosedTameTarget} remains open.
 \end{itemize}
-Beyond the chart work: the bubble trees must carry rescaling and convergence data so that the graft
-step becomes a theorem and B04/B07 become load-bearing; \code{h\_conc\_extract} and the existence
-of \code{TargetThresholds} must be shown satisfiable; and energy quantization on $\CP$ should be
-formalized to turn \code{s2} into an outright refutation of the old certificate.
+Beyond the chart PDE estimates: \code{h\_conc\_extract}, \code{OneLevelCertificate} and
+\code{ConcDefectCertificate} remain assumed extraction certificates, and energy quantization on
+$\CP$ should be formalized to turn \code{s2} into an outright refutation of the old certificate.
 
 In about four and a half days the workflow produced a building, \code{sorry}-free reduction of a
 research-level theorem to explicit hypotheses, and a substantial body of unconditional supporting
