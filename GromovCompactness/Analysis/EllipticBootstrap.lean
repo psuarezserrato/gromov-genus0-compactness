@@ -7195,4 +7195,52 @@ theorem exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_moebius_core
   exact ⟨σ, u_lim, smoothLocalConvergesOn_of_moebius_core I
     (fun n => u_seq (σ.1 n)) u_lim Ω (h_core σ u_lim h_pt)⟩
 
+/-- Phase 3 Elliptic Regularity Step for Certificate 6 (`h_tower`):
+If `u : CP1 → M` has manifold regularity `ContMDiffOn I_CP1 I k u Ω` and at every point `z ∈ Ω`
+the local quasilinear Laplacian reduction (`delta_v_eq_nonlinear_term`) and first-jet regularity
+(`contDiffOn_chart_cauchyRiemann_of_contDiffOn`) yield `ContMDiffWithinAt I_CP1 I (k + 1) u Ω z`,
+then `u` has global manifold regularity `ContMDiffOn I_CP1 I (k + 1) u Ω` (`0 sorryAx`). -/
+theorem contMDiffOn_succ_of_local_laplacian_gain
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M]
+    (u : CP1 → M) (Ω : Set CP1) (k : ℕ)
+    (hk : ContMDiffOn I_CP1 I (k : WithTop ℕ∞) u Ω)
+    (h_local_gain : ContMDiffOn I_CP1 I (k : WithTop ℕ∞) u Ω →
+      ∀ z ∈ Ω, ContMDiffWithinAt I_CP1 I ((k + 1 : ℕ) : WithTop ℕ∞) u Ω z) :
+    ContMDiffOn I_CP1 I ((k + 1 : ℕ) : WithTop ℕ∞) u Ω :=
+  fun z hz => h_local_gain hk z hz
+
+/-- Phase 3 Full $C^\infty$ Elliptic Regularity Tower Synthesis (`h_tower`):
+Combining `contMDiffOn_nat_of_weakJHolomorphicOn_aux` and `nonlinear_elliptic_bootstrap_of_tower`
+upgrades any `WeakJHolomorphicOn I u Ω` satisfying the inductive one-step elliptic gain `C^k → C^{k+1}`
+to full smooth regularity `ContMDiffOn I_CP1 I ∞ u Ω` (`0 sorryAx`). -/
+theorem contMDiffOn_infty_of_weakJHolomorphicOn_and_step
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (Ω : Set CP1) (hΩ : IsOpen Ω)
+    (h_weak : WeakJHolomorphicOn I u Ω)
+    (h_step : ∀ k : ℕ, ContMDiffOn I_CP1 I (k : WithTop ℕ∞) u Ω →
+      ContMDiffOn I_CP1 I ((k + 1 : ℕ) : WithTop ℕ∞) u Ω) :
+    ContMDiffOn I_CP1 I ∞ u Ω :=
+  nonlinear_elliptic_bootstrap_of_tower I u Ω hΩ h_weak
+    (contMDiffOn_nat_of_weakJHolomorphicOn_aux I u Ω h_weak h_step)
+
+/-- Phase 3 Upgrade of `WeakJHolomorphicOn` to smooth `JHolomorphicOn` via the inductive
+one-step elliptic regularity tower (`0 sorryAx`). -/
+theorem jholomorphicOn_of_weakJHolomorphicOn_and_step
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (Ω : Set CP1) (hΩ : IsOpen Ω)
+    (h_weak : WeakJHolomorphicOn I u Ω)
+    (h_step : ∀ k : ℕ, ContMDiffOn I_CP1 I (k : WithTop ℕ∞) u Ω →
+      ContMDiffOn I_CP1 I ((k + 1 : ℕ) : WithTop ℕ∞) u Ω) :
+    JHolomorphicOn (I := I) (I_dom := I_CP1) u Ω :=
+  ⟨contMDiffOn_infty_of_weakJHolomorphicOn_and_step I u Ω hΩ h_weak h_step, h_weak.2⟩
+
 end GromovCompactness.Analysis

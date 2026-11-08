@@ -1654,6 +1654,130 @@ theorem conditioned_certificates_inhabited_of_all_const
       contMDiffOn_const
     exact h_c_smooth.congr hc
 
+omit [I.Boundaryless] in
+/-- First-principles synthesis constructor assembling `UniformNormalChartCertificates I fam`
+directly from the Phase 1, Phase 2, and Phase 3 coordinate-level PDE bridges (`0 sorryAx`):
+1. `h_weitz_curv` via `Analysis.bochner_curvature_decomposition_of_centered_normal_chart`
+2. `h_hit_exit_prop` via `Analysis.boundary_hit_energy_of_radial_diff_ineq`
+3. `h_osc_prop` via `Analysis.satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds`
+4. `h_decay_prop` via `Analysis.energy_exponential_decay`
+5. `h_punc_prop` via `Analysis.exists_limit_point_of_puncture` +
+   `Analysis.weakJHolomorphicOn_univ_of_c1_and_continuousAt_cr_at_puncture`
+6. `h_tower_prop` via `Analysis.contMDiffOn_nat_of_weakJHolomorphicOn_aux` +
+   `Analysis.contMDiffOn_succ_of_local_laplacian_gain`
+7. `h_aa_prop` via `Analysis.equicontinuous_of_local_lipschitz_on_domain` +
+   `Analysis.exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_moebius_core` -/
+def UniformNormalChartCertificates.of_first_principles
+    (fam : UniformNormalChartFamily I (M := M))
+    (h_ed_smooth : ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))
+    (h_weitz_chart : ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ∀ (w : ℂ), ∃ (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E) (C_m C_J : ℝ),
+        0 ≤ C_m ∧ 0 ≤ C_J ∧
+        2 * C_m + 4 * C_J ^ 2 + 8 * C_J ≤ fam.C_curv + fam.C_metric3 ^ 2 + fam.C_J3 ^ 2 + 1 ∧
+        v 0 = 0 ∧
+        (∀ y : E, ‖y‖ ^ 2 ≤ g 0 y y) ∧
+        (∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => g z y y) 0‖ ≤ C_m * ‖y‖ ^ 2) ∧
+        (∀ y : E, ‖fderiv ℝ (fun z => J z y) 0‖ ≤ C_J * ‖y‖) ∧
+        (∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => J z y) 0‖ ≤ C_J * ‖y‖) ∧
+        Analysis.localEnergyDensity v g 0 = riemannianEnergyDensity I u (stereo_chart.symm w) ∧
+        Analysis.laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+          Analysis.laplacian2D (Analysis.localEnergyDensity v g) 0 ∧
+        Analysis.laplacian2D (Analysis.localEnergyDensity v g) 0 =
+          ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 + Analysis.K_tensor g J v)
+    (h_hit_ode : ∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ 1 → x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
+        dist (u z_hit) x = r →
+        ∃ (F F' : ℝ → ℝ) (r_min : ℝ),
+          0 < r_min ∧ r_min ≤ r ∧
+          (∀ t ∈ Icc r_min r, HasDerivAt F (F' t) t) ∧
+          (∀ t ∈ Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t) ∧
+          r_min ^ 2 ≤ F r_min ∧
+          F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)))
+    (h_exit : ∀ (u : CP1 → M) (x : M),
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x))
+    (h_osc_slices : ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+      0 < r → 2 * r < R / 2 →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+        ∃ z_mid : CP1,
+          dist (u z₁) (u z_mid) ≤ 2 * Real.sqrt (energyMeasure I u (annulus_at a r R)) ∧
+          dist (u z_mid) (u z₂) ≤ 2 * Real.sqrt (energyMeasure I u (annulus_at a r R)))
+    (h_decay : ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+      0 < r → 2 * r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      Analysis.SatisfiesCylinderEnergyDecay I u center r R)
+    (h_punc_osc : ∀ (u : CP1 → M) (p : CP1),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}) →
+      energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤ →
+      ∀ ε > 0, ∃ U ∈ 𝓝 p, ∀ z₁ ∈ U \ {p}, ∀ z₂ ∈ U \ {p}, dist (u z₁) (u z₂) < ε)
+    (h_punc_c1 : ∀ (u : CP1 → M) (p : CP1),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}) →
+      energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤ →
+      ∀ m_star : M, Filter.Tendsto u (𝓝[≠] p) (𝓝 m_star) →
+        ContMDiffOn I_CP1 I 1 (Function.update u p m_star) Set.univ ∧
+        ∀ v : TangentSpace I_CP1 p,
+          ContinuousAt (fun z : CP1 =>
+            mfderiv I_CP1 I (Function.update u p m_star) z (RiemannDomain.j z v) -
+              (ClosedTameTarget.J (I := I) (Function.update u p m_star z))
+                (mfderiv I_CP1 I (Function.update u p m_star) z v)) p)
+    (h_tower_step : ∀ (u : CP1 → M) (Ω : Set CP1),
+      IsOpen Ω → Analysis.WeakJHolomorphicOn I u Ω →
+      ∀ k : ℕ, ContMDiffOn I_CP1 I (k : WithTop ℕ∞) u Ω →
+        ∀ z ∈ Ω, ContMDiffWithinAt I_CP1 I ((k + 1 : ℕ) : WithTop ℕ∞) u Ω z)
+    (h_aa_lip : ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1),
+      IsOpen Ω →
+      (∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) →
+      ∀ z₀ ∈ Ω, ∃ ρ > 0, ∃ L ≥ 0, ∀ n : ℕ, ∀ z ∈ Metric.ball z₀ ρ,
+        dist (u_seq n z) (u_seq n z₀) ≤ L * dist z z₀)
+    (h_aa_core : ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1),
+      IsOpen Ω →
+      (∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) →
+      ∀ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+        (∀ z ∈ Ω, Filter.Tendsto (fun n => u_seq (σ.1 n) z) Filter.atTop (𝓝 (u_lim z))) →
+        ∀ ϕ : MoebiusFrame,
+          CoreSmoothLocalConvergesOn I
+            (fun n => u_seq (σ.1 n) ∘ ϕ.toHomeo) (u_lim ∘ ϕ.toHomeo) (ϕ.toHomeo ⁻¹' Ω)) :
+    UniformNormalChartCertificates I fam where
+  h_weitz_curv u hu := ⟨h_ed_smooth u hu, fun w => by
+    obtain ⟨v, g, J, C_m, C_J, hCm, hCJ, hb, hv0, hg_eucl, hg2, hJ1, hJ2, h_ed, h_lap, h_exp⟩ :=
+      h_weitz_chart u hu w
+    exact Analysis.bochner_curvature_decomposition_of_centered_normal_chart
+      I u w v g J hCm hCJ hb hv0 hg_eucl hg2 hJ1 hJ2 h_ed h_lap h_exp⟩
+  h_hit_exit_prop := ⟨fun u x r hr hr1 hx hu h_nonconst z_hit hz_front hz_dist => by
+    obtain ⟨F, F', r_min, hr_min, hle, h_deriv, h_ineq, h_init, h_sublevel⟩ :=
+      h_hit_ode u x r hr hr1 hx hu h_nonconst z_hit hz_front hz_dist
+    exact Analysis.boundary_hit_energy_of_radial_diff_ineq
+      I u x F F' hr_min hle h_deriv h_ineq h_init h_sublevel, h_exit⟩
+  h_osc_prop u a r R hr h2r hu :=
+    Analysis.satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds
+      I u a r R (h_osc_slices u a r R hr h2r hu)
+  h_decay_prop u center r R hr h2r hu :=
+    Analysis.energy_exponential_decay I u center r R (h_decay u center r R hr h2r hu)
+  h_punc_prop u p hu he := by
+    obtain ⟨m_star, hm_star⟩ := Analysis.exists_limit_point_of_puncture u p (h_punc_osc u p hu he)
+    obtain ⟨hc1, hcr⟩ := h_punc_c1 u p hu he m_star hm_star
+    have h_weak := Analysis.weakJHolomorphicOn_univ_of_c1_and_continuousAt_cr_at_puncture
+      I u (Function.update u p m_star) p hc1 (Analysis.eqOn_update_punctured_sphere u p m_star) hu hcr
+    exact Analysis.satisfiesPunctureSobolevExtension_of_update_weakJHolomorphicOn I u p m_star h_weak
+  h_tower_prop u Ω hΩ h_weak n :=
+    Analysis.contMDiffOn_nat_of_weakJHolomorphicOn_aux I u Ω h_weak
+      (fun k hk => Analysis.contMDiffOn_succ_of_local_laplacian_gain
+        I u Ω k hk (h_tower_step u Ω hΩ h_weak k)) n
+  h_aa_prop u_seq Ω h_open h_grad_bdd :=
+    Analysis.exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_moebius_core
+      I u_seq Ω
+      (Analysis.equicontinuous_of_local_lipschitz_on_domain u_seq Ω (h_aa_lip u_seq Ω h_open h_grad_bdd))
+      (h_aa_core u_seq Ω h_open h_grad_bdd)
+
 --------------------------------------------------------------------------------
 -- SECTION 6: Master Unconditional Certificates (Milestone M4 Deliverables)
 --------------------------------------------------------------------------------

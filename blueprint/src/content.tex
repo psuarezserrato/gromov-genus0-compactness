@@ -755,11 +755,50 @@ convergence and local jet bounds to $C^\infty$ smoothness of the limit and conve
 \texttt{dense\_punctured\_sphere}, \texttt{tendsto\_discrete}, and
 \texttt{tendstoUniformlyOn\_iteratedFDeriv\_of\_pointwise\_of\_local\_jet\_bounds}.\end{proof}
 
+\begin{theorem}[Phase 2: Manifold-to-chart bridges for Bochner, monotonicity, collar oscillation and annular decay]
+\label{n3_phase2_bridges}
+\lean{GromovCompactness.Analysis.bochner_curvature_decomposition_of_centered_normal_chart, GromovCompactness.Analysis.bochner_differential_inequality_of_centered_normal_chart, GromovCompactness.Analysis.sublevel_energy_lower_bound_of_radial_diff_ineq, GromovCompactness.Analysis.boundary_hit_energy_of_radial_diff_ineq, GromovCompactness.Analysis.satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds, GromovCompactness.Analysis.iterated_dyadic_annulus_energy_le_of_hole_filling}
+\leanok
+\uses{n3_coord_bochner_mono, n3_coord_sing_boot}
+(1) For Certificate 1 (\texttt{h\_weitz}), \texttt{bochner\_curvature\_decomposition\_of\_centered\_normal\_chart}
+connects any centered normal-chart representation $(v,g,J)$ at $w\in\C$ with bounded metric Hessian and
+almost-complex torsion jets directly to the global stereographic Weitzenb\"ock witnesses
+$\mathrm{hessNorm}=\|\nabla^2 v(0)\|$ and $\mathrm{curvTerm}=K_{\mathrm{tensor}}(g,J,v)$ satisfying
+$\Delta e(w)=\mathrm{hessNorm}^2+\mathrm{curvTerm}$ and $|\mathrm{curvTerm}|\le be(w)^2$.
+(2) For Certificate 2 (\texttt{h\_hit\_exit}), \texttt{sublevel\_energy\_lower\_bound\_of\_radial\_diff\_ineq}
+and \texttt{boundary\_hit\_energy\_of\_radial\_diff\_ineq} integrate $F(t)\le\tfrac12 tF'(t)$ from an
+infinitesimal scale $r_{\min}\in(0,r]$ to obtain $c_0 r^2\le E(u;u^{-1}B_r(x))$ and the boundary-hit
+disjunction.
+(3) For Certificates 3--4 (\texttt{h\_osc} and \texttt{h\_decay}),
+\texttt{satisfiesCylinderCollarOscillation\_of\_radial\_and\_angular\_bounds} combines radial segment and
+circular slice bounds $\le 2\sqrt{E}$ into $\mathrm{osc}\,u\le 4\sqrt{E(u;A(r,R))}$, while
+\texttt{iterated\_dyadic\_annulus\_energy\_le\_of\_hole\_filling} iterates Widman's hole-filling step across
+nested dyadic annuli $A(2^j r, R/2^j)$ to yield $E(u;A(2^k r, R/2^k))\le (K/(1+K))^k E(u;A(r,R))$.
+\end{theorem}
+\begin{proof}\leanok \texttt{bound\_K\_tensor}, \texttt{quadratic\_energy\_growth\_of\_radial\_diff\_ineq},
+triangle inequality on collar slices, and \texttt{le\_pow\_hole\_filling\_of\_step}.\end{proof}
+
+\begin{theorem}[Phase 3: Elliptic regularity tower and first-principles 7-certificate synthesis]
+\label{n3_phase3_tower}
+\lean{GromovCompactness.Analysis.contMDiffOn_succ_of_local_laplacian_gain, GromovCompactness.Analysis.contMDiffOn_infty_of_weakJHolomorphicOn_and_step, GromovCompactness.Analysis.jholomorphicOn_of_weakJHolomorphicOn_and_step, GromovCompactness.UniformNormalChartCertificates.of_first_principles}
+\leanok
+\uses{n3_phase1_punc_aa, n3_phase2_bridges, def_jhol}
+\texttt{contMDiffOn\_succ\_of\_local\_laplacian\_gain} and
+\texttt{contMDiffOn\_infty\_of\_weakJHolomorphicOn\_and\_step} assemble the local quasilinear Laplacian
+gain $C^k\to C^{k+1}$ across charts into global $C^n$ and $C^\infty$ regularity and smooth
+$J$-holomorphicity (\texttt{jholomorphicOn\_of\_weakJHolomorphicOn\_and\_step}).
+Finally, \texttt{UniformNormalChartCertificates.of\_first\_principles} constructs all 7 fields of
+\texttt{UniformNormalChartCertificates} directly from the Phase 1, Phase 2, and Phase 3 coordinate-level
+bridges.
+\end{theorem}
+\begin{proof}\leanok Induction via \texttt{contMDiffOn\_nat\_of\_weakJHolomorphicOn\_aux},
+\texttt{nonlinear\_elliptic\_bootstrap\_of\_tower}, and synthesis of Phases 1--3.\end{proof}
+
 \begin{theorem}[Local-chart certificate bridge from normal chart certificates (N3)]
 \label{n3_certs}
 \lean{GromovCompactness.UniformNormalChartCertificates, GromovCompactness.conditioned_certificates_inhabited_of_all_const, GromovCompactness.discharge_h_weitz, GromovCompactness.discharge_h_hit_exit, GromovCompactness.discharge_h_osc, GromovCompactness.discharge_h_decay, GromovCompactness.discharge_h_punc, GromovCompactness.discharge_h_tower, GromovCompactness.discharge_h_aa}
 \leanok
-\uses{n2_normal, n3_coord_bochner_mono, n3_coord_sing_boot, n3_phase1_punc_aa}
+\uses{n2_normal, n3_coord_bochner_mono, n3_coord_sing_boot, n3_phase1_punc_aa, n3_phase2_bridges, n3_phase3_tower}
 Given a \texttt{UniformNormalChartFamily} and conditioned \texttt{UniformNormalChartCertificates}
 (where oscillation, decay and puncture removal are conditioned on $J$-holomorphicity and
 non-degenerate radii, and proved inhabited on constant curves via

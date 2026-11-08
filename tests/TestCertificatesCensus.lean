@@ -682,7 +682,19 @@ elab "#certificates_axiom_census" : command => do
     (`GromovCompactness.Analysis.applyFramesSeq_eventually_eq_moebius, "Phase 1 Cert 7: Eventual reduction of ConvergingFrame lists to single MoebiusFrame"),
     (`GromovCompactness.Analysis.smoothLocalConvergesOn_of_moebius_core, "Phase 1 Cert 7: Reduction of SmoothLocalConvergesOn to Moebius-frame CoreSmoothLocalConvergesOn"),
     (`GromovCompactness.Analysis.tendsto_iteratedFDeriv_writtenInExtChartAt_of_local_jet_bounds, "Phase 1 Cert 7: Chartwise higher-jet convergence from pointwise limit and local jet bounds"),
-    (`GromovCompactness.Analysis.exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_moebius_core, "Phase 1 Cert 7: Equicontinuous subsequence extraction and Moebius-core smooth upgrade")
+    (`GromovCompactness.Analysis.exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_moebius_core, "Phase 1 Cert 7: Equicontinuous subsequence extraction and Moebius-core smooth upgrade"),
+    -- Phase 2 Manifold-to-Chart Bridges (Certs 1-4: Bochner / Monotonicity / Collar Oscillation / Annular Decay)
+    (`GromovCompactness.Analysis.bochner_curvature_decomposition_of_centered_normal_chart, "Phase 2 Cert 1: Global Weitzenbock decomposition from centered normal chart K_tensor"),
+    (`GromovCompactness.Analysis.bochner_differential_inequality_of_centered_normal_chart, "Phase 2 Cert 1: Global Bochner differential inequality from centered normal chart"),
+    (`GromovCompactness.Analysis.sublevel_energy_lower_bound_of_radial_diff_ineq, "Phase 2 Cert 2: Sublevel quadratic energy lower bound from radial differential inequality"),
+    (`GromovCompactness.Analysis.boundary_hit_energy_of_radial_diff_ineq, "Phase 2 Cert 2: Boundary-hit energy disjunction from radial differential inequality"),
+    (`GromovCompactness.Analysis.satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds, "Phase 2 Cert 3: Collar oscillation bound from radial segment and circular slice bounds"),
+    (`GromovCompactness.Analysis.iterated_dyadic_annulus_energy_le_of_hole_filling, "Phase 2 Cert 4: Iterated dyadic annular contraction from Widman hole-filling step"),
+    -- Phase 3 Elliptic Regularity Tower & Full 7-Certificate Synthesis (Cert 6 + NormalCharts)
+    (`GromovCompactness.Analysis.contMDiffOn_succ_of_local_laplacian_gain, "Phase 3 Cert 6: One-step manifold C^k -> C^{k+1} regularity gain from local Laplacian gain"),
+    (`GromovCompactness.Analysis.contMDiffOn_infty_of_weakJHolomorphicOn_and_step, "Phase 3 Cert 6: Full C^infty regularity synthesis from WeakJHolomorphicOn and inductive step"),
+    (`GromovCompactness.Analysis.jholomorphicOn_of_weakJHolomorphicOn_and_step, "Phase 3 Cert 6: Upgrade of WeakJHolomorphicOn to smooth JHolomorphicOn via inductive step"),
+    (`GromovCompactness.UniformNormalChartCertificates.of_first_principles, "Phase 3 Synthesis: First-principles constructor assembling all 7 UniformNormalChartCertificates")
   ]
 
   logInfo m!"================================================================================"

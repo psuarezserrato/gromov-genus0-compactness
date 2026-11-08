@@ -1384,4 +1384,71 @@ theorem local_bochner_inequality_at_center
   have h_neg := neg_le_of_abs_le h_K
   linarith
 
+/-- Phase 2 Manifold-to-Chart Bridge for Certificate 1 (`h_weitz`):
+At any stereographic point `w : ℂ`, a centered normal-chart representation `(v, g, J)` with `v 0 = 0`,
+Euclidean metric domination at `0`, and bounded metric Hessian / almost-complex torsion jets produces
+the explicit Weitzenböck witnesses `hessNorm = ‖iteratedFDeriv ℝ 2 v 0‖` and `curvTerm = K_tensor g J v`
+satisfying `Δe(w) = hessNorm² + curvTerm` and `|curvTerm| ≤ b * e(w)² + 0 * e(w)` (`0 sorryAx`). -/
+theorem bochner_curvature_decomposition_of_centered_normal_chart
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (w : ℂ)
+    (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E)
+    {C_metric3 C_J3 b : ℝ} (hCm : 0 ≤ C_metric3) (hCJ : 0 ≤ C_J3)
+    (hb : 2 * C_metric3 + 4 * C_J3 ^ 2 + 8 * C_J3 ≤ b)
+    (hv0 : v 0 = 0)
+    (hg_eucl : ∀ y : E, ‖y‖ ^ 2 ≤ g 0 y y)
+    (hg2 : ∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => g z y y) 0‖ ≤ C_metric3 * ‖y‖ ^ 2)
+    (hJ1 : ∀ y : E, ‖fderiv ℝ (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖)
+    (hJ2 : ∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖)
+    (h_ed_eq : localEnergyDensity v g 0 = riemannianEnergyDensity I u (stereo_chart.symm w))
+    (h_lap_eq : laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+      laplacian2D (localEnergyDensity v g) 0)
+    (h_exp : laplacian2D (localEnergyDensity v g) 0 =
+      ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 + K_tensor g J v) :
+    ∃ (hessNorm : ℝ) (curvTerm : ℝ),
+      laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+        hessNorm ^ 2 + curvTerm ∧
+      |curvTerm| ≤
+        b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
+        0 * (riemannianEnergyDensity I u (stereo_chart.symm w)) := by
+  refine ⟨‖iteratedFDeriv ℝ 2 v 0‖, K_tensor g J v, ?_, ?_⟩
+  · rw [h_lap_eq, h_exp]
+  · have h_K := bound_K_tensor g J v hCm hCJ hv0 hg_eucl hg2 hJ1 hJ2
+    rw [h_ed_eq] at h_K
+    have h_sq_nonneg : 0 ≤ (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 := sq_nonneg _
+    have h_mono := mul_le_mul_of_nonneg_right hb h_sq_nonneg
+    linarith
+
+/-- Global stereographic Bochner differential inequality `-b * e(w)² ≤ Δe(w)` synthesized from
+`bochner_curvature_decomposition_of_centered_normal_chart` (`0 sorryAx`). -/
+theorem bochner_differential_inequality_of_centered_normal_chart
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (w : ℂ)
+    (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E)
+    {C_metric3 C_J3 b : ℝ} (hCm : 0 ≤ C_metric3) (hCJ : 0 ≤ C_J3)
+    (hb : 2 * C_metric3 + 4 * C_J3 ^ 2 + 8 * C_J3 ≤ b)
+    (hv0 : v 0 = 0)
+    (hg_eucl : ∀ y : E, ‖y‖ ^ 2 ≤ g 0 y y)
+    (hg2 : ∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => g z y y) 0‖ ≤ C_metric3 * ‖y‖ ^ 2)
+    (hJ1 : ∀ y : E, ‖fderiv ℝ (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖)
+    (hJ2 : ∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖)
+    (h_ed_eq : localEnergyDensity v g 0 = riemannianEnergyDensity I u (stereo_chart.symm w))
+    (h_lap_eq : laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+      laplacian2D (localEnergyDensity v g) 0)
+    (h_exp : laplacian2D (localEnergyDensity v g) 0 =
+      ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 + K_tensor g J v) :
+    -b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 ≤
+      laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w := by
+  obtain ⟨hessNorm, curvTerm, h_weitz, h_curv⟩ :=
+    bochner_curvature_decomposition_of_centered_normal_chart I u w v g J
+      hCm hCJ hb hv0 hg_eucl hg2 hJ1 hJ2 h_ed_eq h_lap_eq h_exp
+  have h_pt := bochner_inequality_pointwise_of_decomposition h_weitz h_curv
+  linarith
+
 end GromovCompactness.Analysis

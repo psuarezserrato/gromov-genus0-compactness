@@ -3229,5 +3229,49 @@ theorem satisfiesPunctureSobolevExtension_of_collar_oscillation_and_c1
       (Function.update u p m_star) p hc1 (eqOn_update_punctured_sphere u p m_star) h_jhol hcr
   exact satisfiesPunctureSobolevExtension_of_update_weakJHolomorphicOn I u p m_star h_weak
 
+/-- Phase 2 Manifold-to-Chart Bridge for Certificate 3 (`h_osc`):
+Combining a radial segment oscillation bound `dist (u z₁) (u z_mid) ≤ 2 * √E(u; A(r, R))` with a
+circular slice Courant–Lebesgue / Poincaré oscillation bound `dist (u z_mid) (u z₂) ≤ 2 * √E(u; A(r, R))`
+through an intermediate collar point `z_mid` yields `SatisfiesCylinderCollarOscillation I u a r R`
+(`dist (u z₁) (u z₂) ≤ 4 * √E(u; A(r, R))`) (`0 sorryAx`). -/
+theorem satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ) (r R : ℝ)
+    (h_rad_ang : ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+      ∃ z_mid : CP1,
+        dist (u z₁) (u z_mid) ≤ 2 * Real.sqrt (energyMeasure I u (annulus_at a r R)) ∧
+        dist (u z_mid) (u z₂) ≤ 2 * Real.sqrt (energyMeasure I u (annulus_at a r R))) :
+    SatisfiesCylinderCollarOscillation I u a r R := by
+  intro z₁ hz₁ z₂ hz₂
+  obtain ⟨z_mid, h_rad, h_ang⟩ := h_rad_ang z₁ hz₁ z₂ hz₂
+  have h_tri := dist_triangle (u z₁) (u z_mid) (u z₂)
+  linarith
+
+/-- Phase 2 Manifold-to-Chart Bridge for Certificate 4 (`h_decay`):
+Iterated Widman hole-filling across nested dyadic annuli `annulus_at center (2 ^ j * r) (R / 2 ^ j)`
+for `0 ≤ j < k` yields geometric dyadic energy contraction
+`E(u; A(2^k r, R / 2^k)) ≤ (K / (1 + K))^k * E(u; A(r, R))` (`0 sorryAx`). -/
+theorem iterated_dyadic_annulus_energy_le_of_hole_filling
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (center : ℂ) (r R K : ℝ) (hK : 0 ≤ K) (k : ℕ)
+    (h_step : ∀ j < k,
+      energyMeasure I u (annulus_at center ((2 : ℝ) ^ (j + 1) * r) (R / (2 : ℝ) ^ (j + 1))) ≤
+        K * (energyMeasure I u (annulus_at center ((2 : ℝ) ^ j * r) (R / (2 : ℝ) ^ j)) -
+             energyMeasure I u (annulus_at center ((2 : ℝ) ^ (j + 1) * r) (R / (2 : ℝ) ^ (j + 1))))) :
+    energyMeasure I u (annulus_at center ((2 : ℝ) ^ k * r) (R / (2 : ℝ) ^ k)) ≤
+      (K / (1 + K)) ^ k * energyMeasure I u (annulus_at center r R) := by
+  let e : ℕ → ℝ := fun j =>
+    energyMeasure I u (annulus_at center ((2 : ℝ) ^ j * r) (R / (2 : ℝ) ^ j))
+  have h_pow := le_pow_hole_filling_of_step (e := e) hK k h_step
+  have he0 : e 0 = energyMeasure I u (annulus_at center r R) := by
+    dsimp [e]
+    rw [pow_zero, one_mul, div_one]
+  rwa [he0] at h_pow
 
 end GromovCompactness.Analysis

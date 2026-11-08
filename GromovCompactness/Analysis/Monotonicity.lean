@@ -2668,4 +2668,49 @@ theorem quadratic_energy_growth_of_radial_diff_ineq
   have hr_sq_pos : 0 < r ^ 2 := sq_pos_of_pos hr_pos
   exact (le_div_iff₀ hr_sq_pos).mp h_le
 
+/-- Phase 2 Manifold-to-Chart Bridge for Certificate 2 (`h_hit_exit`):
+Combining `quadratic_energy_growth_of_radial_diff_ineq` on `[r_min, r]` with an infinitesimal
+lower bound `c₀ * r_min ^ 2 ≤ F r_min` and sublevel comparison `F r ≤ E(u; u⁻¹(B(x, r)))`
+proves the target monotonicity bound `c₀ * r ^ 2 ≤ E(u; u⁻¹(B(x, r)))` (`0 sorryAx`). -/
+theorem sublevel_energy_lower_bound_of_radial_diff_ineq
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (x : M) (F F' : ℝ → ℝ) {c₀ r_min r : ℝ}
+    (hr_min : 0 < r_min) (hle : r_min ≤ r)
+    (h_deriv : ∀ t ∈ Icc r_min r, HasDerivAt F (F' t) t)
+    (h_ineq : ∀ t ∈ Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t)
+    (h_init : c₀ * r_min ^ 2 ≤ F r_min)
+    (h_sublevel : F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r))) :
+    c₀ * r ^ 2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) := by
+  have h_quad := quadratic_energy_growth_of_radial_diff_ineq F F' hr_min hle h_deriv h_ineq
+  have hr_min_sq : 0 < r_min ^ 2 := sq_pos_of_pos hr_min
+  have h_c0_le : c₀ ≤ F r_min / r_min ^ 2 := (le_div_iff₀ hr_min_sq).mpr h_init
+  have h_mul : c₀ * r ^ 2 ≤ (F r_min / r_min ^ 2) * r ^ 2 :=
+    mul_le_mul_of_nonneg_right h_c0_le (sq_nonneg r)
+  exact h_mul.trans (h_quad.trans h_sublevel)
+
+/-- Boundary-hit sublevel energy disjunction for Certificate 2 (`h_hit_exit`) synthesized from
+`sublevel_energy_lower_bound_of_radial_diff_ineq` (`0 sorryAx`). -/
+theorem boundary_hit_energy_of_radial_diff_ineq
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (x : M) (F F' : ℝ → ℝ) {r_min r : ℝ}
+    (hr_min : 0 < r_min) (hle : r_min ≤ r)
+    (h_deriv : ∀ t ∈ Icc r_min r, HasDerivAt F (F' t) t)
+    (h_ineq : ∀ t ∈ Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t)
+    (h_init : r_min ^ 2 ≤ F r_min)
+    (h_sublevel : F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r))) :
+    r ^ 2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
+      ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
+        energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
+        r ^ 2 ≤ energyMeasure I u s := by
+  left
+  have h := sublevel_energy_lower_bound_of_radial_diff_ineq I u x F F' hr_min hle h_deriv h_ineq
+    (c₀ := 1) (by linarith) h_sublevel
+  linarith
+
 end GromovCompactness.Analysis
