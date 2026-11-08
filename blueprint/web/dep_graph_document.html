@@ -1,0 +1,2587 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dependency graph</title>
+  <meta name="generator" content="plasTeX" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles/theme-blue.css" />
+  <link rel="stylesheet" href="styles/dep_graph.css" />
+  
+  <script type="text/x-mathjax-config">
+  
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+  
+  </script>
+
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">  </script>
+
+
+<link rel="stylesheet" href="styles/extra_styles.css" />
+
+</head>
+
+<body>
+<header>
+  <a class="toc" href="index.html">Home</a>
+  <h1 id="doc_title">Dependencies</h1>
+</header>
+<div class="wrapper">
+<div class="content">
+  <div id="Legend">
+    <span id="legend_title" class="title">Legend
+    <div class="btn">
+       <div class="bar"></div>
+       <div class="bar"></div>
+       <div class="bar"></div>
+    </div></span> 
+    <dl class="legend">
+      
+      <dt>Boxes</dt><dd>definitions</dd>
+      
+      <dt>Ellipses</dt><dd>theorems and lemmas</dd>
+      
+      <dt>Blue border</dt><dd>the <em>statement</em> of this result is ready to be formalized; all prerequisites are done</dd>
+      
+      <dt>Orange border</dt><dd>the <em>statement</em> of this result is not ready to be formalized; the blueprint needs more work</dd>
+      
+      <dt>Blue background</dt><dd>the <em>proof</em> of this result is ready to be formalized; all prerequisites are done</dd>
+      
+      <dt>Green border</dt><dd>the <em>statement</em> of this result is formalized</dd>
+      
+      <dt>Green background</dt><dd>the <em>proof</em> of this result is formalized</dd>
+      
+      <dt>Dark green background</dt><dd>the <em>proof</em> of this result and all its ancestors are formalized</dd>
+      
+      <dt>Dark green border</dt><dd>this is in Mathlib</dd>
+      
+    </dl>
+  </div>
+    <div id="graph"></div>
+<div id="statements">
+
+    
+    <div class="dep-modal-container" id="a01_mean_value_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="a01_mean_value" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">4.1</span><span class="lemma_thmtitle">Scalar mean-value inequality (A01)</span></div>
+    <div class="thm_thmcontent"><p>   If \(e\ge 0\) is \(C^2\) with \(\Delta e\ge -be^2\) on \(D_r\) and \(\int _{D_r}e{\lt}\eta \), then \(\sup _{D_{r/2}}e\le Cr^{-2}\int _{D_r}e\). </p>
+</div>
+
+    <a class="latex_link" href="sect0003.html#a01_mean_value">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.scalar_mean_value_inequality">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="a02_bochner_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="a02_bochner" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">4.2</span><span class="lemma_thmtitle">Bochner inequality (A02)</span></div>
+    <div class="thm_thmcontent"><p>    \(\Delta e\ge -be^2-ce\) for the energy density of a \(J\)-holomorphic sphere. </p>
+</div>
+
+    <a class="latex_link" href="sect0003.html#a02_bochner">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.bochner_differential_inequality">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="a03_eps_regularity_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="a03_eps_regularity" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">4.3</span><span class="theorem_thmtitle">\(\varepsilon \)-regularity (A03)</span></div>
+    <div class="thm_thmcontent"><p>    Small energy on a disk bounds the energy density on the half disk. </p>
+</div>
+
+    <a class="latex_link" href="sect0003.html#a03_eps_regularity">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.epsilon_regularity">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="a04_elliptic_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="a04_elliptic" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">4.4</span><span class="lemma_thmtitle">Flat elliptic estimates (A04)</span></div>
+    <div class="thm_thmcontent"><p>   Interior Cauchy–Riemann estimates, 2D Morrey–Sobolev embedding, Cauchy–Pompeiu Hölder gain and one Hölder bootstrap step, in flat coordinates. </p>
+</div>
+
+    <a class="latex_link" href="sect0003.html#a04_elliptic">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.interior_cauchy_riemann_estimate" class="lean_decl">GromovCompactness.Analysis.interior_cauchy_riemann_estimate</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.morrey_sobolev_embedding" class="lean_decl">GromovCompactness.Analysis.morrey_sobolev_embedding</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.cauchy_pompeiu_holder_gain" class="lean_decl">GromovCompactness.Analysis.cauchy_pompeiu_holder_gain</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.elliptic_bootstrap_holder" class="lean_decl">GromovCompactness.Analysis.elliptic_bootstrap_holder</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="a05_bootstrap_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="a05_bootstrap" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">4.5</span><span class="theorem_thmtitle">Nonlinear bootstrap (A05)</span></div>
+    <div class="thm_thmcontent"><p>    Weak \(J\)-holomorphic maps are smooth. </p>
+</div>
+
+    <a class="latex_link" href="sect0003.html#a05_bootstrap">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.nonlinear_elliptic_bootstrap">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="a06_local_compactness_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="a06_local_compactness" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">4.6</span><span class="theorem_thmtitle">Local smooth compactness (A06)</span></div>
+    <div class="thm_thmcontent"><p>    Under local gradient bounds a subsequence converges in \(C^\infty _{\mathrm{loc}}\) to a \(J\)-holomorphic limit. </p>
+</div>
+
+    <a class="latex_link" href="sect0003.html#a06_local_compactness">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.local_smooth_compactness">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="a07_gap_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="a07_gap" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">4.8</span><span class="theorem_thmtitle">Sphere energy gap (A07)</span></div>
+    <div class="thm_thmcontent"><p>    Nonconstant \(J\)-holomorphic spheres have energy at least \(\varepsilon _{\mathrm{sph}}{\gt}0\). </p>
+</div>
+
+    <a class="latex_link" href="sect0003.html#a07_gap">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.sphere_energy_gap">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="a08_monotonicity_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="a08_monotonicity" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">4.7</span><span class="theorem_thmtitle">Target monotonicity (A08)</span></div>
+    <div class="thm_thmcontent"><p>    \(c\, r^2\le E(u;u^{-1}B_r(x))\) for small \(r\) when \(u\) leaves \(B_r(x)\). </p>
+</div>
+
+    <a class="latex_link" href="sect0003.html#a08_monotonicity">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.target_monotonicity">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="a09_localization_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="a09_localization" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">4.9</span><span class="theorem_thmtitle">Cylinder localization (A09)</span></div>
+    <div class="thm_thmcontent"><p>    Small annular energy confines the collar image to a small ball. </p>
+</div>
+
+    <a class="latex_link" href="sect0003.html#a09_localization">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.cylinder_localization">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="a10_decay_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="a10_decay" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">4.10</span><span class="theorem_thmtitle">Exponential decay on cylinders (A10)</span></div>
+    <div class="thm_thmcontent"><p>    Annular energy decays exponentially away from the collars. </p>
+</div>
+
+    <a class="latex_link" href="sect0003.html#a10_decay">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.cylinder_exponential_decay">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="a11_puncture_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="a11_puncture" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">4.11</span><span class="theorem_thmtitle">Extension across a puncture (A11)</span></div>
+    <div class="thm_thmcontent"><p>    A finite-energy punctured \(J\)-holomorphic sphere extends continuously and weakly \(J\)-holomorphically. </p>
+</div>
+
+    <a class="latex_link" href="sect0003.html#a11_puncture">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.puncture_sobolev_extension">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="a12_removal_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="a12_removal" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">4.12</span><span class="theorem_thmtitle">Removal of singularities (A12)</span></div>
+    <div class="thm_thmcontent"><p>    The extension is a unique smooth \(J\)-holomorphic sphere. </p>
+</div>
+
+    <a class="latex_link" href="sect0003.html#a12_removal">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.removal_of_singularities">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="b02_calibrated_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="b02_calibrated" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">5.6</span><span class="lemma_thmtitle">Calibrated rescaling (B02)</span></div>
+    <div class="thm_thmcontent"><p>    Hofer’s lemma specialized to the plane gives centers and scales with \(E(f_n;D_{\lambda _n}(a_n))=m-h/2\). </p>
+</div>
+
+    <a class="latex_link" href="sect0004.html#b02_calibrated">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.exists_calibrated_rescaling">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="b03_neck_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="b03_neck" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">5.7</span><span class="theorem_thmtitle">Neck vanishing (B03)</span></div>
+    <div class="thm_thmcontent"><p>    Neck energy and neck diameter tend to zero with the stated quantifier order. </p>
+</div>
+
+    <a class="latex_link" href="sect0004.html#b03_neck">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.neck_vanishing_quantified">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="b05_ghost_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="b05_ghost" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">5.9</span><span class="lemma_thmtitle">Ghost branching (B05)</span></div>
+    <div class="thm_thmcontent"><p>    A constant bubble has at least two children. </p>
+</div>
+
+    <a class="latex_link" href="sect0004.html#b05_ghost">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.ghost_component_branches_of_const">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="b06_rank_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="b06_rank" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">5.10</span><span class="lemma_thmtitle">Strict rank decrease (B06)</span></div>
+    <div class="thm_thmcontent"><p>    \(\lfloor m_i/h\rfloor {\lt}\lfloor m/h\rfloor \); well-founded induction on this rank. </p>
+</div>
+
+    <a class="latex_link" href="sect0004.html#b06_rank">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.child_rank_strict_decrease" class="lean_decl">GromovCompactness.Bubbling.child_rank_strict_decrease</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.energy_rank_induction" class="lean_decl">GromovCompactness.Bubbling.energy_rank_induction</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="b07_resolve_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="b07_resolve" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">5.12</span><span class="theorem_thmtitle">Resolution of a genuine defect (B07)</span></div>
+    <div class="thm_thmcontent"><p>    Every genuine defect of mass \(m{\gt}0\) is resolved by a realized local defect tree. </p>
+</div>
+
+    <a class="latex_link" href="sect0004.html#b07_resolve">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.resolve_single_defect_tree_realized" class="lean_decl">GromovCompactness.Bubbling.resolve_single_defect_tree_realized</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.resolve_single_defect_tree_of_certificate" class="lean_decl">GromovCompactness.Bubbling.resolve_single_defect_tree_of_certificate</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.resolve_single_defect_tree" class="lean_decl">GromovCompactness.Bubbling.resolve_single_defect_tree</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="c01_prokhorov_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="c01_prokhorov" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">5.1</span><span class="theorem_thmtitle">Prokhorov compactness on \(\mathbb {CP}^1\)</span></div>
+    <div class="thm_thmcontent"><p>   Bounded sequences of finite measures on \(\mathbb {CP}^1\) have weakly convergent subsequences. </p>
+</div>
+
+    <a class="latex_link" href="sect0004.html#c01_prokhorov">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Topology.RMK.prokhorov_seq_compact">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="c01_weak_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="c01_weak" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">5.2</span><span class="theorem_thmtitle">Weak compactness of energy measures (C01)</span></div>
+    <div class="thm_thmcontent"><p>    Energy measures of a bounded-energy sequence have a weakly convergent subsequence. </p>
+</div>
+
+    <a class="latex_link" href="sect0004.html#c01_weak">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Compactness.weak_measure_compactness" class="lean_decl">GromovCompactness.Compactness.weak_measure_compactness</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Compactness.weak_energy_measure_compactness" class="lean_decl">GromovCompactness.Compactness.weak_energy_measure_compactness</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="c02_concentration_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="c02_concentration" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">5.4</span><span class="theorem_thmtitle">Existence of concentration data (C02)</span></div>
+    <div class="thm_thmcontent"><p>    Every bounded-energy sequence admits concentration data. </p>
+</div>
+
+    <a class="latex_link" href="sect0004.html#c02_concentration">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Compactness.exists_concentration_data">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="c03_defect_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="c03_defect" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">5.5</span><span class="theorem_thmtitle">Defect identity (C03)</span></div>
+    <div class="thm_thmcontent"><p>    \(\mu =\mu _{u_0}+\sum _{p\in S}m_p\delta _p\) with \(m_p\ge \varepsilon _{\mathrm{sph}}\), and \(E(u_{\sigma (n)})\to E(u_0)+\sum m_p\). </p>
+</div>
+
+    <a class="latex_link" href="sect0004.html#c03_defect">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Compactness.defect_measure_identity" class="lean_decl">GromovCompactness.Compactness.defect_measure_identity</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Compactness.isolating_disk_defect_limit" class="lean_decl">GromovCompactness.Compactness.isolating_disk_defect_limit</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="cert_aa_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="cert_aa" style="display: none">
+    <div class="thm_thmheading">
+      <span class="proposition_thmcaption">
+      Proposition
+      </span>
+      <span class="proposition_thmlabel">3.10</span><span class="proposition_thmtitle">Certificate <span class="ttfamily">h_aa</span>: Arzelà–Ascoli extraction</span></div>
+    <div class="thm_thmcontent"><p>   Under local gradient bounds, a subsequence converges in \(C^\infty _{\mathrm{loc}}\). Identical to the existence part of <a href="sect0003.html#a06_local_compactness">theorem 4.6</a>. </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#cert_aa">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="cert_conc_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="cert_conc" style="display: none">
+    <div class="thm_thmheading">
+      <span class="proposition_thmcaption">
+      Proposition
+      </span>
+      <span class="proposition_thmlabel">3.11</span><span class="proposition_thmtitle">Certificate <span class="ttfamily">h_conc_extract</span>: smooth extraction off the singular set</span></div>
+    <div class="thm_thmcontent"><p>   Along a further subsequence the maps converge in \(C^\infty _{\mathrm{loc}}\) off \(S\) to a \(J\)-holomorphic \(u_0\), and \(\mu =\mu _{u_0}+\sum _{p\in S}\mu \{ p\} \delta _p\). </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#cert_conc">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="cert_concdefect_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="cert_concdefect" style="display: none">
+    <div class="thm_thmheading">
+      <span class="proposition_thmcaption">
+      Proposition
+      </span>
+      <span class="proposition_thmlabel">3.14</span><span class="proposition_thmtitle">Certificate <span class="ttfamily">ConcDefectCertificate</span></span></div>
+    <div class="thm_thmcontent"><p>    Every atom of the concentration measure is a genuine defect of a rotated subsequence of \(u_{\sigma (n)}\), with its true mass and base value \(u_0(p)\). </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#cert_concdefect">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Assembly.ConcDefectCertificate">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="cert_decay_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="cert_decay" style="display: none">
+    <div class="thm_thmheading">
+      <span class="proposition_thmcaption">
+      Proposition
+      </span>
+      <span class="proposition_thmlabel">3.7</span><span class="proposition_thmtitle">Certificate <span class="ttfamily">h_decay</span>: exponential decay on cylinders</span></div>
+    <div class="thm_thmcontent"><p>    \(E(u;A(r_1,r_2))\le C_0((r/r_1)^a+(r_2/R)^a)E(u;A(r,R))\) below \(\varepsilon _{\mathrm{neck}}\). Identical to the conclusion of <a href="sect0003.html#a10_decay">theorem 4.10</a>. </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#cert_decay">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.SatisfiesCylinderEnergyDecay">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="cert_extensions_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="cert_extensions" style="display: none">
+    <div class="thm_thmheading">
+      <span class="proposition_thmcaption">
+      Proposition
+      </span>
+      <span class="proposition_thmlabel">3.15</span><span class="proposition_thmtitle">Extension certificates</span></div>
+    <div class="thm_thmcontent"><p>  Three-point rigidity of homeomorphisms (<span class="ttfamily">h_rigidity</span>), finiteness of component symmetries (<span class="ttfamily">h_finite_symm</span>), metrizability of the moduli space (<span class="ttfamily">h_metr</span>), and the limit extraction certificates for marked curves, moduli space and varying \(J\) (<span class="ttfamily">h_extract</span>). </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#cert_extensions">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="cert_fin_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="cert_fin" style="display: none">
+    <div class="thm_thmheading">
+      <span class="proposition_thmcaption">
+      Proposition
+      </span>
+      <span class="proposition_thmlabel">3.1</span><span class="proposition_thmtitle">Certificate <span class="ttfamily">h_fin</span>: finite energy</span></div>
+    <div class="thm_thmcontent"><p>   Each \(u_n\) has finite extended energy. (Needed because \(E\) is a <span class="ttfamily">toReal</span>; to be discharged in milestone N1.) </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#cert_fin">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="cert_hit_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="cert_hit" style="display: none">
+    <div class="thm_thmheading">
+      <span class="proposition_thmcaption">
+      Proposition
+      </span>
+      <span class="proposition_thmlabel">3.5</span><span class="proposition_thmtitle">Certificate <span class="ttfamily">h_hit</span> / <span class="ttfamily">h_hit_exit</span>: isoperimetric bound and ball exit</span></div>
+    <div class="thm_thmcontent"><p>   \(r^2\le E(u;u^{-1}B_r(x))\) at boundary-hit radii, and nonconstant spheres exit small balls. Close to the conclusion of <a href="sect0003.html#a08_monotonicity">theorem 4.7</a>. </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#cert_hit">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="cert_onelevel_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="cert_onelevel" style="display: none">
+    <div class="thm_thmheading">
+      <span class="proposition_thmcaption">
+      Proposition
+      </span>
+      <span class="proposition_thmlabel">3.13</span><span class="proposition_thmtitle">Certificate <span class="ttfamily">OneLevelCertificate</span> (Contract B04, sequence-relative)</span></div>
+    <div class="thm_thmcontent"><p>    Every genuine defect of mass \(m\ge h\) admits a realized one-level decomposition (subsequence, moving centers and scales, Möbius rescaling frames, frame collapse, \(C^\infty _{\mathrm{loc}}\) convergence off nodes, and genuine child defects). </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#cert_onelevel">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.OneLevelCertificate" class="lean_decl">GromovCompactness.Bubbling.OneLevelCertificate</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.SeqOneLevelDecomposition" class="lean_decl">GromovCompactness.Bubbling.SeqOneLevelDecomposition</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="cert_osc_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="cert_osc" style="display: none">
+    <div class="thm_thmheading">
+      <span class="proposition_thmcaption">
+      Proposition
+      </span>
+      <span class="proposition_thmlabel">3.6</span><span class="proposition_thmtitle">Certificate <span class="ttfamily">h_osc</span>: collar oscillation</span></div>
+    <div class="thm_thmcontent"><p>    On the collar \(A(2r,R/2)\) the oscillation of \(u\) is at most \(4\sqrt{E(u;A(r,R))}\). </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#cert_osc">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.SatisfiesCylinderCollarOscillation">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="cert_punc_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="cert_punc" style="display: none">
+    <div class="thm_thmheading">
+      <span class="proposition_thmcaption">
+      Proposition
+      </span>
+      <span class="proposition_thmlabel">3.8</span><span class="proposition_thmtitle">Certificate <span class="ttfamily">h_ext</span>: extension across a puncture</span></div>
+    <div class="thm_thmcontent"><p>    A finite-energy punctured \(J\)-holomorphic sphere has a continuous weak \(J\)-holomorphic extension. Identical to the conclusion of <a href="sect0003.html#a11_puncture">theorem 4.11</a>. </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#cert_punc">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.SatisfiesPunctureSobolevExtension">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="cert_thresholds_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="cert_thresholds" style="display: none">
+    <div class="thm_thmheading">
+      <span class="proposition_thmcaption">
+      Proposition
+      </span>
+      <span class="proposition_thmlabel">3.3</span><span class="proposition_thmtitle">Certificate: existence of thresholds</span></div>
+    <div class="thm_thmcontent"><p>   For the given target, <span class="ttfamily">TargetThresholds</span> is inhabited. The master theorem takes a threshold bundle as a parameter. <a href="sect0003.html#thm_thresholds">theorem 4.13</a> constructs one from ??. </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#cert_thresholds">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="cert_tower_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="cert_tower" style="display: none">
+    <div class="thm_thmheading">
+      <span class="proposition_thmcaption">
+      Proposition
+      </span>
+      <span class="proposition_thmlabel">3.9</span><span class="proposition_thmtitle">Certificate <span class="ttfamily">h_tower</span>: regularity tower</span></div>
+    <div class="thm_thmcontent"><p>   Weak \(J\)-holomorphic maps are \(C^n\) for every \(n\). Implies the conclusion of <a href="sect0003.html#a05_bootstrap">theorem 4.5</a> trivially. </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#cert_tower">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="cert_weitz_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="cert_weitz" style="display: none">
+    <div class="thm_thmheading">
+      <span class="proposition_thmcaption">
+      Proposition
+      </span>
+      <span class="proposition_thmlabel">3.4</span><span class="proposition_thmtitle">Certificate <span class="ttfamily">h_weitz</span>: Weitzenböck decomposition</span></div>
+    <div class="thm_thmcontent"><p>   In stereographic coordinates the energy density \(e\) of a \(J\)-holomorphic sphere is smooth and \(\Delta e=|\cdot |^2+K\) with \(|K|\le be^2\). Essentially equivalent to the conclusion of <a href="sect0003.html#a02_bochner">lemma 4.2</a>. </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#cert_weitz">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def_cinf_loc_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def_cinf_loc" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">2.11</span><span class="definition_thmtitle">Smooth local convergence</span></div>
+    <div class="thm_thmcontent"><p>    \(C^\infty _{\mathrm{loc}}\) convergence on an open subset of \(\mathbb {CP}^1\). </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#def_cinf_loc">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.SmoothLocalConvergesOn">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def_concentration_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def_concentration" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">5.3</span><span class="definition_thmtitle">Concentration data</span></div>
+    <div class="thm_thmcontent"><p>    A subsequence, a limit measure \(\mu \), a finite singular set \(S\) and a \(J\)-holomorphic limit \(u_0\) off \(S\). </p>
+</div>
+
+    <a class="latex_link" href="sect0004.html#def_concentration">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Compactness.ConcentrationData">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def_defect_seq_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def_defect_seq" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">3.12</span><span class="definition_thmtitle">Genuine defect of a sequence</span></div>
+    <div class="thm_thmcontent"><p>    \(f\) is \(J\)-holomorphic with bounded finite energy, \(\lim _{r\to 0}\lim _nE(f_n;D_r(a))=m\), and near \(a\) the maps eventually stay close to \(b\). </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#def_defect_seq">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.IsDefectSeq">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def_energy_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def_energy" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">2.8</span><span class="definition_thmtitle">Energy measure and total energy</span></div>
+    <div class="thm_thmcontent"><p>    The push-forward from the stereographic chart of Lebesgue measure with density \(\tfrac 12|du|_g^2\cdot 4/(1+|w|^2)^2\); \(E(u)\) is its real total. </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#def_energy">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.energyMeasure" class="lean_decl">GromovCompactness.energyMeasure</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.energyMeasureExtended" class="lean_decl">GromovCompactness.energyMeasureExtended</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.totalEnergy" class="lean_decl">GromovCompactness.totalEnergy</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def_grafted_tree_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def_grafted_tree" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">6.2</span><span class="definition_thmtitle">Grafted tree and prestable limit data</span></div>
+    <div class="thm_thmcontent"><p>    A tree rooted at \(u_0\) with defect trees attached at \(S\); realized grafted trees and prestable limit data carry the subsequence, Möbius frames, transition collapse and \(C^\infty _{\mathrm{loc}}\) convergence. </p>
+</div>
+
+    <a class="latex_link" href="sect0005.html#def_grafted_tree">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Assembly.PartialRootGraftedTree" class="lean_decl">GromovCompactness.Assembly.PartialRootGraftedTree</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Assembly.RealizedPartialRootGraftedTree" class="lean_decl">GromovCompactness.Assembly.RealizedPartialRootGraftedTree</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Assembly.PrestableLimitData" class="lean_decl">GromovCompactness.Assembly.PrestableLimitData</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def_jhol_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def_jhol" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">2.4</span><span class="definition_thmtitle">\(J\)-holomorphic map</span></div>
+    <div class="thm_thmcontent"><p>    \(u\) is smooth on \(s\) and \(du\circ j=J\circ du\) at every point of \(s\). </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#def_jhol">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.JHolomorphicOn">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def_limit_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def_limit" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">2.14</span><span class="definition_thmtitle">Stable sphere tree limit and compactness witness</span></div>
+    <div class="thm_thmcontent"><p>    A finite tree of \(J\)-holomorphic spheres with nodal matching and stable ghosts; a witness records a subsequence, frames, \(C^\infty _{\mathrm{loc}}\) convergence, frame collapse and energy convergence. </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#def_limit">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.StableSphereTreeLimit" class="lean_decl">GromovCompactness.StableSphereTreeLimit</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.CompactnessWitness" class="lean_decl">GromovCompactness.CompactnessWitness</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def_local_tree_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def_local_tree" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">5.11</span><span class="definition_thmtitle">Local and realized defect trees</span></div>
+    <div class="thm_thmcontent"><p>    A finite stable tree of \(J\)-holomorphic spheres of total energy \(m\) attached at \(b\); a realized local defect tree also records the subsequence, per-vertex Möbius frames, transition collapse and \(C^\infty _{\mathrm{loc}}\) convergence off incident nodes. </p>
+</div>
+
+    <a class="latex_link" href="sect0004.html#def_local_tree">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.LocalDefectTree" class="lean_decl">GromovCompactness.Bubbling.LocalDefectTree</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.RealizedLocalDefectTree" class="lean_decl">GromovCompactness.Bubbling.RealizedLocalDefectTree</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def_metric_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def_metric" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">2.2</span><span class="definition_thmtitle">Compatible metric</span></div>
+    <div class="thm_thmcontent"><p>    \(g_x(v,w)=\tfrac 12(\omega _x(v,J_xw)+\omega _x(w,J_xv))\). </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#def_metric">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.ClosedTameTarget.metric">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def_moebius_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def_moebius" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">2.6</span><span class="definition_thmtitle">Möbius frames</span></div>
+    <div class="thm_thmcontent"><p>   Möbius transformations of \(\mathbb {CP}^1\), with projective compatibility (<span class="ttfamily">is_moebius</span>), composition, inverse, and centered stereographic affine rescalings \(w\mapsto a+\lambda w\) (<span class="ttfamily">affine_scaling</span>). </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#def_moebius">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.MoebiusFrame" class="lean_decl">GromovCompactness.MoebiusFrame</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.affine_scaling" class="lean_decl">GromovCompactness.affine_scaling</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.aff_homeo" class="lean_decl">GromovCompactness.aff_homeo</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def_onelevel_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def_onelevel" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">5.8</span><span class="definition_thmtitle">One-level decomposition</span></div>
+    <div class="thm_thmcontent"><p>    A bubble \(v\), child points \(q\) and masses with \(m=E(v)+\sum m_i\), \(v(\infty )=b\), and calibration. </p>
+</div>
+
+    <a class="latex_link" href="sect0004.html#def_onelevel">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.OneLevelDecomposition">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def_target_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def_target" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">2.1</span><span class="definition_thmtitle">Closed tame target</span></div>
+    <div class="thm_thmcontent"><p>   A compact boundaryless smooth manifold \(M\) with pointwise nondegenerate skew forms \(\omega _x\), closed in charts, an almost-complex structure \(J\) with \(J^2=-1\), smooth in charts, and tameness \(\omega _x(v,J_xv){\gt}0\) for \(v\ne 0\). </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#def_target">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.ClosedTameTarget">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def_thresholds_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def_thresholds" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">3.2</span><span class="definition_thmtitle">Universal thresholds</span></div>
+    <div class="thm_thmcontent"><p>    A bundle of constants \(\varepsilon _{\mathrm{reg}},C_{\mathrm{reg}},\varepsilon _{\mathrm{sph}},\varepsilon _{\mathrm{neck}}, C_{\mathrm{neck}},a,h\) together with the estimates they satisfy (\(\varepsilon \)-regularity, energy gap, neck decay). </p>
+</div>
+
+    <a class="latex_link" href="chap_certificates.html#def_thresholds">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.TargetThresholds">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="e01_varying_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="e01_varying" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">7.1</span><span class="theorem_thmtitle">Varying almost-complex structures (E01)</span></div>
+    <div class="thm_thmcontent"><p>    Limits of \(J_n\)-holomorphic maps with \(J_n\to J\) are \(J\)-holomorphic (unconditional); compactness for varying \(J\) (from <a href="chap_certificates.html#cert_extensions">proposition 3.15</a>). </p>
+</div>
+
+    <a class="latex_link" href="sect0006.html#e01_varying">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Extensions.jholomorphic_limit_of_varying_J" class="lean_decl">GromovCompactness.Extensions.jholomorphic_limit_of_varying_J</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Extensions.gromov_compactness_varying_J" class="lean_decl">GromovCompactness.Extensions.gromov_compactness_varying_J</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="e02_marked_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="e02_marked" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">7.2</span><span class="theorem_thmtitle">Marked compactness (E02)</span></div>
+    <div class="thm_thmcontent"><p>    Compactness for marked stable maps. </p>
+</div>
+
+    <a class="latex_link" href="sect0006.html#e02_marked">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Extensions.marked_gromov_compactness">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="e04_aut_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="e04_aut" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">7.3</span><span class="theorem_thmtitle">Automorphisms (E04)</span></div>
+    <div class="thm_thmcontent"><p>    Möbius three-point rigidity (unconditional); stability iff finite automorphisms (from <a href="chap_certificates.html#cert_extensions">proposition 3.15</a>). </p>
+</div>
+
+    <a class="latex_link" href="sect0006.html#e04_aut">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Extensions.moebius_three_point_rigidity" class="lean_decl">GromovCompactness.Extensions.moebius_three_point_rigidity</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Extensions.full_automorphisms_finite_iff_pure_finite" class="lean_decl">GromovCompactness.Extensions.full_automorphisms_finite_iff_pure_finite</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Extensions.stability_iff_finite_automorphisms" class="lean_decl">GromovCompactness.Extensions.stability_iff_finite_automorphisms</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="e05_moduli_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="e05_moduli" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">7.4</span><span class="theorem_thmtitle">Moduli space (E05)</span></div>
+    <div class="thm_thmcontent"><p>    \(\overline{\mathcal M}_{0,k}(M,J,\le B)\) and its class-\(A\) part are compact Hausdorff. </p>
+</div>
+
+    <a class="latex_link" href="sect0006.html#e05_moduli">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Extensions.moduli_space_compact" class="lean_decl">GromovCompactness.Extensions.moduli_space_compact</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Extensions.moduli_space_in_class_compact_hausdorff" class="lean_decl">GromovCompactness.Extensions.moduli_space_in_class_compact_hausdorff</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="g01_assemble_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="g01_assemble" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">6.4</span><span class="theorem_thmtitle">Prestable limit (G01)</span></div>
+    <div class="thm_thmcontent"><p>    Every bounded-energy sequence of \(J\)-holomorphic spheres has prestable limit data. </p>
+</div>
+
+    <a class="latex_link" href="sect0005.html#g01_assemble">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Assembly.assemble_prestable_limit">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="g01_frames_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="g01_frames" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">6.1</span><span class="lemma_thmtitle">Global frames (G01)</span></div>
+    <div class="thm_thmcontent"><p>    Rescaling data on a rooted tree determine global Möbius frames with the transition relations. </p>
+</div>
+
+    <a class="latex_link" href="sect0005.html#g01_frames">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Assembly.assemble_global_frames">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="g01_grafted_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="g01_grafted" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">6.3</span><span class="theorem_thmtitle">Realized root-sphere grafting theorem</span></div>
+    <div class="thm_thmcontent"><p>    Grafting realized local defect trees onto the root curve \(u_0\) across all concentration atoms \(p\in S\) produces a realized grafted tree with global frame collapse and \(C^\infty _{\mathrm{loc}}\) convergence off nodes. </p>
+</div>
+
+    <a class="latex_link" href="sect0005.html#g01_grafted">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Assembly.graft_root_sphere_tree_realized" class="lean_decl">GromovCompactness.Assembly.graft_root_sphere_tree_realized</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Assembly.prestable_limit_of_grafted_tree" class="lean_decl">GromovCompactness.Assembly.prestable_limit_of_grafted_tree</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="g02_stabilize_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="g02_stabilize" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">6.5</span><span class="theorem_thmtitle">Stabilization (G02)</span></div>
+    <div class="thm_thmcontent"><p>    Unstable ghost roots can be pruned or suppressed, yielding a stable limit. </p>
+</div>
+
+    <a class="latex_link" href="sect0005.html#g02_stabilize">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Assembly.stabilize_prestable_tree" class="lean_decl">GromovCompactness.Assembly.stabilize_prestable_tree</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Assembly.prune_degree_one_root" class="lean_decl">GromovCompactness.Assembly.prune_degree_one_root</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Assembly.suppress_degree_two_root" class="lean_decl">GromovCompactness.Assembly.suppress_degree_two_root</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Assembly.upgrade_convergence_across_deleted_node" class="lean_decl">GromovCompactness.Assembly.upgrade_convergence_across_deleted_node</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="g03_core_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="g03_core" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">6.6</span><span class="theorem_thmtitle">Core compactness (G03)</span></div>
+    <div class="thm_thmcontent"><p>    A subsequence converges to a stable sphere tree limit. </p>
+</div>
+
+    <a class="latex_link" href="sect0005.html#g03_core">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.gromov_compactness_core" class="lean_decl">GromovCompactness.gromov_compactness_core</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.gromov_subsequence_alternative" class="lean_decl">GromovCompactness.gromov_subsequence_alternative</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem_diagonal_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem_diagonal" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">2.13</span><span class="lemma_thmtitle">Diagonal extraction</span></div>
+    <div class="thm_thmcontent"><p>   A nested sequence of subsequences has a diagonal subsequence eventually inside each. </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#lem_diagonal">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bookkeeping.countable_diagonal_extraction">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem_id_energy_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem_id_energy" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">2.10</span><span class="lemma_thmtitle">A nonconstant sphere of finite positive energy</span></div>
+    <div class="thm_thmcontent"><p>    \(\mathrm{id}:\mathbb {CP}^1\to \mathbb {CP}^1\) is \(J\)-holomorphic with \(0{\lt}E(\mathrm{id}){\lt}\infty \). </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#lem_id_energy">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.concrete_nonconstant_map_positive_energy" class="lean_decl">GromovCompactness.concrete_nonconstant_map_positive_energy</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.concrete_nonconstant_map_finite_energy" class="lean_decl">GromovCompactness.concrete_nonconstant_map_finite_energy</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem_jhol_closure_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem_jhol_closure" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">2.12</span><span class="lemma_thmtitle">Closedness of \(J\)-holomorphicity</span></div>
+    <div class="thm_thmcontent"><p>    \(C^\infty _{\mathrm{loc}}\) limits of \(J\)-holomorphic maps are \(J\)-holomorphic. </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#lem_jhol_closure">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.smooth_local_jhol_closure">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem_jhol_invariance_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem_jhol_invariance" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">2.5</span><span class="lemma_thmtitle">Reparametrization invariance</span></div>
+    <div class="thm_thmcontent"><p>    \(J\)-holomorphicity is preserved by biholomorphic reparametrization of the domain. </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#lem_jhol_invariance">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.jholomorphic_coordinate_invariance">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem_metric_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem_metric" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">2.3</span><span class="lemma_thmtitle">Metric properties</span></div>
+    <div class="thm_thmcontent"><p>    \(g\) is symmetric, positive definite and \(J\)-invariant. </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#lem_metric">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.metric_pos_def">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="n1_atlas_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="n1_atlas" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">9.1</span><span class="theorem_thmtitle">Finite good atlas and <span class="ttfamily">mfderiv</span> factorization (N1)</span></div>
+    <div class="thm_thmcontent"><p>    A compact manifold has a finite atlas with a positive Lebesgue radius, and <span class="ttfamily">mfderiv</span> factors through its charts via <span class="ttfamily">tangentCoordChange</span>. </p>
+</div>
+
+    <a class="latex_link" href="chap_remaining.html#n1_atlas">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.FiniteGoodAtlas" class="lean_decl">GromovCompactness.FiniteGoodAtlas</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.exists_finiteGoodAtlas" class="lean_decl">GromovCompactness.exists_finiteGoodAtlas</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.mfderiv_eq_tangentCoordChange_comp_apply" class="lean_decl">GromovCompactness.mfderiv_eq_tangentCoordChange_comp_apply</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="n1_hfin_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="n1_hfin" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">9.2</span><span class="theorem_thmtitle">Energy density certificate and <span class="ttfamily">h_fin</span> discharge (N1)</span></div>
+    <div class="thm_thmcontent"><p>    Bounded Riemannian energy density on \(\mathbb {CP}^1\) implies finite extended energy (<a href="chap_certificates.html#cert_fin">proposition 3.1</a>). </p>
+</div>
+
+    <a class="latex_link" href="chap_remaining.html#n1_hfin">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.EnergyDensityCertificate" class="lean_decl">GromovCompactness.EnergyDensityCertificate</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.energyMeasureExtended_lt_top_of_certificate" class="lean_decl">GromovCompactness.energyMeasureExtended_lt_top_of_certificate</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.energyMeasureExtended_lt_top_of_bddAbove" class="lean_decl">GromovCompactness.energyMeasureExtended_lt_top_of_bddAbove</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="n2_normal_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="n2_normal" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">9.3</span><span class="theorem_thmtitle">Quadratic Taylor normal charts, Koszul cancellation and \(\mathbb {CP}^1\) model (N2)</span></div>
+    <div class="thm_thmcontent"><p>    Quadratic Taylor normalization \(\Phi _{y_0}(v)=y_0+v-\tfrac 12\Gamma _{y_0}(v,v)\) yields local diffeomorphisms via the inverse function theorem; composing with atlas charts produces centered charts \(\Psi _p\) with \(\Psi _p(0)=p\), \(d\Psi _p(0)=\mathrm{id}\), and algebraic Koszul cancellation of the first metric derivatives at \(0\). <span class="ttfamily">UniformNormalChartFamily</span> packages the 15 geometric fields (uniform radius, bi-Lipschitz distance comparison, curvature and \(C^3\) tensor bounds) and is unconditionally inhabited on \((\mathbb {CP}^1,\omega _{\mathrm{FS}},J_{\mathbb {CP}^1})\) via <span class="ttfamily">concrete_CP1</span>. </p>
+</div>
+
+    <a class="latex_link" href="chap_remaining.html#n2_normal">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.quadraticTaylorOpenPartialHomeomorph" class="lean_decl">GromovCompactness.quadraticTaylorOpenPartialHomeomorph</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.centeredChart" class="lean_decl">GromovCompactness.centeredChart</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.pulled_back_metric_deriv_zero" class="lean_decl">GromovCompactness.pulled_back_metric_deriv_zero</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.christoffel_zero_of_dmetric_zero" class="lean_decl">GromovCompactness.christoffel_zero_of_dmetric_zero</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.CenteredNormalChart" class="lean_decl">GromovCompactness.CenteredNormalChart</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.CenteredNormalChart.shrink" class="lean_decl">GromovCompactness.CenteredNormalChart.shrink</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.UniformNormalChartFamily" class="lean_decl">GromovCompactness.UniformNormalChartFamily</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.UniformNormalChartFamily.concrete_CP1" class="lean_decl">GromovCompactness.UniformNormalChartFamily.concrete_CP1</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="n3_certs_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="n3_certs" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">9.6</span><span class="theorem_thmtitle">Local-chart certificate bridge from normal chart certificates (N3)</span></div>
+    <div class="thm_thmcontent"><p>    Given a <span class="ttfamily">UniformNormalChartFamily</span> and conditioned <span class="ttfamily">UniformNormalChartCertificates</span> (where oscillation, decay and puncture removal are conditioned on \(J\)-holomorphicity and non-degenerate radii, and proved inhabited on constant curves via <span class="ttfamily">conditioned_certificates_inhabited_of_all_const</span>), the bridge theorems instantiate ??. Unconditional derivation of <span class="ttfamily">UniformNormalChartCertificates</span> from <span class="ttfamily">ClosedTameTarget</span> for general nonconstant curves remains open. </p>
+</div>
+
+    <a class="latex_link" href="chap_remaining.html#n3_certs">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.UniformNormalChartCertificates" class="lean_decl">GromovCompactness.UniformNormalChartCertificates</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.conditioned_certificates_inhabited_of_all_const" class="lean_decl">GromovCompactness.conditioned_certificates_inhabited_of_all_const</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.discharge_h_weitz" class="lean_decl">GromovCompactness.discharge_h_weitz</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.discharge_h_hit_exit" class="lean_decl">GromovCompactness.discharge_h_hit_exit</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.discharge_h_osc" class="lean_decl">GromovCompactness.discharge_h_osc</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.discharge_h_decay" class="lean_decl">GromovCompactness.discharge_h_decay</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.discharge_h_punc" class="lean_decl">GromovCompactness.discharge_h_punc</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.discharge_h_tower" class="lean_decl">GromovCompactness.discharge_h_tower</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.discharge_h_aa" class="lean_decl">GromovCompactness.discharge_h_aa</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="n3_coord_bochner_mono_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="n3_coord_bochner_mono" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">9.4</span><span class="lemma_thmtitle">Coordinate Bochner–Weitzenböck and radial monotonicity building blocks</span></div>
+    <div class="thm_thmcontent"><p>    At the center of a normal chart, vanishing of first metric derivatives implies vanishing of the Koszul form and Christoffel symbols and quadratic energy-density control \(|K_{\mathrm{tensor}}|\le (2C_{g,3}+4C_{J,3}^2+8C_{J,3})e(0)^2\). In polar coordinates, disk energy splits into circle slices with \(F'(r)=\int _0^{2\pi }e(r,\theta )r\, d\theta \), and \(F(t)\le \tfrac 12 tF'(t)\) integrates to \((F(r_{\min })/r_{\min }^2)r^2\le F(r)\). </p>
+</div>
+
+    <a class="latex_link" href="chap_remaining.html#n3_coord_bochner_mono">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.localEnergyDensity" class="lean_decl">GromovCompactness.Analysis.localEnergyDensity</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.christoffel_zero_at_center" class="lean_decl">GromovCompactness.Analysis.christoffel_zero_at_center</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.fderiv_metric_comp_zero_at_center" class="lean_decl">GromovCompactness.Analysis.fderiv_metric_comp_zero_at_center</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.bound_K_tensor" class="lean_decl">GromovCompactness.Analysis.bound_K_tensor</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.hessian_energy_density_expansion" class="lean_decl">GromovCompactness.Analysis.hessian_energy_density_expansion</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.local_bochner_inequality_at_center" class="lean_decl">GromovCompactness.Analysis.local_bochner_inequality_at_center</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.energy_eq_integral_circle_energy" class="lean_decl">GromovCompactness.Analysis.energy_eq_integral_circle_energy</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.deriv_energy_eq_boundary_integral" class="lean_decl">GromovCompactness.Analysis.deriv_energy_eq_boundary_integral</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.abs_canonicalRadialOneForm_le" class="lean_decl">GromovCompactness.Analysis.abs_canonicalRadialOneForm_le</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.quadratic_energy_growth_of_radial_diff_ineq" class="lean_decl">GromovCompactness.Analysis.quadratic_energy_growth_of_radial_diff_ineq</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="n3_coord_sing_boot_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="n3_coord_sing_boot" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">9.5</span><span class="lemma_thmtitle">Coordinate singularity removal and elliptic bootstrap building blocks</span></div>
+    <div class="thm_thmcontent"><p>    Iterated Widman hole-filling contraction gives geometric annular decay; finite punctured-sphere energy implies vanishing annular energy tail, vanishing collar oscillation (under <span class="ttfamily">h_osc</span>), and Cauchy filter convergence across the puncture on compact \(M\); the quasilinear Laplacian commutator satisfies \(\| N(v,Dv)\| \le (1+C_{J,0})C_{J,1}\| Dv\| ^2\); and local Lipschitz gradient bounds yield equicontinuity and separable dense-set Arzelà–Ascoli extraction on subdomains. </p>
+</div>
+
+    <a class="latex_link" href="chap_remaining.html#n3_coord_sing_boot">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.energy_exponential_decay" class="lean_decl">GromovCompactness.Analysis.energy_exponential_decay</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.energy_annulus_tendsto_zero" class="lean_decl">GromovCompactness.Analysis.energy_annulus_tendsto_zero</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.oscillation_tendsto_zero" class="lean_decl">GromovCompactness.Analysis.oscillation_tendsto_zero</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.exists_limit_point_of_puncture" class="lean_decl">GromovCompactness.Analysis.exists_limit_point_of_puncture</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.satisfiesPunctureSobolevExtension_of_finite_energy_aux" class="lean_decl">GromovCompactness.Analysis.satisfiesPunctureSobolevExtension_of_finite_energy_aux</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.norm_nonlinearLaplacianRHS_le" class="lean_decl">GromovCompactness.Analysis.norm_nonlinearLaplacianRHS_le</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.delta_v_eq_nonlinear_term" class="lean_decl">GromovCompactness.Analysis.delta_v_eq_nonlinear_term</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.contMDiffOn_nat_of_weakJHolomorphicOn_aux" class="lean_decl">GromovCompactness.Analysis.contMDiffOn_nat_of_weakJHolomorphicOn_aux</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.equicontinuous_of_local_lipschitz_on_domain" class="lean_decl">GromovCompactness.Analysis.equicontinuous_of_local_lipschitz_on_domain</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.exists_pointwise_convergent_subseq_on_domain" class="lean_decl">GromovCompactness.Analysis.exists_pointwise_convergent_subseq_on_domain</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Analysis.arzela_ascoli_smooth_local_extraction_aux" class="lean_decl">GromovCompactness.Analysis.arzela_ascoli_smooth_local_extraction_aux</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm_component_bounds_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm_component_bounds" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">2.15</span><span class="theorem_thmtitle">Component bounds</span></div>
+    <div class="thm_thmcontent"><p>    \(Ph\le B\); for \(|V|{\gt}1\), \(G\le P-2\) and \(|V|\le 2P-2\); \(|V|\le \max (1,2\lfloor B/h\rfloor -2)\). </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#thm_component_bounds">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Topology.component_count_bounds" class="lean_decl">GromovCompactness.Topology.component_count_bounds</a></li>
+        
+           <li><a href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.ghost_components_bound" class="lean_decl">GromovCompactness.ghost_components_bound</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm_energy_conformal_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm_energy_conformal" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">2.9</span><span class="theorem_thmtitle">Conformal invariance of energy</span></div>
+    <div class="thm_thmcontent"><p>    Energy is invariant under Möbius reparametrization. </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#thm_energy_conformal">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.energy_conformal_invariant">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm_main_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm_main" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">6.7</span><span class="theorem_thmtitle">Genus-zero Gromov compactness</span></div>
+    <div class="thm_thmcontent"><p>    Main theorem of the project, as a reduction to the certificates of <a href="chap_certificates.html">chapter 3</a>. </p>
+</div>
+
+    <a class="latex_link" href="sect0005.html#thm_main">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.gromov_compactness_genus_zero">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm_three_points_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm_three_points" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">2.7</span><span class="theorem_thmtitle">Three-point transitivity</span></div>
+    <div class="thm_thmcontent"><p>    Any triple of distinct points of \(\mathbb {CP}^1\) can be sent to any other by a unique Möbius map. </p>
+</div>
+
+    <a class="latex_link" href="sect0002.html#thm_three_points">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.exists_unique_moebius_three_points">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm_thresholds_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm_thresholds" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">4.13</span><span class="theorem_thmtitle">Thresholds from analytic certificates (B01)</span></div>
+    <div class="thm_thmcontent"><p>    ?? yield a threshold bundle with \(0{\lt}h\le \min (\varepsilon _{\mathrm{reg}}/2,\varepsilon _{\mathrm{sph}},\varepsilon _{\mathrm{neck}}/2)\). </p>
+</div>
+
+    <a class="latex_link" href="sect0003.html#thm_thresholds">LaTeX</a>
+    
+    
+  <a class="lean_link lean_decl" href="https://psuarezserrato.github.io/gromov-genus0-compactness/docs/find/#doc/GromovCompactness.Bubbling.exists_target_thresholds">Lean</a>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+</div>
+</div> <!-- content -->
+</div> <!-- wrapper -->
+<script src="js/jquery.min.js" type="text/javascript"></script>
+
+<script src="js/d3.min.js"></script>
+<script src="js/hpcc.min.js"></script>
+<script src="js/d3-graphviz.js"></script>
+
+<script type="text/javascript">
+const graphContainer = d3.select("#graph");
+const width = graphContainer.node().clientWidth;
+const height = graphContainer.node().clientHeight;
+
+
+graphContainer.graphviz({useWorker: true})
+    .width(width)
+    .height(height)
+    .fit(true)
+    .renderDot(`strict digraph "" {	graph [bgcolor=transparent];	node [label="\N",		penwidth=1.8	];	edge [arrowhead=vee];	g03_core	[color=green,		fillcolor="#9CEC8B",		label=g03_core,		shape=ellipse,		style=filled];	e01_varying	[color=green,		fillcolor="#9CEC8B",		label=e01_varying,		shape=ellipse,		style=filled];	g03_core -> e01_varying	[style=dashed];	e02_marked	[color=green,		fillcolor="#9CEC8B",		label=e02_marked,		shape=ellipse,		style=filled];	g03_core -> e02_marked	[style=dashed];	thm_main	[color=green,		fillcolor="#9CEC8B",		label=thm_main,		shape=ellipse,		style=filled];	g03_core -> thm_main	[style=dashed];	e05_moduli	[color=green,		fillcolor="#9CEC8B",		label=e05_moduli,		shape=ellipse,		style=filled];	e02_marked -> e05_moduli	[style=dashed];	n3_coord_bochner_mono	[color=green,		fillcolor="#1CAC78",		label=n3_coord_bochner_mono,		shape=ellipse,		style=filled];	n3_certs	[color=green,		fillcolor="#1CAC78",		label=n3_certs,		shape=ellipse,		style=filled];	n3_coord_bochner_mono -> n3_certs	[style=dashed];	a06_local_compactness	[color=green,		fillcolor="#9CEC8B",		label=a06_local_compactness,		shape=ellipse,		style=filled];	def_local_tree	[color=green,		fillcolor="#B0ECA3",		label=def_local_tree,		shape=box,		style=filled];	b07_resolve	[color=green,		fillcolor="#9CEC8B",		label=b07_resolve,		shape=ellipse,		style=filled];	def_local_tree -> b07_resolve	[style=dashed];	def_grafted_tree	[color=green,		fillcolor="#B0ECA3",		label=def_grafted_tree,		shape=box,		style=filled];	def_local_tree -> def_grafted_tree	[style=dashed];	g01_grafted	[color=green,		fillcolor="#9CEC8B",		label=g01_grafted,		shape=ellipse,		style=filled];	b07_resolve -> g01_grafted	[style=dashed];	def_grafted_tree -> g01_grafted	[style=dashed];	g02_stabilize	[color=green,		fillcolor="#1CAC78",		label=g02_stabilize,		shape=ellipse,		style=filled];	def_grafted_tree -> g02_stabilize	[style=dashed];	g01_assemble	[color=green,		fillcolor="#9CEC8B",		label=g01_assemble,		shape=ellipse,		style=filled];	g01_grafted -> g01_assemble	[style=dashed];	g02_stabilize -> g03_core	[style=dashed];	a01_mean_value	[color=green,		fillcolor="#1CAC78",		label=a01_mean_value,		shape=ellipse,		style=filled];	a03_eps_regularity	[color=green,		fillcolor="#9CEC8B",		label=a03_eps_regularity,		shape=ellipse,		style=filled];	a01_mean_value -> a03_eps_regularity	[style=dashed];	thm_thresholds	[color=green,		fillcolor="#9CEC8B",		label=thm_thresholds,		shape=ellipse,		style=filled];	a03_eps_regularity -> thm_thresholds	[style=dashed];	lem_id_energy	[color=green,		fillcolor="#1CAC78",		label=lem_id_energy,		shape=ellipse,		style=filled];	lem_diagonal	[color=green,		fillcolor="#1CAC78",		label=lem_diagonal,		shape=ellipse,		style=filled];	lem_metric	[color=green,		fillcolor="#1CAC78",		label=lem_metric,		shape=ellipse,		style=filled];	def_metric	[color=green,		fillcolor="#B0ECA3",		label=def_metric,		shape=box,		style=filled];	def_metric -> lem_metric	[style=dashed];	def_energy	[color=green,		fillcolor="#B0ECA3",		label=def_energy,		shape=box,		style=filled];	def_metric -> def_energy	[style=dashed];	n2_normal	[color=green,		fillcolor="#1CAC78",		label=n2_normal,		shape=ellipse,		style=filled];	def_metric -> n2_normal	[style=dashed];	def_energy -> n3_coord_bochner_mono	[style=dashed];	def_energy -> lem_id_energy	[style=dashed];	def_limit	[color=green,		fillcolor="#B0ECA3",		label=def_limit,		shape=box,		style=filled];	def_energy -> def_limit	[style=dashed];	def_thresholds	[color=green,		fillcolor="#B0ECA3",		label=def_thresholds,		shape=box,		style=filled];	def_energy -> def_thresholds	[style=dashed];	cert_hit	[color=green,		fillcolor="#A3D6FF",		label=cert_hit,		shape=ellipse,		style=filled];	def_energy -> cert_hit	[style=dashed];	n1_hfin	[color=green,		fillcolor="#1CAC78",		label=n1_hfin,		shape=ellipse,		style=filled];	def_energy -> n1_hfin	[style=dashed];	cert_decay	[color=green,		fillcolor="#A3D6FF",		label=cert_decay,		shape=ellipse,		style=filled];	def_energy -> cert_decay	[style=dashed];	thm_energy_conformal	[color=green,		fillcolor="#1CAC78",		label=thm_energy_conformal,		shape=ellipse,		style=filled];	def_energy -> thm_energy_conformal	[style=dashed];	cert_weitz	[color=green,		fillcolor="#A3D6FF",		label=cert_weitz,		shape=ellipse,		style=filled];	def_energy -> cert_weitz	[style=dashed];	cert_osc	[color=green,		fillcolor="#A3D6FF",		label=cert_osc,		shape=ellipse,		style=filled];	def_energy -> cert_osc	[style=dashed];	def_defect_seq	[color=green,		fillcolor="#B0ECA3",		label=def_defect_seq,		shape=box,		style=filled];	def_energy -> def_defect_seq	[style=dashed];	cert_conc	[color=green,		fillcolor="#A3D6FF",		label=cert_conc,		shape=ellipse,		style=filled];	def_energy -> cert_conc	[style=dashed];	cert_fin	[color=green,		fillcolor="#A3D6FF",		label=cert_fin,		shape=ellipse,		style=filled];	def_energy -> cert_fin	[style=dashed];	n2_normal -> n3_coord_bochner_mono	[style=dashed];	n3_coord_sing_boot	[color=green,		fillcolor="#1CAC78",		label=n3_coord_sing_boot,		shape=ellipse,		style=filled];	n2_normal -> n3_coord_sing_boot	[style=dashed];	def_limit -> def_grafted_tree	[style=dashed];	thm_component_bounds	[color=green,		fillcolor="#1CAC78",		label=thm_component_bounds,		shape=ellipse,		style=filled];	def_limit -> thm_component_bounds	[style=dashed];	def_thresholds -> thm_thresholds	[style=dashed];	def_thresholds -> thm_component_bounds	[style=dashed];	def_concentration	[color=green,		fillcolor="#B0ECA3",		label=def_concentration,		shape=box,		style=filled];	def_thresholds -> def_concentration	[style=dashed];	cert_thresholds	[color=green,		fillcolor="#A3D6FF",		label=cert_thresholds,		shape=ellipse,		style=filled];	def_thresholds -> cert_thresholds	[style=dashed];	def_onelevel	[color=green,		fillcolor="#B0ECA3",		label=def_onelevel,		shape=box,		style=filled];	def_thresholds -> def_onelevel	[style=dashed];	b02_calibrated	[color=green,		fillcolor="#1CAC78",		label=b02_calibrated,		shape=ellipse,		style=filled];	def_thresholds -> b02_calibrated	[style=dashed];	a08_monotonicity	[color=green,		fillcolor="#9CEC8B",		label=a08_monotonicity,		shape=ellipse,		style=filled];	cert_hit -> a08_monotonicity	[style=dashed];	a10_decay	[color=green,		fillcolor="#9CEC8B",		label=a10_decay,		shape=ellipse,		style=filled];	cert_decay -> a10_decay	[style=dashed];	a02_bochner	[color=green,		fillcolor="#9CEC8B",		label=a02_bochner,		shape=ellipse,		style=filled];	cert_weitz -> a02_bochner	[style=dashed];	a09_localization	[color=green,		fillcolor="#9CEC8B",		label=a09_localization,		shape=ellipse,		style=filled];	cert_osc -> a09_localization	[style=dashed];	cert_concdefect	[color=green,		fillcolor="#A3D6FF",		label=cert_concdefect,		shape=ellipse,		style=filled];	def_defect_seq -> cert_concdefect	[style=dashed];	cert_onelevel	[color=green,		fillcolor="#A3D6FF",		label=cert_onelevel,		shape=ellipse,		style=filled];	def_defect_seq -> cert_onelevel	[style=dashed];	c02_concentration	[color=green,		fillcolor="#9CEC8B",		label=c02_concentration,		shape=ellipse,		style=filled];	cert_conc -> c02_concentration	[style=dashed];	c01_weak	[color=green,		fillcolor="#9CEC8B",		label=c01_weak,		shape=ellipse,		style=filled];	cert_fin -> c01_weak	[style=dashed];	n3_coord_sing_boot -> n3_certs	[style=dashed];	thm_component_bounds -> thm_main	[style=dashed];	def_concentration -> def_grafted_tree	[style=dashed];	c03_defect	[color=green,		fillcolor="#1CAC78",		label=c03_defect,		shape=ellipse,		style=filled];	def_concentration -> c03_defect	[style=dashed];	def_concentration -> c02_concentration	[style=dashed];	def_concentration -> cert_concdefect	[style=dashed];	cert_thresholds -> thm_main	[style=dashed];	def_onelevel -> def_local_tree	[style=dashed];	b05_ghost	[color=green,		fillcolor="#1CAC78",		label=b05_ghost,		shape=ellipse,		style=filled];	def_onelevel -> b05_ghost	[style=dashed];	def_onelevel -> cert_onelevel	[style=dashed];	b06_rank	[color=green,		fillcolor="#1CAC78",		label=b06_rank,		shape=ellipse,		style=filled];	def_onelevel -> b06_rank	[style=dashed];	c03_defect -> g01_assemble	[style=dashed];	c02_concentration -> g01_assemble	[style=dashed];	cert_concdefect -> g01_assemble	[style=dashed];	g01_assemble -> g03_core	[style=dashed];	b05_ghost -> b07_resolve	[style=dashed];	cert_onelevel -> b07_resolve	[style=dashed];	b06_rank -> b07_resolve	[style=dashed];	lem_jhol_closure	[color=green,		fillcolor="#1CAC78",		label=lem_jhol_closure,		shape=ellipse,		style=filled];	lem_jhol_closure -> a06_local_compactness	[style=dashed];	a07_gap	[color=green,		fillcolor="#9CEC8B",		label=a07_gap,		shape=ellipse,		style=filled];	a08_monotonicity -> a07_gap	[style=dashed];	a07_gap -> thm_thresholds	[style=dashed];	cert_punc	[color=green,		fillcolor="#A3D6FF",		label=cert_punc,		shape=ellipse,		style=filled];	a11_puncture	[color=green,		fillcolor="#9CEC8B",		label=a11_puncture,		shape=ellipse,		style=filled];	cert_punc -> a11_puncture	[style=dashed];	a12_removal	[color=green,		fillcolor="#9CEC8B",		label=a12_removal,		shape=ellipse,		style=filled];	a11_puncture -> a12_removal	[style=dashed];	c01_weak -> c02_concentration	[style=dashed];	n1_atlas	[color=green,		fillcolor="#1CAC78",		label=n1_atlas,		shape=ellipse,		style=filled];	n1_atlas -> n2_normal	[style=dashed];	n1_atlas -> n1_hfin	[style=dashed];	a10_decay -> thm_thresholds	[style=dashed];	a02_bochner -> a03_eps_regularity	[style=dashed];	cert_tower	[color=green,		fillcolor="#A3D6FF",		label=cert_tower,		shape=ellipse,		style=filled];	a05_bootstrap	[color=green,		fillcolor="#9CEC8B",		label=a05_bootstrap,		shape=ellipse,		style=filled];	cert_tower -> a05_bootstrap	[style=dashed];	a05_bootstrap -> a12_removal	[style=dashed];	c01_prokhorov	[color=green,		fillcolor="#1CAC78",		label=c01_prokhorov,		shape=ellipse,		style=filled];	c01_prokhorov -> c01_weak	[style=dashed];	b03_neck	[color=green,		fillcolor="#9CEC8B",		label=b03_neck,		shape=ellipse,		style=filled];	a09_localization -> b03_neck	[style=dashed];	lem_jhol_invariance	[color=green,		fillcolor="#1CAC78",		label=lem_jhol_invariance,		shape=ellipse,		style=filled];	def_target	[color=green,		fillcolor="#B0ECA3",		label=def_target,		shape=box,		style=filled];	def_target -> def_metric	[style=dashed];	def_target -> n1_atlas	[style=dashed];	def_jhol	[color=green,		fillcolor="#B0ECA3",		label=def_jhol,		shape=box,		style=filled];	def_target -> def_jhol	[style=dashed];	def_jhol -> lem_id_energy	[style=dashed];	def_jhol -> def_thresholds	[style=dashed];	def_jhol -> cert_hit	[style=dashed];	def_jhol -> cert_weitz	[style=dashed];	def_jhol -> def_defect_seq	[style=dashed];	def_jhol -> cert_punc	[style=dashed];	def_jhol -> cert_tower	[style=dashed];	def_jhol -> lem_jhol_invariance	[style=dashed];	def_cinf_loc	[color=green,		fillcolor="#B0ECA3",		label=def_cinf_loc,		shape=box,		style=filled];	def_jhol -> def_cinf_loc	[style=dashed];	def_cinf_loc -> def_local_tree	[style=dashed];	def_cinf_loc -> def_limit	[style=dashed];	def_cinf_loc -> cert_conc	[style=dashed];	def_cinf_loc -> n3_coord_sing_boot	[style=dashed];	def_cinf_loc -> def_concentration	[style=dashed];	def_cinf_loc -> cert_onelevel	[style=dashed];	def_cinf_loc -> lem_jhol_closure	[style=dashed];	cert_aa	[color=green,		fillcolor="#A3D6FF",		label=cert_aa,		shape=ellipse,		style=filled];	def_cinf_loc -> cert_aa	[style=dashed];	def_moebius	[color=green,		fillcolor="#B0ECA3",		label=def_moebius,		shape=box,		style=filled];	def_moebius -> def_local_tree	[style=dashed];	def_moebius -> n2_normal	[style=dashed];	def_moebius -> def_limit	[style=dashed];	def_moebius -> thm_energy_conformal	[style=dashed];	def_moebius -> cert_concdefect	[style=dashed];	def_moebius -> cert_onelevel	[style=dashed];	thm_three_points	[color=green,		fillcolor="#1CAC78",		label=thm_three_points,		shape=ellipse,		style=filled];	def_moebius -> thm_three_points	[style=dashed];	g01_frames	[color=green,		fillcolor="#1CAC78",		label=g01_frames,		shape=ellipse,		style=filled];	def_moebius -> g01_frames	[style=dashed];	e04_aut	[color=green,		fillcolor="#9CEC8B",		label=e04_aut,		shape=ellipse,		style=filled];	thm_three_points -> e04_aut	[style=dashed];	g01_frames -> g01_grafted	[style=dashed];	cert_aa -> a06_local_compactness	[style=dashed];	cert_extensions	[color=green,		fillcolor="#A3D6FF",		label=cert_extensions,		shape=ellipse,		style=filled];	cert_extensions -> e01_varying	[style=dashed];	cert_extensions -> e02_marked	[style=dashed];	cert_extensions -> e04_aut	[style=dashed];	a04_elliptic	[color=green,		fillcolor="#1CAC78",		label=a04_elliptic,		shape=ellipse,		style=filled];}`)
+    .on("end", interactive);
+
+latexLabelEscaper = function(label) {
+  return label.replace(/\./g, '\\.').replace(/:/g, '\\:')
+}
+
+clickNode = function() {
+  $("#statements div").hide()
+  var node_id = $('text', this).text();
+  $('.thm').hide();
+  $('#'+latexLabelEscaper(node_id)).show().children().show();
+}
+function interactive() {
+    $("span#legend_title").on("click", function () {
+           $(this).siblings('dl').toggle();
+        })
+
+    d3.selectAll('.node')
+        .attr('pointer-events', 'fill')
+        .on('click', function () {
+           var title = d3.select(this).selectAll('title').text().trim();
+           $('#statements > div').hide()
+           $('.thm').hide();
+           $('#'+latexLabelEscaper(title)+'_modal').show().children().show().children().show();
+           $('#statements').show()
+        });
+
+    d3.selectAll('.dep-closebtn').on('click', function() {
+        var modal =
+            d3.select(this).node().parentNode.parentNode.parentNode ;
+        d3.select(modal).style('display', 'none');
+    });
+}
+
+</script>
+
+</body>
+</html>

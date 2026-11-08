@@ -695,7 +695,7 @@ Bounded Riemannian energy density on $\CP$ implies finite extended energy (\cref
 \label{n2_normal}
 \lean{GromovCompactness.quadraticTaylorOpenPartialHomeomorph, GromovCompactness.centeredChart, GromovCompactness.pulled_back_metric_deriv_zero, GromovCompactness.christoffel_zero_of_dmetric_zero, GromovCompactness.CenteredNormalChart, GromovCompactness.CenteredNormalChart.shrink, GromovCompactness.UniformNormalChartFamily, GromovCompactness.UniformNormalChartFamily.concrete_CP1}
 \leanok
-\uses{n1_atlas, def_metric, def_cp1}
+\uses{n1_atlas, def_metric, def_moebius}
 Quadratic Taylor normalization $\Phi_{y_0}(v)=y_0+v-\tfrac12\Gamma_{y_0}(v,v)$ yields local
 diffeomorphisms via the inverse function theorem; composing with atlas charts produces centered
 charts $\Psi_p$ with $\Psi_p(0)=p$, $d\Psi_p(0)=\mathrm{id}$, and algebraic Koszul cancellation of
@@ -706,21 +706,45 @@ unconditionally inhabited on $(\CP,\omega_{\mathrm{FS}},J_{\CP})$ via \texttt{co
 \begin{proof}\leanok \texttt{ContDiffAt.toOpenPartialHomeomorph}, Koszul symmetry cancellation, and
 explicit stereographic bi-Lipschitz bounds on $\CP$.\end{proof}
 
-\begin{theorem}[Local-chart certificate bridge and coordinate PDE building blocks (N3)]
-\label{n3_certs}
-\lean{GromovCompactness.UniformNormalChartCertificates, GromovCompactness.conditioned_certificates_inhabited_of_all_const, GromovCompactness.discharge_h_weitz, GromovCompactness.discharge_h_hit_exit, GromovCompactness.discharge_h_osc, GromovCompactness.discharge_h_decay, GromovCompactness.discharge_h_punc, GromovCompactness.discharge_h_tower, GromovCompactness.discharge_h_aa, GromovCompactness.Analysis.local_bochner_inequality_at_center, GromovCompactness.Analysis.quadratic_energy_growth_of_radial_diff_ineq, GromovCompactness.Analysis.energy_exponential_decay, GromovCompactness.Analysis.satisfiesPunctureSobolevExtension_of_finite_energy_aux, GromovCompactness.Analysis.delta_v_eq_nonlinear_term, GromovCompactness.Analysis.arzela_ascoli_smooth_local_extraction_aux}
+\begin{lemma}[Coordinate Bochner--Weitzenb\"ock and radial monotonicity building blocks]
+\label{n3_coord_bochner_mono}
+\lean{GromovCompactness.Analysis.localEnergyDensity, GromovCompactness.Analysis.christoffel_zero_at_center, GromovCompactness.Analysis.fderiv_metric_comp_zero_at_center, GromovCompactness.Analysis.bound_K_tensor, GromovCompactness.Analysis.hessian_energy_density_expansion, GromovCompactness.Analysis.local_bochner_inequality_at_center, GromovCompactness.Analysis.energy_eq_integral_circle_energy, GromovCompactness.Analysis.deriv_energy_eq_boundary_integral, GromovCompactness.Analysis.abs_canonicalRadialOneForm_le, GromovCompactness.Analysis.quadratic_energy_growth_of_radial_diff_ineq}
 \leanok
-\uses{n2_normal}
+\uses{n2_normal, def_energy}
+At the center of a normal chart, vanishing of first metric derivatives implies vanishing of the
+Koszul form and Christoffel symbols and quadratic energy-density control $|K_{\mathrm{tensor}}|\le
+(2C_{g,3}+4C_{J,3}^2+8C_{J,3})e(0)^2$. In polar coordinates, disk energy splits into circle slices
+with $F'(r)=\int_0^{2\pi}e(r,\theta)r\,d\theta$, and $F(t)\le\tfrac12 tF'(t)$ integrates to
+$(F(r_{\min})/r_{\min}^2)r^2\le F(r)$.
+\end{lemma}
+\begin{proof}\leanok Operator-norm bounds on \texttt{iteratedFDeriv}, polar integration, and
+\texttt{monotoneOn\_of\_deriv\_nonneg}.\end{proof}
+
+\begin{lemma}[Coordinate singularity removal and elliptic bootstrap building blocks]
+\label{n3_coord_sing_boot}
+\lean{GromovCompactness.Analysis.energy_exponential_decay, GromovCompactness.Analysis.energy_annulus_tendsto_zero, GromovCompactness.Analysis.oscillation_tendsto_zero, GromovCompactness.Analysis.exists_limit_point_of_puncture, GromovCompactness.Analysis.satisfiesPunctureSobolevExtension_of_finite_energy_aux, GromovCompactness.Analysis.norm_nonlinearLaplacianRHS_le, GromovCompactness.Analysis.delta_v_eq_nonlinear_term, GromovCompactness.Analysis.contMDiffOn_nat_of_weakJHolomorphicOn_aux, GromovCompactness.Analysis.equicontinuous_of_local_lipschitz_on_domain, GromovCompactness.Analysis.exists_pointwise_convergent_subseq_on_domain, GromovCompactness.Analysis.arzela_ascoli_smooth_local_extraction_aux}
+\leanok
+\uses{n2_normal, def_cinf_loc}
+Iterated Widman hole-filling contraction gives geometric annular decay; finite punctured-sphere
+energy implies vanishing annular energy tail, vanishing collar oscillation (under \texttt{h\_osc}),
+and Cauchy filter convergence across the puncture on compact $M$; the quasilinear Laplacian
+commutator satisfies $\|N(v,Dv)\|\le(1+C_{J,0})C_{J,1}\|Dv\|^2$; and local Lipschitz gradient
+bounds yield equicontinuity and separable dense-set Arzel\`a--Ascoli extraction on subdomains.
+\end{lemma}
+\begin{proof}\leanok Dyadic induction, \texttt{CompleteSpace.complete} on $M$, operator-norm bounds,
+and \texttt{tendstoUniformlyOn\_of\_equicontinuous\_of\_dense}.\end{proof}
+
+\begin{theorem}[Local-chart certificate bridge from normal chart certificates (N3)]
+\label{n3_certs}
+\lean{GromovCompactness.UniformNormalChartCertificates, GromovCompactness.conditioned_certificates_inhabited_of_all_const, GromovCompactness.discharge_h_weitz, GromovCompactness.discharge_h_hit_exit, GromovCompactness.discharge_h_osc, GromovCompactness.discharge_h_decay, GromovCompactness.discharge_h_punc, GromovCompactness.discharge_h_tower, GromovCompactness.discharge_h_aa}
+\leanok
+\uses{n2_normal, n3_coord_bochner_mono, n3_coord_sing_boot}
 Given a \texttt{UniformNormalChartFamily} and conditioned \texttt{UniformNormalChartCertificates}
 (where oscillation, decay and puncture removal are conditioned on $J$-holomorphicity and
 non-degenerate radii, and proved inhabited on constant curves via
 \texttt{conditioned\_certificates\_inhabited\_of\_all\_const}), the bridge theorems instantiate
-\cref{cert_weitz,cert_hit,cert_osc,cert_decay,cert_punc,cert_tower,cert_aa}. The coordinate-level
-building blocks (centered normal chart Hessian expansion and quadratic $K$-tensor bound, polar
-slice FTC and quadratic energy growth from the radial differential inequality, Widman hole-filling
-geometric decay and collar diameter bound, Cauchy filter extension across a puncture, quasilinear
-Laplacian commutator bound $|\Delta v|\le C|Dv|^2$, and dense-set Arzel\`a--Ascoli extraction) are
-also proved in \texttt{Analysis/}.
+\cref{cert_weitz,cert_hit,cert_osc,cert_decay,cert_punc,cert_tower,cert_aa}. Unconditional derivation
+of \texttt{UniformNormalChartCertificates} from \texttt{ClosedTameTarget} for general nonconstant
+curves remains open.
 \end{theorem}
-\begin{proof}\leanok Projections, degenerate-collar splitting, curvature constant combination, and
-coordinate calculus.\end{proof}
+\begin{proof}\leanok Projections, degenerate-collar splitting, and curvature constant combination.\end{proof}
