@@ -5,6 +5,7 @@ Authors: Autoformalization Team
 -/
 import Mathlib.Order.Monotone.Basic
 import Mathlib.Topology.Basic
+import Mathlib.Topology.UniformSpace.UniformConvergence
 import Mathlib.Order.Filter.AtTopBot.Basic
 
 open Filter
@@ -111,5 +112,12 @@ theorem tendsto_subseq_comp {β : Type*} [TopologicalSpace β]
     (h : Tendsto f atTop (nhds b)) :
     Tendsto (f ∘ σ.1) atTop (nhds b) := by
   exact h.comp σ.2.tendsto_atTop
+
+/-- TendstoUniformlyOn compatibility along extracted subsequences. -/
+theorem tendstoUniformlyOn_subseq {α β : Type*} [UniformSpace β]
+    {f : ℕ → α → β} {g : α → β} {s : Set α}
+    (h : TendstoUniformlyOn f g atTop s) (σ : SubseqMap) :
+    TendstoUniformlyOn (fun n => f (σ.1 n)) g atTop s := fun u hu =>
+  σ.2.tendsto_atTop.eventually (h u hu)
 
 end GromovCompactness.Bookkeeping

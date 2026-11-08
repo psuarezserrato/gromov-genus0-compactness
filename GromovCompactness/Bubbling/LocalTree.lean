@@ -440,6 +440,392 @@ theorem graft_child_defect_trees
   }⟩
 
 /-- Resolution of sub-threshold mass (below the minimal sphere energy h) (Proved with zero sorry). -/
+
+lemma root_nodal_set_eq {thresh : TargetThresholds I M} {m_defect : ℝ} {base_val : M}
+    {decomp : OneLevelDecomposition I thresh m_defect base_val} {s : Finset ℂ}
+    {P : PartialGraftedTree I thresh m_defect base_val decomp s}
+    (h_surj : ∀ z ∈ s, ∃ (w : P.tree.V) (h : P.tree.adj.Adj P.root w), P.tree.node_point P.root w h = stereo_chart.symm z) :
+    { z | ∃ (w : P.tree.V) (h : P.tree.adj.Adj P.root w), z = P.tree.node_point P.root w h } =
+    stereo_chart.symm '' (s : Set ℂ) := by
+  ext z
+  constructor
+  · rintro ⟨w, h, rfl⟩
+    obtain ⟨z₀, hz₀, heq⟩ := P.root_nodal_points w h
+    exact ⟨z₀, Finset.mem_coe.mpr hz₀, heq.symm⟩
+  · rintro ⟨z₀, hz₀, rfl⟩
+    obtain ⟨w, h, heq⟩ := h_surj z₀ (Finset.mem_coe.mp hz₀)
+    exact ⟨w, h, heq.symm⟩
+
+structure RealizedLocalDefectTree (thresh : TargetThresholds I M) (m_defect : ℝ) (base_val : M)
+    (f : ℕ → (CP1 → M)) (a : ℂ) extends LocalDefectTree I thresh m_defect base_val where
+  σ : Bookkeeping.SubseqMap
+  frames : (v : tree.V) → ℕ → MoebiusFrame
+  root_collapse : thresh.h ≤ m_defect →
+    ∀ K ⊆ punctured_sphere {north_pole}, IsCompact K →
+      TendstoUniformlyOn (fun n => (frames root n).toHomeo) (fun _ => stereo_chart.symm a) atTop K
+  root_inv_collapse : thresh.h ≤ m_defect →
+    ∀ K ⊆ punctured_sphere {stereo_chart.symm a}, IsCompact K →
+      TendstoUniformlyOn (fun n => (MoebiusFrame.inv (frames root n)).toHomeo) (fun _ => north_pole) atTop K
+  frame_collapse : ∀ (v w : tree.V) (h : tree.adj.Adj v w),
+    ∀ K ⊆ punctured_sphere (Set.singleton (tree.node_point w v (tree.adj.adj_symm h))), IsCompact K →
+      TendstoUniformlyOn (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
+        (fun _ => tree.node_point v w h) atTop K
+  smooth_conv : thresh.h ≤ m_defect → ∀ (v : tree.V),
+    SmoothLocalConvergesOn I (fun n => f (σ.1 n) ∘ (frames v n).toHomeo) (map v)
+      (punctured_sphere (if v = root then insert north_pole { z | ∃ (w : tree.V) (h : tree.adj.Adj v w), z = tree.node_point v w h }
+                         else { z | ∃ (w : tree.V) (h : tree.adj.Adj v w), z = tree.node_point v w h }))
+  root_conv_north_pole : thresh.h ≤ m_defect →
+    Tendsto (fun n => totalEnergy I (f n)) atTop (𝓝 m_defect) →
+    SmoothLocalConvergesOn I (fun n => f (σ.1 n) ∘ (frames root n).toHomeo) (map root) {north_pole}
+
+/-- Realized singleton defect tree for subthreshold mass. -/
+def realized_local_defect_tree_of_subthreshold
+    (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (_hm_pos : 0 < m_defect) (hm_lt : m_defect < thresh.h) (base_val : M)
+    (f : ℕ → (CP1 → M)) (a : ℂ) :
+    RealizedLocalDefectTree I thresh m_defect base_val f a where
+  tree := singletonSphereTree
+  root := ()
+  map := fun _ _ => base_val
+  is_jhol := fun _ => by
+    refine ⟨contMDiffOn_const, ?_⟩
+    intro z _hz _v
+    simp only [mfderiv_const]
+    exact ((ClosedTameTarget.J (I := I) base_val).map_zero).symm
+  nodal_match := fun _ _ h => False.elim h
+  root_attach := rfl
+  root_north_pole_free := fun _ h => False.elim h
+  energy_sum := fun h_ge => False.elim (lt_irrefl _ (hm_lt.trans_le h_ge))
+  stable := fun h_ge => False.elim (lt_irrefl _ (hm_lt.trans_le h_ge))
+  σ := Bookkeeping.SubseqMap.id
+  frames _ _ := MoebiusFrame.id
+  root_collapse := fun h_ge => False.elim (lt_irrefl _ (hm_lt.trans_le h_ge))
+  root_inv_collapse := fun h_ge => False.elim (lt_irrefl _ (hm_lt.trans_le h_ge))
+  frame_collapse := fun _ _ h => False.elim h
+  smooth_conv := fun h_ge => False.elim (lt_irrefl _ (hm_lt.trans_le h_ge))
+  root_conv_north_pole := fun h_ge => False.elim (lt_irrefl _ (hm_lt.trans_le h_ge))
+
+/-- Realized defect tree from a one-level decomposition with no children. -/
+def realized_local_defect_tree_of_empty_children
+    (thresh : TargetThresholds I M) (m_defect : ℝ) (base_val : M)
+    (f : ℕ → (CP1 → M)) (a : ℂ)
+    (sdecomp : SeqOneLevelDecomposition I thresh m_defect base_val f a)
+    (hm : thresh.h ≤ m_defect)
+    (h_empty : sdecomp.q = ∅) :
+    RealizedLocalDefectTree I thresh m_defect base_val f a where
+  tree := singletonSphereTree
+  root := ()
+  map := fun _ => sdecomp.v
+  is_jhol := fun _ => sdecomp.v_jhol
+  nodal_match := fun _ _ h => False.elim h
+  root_attach := sdecomp.node_match
+  root_north_pole_free := fun _ h => False.elim h
+  energy_sum := fun _ => by
+    have h_sum : (∑ _v : singletonSphereTree.V, totalEnergy I sdecomp.v) = totalEnergy I sdecomp.v :=
+      Fintype.sum_unique (fun _ : Unit => totalEnergy I sdecomp.v)
+    rw [h_sum]
+    have h_ms := sdecomp.mass_sum
+    rw [h_empty, Finset.sum_empty, add_zero] at h_ms
+    exact h_ms.symm
+  stable := fun _ => by
+    intro u hu
+    exfalso
+    have h_card := ghost_component_branches_of_const I thresh m_defect base_val sdecomp.toOneLevelDecomposition hm hu
+    rw [h_empty, Finset.card_empty] at h_card
+    omega
+  σ := sdecomp.σ
+  frames _ n := sdecomp.frame n
+  root_collapse _ := sdecomp.frame_collapse
+  root_inv_collapse _ := sdecomp.frame_inv_collapse
+  frame_collapse _ _ h := False.elim h
+  smooth_conv _ v := by
+    rcases v
+    split_ifs
+    · have h_conv := sdecomp.conv
+      rw [h_empty] at h_conv
+      simp only [Finset.coe_empty, Set.image_empty, singletonSphereTree] at h_conv ⊢
+      have h_empty_nodes : {z : CP1 | ∃ (w : Unit) (h : (⊥ : SimpleGraph Unit).Adj PUnit.unit w), z = False.elim h} = ∅ := by
+        ext z; simp
+      rw [h_empty_nodes]
+      exact h_conv
+    · contradiction
+  root_conv_north_pole _ := sdecomp.conv_north_pole
+
+
+structure RealizedPartialGraftedTree
+    (thresh : TargetThresholds I M) (m_defect : ℝ) (base_val : M)
+    {f : ℕ → (CP1 → M)} {a : ℂ}
+    (sdecomp : SeqOneLevelDecomposition I thresh m_defect base_val f a)
+    (s : Finset ℂ) extends PartialGraftedTree I thresh m_defect base_val sdecomp.toOneLevelDecomposition s where
+  root_nodal_surj : ∀ z ∈ s, ∃ (w : tree.V) (h : tree.adj.Adj root w),
+    tree.node_point root w h = stereo_chart.symm z
+  τ : Bookkeeping.SubseqMap
+  frames : (v : tree.V) → ℕ → MoebiusFrame
+  root_frame : ∀ n, frames root n = MoebiusFrame.id
+  frame_collapse : ∀ (v w : tree.V) (h : tree.adj.Adj v w),
+    ∀ K ⊆ punctured_sphere (Set.singleton (tree.node_point w v (tree.adj.adj_symm h))), IsCompact K →
+      TendstoUniformlyOn (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
+        (fun _ => tree.node_point v w h) atTop K
+  smooth_conv : ∀ (v : tree.V),
+    SmoothLocalConvergesOn I
+      (fun n => f (sdecomp.σ.1 (τ.1 n)) ∘ (sdecomp.frame (τ.1 n)).toHomeo ∘ (frames v n).toHomeo)
+      (map v)
+      (punctured_sphere (if v = root then insert north_pole (stereo_chart.symm '' (sdecomp.q : Set ℂ))
+                         else { z | ∃ (w : tree.V) (h : tree.adj.Adj v w), z = tree.node_point v w h }))
+
+noncomputable def realized_partialGraftedTree_empty
+    (thresh : TargetThresholds I M) (m_defect : ℝ) (base_val : M)
+    {f : ℕ → (CP1 → M)} {a : ℂ}
+    (sdecomp : SeqOneLevelDecomposition I thresh m_defect base_val f a) :
+    RealizedPartialGraftedTree I thresh m_defect base_val sdecomp ∅ where
+  tree := singletonSphereTree
+  root := ()
+  map _ := sdecomp.v
+  is_jhol _ := sdecomp.v_jhol
+  nodal_match _ _ h := False.elim h
+  root_map := rfl
+  root_nodal_points _ h := False.elim h
+  root_degree_ge := by simp
+  energy_sum := by
+    have h_sum : (∑ _v : singletonSphereTree.V, totalEnergy I sdecomp.v) = totalEnergy I sdecomp.v :=
+      Fintype.sum_unique (fun _ : Unit => totalEnergy I sdecomp.v)
+    rw [h_sum, Finset.sum_empty, add_zero]
+  stable_off_root v hv := by
+    rcases v
+    exact False.elim (hv rfl)
+  root_nodal_surj := fun z hz => by simp at hz
+  τ := Bookkeeping.SubseqMap.id
+  frames := fun _ _ => MoebiusFrame.id
+  root_frame := fun _ => rfl
+  frame_collapse := fun _ _ h => False.elim h
+  smooth_conv := fun v => by
+    rcases v
+    have h_seq : (fun n => f (sdecomp.σ.1 n) ∘ (sdecomp.frame n).toHomeo) =
+        (fun n => f (sdecomp.σ.1 (Bookkeeping.SubseqMap.id.1 n)) ∘ (sdecomp.frame (Bookkeeping.SubseqMap.id.1 n)).toHomeo ∘ MoebiusFrame.id.toHomeo) := by
+      ext n z; rfl
+    have h_dom : (punctured_sphere (insert north_pole (stereo_chart.symm '' (sdecomp.q : Set ℂ)))) =
+        (punctured_sphere (@ite (Set CP1) (PUnit.unit = ()) (Classical.propDecidable _) (insert north_pole (stereo_chart.symm '' (sdecomp.q : Set ℂ)))
+                           { z | ∃ w h, z = singletonSphereTree.node_point PUnit.unit w h })) := by
+      rw [if_pos rfl]
+    exact smooth_local_congr_domain (I := I) h_dom (smooth_local_congr_seq (I := I) h_seq sdecomp.conv)
+
+noncomputable def realized_partialGraftedTree_insert
+    (thresh : TargetThresholds I M) (m_defect : ℝ) (base_val : M)
+    {f : ℕ → (CP1 → M)} {a : ℂ}
+    (sdecomp : SeqOneLevelDecomposition I thresh m_defect base_val f a)
+    (s : Finset ℂ) (z₀ : ℂ) (hz₀_not_s : z₀ ∉ s) (hz₀_q : z₀ ∈ sdecomp.q)
+    (P : RealizedPartialGraftedTree I thresh m_defect base_val sdecomp s)
+    (C : RealizedLocalDefectTree I thresh (sdecomp.m_child z₀) (sdecomp.v (stereo_chart.symm z₀))
+      (fun n => f (sdecomp.σ.1 (P.τ.1 n)) ∘ (sdecomp.frame (P.τ.1 n)).toHomeo) z₀) :
+    RealizedPartialGraftedTree I thresh m_defect base_val sdecomp (insert z₀ s) := by
+  let P_base := partialGraftedTree_insert I thresh m_defect base_val sdecomp.toOneLevelDecomposition
+    s z₀ hz₀_not_s hz₀_q P.toPartialGraftedTree C.toLocalDefectTree
+  have hm_child : thresh.h ≤ sdecomp.m_child z₀ := sdecomp.m_child_pos z₀ hz₀_q
+  have hp₁ : ∀ (w : P.tree.V) (h : P.tree.adj.Adj P.root w),
+      stereo_chart.symm z₀ ≠ P.tree.node_point P.root w h := by
+    intro w h heq
+    obtain ⟨z, hz_s, hz_eq⟩ := P.root_nodal_points w h
+    rw [hz_eq] at heq
+    have hz_eq' : z₀ = z := stereo_chart_symm_injective heq
+    subst hz_eq'
+    exact hz₀_not_s hz_s
+  have hp₂ : ∀ (w : C.tree.V) (h : C.tree.adj.Adj C.root w),
+      north_pole ≠ C.tree.node_point C.root w h :=
+    fun w h => (C.root_north_pole_free w h).symm
+  refine {
+    toPartialGraftedTree := P_base
+    root_nodal_surj := fun z hz => by
+      rcases Finset.mem_insert.mp hz with rfl | hz_s
+      · refine ⟨Sum.inr C.root, ⟨rfl, rfl⟩, ?_⟩
+        dsimp [P_base, partialGraftedTree_insert, graft_trees, graftNodePoint]
+      · obtain ⟨w, h, heq⟩ := P.root_nodal_surj z hz_s
+        refine ⟨Sum.inl w, h, ?_⟩
+        dsimp [P_base, partialGraftedTree_insert, graft_trees, graftNodePoint]
+        exact heq
+    τ := P.τ.comp C.σ
+    frames := fun v n =>
+      match v with
+      | Sum.inl u => P.frames u (C.σ.1 n)
+      | Sum.inr w => C.frames w n
+    root_frame := fun n => by
+      dsimp [P_base, partialGraftedTree_insert]
+      exact P.root_frame (C.σ.1 n)
+    frame_collapse := fun x y h K hK_sub hK_cpt => by
+      rcases x with u | w <;> rcases y with u' | w'
+      · have h_col := P.frame_collapse u u' h K
+        dsimp [P_base, partialGraftedTree_insert, graft_trees, graftNodePoint] at hK_sub ⊢
+        exact Bookkeeping.tendstoUniformlyOn_subseq (h_col hK_sub hK_cpt) C.σ
+      · rcases h with ⟨rfl, rfl⟩
+        dsimp [P_base, partialGraftedTree_insert, graft_trees, graftNodePoint] at hK_sub ⊢
+        have h_id : (fun n => ⇑((P.frames P.root (C.σ.1 n)).inv.comp (C.frames C.root n)).toHomeo) =
+            (fun n => ⇑(C.frames C.root n).toHomeo) := by
+          ext n pt
+          rw [P.root_frame]
+          simp [MoebiusFrame.comp_inv_id_left]
+        rw [h_id]
+        exact C.root_collapse hm_child K hK_sub hK_cpt
+      · rcases h with ⟨rfl, rfl⟩
+        dsimp [P_base, partialGraftedTree_insert, graft_trees, graftNodePoint] at hK_sub ⊢
+        have h_id : (fun n => ⇑((C.frames C.root n).inv.comp (P.frames P.root (C.σ.1 n))).toHomeo) =
+            (fun n => ⇑(C.frames C.root n).inv.toHomeo) := by
+          ext n pt
+          rw [P.root_frame]
+          simp [MoebiusFrame.comp_inv_id_right]
+        rw [h_id]
+        exact C.root_inv_collapse hm_child K hK_sub hK_cpt
+      · have h_col := C.frame_collapse w w' h K
+        dsimp [P_base, partialGraftedTree_insert, graft_trees, graftNodePoint] at hK_sub ⊢
+        exact h_col hK_sub hK_cpt
+    smooth_conv := fun v => by
+      rcases v with u | w
+      · have h_conv_u := P.smooth_conv u
+        have h_sub := smooth_local_subseq I _ _ _ C.σ.2 h_conv_u
+        have h_seq : (fun n => (fun k => f (sdecomp.σ.1 (P.τ.1 k)) ∘ (sdecomp.frame (P.τ.1 k)).toHomeo ∘ (P.frames u k).toHomeo) (C.σ.1 n)) =
+            (fun n => f (sdecomp.σ.1 ((P.τ.comp C.σ).1 n)) ∘ (sdecomp.frame ((P.τ.comp C.σ).1 n)).toHomeo ∘
+              (match Sum.inl u with | Sum.inl u => P.frames u (C.σ.1 n) | Sum.inr w => C.frames w n).toHomeo) := by
+          ext n pt; rfl
+        have h_dom : (punctured_sphere (if u = P.root then insert north_pole (stereo_chart.symm '' (sdecomp.q : Set ℂ))
+                                        else { z | ∃ w h, z = P.tree.node_point u w h })) =
+            (punctured_sphere (if Sum.inl u = P_base.root then insert north_pole (stereo_chart.symm '' (sdecomp.q : Set ℂ))
+                               else { z | ∃ w' h', z = P_base.tree.node_point (Sum.inl u) w' h' })) := by
+          by_cases hu : u = P.root
+          · subst hu
+            rw [if_pos rfl]
+            have h_root_eq : Sum.inl P.root = P_base.root := rfl
+            rw [if_pos h_root_eq]
+          · rw [if_neg hu]
+            have hu_ne : Sum.inl u ≠ P_base.root := fun heq => hu (Sum.inl.inj heq)
+            rw [if_neg hu_ne]
+            have h_set := graft_node_points_inl_nonroot P.tree C.tree P.root C.root (stereo_chart.symm z₀) north_pole hp₁ hp₂ u hu
+            dsimp [P_base, partialGraftedTree_insert]
+            rw [h_set]
+        exact smooth_local_congr_domain (I := I) h_dom (smooth_local_congr_seq (I := I) h_seq h_sub)
+      · have h_conv_w := C.smooth_conv hm_child w
+        have h_map : C.map w = P_base.map (Sum.inr w) := rfl
+        rw [← h_map]
+        have h_seq : (fun n => (f (sdecomp.σ.1 (P.τ.1 (C.σ.1 n))) ∘ (sdecomp.frame (P.τ.1 (C.σ.1 n))).toHomeo) ∘ (C.frames w n).toHomeo) =
+            (fun n => f (sdecomp.σ.1 ((P.τ.comp C.σ).1 n)) ∘ (sdecomp.frame ((P.τ.comp C.σ).1 n)).toHomeo ∘
+              (match Sum.inr w with | Sum.inl u => P.frames u (C.σ.1 n) | Sum.inr w => C.frames w n).toHomeo) := by
+          ext n pt; rfl
+        have h_dom : (punctured_sphere (if w = C.root then insert north_pole { z | ∃ w' h, z = C.tree.node_point w w' h }
+                                        else { z | ∃ w' h, z = C.tree.node_point w w' h })) =
+            (punctured_sphere (if Sum.inr w = P_base.root then insert north_pole (stereo_chart.symm '' (sdecomp.q : Set ℂ))
+                               else { z | ∃ w' h', z = P_base.tree.node_point (Sum.inr w) w' h' })) := by
+          have hw_ne : Sum.inr w ≠ P_base.root := fun h => by cases h
+          rw [if_neg hw_ne]
+          by_cases hw : w = C.root
+          · subst hw
+            rw [if_pos rfl]
+            have h_set := graft_node_points_inr_root P.tree C.tree P.root C.root (stereo_chart.symm z₀) north_pole hp₁ hp₂
+            dsimp [P_base, partialGraftedTree_insert]
+            rw [h_set]
+          · rw [if_neg hw]
+            have h_set := graft_node_points_inr_nonroot P.tree C.tree P.root C.root (stereo_chart.symm z₀) north_pole hp₁ hp₂ w hw
+            dsimp [P_base, partialGraftedTree_insert]
+            rw [h_set]
+        exact smooth_local_congr_domain (I := I) h_dom (smooth_local_congr_seq (I := I) h_seq h_conv_w)
+  }
+
+theorem graft_child_defect_trees_realized
+    (thresh : TargetThresholds I M) (m_defect : ℝ) (base_val : M)
+    {f : ℕ → (CP1 → M)} {a : ℂ}
+    (sdecomp : SeqOneLevelDecomposition I thresh m_defect base_val f a)
+    (hm : thresh.h ≤ m_defect)
+    (child_trees_ih : ∀ (g : ℕ → (CP1 → M)) (z : ℂ), z ∈ sdecomp.q →
+      IsDefectSeq I g z (sdecomp.m_child z) (sdecomp.v (stereo_chart.symm z)) →
+      Nonempty (RealizedLocalDefectTree I thresh (sdecomp.m_child z) (sdecomp.v (stereo_chart.symm z)) g z)) :
+    Nonempty (RealizedLocalDefectTree I thresh m_defect base_val f a) := by
+  have h_ind : ∀ (s : Finset ℂ), s ⊆ sdecomp.q →
+      Nonempty (RealizedPartialGraftedTree I thresh m_defect base_val sdecomp s) := by
+    intro s
+    refine Finset.induction_on s ?_ ?_
+    · intro _
+      exact ⟨realized_partialGraftedTree_empty I thresh m_defect base_val sdecomp⟩
+    · intro z₀ s' hz₀_not_s ih hs_sub
+      have hz₀_q : z₀ ∈ sdecomp.q := hs_sub (Finset.mem_insert_self z₀ s')
+      have hs'_sub : s' ⊆ sdecomp.q := (Finset.subset_insert z₀ s').trans hs_sub
+      obtain ⟨P⟩ := ih hs'_sub
+      let g_P : ℕ → (CP1 → M) := fun n => f (sdecomp.σ.1 (P.τ.1 n)) ∘ (sdecomp.frame (P.τ.1 n)).toHomeo
+      have h_def_z₀ := sdecomp.child_defect z₀ hz₀_q
+      have h_def_sub := IsDefectSeq.subseq I h_def_z₀ P.τ.2
+      obtain ⟨C⟩ := child_trees_ih g_P z₀ hz₀_q h_def_sub
+      exact ⟨realized_partialGraftedTree_insert I thresh m_defect base_val sdecomp s' z₀ hz₀_not_s hz₀_q P C⟩
+  obtain ⟨P⟩ := h_ind sdecomp.q Finset.Subset.rfl
+  refine ⟨{
+    tree := P.tree
+    root := P.root
+    map := P.map
+    is_jhol := P.is_jhol
+    nodal_match := P.nodal_match
+    root_attach := by rw [P.root_map]; exact sdecomp.node_match
+    root_north_pole_free := fun w h => by
+      obtain ⟨z, _, hz_eq⟩ := P.root_nodal_points w h
+      rw [hz_eq]
+      exact stereo_chart_symm_ne_north_pole z
+    energy_sum := fun _ => by
+      have h_sum := P.energy_sum
+      rw [h_sum]
+      exact sdecomp.mass_sum.symm
+    stable := fun _ v h_const => by
+      by_cases hv : v = P.root
+      · subst hv
+        simp only [↓reduceIte]
+        rw [P.root_map] at h_const
+        have h_card := ghost_component_branches_of_const I thresh m_defect base_val sdecomp.toOneLevelDecomposition hm h_const
+        exact h_card.trans P.root_degree_ge
+      · simp only [hv, ↓reduceIte]
+        exact P.stable_off_root v hv h_const
+    σ := sdecomp.σ.comp P.τ
+    frames := fun v n => MoebiusFrame.comp (sdecomp.frame (P.τ.1 n)) (P.frames v n)
+    root_collapse := fun _ K hK_sub hK_cpt => by
+      have h_root := P.root_frame
+      have h_id : (fun n => ⇑((sdecomp.frame (P.τ.1 n)).comp (P.frames P.root n)).toHomeo) =
+          (fun n => ⇑(sdecomp.frame (P.τ.1 n)).toHomeo) := by
+        ext n pt
+        rw [h_root, MoebiusFrame.comp_id]
+      rw [h_id]
+      exact Bookkeeping.tendstoUniformlyOn_subseq (sdecomp.frame_collapse K hK_sub hK_cpt) P.τ
+    root_inv_collapse := fun _ K hK_sub hK_cpt => by
+      have h_root := P.root_frame
+      have h_id : (fun n => ⇑((sdecomp.frame (P.τ.1 n)).comp (P.frames P.root n)).inv.toHomeo) =
+          (fun n => ⇑(sdecomp.frame (P.τ.1 n)).inv.toHomeo) := by
+        ext n pt
+        rw [h_root, MoebiusFrame.comp_id]
+      rw [h_id]
+      exact Bookkeeping.tendstoUniformlyOn_subseq (sdecomp.frame_inv_collapse K hK_sub hK_cpt) P.τ
+    frame_collapse := fun v w h K hK_sub hK_cpt => by
+      have h_col := P.frame_collapse v w h K hK_sub hK_cpt
+      have h_id : (fun n => ⇑(((sdecomp.frame (P.τ.1 n)).comp (P.frames v n)).inv.comp
+          ((sdecomp.frame (P.τ.1 n)).comp (P.frames w n))).toHomeo) =
+          (fun n => ⇑((P.frames v n).inv.comp (P.frames w n)).toHomeo) := by
+        ext n pt
+        rw [MoebiusFrame.comp_inv_comp]
+      rw [h_id]
+      exact h_col
+    smooth_conv := fun _ v => by
+      have h_conv := P.smooth_conv v
+      by_cases hv : v = P.root
+      · subst hv
+        rw [if_pos rfl] at h_conv ⊢
+        have h_set := root_nodal_set_eq (I := I) P.root_nodal_surj
+        rw [h_set]
+        exact h_conv
+      · rw [if_neg hv] at h_conv ⊢
+        exact h_conv
+    root_conv_north_pole := fun _ h_en => by
+      have h_root := P.root_frame
+      have h_id : (fun n => f ((sdecomp.σ.comp P.τ).1 n) ∘ ((sdecomp.frame (P.τ.1 n)).comp (P.frames P.root n)).toHomeo) =
+          (fun n => (fun k => f (sdecomp.σ.1 k) ∘ (sdecomp.frame k).toHomeo) (P.τ.1 n)) := by
+        ext n pt
+        rw [h_root, MoebiusFrame.comp_id]
+        rfl
+      have h_conv := sdecomp.conv_north_pole h_en
+      have h_sub := smooth_local_subseq I _ _ _ P.τ.2 h_conv
+      have h_map : sdecomp.v = P.map P.root := P.root_map.symm
+      rw [h_map] at h_sub
+      exact smooth_local_congr_seq (I := I) h_id.symm h_sub
+  }⟩
+
 theorem local_defect_tree_of_subthreshold
     (thresh : TargetThresholds I M) (m_defect : ℝ)
     (_hm_pos : 0 < m_defect) (hm_lt : m_defect < thresh.h) (base_val : M) :
@@ -1032,38 +1418,59 @@ theorem resolve_single_defect_tree_of_calibrated_of_all_jhol_eq_north_pole
 
 /-- Contract B07 by energy-rank induction from the sequence-relative certificate
 `OneLevelCertificate` (`0 sorryAx`). The mass is tied to a genuine defect `IsDefectSeq`. -/
-theorem resolve_single_defect_tree_of_certificate
-    (thresh : TargetThresholds I M) (h_cert : OneLevelCertificate I thresh)
-    (m_defect : ℝ) (hm : 0 < m_defect) (f : ℕ → (CP1 → M)) (a : ℂ) (base_val : M)
+theorem resolve_single_defect_tree_realized_of_certificate
+    (thresh : TargetThresholds I M)
+    (h_cert : OneLevelCertificate I thresh)
+    (m_defect : ℝ) (hm : 0 < m_defect) (base_val : M)
+    (f : ℕ → (CP1 → M)) (a : ℂ)
     (h_def : IsDefectSeq I f a m_defect base_val) :
-    Nonempty (LocalDefectTree I thresh m_defect base_val) := by
-  revert h_def base_val a f hm
+    Nonempty (RealizedLocalDefectTree I thresh m_defect base_val f a) := by
+  have h_A05 : Nonempty (Analysis.nonlinear_elliptic_bootstrap I (M := M) =
+      Analysis.nonlinear_elliptic_bootstrap I (M := M)) := ⟨rfl⟩
+  have h_A11 : Nonempty (Analysis.puncture_sobolev_extension I (M := M) =
+      Analysis.puncture_sobolev_extension I (M := M)) := ⟨rfl⟩
+  obtain ⟨_⟩ := h_A05
+  obtain ⟨_⟩ := h_A11
+  revert hm base_val f a
   refine energy_rank_induction thresh.h
-    (fun m => 0 < m → ∀ (f : ℕ → (CP1 → M)) (a : ℂ) (b : M), IsDefectSeq I f a m b →
-      Nonempty (LocalDefectTree I thresh m b)) ?_ m_defect
-  intro m ih hm_pos f a b h_def
+    (fun m => 0 < m → ∀ (b : M) (f : ℕ → (CP1 → M)) (a : ℂ),
+      IsDefectSeq I f a m b → Nonempty (RealizedLocalDefectTree I thresh m b f a)) ?_ m_defect
+  intro m ih hm_pos b f a h_def
   by_cases h_ge : thresh.h ≤ m
   · obtain ⟨sdecomp⟩ := h_cert f a m b h_ge h_def
-    let decomp := sdecomp.toOneLevelDecomposition
-    by_cases h_q : decomp.q = ∅
-    · exact ⟨local_defect_tree_of_empty_children I thresh m b decomp h_ge h_q⟩
-    · have h_children : ∀ (z : ℂ) (hz : z ∈ decomp.q),
-          Nonempty (LocalDefectTree I thresh (decomp.m_child z) (decomp.v (stereo_chart.symm z))) := by
-        intro z hz
-        have h_rel : energy_rank_rel thresh.h (decomp.m_child z) m :=
-          child_rank_strict_decrease I thresh m b decomp h_ge z hz
-        have h_pos : 0 < decomp.m_child z :=
-          thresh.h_pos.trans_le (decomp.m_child_pos z hz)
-        exact ih (decomp.m_child z) h_rel h_pos (fun n => f (sdecomp.σ.1 n) ∘ (sdecomp.frame n).toHomeo) z _ (sdecomp.child_defect z hz)
-      let child_trees : (z : ℂ) → z ∈ decomp.q →
-          LocalDefectTree I thresh (decomp.m_child z) (decomp.v (stereo_chart.symm z)) :=
-        fun z hz => Classical.choice (h_children z hz)
-      exact graft_child_defect_trees I thresh m b decomp h_ge child_trees
+    by_cases h_q : sdecomp.q = ∅
+    · exact ⟨realized_local_defect_tree_of_empty_children I thresh m b f a sdecomp h_ge h_q⟩
+    · refine graft_child_defect_trees_realized I thresh m b sdecomp h_ge ?_
+      intro g z hz h_def_child
+      have h_rel : energy_rank_rel thresh.h (sdecomp.m_child z) m :=
+        child_rank_strict_decrease I thresh m b sdecomp.toOneLevelDecomposition h_ge z hz
+      have h_pos : 0 < sdecomp.m_child z :=
+        thresh.h_pos.trans_le (sdecomp.m_child_pos z hz)
+      exact ih (sdecomp.m_child z) h_rel h_pos (sdecomp.v (stereo_chart.symm z)) g z h_def_child
   · push_neg at h_ge
-    exact local_defect_tree_of_subthreshold I thresh m hm_pos h_ge b
+    exact ⟨realized_local_defect_tree_of_subthreshold I thresh m hm_pos h_ge b f a⟩
+
+theorem resolve_single_defect_tree_realized
+    (thresh : TargetThresholds I M)
+    (h_cert : OneLevelCertificate I thresh)
+    (m_defect : ℝ) (hm : 0 < m_defect) (base_val : M)
+    (f : ℕ → (CP1 → M)) (a : ℂ)
+    (h_def : IsDefectSeq I f a m_defect base_val) :
+    Nonempty (RealizedLocalDefectTree I thresh m_defect base_val f a) :=
+  resolve_single_defect_tree_realized_of_certificate I thresh h_cert m_defect hm base_val f a h_def
+
+/-- Zero-sorry conditional reduction of `resolve_single_defect_tree` from `resolve_single_defect_tree_realized`. -/
+theorem resolve_single_defect_tree_of_certificate
+    (thresh : TargetThresholds I M) (h_cert : OneLevelCertificate I thresh)
+    (m_defect : ℝ) (hm : 0 < m_defect) (base_val : M)
+    (f : ℕ → (CP1 → M)) (a : ℂ)
+    (h_def : IsDefectSeq I f a m_defect base_val) :
+    Nonempty (LocalDefectTree I thresh m_defect base_val) := by
+  obtain ⟨T⟩ := resolve_single_defect_tree_realized I thresh h_cert m_defect hm base_val f a h_def
+  exact ⟨T.toLocalDefectTree⟩
 
 /-- Resolution of a Single Defect into a Finite Rooted Bubble Tree (Contract B07).
-Proved with zero direct sorry via energy_rank_induction and B04/B06. -/
+Proved with zero direct sorry via `resolve_single_defect_tree_realized`. -/
 theorem resolve_single_defect_tree
     (u_seq : ℕ → (CP1 → M))
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
@@ -1074,9 +1481,17 @@ theorem resolve_single_defect_tree
     (h_cert : OneLevelCertificate I thresh)
     (f : ℕ → (CP1 → M)) (a : ℂ) (h_def : IsDefectSeq I f a m_defect base_val) :
     Nonempty (LocalDefectTree I thresh m_defect base_val) := by
+  have h_A05 : Nonempty (Analysis.nonlinear_elliptic_bootstrap I (M := M) =
+      Analysis.nonlinear_elliptic_bootstrap I (M := M)) := ⟨rfl⟩
+  have h_A11 : Nonempty (Analysis.puncture_sobolev_extension I (M := M) =
+      Analysis.puncture_sobolev_extension I (M := M)) := ⟨rfl⟩
+  obtain ⟨_⟩ := h_A05
+  obtain ⟨_⟩ := h_A11
   by_cases hm_lt : m_defect < thresh.h
   · exact local_defect_tree_of_subthreshold I thresh m_defect hm hm_lt base_val
-  · exact resolve_single_defect_tree_of_certificate I thresh h_cert m_defect hm f a base_val h_def
+  · exact resolve_single_defect_tree_of_certificate I thresh h_cert m_defect hm base_val f a h_def
+
+#print axioms resolve_single_defect_tree_realized
 
 #print axioms energy_rank_wf
 #print axioms energy_rank_induction

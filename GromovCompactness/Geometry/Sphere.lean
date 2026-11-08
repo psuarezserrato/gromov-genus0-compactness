@@ -1981,6 +1981,22 @@ def inv (ϕ : MoebiusFrame) : MoebiusFrame where
     rw [eval_inv_eval] at h_inv
     exact h_inv
 
+@[simp]
+lemma comp_inv_comp (F A B : MoebiusFrame) :
+    (MoebiusFrame.comp (MoebiusFrame.inv (MoebiusFrame.comp F A)) (MoebiusFrame.comp F B)).toHomeo =
+    (MoebiusFrame.comp (MoebiusFrame.inv A) B).toHomeo := by
+  apply Homeomorph.ext; intro z; simp [MoebiusFrame.comp, MoebiusFrame.inv]
+
+@[simp]
+lemma comp_inv_id_left (F : MoebiusFrame) :
+    (MoebiusFrame.comp (MoebiusFrame.inv MoebiusFrame.id) F).toHomeo = F.toHomeo := by
+  apply Homeomorph.ext; intro z; simp [MoebiusFrame.comp, MoebiusFrame.inv, MoebiusFrame.id]
+
+@[simp]
+lemma comp_inv_id_right (F : MoebiusFrame) :
+    (MoebiusFrame.comp (MoebiusFrame.inv F) MoebiusFrame.id).toHomeo = (MoebiusFrame.inv F).toHomeo := by
+  apply Homeomorph.ext; intro z; simp [MoebiusFrame.comp, MoebiusFrame.inv, MoebiusFrame.id]
+
 end MoebiusFrame
 
 /-- Extensionality lemma for MoebiusMatrix. -/

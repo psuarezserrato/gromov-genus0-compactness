@@ -453,6 +453,57 @@ def graft_trees (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ : T₂.V)
   node_point := graftNodePoint T₁ T₂ v₁ v₂ p₁ p₂
   node_distinct := graft_node_distinct T₁ T₂ v₁ v₂ p₁ p₂ hp₁ hp₂
 
+lemma graft_node_points_inr_nonroot (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ : T₂.V)
+    (p₁ p₂ : CP1) (hp₁ : ∀ w h, p₁ ≠ T₁.node_point v₁ w h) (hp₂ : ∀ w h, p₂ ≠ T₂.node_point v₂ w h)
+    (w : T₂.V) (hw : w ≠ v₂) :
+    { z | ∃ y h, z = (graft_trees T₁ T₂ v₁ v₂ p₁ p₂ hp₁ hp₂).node_point (Sum.inr w) y h } =
+    { z | ∃ w' h', z = T₂.node_point w w' h' } := by
+  ext z
+  constructor
+  · rintro ⟨y, h, rfl⟩
+    rcases y with u | w'
+    · exfalso
+      have heq : w = v₂ := h.1
+      exact hw heq
+    · exact ⟨w', h, rfl⟩
+  · rintro ⟨w', h, rfl⟩
+    exact ⟨Sum.inr w', h, rfl⟩
+
+lemma graft_node_points_inr_root (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ : T₂.V)
+    (p₁ p₂ : CP1) (hp₁ : ∀ w h, p₁ ≠ T₁.node_point v₁ w h) (hp₂ : ∀ w h, p₂ ≠ T₂.node_point v₂ w h) :
+    { z | ∃ y h, z = (graft_trees T₁ T₂ v₁ v₂ p₁ p₂ hp₁ hp₂).node_point (Sum.inr v₂) y h } =
+    insert p₂ { z | ∃ w' h', z = T₂.node_point v₂ w' h' } := by
+  ext z
+  constructor
+  · rintro ⟨y, h, rfl⟩
+    rcases y with u | w'
+    · have hu : u = v₁ := h.2
+      subst hu
+      dsimp [graft_trees, graftNodePoint]
+      exact Set.mem_insert _ _
+    · exact Set.mem_insert_of_mem _ ⟨w', h, rfl⟩
+  · intro hz
+    rcases Set.mem_insert_iff.mp hz with rfl | ⟨w', h, rfl⟩
+    · refine ⟨Sum.inl v₁, ⟨rfl, rfl⟩, ?_⟩
+      dsimp [graft_trees, graftNodePoint]
+    · exact ⟨Sum.inr w', h, rfl⟩
+
+lemma graft_node_points_inl_nonroot (T₁ T₂ : SphereTree) (v₁ : T₁.V) (v₂ : T₂.V)
+    (p₁ p₂ : CP1) (hp₁ : ∀ w h, p₁ ≠ T₁.node_point v₁ w h) (hp₂ : ∀ w h, p₂ ≠ T₂.node_point v₂ w h)
+    (u : T₁.V) (hu : u ≠ v₁) :
+    { z | ∃ y h, z = (graft_trees T₁ T₂ v₁ v₂ p₁ p₂ hp₁ hp₂).node_point (Sum.inl u) y h } =
+    { z | ∃ u' h', z = T₁.node_point u u' h' } := by
+  ext z
+  constructor
+  · rintro ⟨y, h, rfl⟩
+    rcases y with u' | w
+    · exact ⟨u', h, rfl⟩
+    · exfalso
+      have heq : u = v₁ := h.1
+      exact hu heq
+  · rintro ⟨u', h, rfl⟩
+    exact ⟨Sum.inl u', h, rfl⟩
+
 /-- Total energy of a stable sphere tree is the sum of energies of its components. -/
 noncomputable def sphereTreeTotalEnergy (lim : StableSphereTreeLimit I (M := M)) : ℝ :=
   ∑ v : lim.tree.V, totalEnergy I (lim.map v)

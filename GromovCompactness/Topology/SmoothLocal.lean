@@ -347,6 +347,14 @@ theorem smooth_local_congr_seq
     SmoothLocalConvergesOn I u_seq₂ u_lim Ω :=
   h_eq ▸ h
 
+/-- Transport `SmoothLocalConvergesOn` along an equality of domains (`0 sorryAx`). -/
+theorem smooth_local_congr_domain
+    {u_seq : ℕ → (CP1 → M)} {u_lim : CP1 → M} {Ω₁ Ω₂ : Set CP1}
+    (h_eq : Ω₁ = Ω₂)
+    (h : SmoothLocalConvergesOn I u_seq u_lim Ω₁) :
+    SmoothLocalConvergesOn I u_seq u_lim Ω₂ :=
+  h_eq ▸ h
+
 omit [TopologicalSpace M] [CompactSpace M] in
 /-- At any index `n`, `applyFramesSeq frames u_seq n` depends only on `u_seq n` (`0 sorryAx`). -/
 lemma applyFramesSeq_congr_at (frames : List ConvergingFrame)
