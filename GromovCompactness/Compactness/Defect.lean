@@ -936,15 +936,11 @@ theorem defect_measure_identity_of_eventually_const_subseq_and_u0
   exact defect_measure_identity_of_decomp I u_seq B thresh cdata
     (Or.inr (Or.inr (Or.inr ⟨m, hm_sph, h_decomp⟩)))
 
-/-- The Defect Measure Identity (Contract C03).
-The weak limit measure decomposes into the smooth energy measure u₀* ω plus a finite sum of
-Dirac atoms at the singular concentration points, and total energy is conserved in the limit
-(Proved with zero direct sorry from `defect_measure_decomposition_exists_aux` and `tendsto_totalEnergy_of_defect_decomp`). -/
-theorem defect_measure_identity
+/-- Defect measure identity without requiring `h_fin` (`0 sorryAx`, discharging `h_fin` from `thresh` and `h_jhol`). -/
+theorem defect_measure_identity_of_thresholds
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
     (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
-    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (thresh : TargetThresholds I M)
     (cdata : ConcentrationData I u_seq B thresh) :
     ∃ (m : CP1 → ℝ),
@@ -953,6 +949,8 @@ theorem defect_measure_identity
       cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • Measure.dirac p) ∧
       Tendsto (fun n => totalEnergy I (u_seq (cdata.σ.1 n))) atTop
         (nhds (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m p)) := by
+  have h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤ :=
+    fun n => energyMeasureExtended_lt_top_of_thresholds I thresh (u_seq n) (h_jhol n)
   by_cases h_cases : (cdata.μ = energyMeasureExtended I cdata.u₀) ∨
       (thresh.ε_sph ≤ thresh.ε_reg ∧
         cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (cdata.μ {p} • Measure.dirac p)) ∨
@@ -966,6 +964,26 @@ theorem defect_measure_identity
       fun p hp => thresh.ε_sph_pos.le.trans (hm_sph p hp)
     exact ⟨m, hm_sph, hm_zero, h_decomp,
       tendsto_totalEnergy_of_defect_decomp I u_seq B thresh cdata m hm_nonneg h_decomp⟩
+
+/-- The Defect Measure Identity (Contract C03).
+The weak limit measure decomposes into the smooth energy measure u₀* ω plus a finite sum of
+Dirac atoms at the singular concentration points, and total energy is conserved in the limit
+(Proved with zero direct sorry from `defect_measure_identity_of_thresholds`; `_h_fin` is discharged
+unconditionally from `thresh` and `h_jhol`). -/
+theorem defect_measure_identity
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (_h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
+    (thresh : TargetThresholds I M)
+    (cdata : ConcentrationData I u_seq B thresh) :
+    ∃ (m : CP1 → ℝ),
+      (∀ p ∈ cdata.S, thresh.ε_sph ≤ m p) ∧
+      (∀ p ∉ cdata.S, m p = 0) ∧
+      cdata.μ = energyMeasureExtended I cdata.u₀ + ∑ p ∈ cdata.S, (ENNReal.ofReal (m p) • Measure.dirac p) ∧
+      Tendsto (fun n => totalEnergy I (u_seq (cdata.σ.1 n))) atTop
+        (nhds (totalEnergy I cdata.u₀ + ∑ p ∈ cdata.S, m p)) :=
+  defect_measure_identity_of_thresholds I u_seq B h_jhol h_energy thresh cdata
 
 
 /-- The topological frontier of `disk_at a r` is contained in `circle_at a r` (Zero-sorry). -/

@@ -809,6 +809,25 @@ theorem prokhorov_weak_compactness_of_eventually_eq_const
   prokhorov_weak_compactness_of_const_subseq μ_seq
     ⟨shiftSubseqMap N₀, μ₀, h_fin, fun n => h_ev (n + N₀) (Nat.le_add_left N₀ n)⟩
 
+/-- Finiteness of extended energy measure (`h_fin` / `cert_fin`) for any `J`-holomorphic sphere
+`u : CP1 → M` given a positive sphere energy gap `ε_sph > 0` (`0 sorryAx`).
+If `u` is constant, `energyMeasureExtended I u Set.univ = 0 < ⊤` by `energyMeasureExtended_lt_top_of_const_map`.
+If `u` is non-constant, `0 < ε_sph ≤ totalEnergy I u = (energyMeasureExtended I u Set.univ).toReal`,
+which forces `energyMeasureExtended I u Set.univ < ⊤` since `(⊤ : ℝ≥0∞).toReal = 0`. -/
+theorem energyMeasureExtended_lt_top_of_jhol_and_sph_gap
+    (ε_sph : ℝ) (hε_sph : 0 < ε_sph)
+    (h_sph : ∀ u : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) → ε_sph ≤ totalEnergy I u)
+    (u : CP1 → M) (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
+    energyMeasureExtended I u Set.univ < ⊤ := by
+  by_cases h_const : ∃ c : M, ∀ z, u z = c
+  · obtain ⟨c, hc⟩ := h_const
+    have hu_eq : u = fun _ => c := funext hc
+    rw [hu_eq]
+    exact energyMeasureExtended_lt_top_of_const_map I c
+  · have h_pos : 0 < totalEnergy I u := lt_of_lt_of_le hε_sph (h_sph u hu h_const)
+    exact energyMeasureExtended_lt_top_of_totalEnergy_ne_zero I u h_pos.ne'
+
 /-- Weak Compactness of Energy Measures for sequences of J-holomorphic curves (Contract C01).
 Proved with zero direct sorry. The finiteness hypothesis `h_fin` is explicit because `totalEnergy` is
 defined via `ENNReal.toReal` and so reads infinite energy as `0`; finiteness of the energy measure is
@@ -824,6 +843,22 @@ theorem weak_energy_measure_compactness
   · exact weak_energy_measure_compactness_of_const_subseq_varying I u_seq h_const
   · exact weak_energy_measure_compactness_of_fin_and_compactness I u_seq B hB h_bdd h_fin
       weak_measure_compactness
+
+/-- Weak Compactness of Energy Measures for sequences of `J`-holomorphic spheres (Contract C01,
+certificate-free wrt `h_fin`, `0 sorryAx`), discharging finiteness of `energyMeasureExtended`
+directly from the sphere energy gap `ε_sph > 0`. -/
+theorem weak_energy_measure_compactness_of_jhol_and_sph_gap
+    (ε_sph : ℝ) (hε_sph : 0 < ε_sph)
+    (h_sph : ∀ u : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) → ε_sph ≤ totalEnergy I u)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (hB : 0 < B)
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
+    (h_bdd : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    ∃ (σ : SubseqMap) (μ_lim : Measure CP1),
+      IsFiniteMeasure μ_lim ∧
+      WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ_lim :=
+  weak_energy_measure_compactness I u_seq B hB h_bdd
+    (fun n => energyMeasureExtended_lt_top_of_jhol_and_sph_gap I ε_sph hε_sph h_sph (u_seq n) (h_jhol n))
 
 #print axioms weak_energy_measure_compactness_of_weak_measure_compactness
 #print axioms energyMeasureExtended_le_ofReal_of_totalEnergy_le

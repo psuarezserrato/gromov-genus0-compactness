@@ -1491,6 +1491,76 @@ theorem resolve_single_defect_tree
   · exact local_defect_tree_of_subthreshold I thresh m_defect hm hm_lt base_val
   · exact resolve_single_defect_tree_of_certificate I thresh h_cert m_defect hm base_val f a h_def
 
+/-- Resolution of a genuine defect `IsDefectSeq I f a m_defect base_val` into a
+`RealizedLocalDefectTree I thresh m_defect base_val f a` (Contract B07) from first-principles
+calibrated defect rescaling (`IsDefectSeq.exists_calibrated_subseq_scales`), affine-frame collapse
+(`affine_scaling_tendstoUniformlyOn_punctured_north_pole` and
+`affine_scaling_inv_tendstoUniformlyOn_punctured_center`), and rescaled bubble extraction
+(`oneLevelCertificate_of_rescaled_limit`) (`0 sorryAx`). -/
+theorem resolve_single_defect_tree_realized_of_rescaled_limit
+    (thresh : TargetThresholds I M)
+    (h_extract : ∀ (f : ℕ → (CP1 → M)) (a : ℂ) (m : ℝ) (b : M),
+      thresh.h ≤ m → IsDefectSeq I f a m b →
+      ∀ (σ₀ : Bookkeeping.SubseqMap) (scale₀ : ℕ → ℝ) (hpos₀ : ∀ k, 0 < scale₀ k),
+        Tendsto scale₀ atTop (𝓝 0) →
+        (∀ k, energyMeasure I (f (σ₀.1 k)) (disk_at a (scale₀ k)) = m - thresh.h / 2) →
+        ∃ (decomp : OneLevelDecomposition I thresh m b) (τ : Bookkeeping.SubseqMap),
+          SmoothLocalConvergesOn I
+            (fun n => f (σ₀.1 (τ.1 n)) ∘
+              (affine_scaling a (scale₀ (τ.1 n)) (hpos₀ (τ.1 n))).toHomeo)
+            decomp.v
+            (punctured_sphere (insert north_pole (stereo_chart.symm '' (decomp.q : Set ℂ)))) ∧
+          (Tendsto (fun n => totalEnergy I (f n)) atTop (𝓝 m) →
+            SmoothLocalConvergesOn I
+              (fun n => f (σ₀.1 (τ.1 n)) ∘
+                (affine_scaling a (scale₀ (τ.1 n)) (hpos₀ (τ.1 n))).toHomeo)
+              decomp.v {north_pole}) ∧
+          (∀ z ∈ decomp.q,
+            IsDefectSeq I
+              (fun n => f (σ₀.1 (τ.1 n)) ∘
+                (affine_scaling a (scale₀ (τ.1 n)) (hpos₀ (τ.1 n))).toHomeo)
+              z (decomp.m_child z) (decomp.v (stereo_chart.symm z))))
+    (m_defect : ℝ) (hm : 0 < m_defect) (base_val : M)
+    (f : ℕ → (CP1 → M)) (a : ℂ)
+    (h_def : IsDefectSeq I f a m_defect base_val) :
+    Nonempty (RealizedLocalDefectTree I thresh m_defect base_val f a) :=
+  resolve_single_defect_tree_realized I thresh
+    (oneLevelCertificate_of_rescaled_limit I thresh h_extract)
+    m_defect hm base_val f a h_def
+
+/-- Resolution of a genuine defect `IsDefectSeq I f a m_defect base_val` into a `LocalDefectTree`
+(Contract B07) via `resolve_single_defect_tree_realized_of_rescaled_limit` (`0 sorryAx`). -/
+theorem resolve_single_defect_tree_of_rescaled_limit
+    (thresh : TargetThresholds I M)
+    (h_extract : ∀ (f : ℕ → (CP1 → M)) (a : ℂ) (m : ℝ) (b : M),
+      thresh.h ≤ m → IsDefectSeq I f a m b →
+      ∀ (σ₀ : Bookkeeping.SubseqMap) (scale₀ : ℕ → ℝ) (hpos₀ : ∀ k, 0 < scale₀ k),
+        Tendsto scale₀ atTop (𝓝 0) →
+        (∀ k, energyMeasure I (f (σ₀.1 k)) (disk_at a (scale₀ k)) = m - thresh.h / 2) →
+        ∃ (decomp : OneLevelDecomposition I thresh m b) (τ : Bookkeeping.SubseqMap),
+          SmoothLocalConvergesOn I
+            (fun n => f (σ₀.1 (τ.1 n)) ∘
+              (affine_scaling a (scale₀ (τ.1 n)) (hpos₀ (τ.1 n))).toHomeo)
+            decomp.v
+            (punctured_sphere (insert north_pole (stereo_chart.symm '' (decomp.q : Set ℂ)))) ∧
+          (Tendsto (fun n => totalEnergy I (f n)) atTop (𝓝 m) →
+            SmoothLocalConvergesOn I
+              (fun n => f (σ₀.1 (τ.1 n)) ∘
+                (affine_scaling a (scale₀ (τ.1 n)) (hpos₀ (τ.1 n))).toHomeo)
+              decomp.v {north_pole}) ∧
+          (∀ z ∈ decomp.q,
+            IsDefectSeq I
+              (fun n => f (σ₀.1 (τ.1 n)) ∘
+                (affine_scaling a (scale₀ (τ.1 n)) (hpos₀ (τ.1 n))).toHomeo)
+              z (decomp.m_child z) (decomp.v (stereo_chart.symm z))))
+    (m_defect : ℝ) (hm : 0 < m_defect) (base_val : M)
+    (f : ℕ → (CP1 → M)) (a : ℂ)
+    (h_def : IsDefectSeq I f a m_defect base_val) :
+    Nonempty (LocalDefectTree I thresh m_defect base_val) :=
+  resolve_single_defect_tree_of_certificate I thresh
+    (oneLevelCertificate_of_rescaled_limit I thresh h_extract)
+    m_defect hm base_val f a h_def
+
 #print axioms resolve_single_defect_tree_realized
 
 #print axioms energy_rank_wf

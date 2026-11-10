@@ -15,6 +15,7 @@ import Mathlib.Tactic.Positivity
 import Mathlib.Tactic.Linarith
 import GromovCompactness.Geometry.Target
 import GromovCompactness.Geometry.Sphere
+import GromovCompactness.Geometry.NormalCharts
 import GromovCompactness.Analysis.Energy
 import GromovCompactness.Analysis.EpsilonRegularity
 import GromovCompactness.Analysis.EnergyGap
@@ -299,6 +300,38 @@ structure TargetThresholds (I : ModelWithCorners ℝ E H) (M : Type*)
   h_le_sph : h ≤ ε_sph
   h_le_neck : h ≤ ε_neck / 2
 
+/-- Every `TargetThresholds I M` witnesses `CylinderEnergyDecayProperty I M` (`0 sorryAx`). -/
+theorem TargetThresholds.cylinderEnergyDecayProperty (th : TargetThresholds I M) :
+    CylinderEnergyDecayProperty I M :=
+  ⟨th.C_neck, th.a_decay, th.ε_neck, th.C_neck_pos, th.a_decay_pos, th.ε_neck_pos, th.h_neck⟩
+
+/-- Every `TargetThresholds I M` yields Contract A10 (`cylinder_exponential_decay`) (`0 sorryAx`). -/
+theorem TargetThresholds.cylinder_exponential_decay (th : TargetThresholds I M) :
+    ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+      0 < r → 2 * r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r R) < ε_neck →
+      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
+        energyMeasure I u (annulus_at center r₁ r₂) ≤
+          C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R) :=
+  th.cylinderEnergyDecayProperty
+
+/-- Given `TargetThresholds I M` and bounded-modulus (`R ≤ 18 * r`) radial/angular slice bounds,
+arbitrary-modulus `CollarOscillationProperty I M` (`cert_osc`) holds (`0 sorryAx`). -/
+theorem TargetThresholds.collarOscillationProperty_of_slices (th : TargetThresholds I M)
+    (h_slices : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        energyMeasure I u (annulus_at a r R) < ε_ring →
+        ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+          ∃ z_mid : CP1,
+            dist (u z₁) (u z_mid) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)) ∧
+            dist (u z_mid) (u z₂) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R))) :
+    CollarOscillationProperty I M :=
+  collarOscillationProperty_of_slices_and_decay I h_slices th.cylinderEnergyDecayProperty
+
 /-- Construct `TargetThresholds` directly from the geometric constants. -/
 noncomputable def make_target_thresholds
     (ε_reg C_reg : ℝ) (hε_reg : 0 < ε_reg) (hC_reg : 0 < C_reg)
@@ -467,22 +500,7 @@ theorem exists_target_thresholds
             |curvTerm| ≤
               b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
               c * (riemannianEnergyDensity I u (stereo_chart.symm w)))
-    (h_hit_exit : (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 →
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) ∧
-      (∀ (u : CP1 → M) (x : M),
-        x ∈ Set.range u →
-        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-        (¬ ∃ c : M, ∀ z, u z = c) →
-        Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)))
+    (h_hit_exit : HitExitProperty I M)
     (h_decay : ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
       ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
         0 < r → 2 * r < R →
@@ -496,6 +514,235 @@ theorem exists_target_thresholds
     (epsilon_regularity (M := M) I h_weitz)
     (sphere_energy_gap (M := M) I h_hit_exit)
     (cylinder_exponential_decay (M := M) I h_decay)
+
+/-- Existence of target thresholds on any compact tame target manifold (Contract B01) proved from
+first-principles coordinate Bochner lower bound (`cert_weitz`), radial differential inequality and
+small-ball exit (`cert_hit`), and collar Widman hole-filling (`cert_decay`) (`0 sorryAx`). -/
+theorem exists_target_thresholds_of_first_principles
+    {c_mono r₀ K ε_neck : ℝ}
+    (hc_mono : 0 < c_mono) (hr₀ : 0 < r₀) (hK : 0 < K) (hε_neck : 0 < ε_neck)
+    (h_bochner : ∃ b : ℝ, 0 ≤ b ∧ ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+      ∀ (w : ℂ), -b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 ≤
+        laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w)
+    (h_radial : ∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ r₀ →
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c₀ : M, ∀ z, u z = c₀) →
+      (∃ z, u z ∉ Metric.ball x r) →
+      ∃ (F F' : ℝ → ℝ) (r_min : ℝ),
+        0 < r_min ∧ r_min ≤ r ∧
+        (∀ t ∈ Set.Icc r_min r, HasDerivAt F (F' t) t) ∧
+        (∀ t ∈ Set.Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t) ∧
+        c_mono * r_min ^ 2 ≤ F r_min ∧
+        F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)))
+    (h_exit : SmallBallExit I M r₀)
+    (h_fin : ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+      0 < r → 2 * r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r R) < ε_neck →
+      energyMeasureExtended I u (annulus_at center r R) ≠ ⊤)
+    (h_collar : ∀ (u : CP1 → M) (center : ℂ) (r' R' : ℝ),
+      0 < r' → 4 * r' < R' →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r' R') < ε_neck →
+      energyMeasure I u (annulus_at center (2 * r') (R' / 2)) ≤
+        K * (energyMeasure I u (annulus_at center r' (2 * r')) +
+             energyMeasure I u (annulus_at center (R' / 2) R'))) :
+    Nonempty (TargetThresholds I M) :=
+  exists_target_thresholds_of_existentials I
+    (epsilon_regularity_of_bochner_lower_bound (M := M) I h_bochner)
+    (sphere_energy_gap_of_radial_diff_ineq_and_exit (M := M) I hc_mono hr₀ h_radial h_exit)
+    (cylinder_exponential_decay_of_collar_hole_filling I M hK hε_neck h_fin h_collar)
+
+/-- Existence of `TargetThresholds I M` (`cert_thresholds`) directly from the three proved
+certificate predicates `WeitzenbockDecompositionProperty` (`cert_weitz`),
+`HitExitProperty` (`cert_hit`), and `CylinderEnergyDecayProperty` (`cert_decay`) (`0 sorryAx`). -/
+theorem exists_target_thresholds_of_properties
+    (h_weitz : WeitzenbockDecompositionProperty I M)
+    (h_hit_exit : HitExitProperty I M)
+    (h_decay : CylinderEnergyDecayProperty I M) :
+    Nonempty (TargetThresholds I M) :=
+  exists_target_thresholds I h_weitz h_hit_exit h_decay
+
+/-- Constructive threshold bundle `TargetThresholds I M` (`cert_thresholds`) built from
+`WeitzenbockDecompositionProperty` (`cert_weitz`), `HitExitProperty` (`cert_hit`), and
+`CylinderEnergyDecayProperty` (`cert_decay`) (`0 sorryAx`). -/
+noncomputable def TargetThresholds.of_properties
+    (h_weitz : WeitzenbockDecompositionProperty I M)
+    (h_hit_exit : HitExitProperty I M)
+    (h_decay : CylinderEnergyDecayProperty I M) :
+    TargetThresholds I M :=
+  Classical.choice (exists_target_thresholds_of_properties I h_weitz h_hit_exit h_decay)
+
+/-- Constructive threshold bundle `TargetThresholds I M` (`cert_thresholds`) from a
+`UniformNormalChartFamily` (`n2_normal`) and `UniformNormalChartCertificates` (`n3_certs`) (`0 sorryAx`). -/
+noncomputable def TargetThresholds.of_normal_chart_certificates
+    [I.Boundaryless]
+    (fam : UniformNormalChartFamily I (M := M))
+    (certs : UniformNormalChartCertificates I fam) :
+    TargetThresholds I M :=
+  TargetThresholds.of_properties I
+    (discharge_h_weitz I fam certs)
+    (discharge_h_hit_exit I fam certs)
+    (discharge_h_decay I fam certs)
+
+/-- Existence of `TargetThresholds I M` (`cert_thresholds`) from `UniformNormalChartFamily` and
+`UniformNormalChartCertificates` (`0 sorryAx`). -/
+theorem exists_target_thresholds_of_normal_chart_certificates
+    [I.Boundaryless]
+    (fam : UniformNormalChartFamily I (M := M))
+    (certs : UniformNormalChartCertificates I fam) :
+    Nonempty (TargetThresholds I M) :=
+  ⟨TargetThresholds.of_normal_chart_certificates I fam certs⟩
+
+/-- On any `[I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]`, constructs
+`TargetThresholds I M` (`cert_thresholds`) directly from `UniformNormalChartCertificates` for the
+canonical normal-chart family `construct_uniform_normal_chart_family I` (`n2_normal`) (`0 sorryAx`). -/
+noncomputable def TargetThresholds.of_bounded_geometry_certs
+    [I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (certs : UniformNormalChartCertificates I (construct_uniform_normal_chart_family I (M := M))) :
+    TargetThresholds I M :=
+  TargetThresholds.of_normal_chart_certificates I
+    (construct_uniform_normal_chart_family I (M := M)) certs
+
+/-- Existence of `TargetThresholds I M` on `[I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]`
+from `UniformNormalChartCertificates` on `construct_uniform_normal_chart_family I` (`0 sorryAx`). -/
+theorem exists_target_thresholds_of_bounded_geometry_certs
+    [I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (certs : UniformNormalChartCertificates I (construct_uniform_normal_chart_family I (M := M))) :
+    Nonempty (TargetThresholds I M) :=
+  ⟨TargetThresholds.of_bounded_geometry_certs I certs⟩
+
+/-- First-principles construction of `TargetThresholds I M` (`cert_thresholds`) on any
+`[I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E] [Nonempty M]` (`0 sorryAx`),
+eliminating both metric coercivity `c_min > 0` (via `exists_metric_coercive` /
+`weitzenbockDecompositionProperty_of_normal_chart_weitz_uncond`) and annular extended-energy
+finiteness `h_fin` (via `energyMeasureExtended_ne_top_of_jhol_uncond` /
+`cylinderEnergyDecayProperty_of_collar_hole_filling_uncond`), and reducing small-ball exit to
+energy-density continuity plus two-point diameter separation `2 * r₀ ≤ dist (u z₁) (u z₂)`. -/
+noncomputable def TargetThresholds.of_bounded_geometry_first_principles
+    [I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E] [Nonempty M]
+    {C_metric3 C_J3 c_mono r₀ K ε_neck : ℝ}
+    (hCm : 0 ≤ C_metric3) (hCJ : 0 ≤ C_J3)
+    (hc_mono : 0 < c_mono) (hr₀ : 0 < r₀) (hK : 0 < K) (hε_neck : 0 < ε_neck)
+    (h_norm_weitz : ∀ {c_min : ℝ}, 0 < c_min →
+      (∀ (x : M) (v : E), c_min * ‖v‖ ^ 2 ≤ ClosedTameTarget.metric I x v v) →
+      ∀ (u : CP1 → M),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+        ∀ (w : ℂ), ∃ (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E) (v : ℂ → E),
+          v 0 = 0 ∧
+          (∀ y : E, c_min * ‖y‖ ^ 2 ≤ g 0 y y) ∧
+          (∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => g z y y) 0‖ ≤ C_metric3 * ‖y‖ ^ 2) ∧
+          (∀ y : E, ‖fderiv ℝ (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖) ∧
+          (∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖) ∧
+          localEnergyDensity v g 0 = riemannianEnergyDensity I u (stereo_chart.symm w) ∧
+          ∃ (hessNorm rem : ℝ),
+            laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+              hessNorm ^ 2 + rem ∧
+            |rem| ≤ |K_tensor g J v|)
+    (h_radial : ∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ r₀ →
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c₀ : M, ∀ z, u z = c₀) →
+      (∃ z, u z ∉ Metric.ball x r) →
+      ∃ (F F' : ℝ → ℝ) (r_min : ℝ),
+        0 < r_min ∧ r_min ≤ r ∧
+        (∀ t ∈ Set.Icc r_min r, HasDerivAt F (F' t) t) ∧
+        (∀ t ∈ Set.Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t) ∧
+        c_mono * r_min ^ 2 ≤ F r_min ∧
+        F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)))
+    (h_cont_and_pair : ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      Continuous (riemannianEnergyDensity I u) ∧
+      ∃ z₁ z₂ : CP1, 2 * r₀ ≤ dist (u z₁) (u z₂))
+    (h_collar : ∀ (u : CP1 → M) (center : ℂ) (r' R' : ℝ),
+      0 < r' → 4 * r' < R' →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r' R') < ε_neck →
+      energyMeasure I u (annulus_at center (2 * r') (R' / 2)) ≤
+        K * (energyMeasure I u (annulus_at center r' (2 * r')) +
+             energyMeasure I u (annulus_at center (R' / 2) R'))) :
+    TargetThresholds I M :=
+  TargetThresholds.of_properties I
+    (weitzenbockDecompositionProperty_of_normal_chart_weitz_uncond I hCm hCJ h_norm_weitz)
+    (hitExitProperty_of_radial_diff_ineq_and_pair_dist I hc_mono hr₀ h_radial h_cont_and_pair)
+    (cylinderEnergyDecayProperty_of_collar_hole_filling_uncond I hK hε_neck h_collar)
+
+/-- Existence of `TargetThresholds I M` (`cert_thresholds`) on any
+`[I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E] [Nonempty M]` from
+first-principles normal-chart Weitzenböck, radial differential inequality + pair separation,
+and collar Widman hole-filling (`0 sorryAx`). -/
+theorem exists_target_thresholds_of_bounded_geometry_first_principles
+    [I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E] [Nonempty M]
+    {C_metric3 C_J3 c_mono r₀ K ε_neck : ℝ}
+    (hCm : 0 ≤ C_metric3) (hCJ : 0 ≤ C_J3)
+    (hc_mono : 0 < c_mono) (hr₀ : 0 < r₀) (hK : 0 < K) (hε_neck : 0 < ε_neck)
+    (h_norm_weitz : ∀ {c_min : ℝ}, 0 < c_min →
+      (∀ (x : M) (v : E), c_min * ‖v‖ ^ 2 ≤ ClosedTameTarget.metric I x v v) →
+      ∀ (u : CP1 → M),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+        ∀ (w : ℂ), ∃ (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E) (v : ℂ → E),
+          v 0 = 0 ∧
+          (∀ y : E, c_min * ‖y‖ ^ 2 ≤ g 0 y y) ∧
+          (∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => g z y y) 0‖ ≤ C_metric3 * ‖y‖ ^ 2) ∧
+          (∀ y : E, ‖fderiv ℝ (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖) ∧
+          (∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖) ∧
+          localEnergyDensity v g 0 = riemannianEnergyDensity I u (stereo_chart.symm w) ∧
+          ∃ (hessNorm rem : ℝ),
+            laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+              hessNorm ^ 2 + rem ∧
+            |rem| ≤ |K_tensor g J v|)
+    (h_radial : ∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ r₀ →
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c₀ : M, ∀ z, u z = c₀) →
+      (∃ z, u z ∉ Metric.ball x r) →
+      ∃ (F F' : ℝ → ℝ) (r_min : ℝ),
+        0 < r_min ∧ r_min ≤ r ∧
+        (∀ t ∈ Set.Icc r_min r, HasDerivAt F (F' t) t) ∧
+        (∀ t ∈ Set.Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t) ∧
+        c_mono * r_min ^ 2 ≤ F r_min ∧
+        F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)))
+    (h_cont_and_pair : ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      Continuous (riemannianEnergyDensity I u) ∧
+      ∃ z₁ z₂ : CP1, 2 * r₀ ≤ dist (u z₁) (u z₂))
+    (h_collar : ∀ (u : CP1 → M) (center : ℂ) (r' R' : ℝ),
+      0 < r' → 4 * r' < R' →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r' R') < ε_neck →
+      energyMeasure I u (annulus_at center (2 * r') (R' / 2)) ≤
+        K * (energyMeasure I u (annulus_at center r' (2 * r')) +
+             energyMeasure I u (annulus_at center (R' / 2) R'))) :
+    Nonempty (TargetThresholds I M) :=
+  ⟨TargetThresholds.of_bounded_geometry_first_principles I hCm hCJ hc_mono hr₀ hK hε_neck
+    h_norm_weitz h_radial h_cont_and_pair h_collar⟩
+
+/-- On any symplectically aspherical `[BoundedChartedTarget I M] [FiniteDimensional ℝ E]` where
+every `J`-holomorphic sphere has continuous stereographic energy density and zero symplectic energy
+(`totalEnergy I u = 0`, e.g. when `[ω]|_{π₂(M)} = 0`), every `J`-holomorphic sphere is constant
+(`eq_const_of_totalEnergy_eq_zero_uncond`) and `TargetThresholds I M` is inhabited (`0 sorryAx`). -/
+theorem exists_target_thresholds_of_symplectically_aspherical
+    [I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (h_aspherical : ∀ u : CP1 → M,
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      Continuous (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+      totalEnergy I u = 0) :
+    Nonempty (TargetThresholds I M) :=
+  exists_target_thresholds_of_all_jhol_const I (fun u hu =>
+    eq_const_of_totalEnergy_eq_zero_uncond I u
+      (hu.1.of_le (by norm_cast))
+      (h_aspherical u hu).1
+      (h_aspherical u hu).2)
 
 /- =========================================================================
    SECTION 4: HOFER RESCALING & GRADIENT BOUNDEDNESS (Zero-sorry)
@@ -1082,6 +1329,30 @@ abbrev exists_target_thresholds_of_all_jhol_const := @GromovCompactness.Analysis
 
 /-- Re-export of `exists_target_thresholds` in namespace `GromovCompactness.Bubbling`. -/
 abbrev exists_target_thresholds := @GromovCompactness.Analysis.exists_target_thresholds
+
+/-- Re-export of `exists_target_thresholds_of_first_principles` in namespace `GromovCompactness.Bubbling`. -/
+abbrev exists_target_thresholds_of_first_principles :=
+  @GromovCompactness.Analysis.exists_target_thresholds_of_first_principles
+
+/-- Re-export of `exists_target_thresholds_of_properties` in namespace `GromovCompactness.Bubbling`. -/
+abbrev exists_target_thresholds_of_properties :=
+  @GromovCompactness.Analysis.exists_target_thresholds_of_properties
+
+/-- Re-export of `exists_target_thresholds_of_normal_chart_certificates` in namespace `GromovCompactness.Bubbling`. -/
+abbrev exists_target_thresholds_of_normal_chart_certificates :=
+  @GromovCompactness.Analysis.exists_target_thresholds_of_normal_chart_certificates
+
+/-- Re-export of `exists_target_thresholds_of_bounded_geometry_certs` in namespace `GromovCompactness.Bubbling`. -/
+abbrev exists_target_thresholds_of_bounded_geometry_certs :=
+  @GromovCompactness.Analysis.exists_target_thresholds_of_bounded_geometry_certs
+
+/-- Re-export of `exists_target_thresholds_of_bounded_geometry_first_principles` in namespace `GromovCompactness.Bubbling`. -/
+abbrev exists_target_thresholds_of_bounded_geometry_first_principles :=
+  @GromovCompactness.Analysis.exists_target_thresholds_of_bounded_geometry_first_principles
+
+/-- Re-export of `exists_target_thresholds_of_symplectically_aspherical` in namespace `GromovCompactness.Bubbling`. -/
+abbrev exists_target_thresholds_of_symplectically_aspherical :=
+  @GromovCompactness.Analysis.exists_target_thresholds_of_symplectically_aspherical
 
 /-- Re-export of `radialEnergyIVT_of_jhol` in namespace `GromovCompactness.Bubbling`. -/
 abbrev radialEnergyIVT_of_jhol := @GromovCompactness.Analysis.radialEnergyIVT_of_jhol

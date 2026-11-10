@@ -53,21 +53,7 @@ theorem test_tier1_h_weitz_signature
 theorem test_tier1_h_hit_exit_signature
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 → x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) ∧
-    (∀ (u : CP1 → M) (x : M),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
+    Analysis.HitExitProperty I M :=
   discharge_h_hit_exit I fam certs
 
 /-- Tier 1.1b: Verification of Certificate 1 `h_weitz` first-principles contract signature. -/
@@ -91,62 +77,37 @@ theorem test_tier1_h_weitz_first_principles_signature
 theorem test_tier1_h_hit_exit_first_principles_signature
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 → x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) ∧
-    (∀ (u : CP1 → M) (x : M),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
+    Analysis.HitExitProperty I M :=
   discharge_h_hit_exit_first_principles I fam certs
 
 /-- Tier 1.3: Verification of Certificate 3 `h_osc` (Annular Collar Oscillation Bound).
     1D Poincaré / Wirtinger slice integration yields osc u ≤ 4 √E(u; A(r, R)). -/
 theorem test_tier1_h_osc_signature
     (fam : UniformNormalChartFamily I (M := M))
-    (certs : UniformNormalChartCertificates I fam)
-    (u : CP1 → M) (a : ℂ) (r R : ℝ) (hr : 0 < r)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
-    Analysis.SatisfiesCylinderCollarOscillation I u a r R :=
-  discharge_h_osc I fam certs u a r R hr hu
+    (certs : UniformNormalChartCertificates I fam) :
+    Analysis.CollarOscillationProperty I M :=
+  discharge_h_osc I fam certs
 
 /-- Tier 1.3b: Verification of Certificate 3 `h_osc` first-principles contract signature. -/
 theorem test_tier1_h_osc_first_principles_signature
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ) (hr : 0 < r)
-      (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
-        dist (u z₁) (u z₂) ≤ 4 * Real.sqrt (energyMeasure I u (annulus_at a r R)) :=
+    Analysis.CollarOscillationProperty I M :=
   discharge_h_osc_first_principles I fam certs
 
 /-- Tier 1.4: Verification of Certificate 4 `h_decay` (Exponential Cylindrical Energy Decay).
     Widman annular hole-filling recurrence yields geometric dyadic energy decay. -/
 theorem test_tier1_h_decay_signature
     (fam : UniformNormalChartFamily I (M := M))
-    (certs : UniformNormalChartCertificates I fam)
-    (u : CP1 → M) (center : ℂ) (r R : ℝ) (hr : 0 < r) (h2rR : 2 * r < R)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
-    Analysis.SatisfiesCylinderEnergyDecay I u center r R :=
-  discharge_h_decay I fam certs u center r R hr h2rR hu
+    (certs : UniformNormalChartCertificates I fam) :
+    Analysis.CylinderEnergyDecayProperty I M :=
+  discharge_h_decay I fam certs
 
 /-- Tier 1.4b: Verification of Certificate 4 `h_decay` first-principles contract signature. -/
 theorem test_tier1_h_decay_first_principles_signature
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ) (hr : 0 < r) (h2rR : 2 * r < R)
-      (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^(1 : ℝ) + (r₂ / R)^(1 : ℝ)) * energyMeasure I u (annulus_at center r R) :=
+    Analysis.CylinderEnergyDecayProperty I M :=
   discharge_h_decay_first_principles I fam certs
 
 /-- Tier 1.5: Verification of Certificate 5 `h_punc` (Puncture Sobolev Extension Across Singularity).
@@ -187,13 +148,13 @@ theorem test_tier1_h_tower_signature
     Countable Cantor diagonalization across finite atlas yields SmoothLocalConvergesOn subsequence. -/
 theorem test_tier1_h_aa_signature
     (fam : UniformNormalChartFamily I (M := M))
-    (certs : UniformNormalChartCertificates I fam)
-    (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (h_open : IsOpen Ω)
-    (h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) :
-    ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
-      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
-  discharge_h_aa I fam certs u_seq Ω h_open h_grad_bdd
-
+    (certs : UniformNormalChartCertificates I fam) :
+    ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
+      (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C),
+      ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+        SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
+  discharge_h_aa I fam certs
 
 /-- Tier 1.6b: Verification of Certificate 6 `h_tower` first-principles contract signature. -/
 theorem test_tier1_h_tower_first_principles_signature
@@ -209,10 +170,12 @@ theorem test_tier1_h_aa_first_principles_signature
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
     ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
       (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C),
       ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
         SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
   discharge_h_aa_first_principles I fam certs
+
 /-- Tier 1.8: Verification that linear curvature parameter in `discharge_h_weitz` is identically 0. -/
 theorem test_tier1_h_weitz_linear_c_zero
     (fam : UniformNormalChartFamily I (M := M))
@@ -261,21 +224,7 @@ theorem test_tier1_h_weitz_unconditional_signature [FiniteDimensional ℝ E]
 theorem test_tier1_h_hit_exit_unconditional_signature [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 → x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) ∧
-    (∀ (u : CP1 → M) (x : M),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
+    Analysis.HitExitProperty I M :=
   discharge_h_hit_exit_unconditional I fam certs
 
 /-- Tier 1.3c: Verification of Master Unconditional Certificate 3 `h_osc` (Annular Collar Oscillation Bound).
@@ -283,10 +232,7 @@ theorem test_tier1_h_hit_exit_unconditional_signature [FiniteDimensional ℝ E]
 theorem test_tier1_h_osc_unconditional_signature [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ) (_hr : 0 < r)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
-        dist (u z₁) (u z₂) ≤ 4 * Real.sqrt (energyMeasure I u (annulus_at a r R)) :=
+    Analysis.CollarOscillationProperty I M :=
   discharge_h_osc_unconditional I fam certs
 
 /-- Tier 1.4c: Verification of Master Unconditional Certificate 4 `h_decay` (Exponential Cylindrical Energy Decay).
@@ -294,11 +240,7 @@ theorem test_tier1_h_osc_unconditional_signature [FiniteDimensional ℝ E]
 theorem test_tier1_h_decay_unconditional_signature [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^(1 : ℝ) + (r₂ / R)^(1 : ℝ)) * energyMeasure I u (annulus_at center r R) :=
+    Analysis.CylinderEnergyDecayProperty I M :=
   discharge_h_decay_unconditional I fam certs
 
 /-- Tier 1.5c: Verification of Master Unconditional Certificate 5 `h_punc` (Puncture Sobolev Extension).
@@ -331,6 +273,7 @@ theorem test_tier1_h_aa_unconditional_signature [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
     ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
       (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C),
       ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
         SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
@@ -596,14 +539,14 @@ elab "#certificates_axiom_census" : command => do
     (`GromovCompactness.Analysis.local_smooth_compactness_of_arzela_ascoli, "Cross-Feature Bridge: Local smooth compactness from Arzela-Ascoli"),
     (`GromovCompactness.Analysis.nonlinear_elliptic_bootstrap, "Cross-Feature Bridge: Nonlinear elliptic bootstrap (A05)"),
     (`GromovCompactness.Analysis.puncture_sobolev_extension, "Cross-Feature Bridge: Puncture Sobolev extension (A11)"),
-    -- Master Unconditional Library Targets (Milestone M4)
-    (`GromovCompactness.discharge_h_weitz_unconditional, "Master Unconditional: Bochner-Weitzenbock identity (h_weitz)"),
-    (`GromovCompactness.discharge_h_hit_exit_unconditional, "Master Unconditional: Stokes monotonicity & ball exit (h_hit_exit)"),
-    (`GromovCompactness.discharge_h_osc_unconditional, "Master Unconditional: Annular collar oscillation bound (h_osc)"),
-    (`GromovCompactness.discharge_h_decay_unconditional, "Master Unconditional: Cylindrical exponential energy decay (h_decay)"),
-    (`GromovCompactness.discharge_h_punc_unconditional, "Master Unconditional: Puncture Sobolev extension (h_punc)"),
-    (`GromovCompactness.discharge_h_tower_unconditional, "Master Unconditional: Elliptic bootstrap tower (h_tower)"),
-    (`GromovCompactness.discharge_h_aa_unconditional, "Master Unconditional: Smooth Arzela-Ascoli subsequence extraction (h_aa)"),
+    -- Conditional Re-export Targets (Milestone M4 names, conditional on certs)
+    (`GromovCompactness.discharge_h_weitz_unconditional, "Conditional Re-export: Bochner-Weitzenbock identity (h_weitz)"),
+    (`GromovCompactness.discharge_h_hit_exit_unconditional, "Conditional Re-export: Stokes monotonicity & ball exit (h_hit_exit)"),
+    (`GromovCompactness.discharge_h_osc_unconditional, "Conditional Re-export: Annular collar oscillation bound (h_osc)"),
+    (`GromovCompactness.discharge_h_decay_unconditional, "Conditional Re-export: Cylindrical exponential energy decay (h_decay)"),
+    (`GromovCompactness.discharge_h_punc_unconditional, "Conditional Re-export: Puncture Sobolev extension (h_punc)"),
+    (`GromovCompactness.discharge_h_tower_unconditional, "Conditional Re-export: Elliptic bootstrap tower (h_tower)"),
+    (`GromovCompactness.discharge_h_aa_unconditional, "Conditional Re-export: Smooth Arzela-Ascoli subsequence extraction (h_aa)"),
     -- Tier 1 Test Theorems
     (`GromovCompactness.Tests.CertificatesCensus.test_tier1_h_weitz_signature, "Tier 1: h_weitz signature verification"),
     (`GromovCompactness.Tests.CertificatesCensus.test_tier1_h_hit_exit_signature, "Tier 1: h_hit_exit signature verification"),
@@ -652,23 +595,18 @@ elab "#certificates_axiom_census" : command => do
     (`GromovCompactness.Analysis.christoffel_zero_at_center, "Cert 1 Coord: Koszul / Christoffel vanishing at normal chart center"),
     (`GromovCompactness.Analysis.fderiv_metric_comp_zero_at_center, "Cert 1 Coord: Metric composition fderiv vanishing at center"),
     (`GromovCompactness.Analysis.bound_K_tensor, "Cert 1 Coord: Quadratic energy density bound on K_tensor"),
-    (`GromovCompactness.Analysis.hessian_energy_density_expansion, "Cert 1 Coord: Centered normal chart Hessian expansion of energy density"),
-    (`GromovCompactness.Analysis.local_bochner_inequality_at_center, "Cert 1 Coord: Pointwise Bochner-Weitzenbock inequality at chart center"),
     (`GromovCompactness.Analysis.energy_eq_integral_circle_energy, "Cert 2 Coord: Polar coarea / Cavalieri circle slice decomposition"),
     (`GromovCompactness.Analysis.deriv_energy_eq_boundary_integral, "Cert 2 Coord: FTC radial derivative of ball energy"),
     (`GromovCompactness.Analysis.abs_canonicalRadialOneForm_le, "Cert 2 Coord: Radial Liouville 1-form linear bound"),
-    (`GromovCompactness.Analysis.energy_le_boundary_action, "Cert 2 Coord: Radial Stokes differential inequality F(r) <= (1/2) r F'(r)"),
     (`GromovCompactness.Analysis.quadratic_energy_growth_of_radial_diff_ineq, "Cert 2 Coord: Monotonicity of F(r)/r^2 and quadratic energy growth"),
-    (`GromovCompactness.Analysis.poincare_circle, "Cert 3 Coord: 1D Wirtinger / Poincare inequality on circle slices"),
+    (`GromovCompactness.Analysis.poincare_circle_const, "Cert 3 Coord: 1D Wirtinger / Poincare inequality for constant loops"),
     (`GromovCompactness.Analysis.hole_filling_step, "Cert 4 Coord: Widman annular hole-filling contraction step"),
-    (`GromovCompactness.Analysis.energy_exponential_decay, "Cert 4 Coord: Geometric dyadic annular energy decay"),
     (`GromovCompactness.Analysis.diam_image_collar_le_four_sqrt_energy, "Cert 3 Coord: Collar diameter bound <= 4 sqrt(E)"),
     (`GromovCompactness.Analysis.energy_annulus_tendsto_zero, "Cert 5 Coord: Vanishing annular energy tail near puncture"),
     (`GromovCompactness.Analysis.oscillation_tendsto_zero, "Cert 5 Coord: Vanishing collar oscillation near puncture"),
     (`GromovCompactness.Analysis.exists_limit_point_of_puncture, "Cert 5 Coord: Cauchy filter limit point existence across puncture"),
     (`GromovCompactness.Analysis.satisfiesPunctureSobolevExtension_of_finite_energy_aux, "Cert 5 Coord: Continuous weak J-holomorphic extension across puncture"),
     (`GromovCompactness.Analysis.norm_nonlinearLaplacianRHS_le, "Cert 6 Coord: Quadratic gradient bound on nonlinear Laplacian commutator"),
-    (`GromovCompactness.Analysis.delta_v_eq_nonlinear_term, "Cert 6 Coord: Quasilinear Laplacian reduction Delta v = N(v, Dv)"),
     (`GromovCompactness.Analysis.contMDiffOn_nat_of_weakJHolomorphicOn_aux, "Cert 6 Coord: Inductive C^n regularity tower for weak J-holomorphic maps"),
     (`GromovCompactness.Analysis.equicontinuous_of_local_lipschitz_on_domain, "Cert 7 Coord: Local Lipschitz gradient bounds imply equicontinuity"),
     (`GromovCompactness.Analysis.exists_pointwise_convergent_subseq_on_domain, "Cert 7 Coord: Separable dense diagonalization and Arzela-Ascoli extraction"),
@@ -684,17 +622,49 @@ elab "#certificates_axiom_census" : command => do
     (`GromovCompactness.Analysis.tendsto_iteratedFDeriv_writtenInExtChartAt_of_local_jet_bounds, "Phase 1 Cert 7: Chartwise higher-jet convergence from pointwise limit and local jet bounds"),
     (`GromovCompactness.Analysis.exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_moebius_core, "Phase 1 Cert 7: Equicontinuous subsequence extraction and Moebius-core smooth upgrade"),
     -- Phase 2 Manifold-to-Chart Bridges (Certs 1-4: Bochner / Monotonicity / Collar Oscillation / Annular Decay)
-    (`GromovCompactness.Analysis.bochner_curvature_decomposition_of_centered_normal_chart, "Phase 2 Cert 1: Global Weitzenbock decomposition from centered normal chart K_tensor"),
-    (`GromovCompactness.Analysis.bochner_differential_inequality_of_centered_normal_chart, "Phase 2 Cert 1: Global Bochner differential inequality from centered normal chart"),
+    (`GromovCompactness.Analysis.decomposition_of_bochner_lower_bound, "Phase 2 Cert 1: Weitzenbock decomposition shape is equivalent to a Bochner lower bound"),
+    (`GromovCompactness.Analysis.bochner_curvature_decomposition_of_lower_bound, "Phase 2 Cert 1: Stereographic Weitzenbock decomposition from the Bochner inequality"),
     (`GromovCompactness.Analysis.sublevel_energy_lower_bound_of_radial_diff_ineq, "Phase 2 Cert 2: Sublevel quadratic energy lower bound from radial differential inequality"),
     (`GromovCompactness.Analysis.boundary_hit_energy_of_radial_diff_ineq, "Phase 2 Cert 2: Boundary-hit energy disjunction from radial differential inequality"),
     (`GromovCompactness.Analysis.satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds, "Phase 2 Cert 3: Collar oscillation bound from radial segment and circular slice bounds"),
     (`GromovCompactness.Analysis.iterated_dyadic_annulus_energy_le_of_hole_filling, "Phase 2 Cert 4: Iterated dyadic annular contraction from Widman hole-filling step"),
     -- Phase 3 Elliptic Regularity Tower & Full 7-Certificate Synthesis (Cert 6 + NormalCharts)
-    (`GromovCompactness.Analysis.contMDiffOn_succ_of_local_laplacian_gain, "Phase 3 Cert 6: One-step manifold C^k -> C^{k+1} regularity gain from local Laplacian gain"),
     (`GromovCompactness.Analysis.contMDiffOn_infty_of_weakJHolomorphicOn_and_step, "Phase 3 Cert 6: Full C^infty regularity synthesis from WeakJHolomorphicOn and inductive step"),
     (`GromovCompactness.Analysis.jholomorphicOn_of_weakJHolomorphicOn_and_step, "Phase 3 Cert 6: Upgrade of WeakJHolomorphicOn to smooth JHolomorphicOn via inductive step"),
-    (`GromovCompactness.UniformNormalChartCertificates.of_first_principles, "Phase 3 Synthesis: First-principles constructor assembling all 7 UniformNormalChartCertificates")
+    -- Corrected certificate statements (audit D1-D5)
+    (`GromovCompactness.Analysis.HitExitProperty, "Corrected Cert 2: target-dependent monotonicity and exit constants"),
+    (`GromovCompactness.Analysis.CollarOscillationProperty, "Corrected Cert 3: small-energy collar oscillation with target constant"),
+    (`GromovCompactness.Analysis.CylinderEnergyDecayProperty, "Corrected Cert 4: small-energy cylinder decay with target constants"),
+    (`GromovCompactness.Analysis.target_monotonicity_of_boundaryHitMonotonicity, "Corrected Cert 2: monotonicity from boundary-hit monotonicity"),
+    (`GromovCompactness.Analysis.satisfiesCylinderCollarOscillationWith_const, "Corrected Cert 3: constant maps satisfy collar oscillation"),
+    (`GromovCompactness.Analysis.cylinder_localization, "Corrected A09: cylinder localization from CollarOscillationProperty"),
+    (`GromovCompactness.Analysis.sphere_energy_gap, "Corrected A07: sphere energy gap from HitExitProperty"),
+    (`GromovCompactness.Analysis.exists_target_thresholds, "Corrected B01: thresholds from corrected certificates"),
+    (`GromovCompactness.conditioned_certificates_inhabited_of_all_const, "Corrected N3: satisfiability of UniformNormalChartCertificates on all-constant targets"),
+    (`GromovCompactness.UniformNormalChartCertificates.of_first_principles, "Phase 3 Synthesis: First-principles constructor assembling all 7 UniformNormalChartCertificates"),
+    -- Step 1 & Step 2 First-Principles Constructions
+    (`GromovCompactness.instBoundedChartedTargetCP1, "Step 1: Unconditional BoundedChartedTarget instance on CP1"),
+    (`GromovCompactness.construct_uniform_normal_chart_family, "Step 1: Unconditional construction of UniformNormalChartFamily from BoundedChartedTarget"),
+    (`GromovCompactness.local_lipschitz_of_bounded_energy_density, "Step 1: Local Lipschitz equicontinuity (h_aa_lip) from bounded energy density"),
+    (`GromovCompactness.Analysis.punctured_oscillation_of_local_collar_oscillation, "Step 1: Vanishing punctured oscillation (h_punc_osc) at all punctures p : CP1"),
+    (`GromovCompactness.Analysis.satisfiesCylinderCollarOscillationWith_of_bounded_modulus_and_decay, "Step 2: Arbitrary-modulus collar oscillation from bounded-modulus (R <= 18*r) ring oscillation + cylinder decay"),
+    (`GromovCompactness.Analysis.local_collar_oscillation_of_bounded_modulus_and_decay, "Step 2: Local arbitrary-modulus collar oscillation from bounded-modulus ring oscillation + local decay"),
+    (`GromovCompactness.Analysis.collarOscillationProperty_of_bounded_modulus_and_decay, "Step 2: CollarOscillationProperty from bounded-modulus ring oscillation + CylinderEnergyDecayProperty"),
+    (`GromovCompactness.mfderiv_eq_zero_of_riemannianEnergyDensity_eq_zero, "Step 2: Vanishing manifold derivative from zero Riemannian energy density"),
+    (`GromovCompactness.eqOn_const_of_riemannianEnergyDensity_eq_zero_on, "Step 2: Constancy on open connected domains from zero Riemannian energy density"),
+    (`GromovCompactness.eq_const_of_riemannianEnergyDensity_stereo_eq_zero, "Step 2: Global constancy on CP1 from zero stereographic energy density"),
+    (`GromovCompactness.eq_const_of_totalEnergy_eq_zero, "Step 2: Global constancy on CP1 from zero total energy"),
+    (`GromovCompactness.totalEnergy_pos_of_nonconstant, "Step 2: Strict positivity of totalEnergy for non-constant J-holomorphic spheres"),
+    -- Step 3 First-Principles Constructions
+    (`GromovCompactness.Analysis.exists_continuousOn_pointwise_convergent_subseq_on_domain, "Step 3: Strengthened Arzela-Ascoli subsequence extraction with ContinuousOn and compact uniform convergence"),
+    (`GromovCompactness.Analysis.continuous_closedTameTarget_J, "Step 3: Global continuity of ClosedTameTarget.J from chartwise smoothness"),
+    (`GromovCompactness.Analysis.mfderiv_eq_curry_iteratedFDeriv_one, "Step 3: Identification of mfderiv on CP1 with curried first chart jet"),
+    (`GromovCompactness.Analysis.hasLocalChartJetBoundsAt_comp_moebius, "Step 3: Moebius frame invariance of HasLocalChartJetBoundsAt"),
+    (`GromovCompactness.Analysis.coreSmoothLocalConvergesOn_of_local_jet_bounds, "Step 3: Synthesis of all 5 clauses of CoreSmoothLocalConvergesOn from local chart jet bounds"),
+    (`GromovCompactness.Analysis.smoothLocalConvergesOn_of_local_jet_bounds, "Step 3: Full frame-invariant SmoothLocalConvergesOn from local chart jet bounds on Omega alone"),
+    (`GromovCompactness.Analysis.exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_local_jet_bounds, "Step 3: Subsequence extraction of SmoothLocalConvergesOn from equicontinuity and local chart jet bounds"),
+    (`GromovCompactness.Analysis.continuous_riemannianEnergyDensity_of_cont_stereo_and_north_pole, "Step 3: Global continuity of riemannianEnergyDensity from stereographic continuity and north_pole continuity"),
+    (`GromovCompactness.Analysis.smallBallExit_of_contDiff_stereo_and_exit, "Step 3: Reduction of SmallBallExit using Bochner stereographic smoothness")
   ]
 
   logInfo m!"================================================================================"

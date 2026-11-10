@@ -1312,4 +1312,324 @@ def OneLevelCertificate (thresh : TargetThresholds I M) : Prop :=
   ∀ (f : ℕ → (CP1 → M)) (a : ℂ) (m : ℝ) (b : M), thresh.h ≤ m →
     IsDefectSeq I f a m b → Nonempty (SeqOneLevelDecomposition I thresh m b f a)
 
+/-! ### First-principles frame collapse, calibrated defect scaling, and `OneLevelCertificate` (`0 sorryAx`) -/
+
+/-- Forward affine-frame collapse on compact subsets of `CP1 \ {∞}`:
+whenever `center n → a` in `ℂ` and `scale n → 0` with `scale n > 0`, the affine frames
+`(affine_scaling (center n) (scale n) (hpos n)).toHomeo` converge uniformly on every compact
+`K ⊆ punctured_sphere {north_pole}` to the constant map `fun _ => stereo_chart.symm a` (`0 sorryAx`). -/
+theorem affine_scaling_tendstoUniformlyOn_punctured_north_pole
+    (a : ℂ) (center : ℕ → ℂ) (scale : ℕ → ℝ) (hpos : ∀ n, 0 < scale n)
+    (hc : Tendsto center atTop (𝓝 a)) (hs : Tendsto scale atTop (𝓝 0))
+    {K : Set CP1} (hK_sub : K ⊆ punctured_sphere {north_pole}) (hK : IsCompact K) :
+    TendstoUniformlyOn (fun n => (affine_scaling (center n) (scale n) (hpos n)).toHomeo)
+      (fun _ => stereo_chart.symm a) atTop K := by
+  rw [Metric.tendstoUniformlyOn_iff]
+  intro ε hε
+  have h_cont : ContinuousAt stereo_chart.symm a :=
+    stereo_chart_symm_continuous.continuousAt
+  obtain ⟨δ, hδ_pos, hδ⟩ := Metric.continuousAt_iff.mp h_cont ε hε
+  have hK_src : K ⊆ stereo_chart.source := by
+    intro z hz
+    rw [stereo_chart_source, Set.mem_compl_iff, Set.mem_singleton_iff]
+    exact (hK_sub hz).2
+  have h_img_compact : IsCompact (stereo_chart '' K) :=
+    hK.image_of_continuousOn (stereo_chart.continuousOn.mono hK_src)
+  obtain ⟨M_bd, hM_pos, hM_le⟩ := h_img_compact.isBounded.exists_pos_norm_le
+  have hc_ev : ∀ᶠ n in atTop, dist (center n) a < δ / 2 :=
+    Metric.tendsto_nhds.mp hc (δ / 2) (half_pos hδ_pos)
+  have hs_ev : ∀ᶠ n in atTop, dist (scale n) 0 < (δ / 2) / M_bd :=
+    Metric.tendsto_nhds.mp hs ((δ / 2) / M_bd) (div_pos (half_pos hδ_pos) hM_pos)
+  filter_upwards [hc_ev, hs_ev] with n hcn hsn z hz
+  have hz_ne : z ≠ north_pole := (hK_sub hz).2
+  have h_eval : (affine_scaling (center n) (scale n) (hpos n)).toHomeo z =
+      stereo_chart.symm (center n + (scale n : ℂ) * stereo_chart z) := by
+    change aff_toFun (center n) (scale n) z = _
+    dsimp [aff_toFun]
+    rw [if_neg hz_ne]
+  rw [h_eval, dist_comm]
+  apply hδ
+  rw [dist_eq_norm] at hcn ⊢
+  have h_scale_norm : ‖(scale n : ℂ)‖ < (δ / 2) / M_bd := by
+    rw [Complex.norm_real, Real.norm_eq_abs, abs_of_pos (hpos n)]
+    rw [Real.dist_eq, sub_zero, abs_of_pos (hpos n)] at hsn
+    exact hsn
+  have hz_norm : ‖stereo_chart z‖ ≤ M_bd :=
+    hM_le (stereo_chart z) ⟨z, hz, rfl⟩
+  have h_decomp : center n + (scale n : ℂ) * stereo_chart z - a =
+      (center n - a) + (scale n : ℂ) * stereo_chart z := by ring
+  rw [h_decomp]
+  have h_mul : ‖(scale n : ℂ) * stereo_chart z‖ ≤ (δ / 2) / M_bd * M_bd := by
+    rw [norm_mul]
+    exact mul_le_mul (le_of_lt h_scale_norm) hz_norm (norm_nonneg _) (le_of_lt (div_pos (half_pos hδ_pos) hM_pos))
+  have h_cancel : (δ / 2) / M_bd * M_bd = δ / 2 := div_mul_cancel₀ (δ / 2) (ne_of_gt hM_pos)
+  rw [h_cancel] at h_mul
+  calc ‖(center n - a) + (scale n : ℂ) * stereo_chart z‖
+      ≤ ‖center n - a‖ + ‖(scale n : ℂ) * stereo_chart z‖ := norm_add_le _ _
+    _ < δ / 2 + δ / 2 := add_lt_add_of_lt_of_le hcn h_mul
+    _ = δ := add_halves δ
+
+/-- Inverse affine-frame collapse on compact subsets of `CP1 \ {stereo_chart.symm a}`:
+whenever `center n → a` in `ℂ` and `scale n → 0` with `scale n > 0`, the inverse affine frames
+`(MoebiusFrame.inv (affine_scaling (center n) (scale n) (hpos n))).toHomeo` converge uniformly on every
+compact `K ⊆ punctured_sphere {stereo_chart.symm a}` to the constant map `fun _ => north_pole` (`0 sorryAx`). -/
+theorem affine_scaling_inv_tendstoUniformlyOn_punctured_center
+    (a : ℂ) (center : ℕ → ℂ) (scale : ℕ → ℝ) (hpos : ∀ n, 0 < scale n)
+    (hc : Tendsto center atTop (𝓝 a)) (hs : Tendsto scale atTop (𝓝 0))
+    {K : Set CP1} (hK_sub : K ⊆ punctured_sphere {stereo_chart.symm a}) (hK : IsCompact K) :
+    TendstoUniformlyOn
+      (fun n => (MoebiusFrame.inv (affine_scaling (center n) (scale n) (hpos n))).toHomeo)
+      (fun _ => north_pole) atTop K := by
+  rw [Metric.tendstoUniformlyOn_iff]
+  intro ε hε
+  -- Step 1: `(Metric.ball north_pole ε)ᶜ` is compact and avoids `north_pole`, so its `stereo_chart` image is bounded by `R > 0`.
+  let S : Set CP1 := (Metric.ball north_pole ε)ᶜ
+  have hS_compact : IsCompact S := isCompact_univ.of_isClosed_subset isOpen_ball.isClosed_compl (subset_univ _)
+  have hS_src : S ⊆ stereo_chart.source := by
+    intro z hz
+    rw [stereo_chart_source, Set.mem_compl_iff, Set.mem_singleton_iff]
+    rintro rfl
+    exact hz (Metric.mem_ball_self hε)
+  have hS_img_compact : IsCompact (stereo_chart '' S) :=
+    hS_compact.image_of_continuousOn (stereo_chart.continuousOn.mono hS_src)
+  obtain ⟨R, hR_pos, hR_le⟩ := hS_img_compact.isBounded.exists_pos_norm_le
+  have h_far : ∀ w : ℂ, R < ‖w‖ → dist north_pole (stereo_chart.symm w) < ε := by
+    intro w hw
+    rw [dist_comm, ← Metric.mem_ball]
+    by_contra hw_not
+    have hw_in_S : stereo_chart.symm w ∈ S := hw_not
+    have hw_chart : stereo_chart (stereo_chart.symm w) = w :=
+      stereo_chart.right_inv (by rw [stereo_chart_target]; trivial)
+    have hw_le : ‖w‖ ≤ R := by
+      rw [← hw_chart]
+      exact hR_le _ ⟨stereo_chart.symm w, hw_in_S, rfl⟩
+    linarith
+  -- Step 2: `stereo_chart.symm ⁻¹' K` is closed and misses `a`, so `‖stereo_chart z - a‖ ≥ r₀` for all `z ∈ K \ {north_pole}`.
+  let K' : Set ℂ := stereo_chart.symm ⁻¹' K
+  have hK'_closed : IsClosed K' := hK.isClosed.preimage stereo_chart_symm_continuous
+  have ha_not_mem : a ∉ K' := by
+    intro ha_in
+    exact (hK_sub ha_in).2 rfl
+  obtain ⟨r₀, hr₀_pos, hr₀_ball⟩ := Metric.isOpen_iff.mp hK'_closed.isOpen_compl a ha_not_mem
+  have hz_dist_ge : ∀ z ∈ K, z ≠ north_pole → r₀ ≤ ‖stereo_chart z - a‖ := by
+    intro z hz hz_ne
+    have hz_src : z ∈ stereo_chart.source := by
+      rw [stereo_chart_source, Set.mem_compl_iff, Set.mem_singleton_iff]
+      exact hz_ne
+    have hz_in_K' : stereo_chart z ∈ K' := by
+      show stereo_chart.symm (stereo_chart z) ∈ K
+      rwa [stereo_chart.left_inv hz_src]
+    by_contra h_lt
+    push_neg at h_lt
+    have hz_ball : stereo_chart z ∈ Metric.ball a r₀ := by
+      rwa [Metric.mem_ball, dist_eq_norm]
+    exact hr₀_ball hz_ball hz_in_K'
+  -- Step 3: Choose `n` large so `‖center n - a‖ < r₀ / 2` and `scale n < (r₀ / 2) / (R + 1)`.
+  have hc_ev : ∀ᶠ n in atTop, dist (center n) a < r₀ / 2 :=
+    Metric.tendsto_nhds.mp hc (r₀ / 2) (half_pos hr₀_pos)
+  have hs_ev : ∀ᶠ n in atTop, dist (scale n) 0 < (r₀ / 2) / (R + 1) :=
+    Metric.tendsto_nhds.mp hs ((r₀ / 2) / (R + 1)) (div_pos (half_pos hr₀_pos) ( by linarith ))
+  filter_upwards [hc_ev, hs_ev] with n hcn hsn z hz
+  by_cases hz_np : z = north_pole
+  · subst hz_np
+    have h_np : (MoebiusFrame.inv (affine_scaling (center n) (scale n) (hpos n))).toHomeo north_pole =
+        north_pole := by
+      change aff_toFun (- (((scale n)⁻¹ : ℝ) : ℂ) * center n) (scale n)⁻¹ north_pole = north_pole
+      exact aff_toFun_north_pole _ _
+    rw [h_np, dist_self]
+    exact hε
+  · have h_eval : (MoebiusFrame.inv (affine_scaling (center n) (scale n) (hpos n))).toHomeo z =
+        stereo_chart.symm (- (((scale n)⁻¹ : ℝ) : ℂ) * center n +
+          (((scale n)⁻¹ : ℝ) : ℂ) * stereo_chart z) := by
+      change aff_toFun (- (((scale n)⁻¹ : ℝ) : ℂ) * center n) (scale n)⁻¹ z = _
+      dsimp [aff_toFun]
+      rw [if_neg hz_np]
+    rw [h_eval]
+    apply h_far
+    have h_alg : - (((scale n)⁻¹ : ℝ) : ℂ) * center n + (((scale n)⁻¹ : ℝ) : ℂ) * stereo_chart z =
+        (((scale n)⁻¹ : ℝ) : ℂ) * (stereo_chart z - center n) := by ring
+    rw [h_alg, norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_pos (inv_pos.mpr (hpos n))]
+    have h_diff_ge : r₀ / 2 < ‖stereo_chart z - center n‖ := by
+      have h1 : r₀ ≤ ‖stereo_chart z - a‖ := hz_dist_ge z hz hz_np
+      have h2 : ‖center n - a‖ < r₀ / 2 := by rwa [dist_eq_norm] at hcn
+      have h_tri : ‖stereo_chart z - a‖ ≤ ‖stereo_chart z - center n‖ + ‖center n - a‖ := by
+        have h_eq : stereo_chart z - a = (stereo_chart z - center n) + (center n - a) := by ring
+        rw [h_eq]
+        exact norm_add_le _ _
+      linarith
+    have h_scale_lt : scale n < (r₀ / 2) / (R + 1) := by
+      rw [Real.dist_eq, sub_zero, abs_of_pos (hpos n)] at hsn
+      exact hsn
+    have hR1_pos : 0 < R + 1 := by linarith
+    have h_inv_gt : R + 1 < (scale n)⁻¹ * (r₀ / 2) := by
+      rw [lt_inv_mul_iff₀ (hpos n)]
+      exact (lt_div_iff₀ hR1_pos).mp h_scale_lt
+    have h_prod : (scale n)⁻¹ * (r₀ / 2) < (scale n)⁻¹ * ‖stereo_chart z - center n‖ :=
+      mul_lt_mul_of_pos_left h_diff_ge (inv_pos.mpr (hpos n))
+    linarith
+
+/-- First-principles calibrated subsequence and scale extraction from a genuine defect `IsDefectSeq`:
+given `IsDefectSeq I f a m_defect base_val` with `thresh.h ≤ m_defect`, there exist a subsequence
+`σ : Bookkeeping.SubseqMap`, outer radii `R : ℕ → ℝ`, and calibrated scales `scale : ℕ → ℝ` such that
+`0 < scale k ≤ R k ≤ 1 / (k + 1)`, `Tendsto scale atTop (𝓝 0)`, every rescaled disk
+`disk_at a (scale k)` carries exact calibrated energy `m_defect - thresh.h / 2` for `f (σ.1 k)`, and on
+`annulus_at a (R k / 2) (R k)` the map `f (σ.1 k)` stays within `1 / (k + 1)` of `base_val` (`0 sorryAx`). -/
+theorem IsDefectSeq.exists_calibrated_subseq_scales
+    (thresh : TargetThresholds I M)
+    {f : ℕ → (CP1 → M)} {a : ℂ} {m_defect : ℝ} {base_val : M}
+    (hm : thresh.h ≤ m_defect)
+    (h_def : IsDefectSeq I f a m_defect base_val) :
+    ∃ (σ : Bookkeeping.SubseqMap) (R scale : ℕ → ℝ),
+      (∀ k, 0 < scale k) ∧
+      (∀ k, scale k ≤ R k) ∧
+      (∀ k, R k ≤ 1 / ((k : ℝ) + 1)) ∧
+      Tendsto scale atTop (𝓝 0) ∧
+      (∀ k, energyMeasure I (f (σ.1 k)) (disk_at a (scale k)) = m_defect - thresh.h / 2) ∧
+      (∀ k, ∀ z ∈ annulus_at a (R k / 2) (R k),
+        dist (f (σ.1 k) z) base_val < 1 / ((k : ℝ) + 1)) := by
+  obtain ⟨_hj, _hB, _hfin, hmass, hann⟩ := h_def
+  have hh_pos : 0 < thresh.h := thresh.h_pos
+  have hc_pos : 0 < m_defect - thresh.h / 2 := by linarith
+  -- For each `k : ℕ`, choose `R_k ∈ (0, 1 / (k + 1)]` and `N_k : ℕ` so that for all `n ≥ N_k`,
+  -- the disk `disk_at a R_k` has energy `≥ m_defect - thresh.h / 2` and the annulus is `< 1 / (k + 1)` from `base_val`.
+  have h_step : ∀ k : ℕ, ∃ (R_k : ℝ) (N_k : ℕ),
+      0 < R_k ∧ R_k ≤ 1 / ((k : ℝ) + 1) ∧
+      ∀ n ≥ N_k,
+        m_defect - thresh.h / 2 ≤ energyMeasure I (f n) (disk_at a R_k) ∧
+        (∀ z ∈ annulus_at a (R_k / 2) R_k, dist (f n z) base_val < 1 / ((k : ℝ) + 1)) := by
+    intro k
+    have hk_pos : 0 < 1 / ((k : ℝ) + 1) := by positivity
+    let ε_k : ℝ := min (thresh.h / 4) (1 / ((k : ℝ) + 1))
+    have hε_pos : 0 < ε_k := lt_min (by linarith) hk_pos
+    obtain ⟨r₁, hr₁_pos, hr₁⟩ := hmass ε_k hε_pos
+    obtain ⟨r₂, hr₂_pos, hr₂⟩ := hann (1 / ((k : ℝ) + 1)) hk_pos
+    let R_k : ℝ := min (min r₁ r₂) (1 / ((k : ℝ) + 1))
+    have hR_pos : 0 < R_k := lt_min (lt_min hr₁_pos hr₂_pos) hk_pos
+    have hR_le_r₁ : R_k ≤ r₁ := (min_le_left _ _).trans (min_le_left _ _)
+    have hR_le_r₂ : R_k ≤ r₂ := (min_le_left _ _).trans (min_le_right _ _)
+    have hR_le_inv : R_k ≤ 1 / ((k : ℝ) + 1) := min_le_right _ _
+    have h_ev₁ := hr₁ R_k hR_pos hR_le_r₁
+    have h_ev₂ := hr₂ R_k hR_pos hR_le_r₂
+    obtain ⟨N_k, hN_k⟩ := eventually_atTop.mp (h_ev₁.and h_ev₂)
+    refine ⟨R_k, N_k, hR_pos, hR_le_inv, fun n hn => ?_⟩
+    obtain ⟨h_en_abs, h_ann_dist⟩ := hN_k n hn
+    refine ⟨?_, h_ann_dist⟩
+    have h_lt : m_defect - ε_k < energyMeasure I (f n) (disk_at a R_k) := by
+      linarith [(abs_lt.mp h_en_abs).1]
+    have h_eps_le : ε_k ≤ thresh.h / 4 := min_le_left _ _
+    linarith
+  choose R N hR_pos hR_le hN using h_step
+  -- Construct a strictly increasing subsequence `φ : ℕ → ℕ` with `N k ≤ φ k`.
+  let φ : ℕ → ℕ := fun k => Nat.recOn k (N 0) (fun j prev => max (prev + 1) (N (j + 1)))
+  have hφ_mono : StrictMono φ := by
+    refine strictMono_nat_of_lt_succ (fun k => ?_)
+    exact Nat.lt_of_lt_of_le (Nat.lt_succ_self (φ k)) (le_max_left _ _)
+  have hφ_ge : ∀ k, N k ≤ φ k := by
+    intro k
+    cases k with
+    | zero => exact le_rfl
+    | succ j => exact le_max_right (φ j + 1) (N (j + 1))
+  -- Apply the radial energy IVT on `[0, R k]` for each `f (φ k)`.
+  have h_cal : ∀ k : ℕ, ∃ lam : ℝ,
+      0 < lam ∧ lam ≤ R k ∧
+      energyMeasure I (f (φ k)) (disk_at a lam) = m_defect - thresh.h / 2 := by
+    intro k
+    have h_en_ge : m_defect - thresh.h / 2 ≤ energyMeasure I (f (φ k)) (disk_at a (R k)) :=
+      (hN k (φ k) (hφ_ge k)).1
+    have h_pos_en : 0 < energyMeasure I (f (φ k)) (disk_at a (R k)) :=
+      lt_of_lt_of_le hc_pos h_en_ge
+    have h_fin_disk : energyMeasureExtended I (f (φ k)) (disk_at a (R k)) ≠ ⊤ :=
+      energyMeasureExtended_ne_top_of_pos_energyMeasure I (f (φ k)) (disk_at a (R k)) h_pos_en
+    exact ivt_radial_energy_of_continuous
+      (fun r => energyMeasure I (f (φ k)) (disk_at a r)) (R k) (m_defect - thresh.h / 2)
+      (continuousOn_energyMeasure_disk_at_Icc_of_ne_top I (f (φ k)) a (R k) h_fin_disk)
+      (energyMeasure_disk_at_zero I (f (φ k)) a) (hR_pos k) hc_pos h_en_ge
+  choose scale hscale_pos hscale_le_R hscale_eq using h_cal
+  have hscale_le_inv : ∀ k, scale k ≤ 1 / ((k : ℝ) + 1) :=
+    fun k => (hscale_le_R k).trans (hR_le k)
+  refine ⟨⟨φ, hφ_mono⟩, R, scale, hscale_pos, hscale_le_R, hR_le,
+    tendsto_scale_zero_of_le_inv_succ scale hscale_pos hscale_le_inv,
+    hscale_eq, fun k => (hN k (φ k) (hφ_ge k)).2⟩
+
+/-- Smart constructor for `SeqOneLevelDecomposition`: supplies `frame_affine`, `frame_north_pole`,
+`frame_collapse`, and `frame_inv_collapse` automatically from `center_tendsto` and `scale_tendsto`
+using `affine_scaling_tendstoUniformlyOn_punctured_north_pole` and
+`affine_scaling_inv_tendstoUniformlyOn_punctured_center` (`0 sorryAx`). -/
+noncomputable def SeqOneLevelDecomposition.of_rescaled_limit
+    (thresh : TargetThresholds I M) (m_defect : ℝ) (base_val : M)
+    (f : ℕ → (CP1 → M)) (a : ℂ)
+    (decomp : OneLevelDecomposition I thresh m_defect base_val)
+    (σ : Bookkeeping.SubseqMap)
+    (center : ℕ → ℂ) (scale : ℕ → ℝ) (scale_pos : ∀ n, 0 < scale n)
+    (center_tendsto : Tendsto center atTop (𝓝 a))
+    (scale_tendsto : Tendsto scale atTop (𝓝 0))
+    (conv : SmoothLocalConvergesOn I
+      (fun n => f (σ.1 n) ∘ (affine_scaling (center n) (scale n) (scale_pos n)).toHomeo)
+      decomp.v
+      (punctured_sphere (insert north_pole (stereo_chart.symm '' (decomp.q : Set ℂ)))))
+    (conv_north_pole : Tendsto (fun n => totalEnergy I (f n)) atTop (𝓝 m_defect) →
+      SmoothLocalConvergesOn I
+        (fun n => f (σ.1 n) ∘ (affine_scaling (center n) (scale n) (scale_pos n)).toHomeo)
+        decomp.v {north_pole})
+    (child_defect : ∀ z ∈ decomp.q,
+      IsDefectSeq I
+        (fun n => f (σ.1 n) ∘ (affine_scaling (center n) (scale n) (scale_pos n)).toHomeo)
+        z (decomp.m_child z) (decomp.v (stereo_chart.symm z))) :
+    SeqOneLevelDecomposition I thresh m_defect base_val f a where
+  toOneLevelDecomposition := decomp
+  σ := σ
+  center := center
+  scale := scale
+  scale_pos := scale_pos
+  center_tendsto := center_tendsto
+  scale_tendsto := scale_tendsto
+  frame_collapse := fun _K hK_sub hK =>
+    affine_scaling_tendstoUniformlyOn_punctured_north_pole a center scale scale_pos
+      center_tendsto scale_tendsto hK_sub hK
+  frame_inv_collapse := fun _K hK_sub hK =>
+    affine_scaling_inv_tendstoUniformlyOn_punctured_center a center scale scale_pos
+      center_tendsto scale_tendsto hK_sub hK
+  conv := conv
+  conv_north_pole := conv_north_pole
+  child_defect := child_defect
+
+/-- Proves `OneLevelCertificate I thresh` (Contract B04, sequence-relative form) from first-principles
+calibrated defect rescaling (`IsDefectSeq.exists_calibrated_subseq_scales`), frame collapse
+(`affine_scaling_tendstoUniformlyOn_punctured_north_pole` and
+`affine_scaling_inv_tendstoUniformlyOn_punctured_center`), and extraction of the rescaled bubble limit
+and child defects along the calibrated rescaling (`0 sorryAx`). -/
+theorem oneLevelCertificate_of_rescaled_limit
+    (thresh : TargetThresholds I M)
+    (h_extract : ∀ (f : ℕ → (CP1 → M)) (a : ℂ) (m : ℝ) (b : M),
+      thresh.h ≤ m → IsDefectSeq I f a m b →
+      ∀ (σ₀ : Bookkeeping.SubseqMap) (scale₀ : ℕ → ℝ) (hpos₀ : ∀ k, 0 < scale₀ k),
+        Tendsto scale₀ atTop (𝓝 0) →
+        (∀ k, energyMeasure I (f (σ₀.1 k)) (disk_at a (scale₀ k)) = m - thresh.h / 2) →
+        ∃ (decomp : OneLevelDecomposition I thresh m b) (τ : Bookkeeping.SubseqMap),
+          SmoothLocalConvergesOn I
+            (fun n => f (σ₀.1 (τ.1 n)) ∘
+              (affine_scaling a (scale₀ (τ.1 n)) (hpos₀ (τ.1 n))).toHomeo)
+            decomp.v
+            (punctured_sphere (insert north_pole (stereo_chart.symm '' (decomp.q : Set ℂ)))) ∧
+          (Tendsto (fun n => totalEnergy I (f n)) atTop (𝓝 m) →
+            SmoothLocalConvergesOn I
+              (fun n => f (σ₀.1 (τ.1 n)) ∘
+                (affine_scaling a (scale₀ (τ.1 n)) (hpos₀ (τ.1 n))).toHomeo)
+              decomp.v {north_pole}) ∧
+          (∀ z ∈ decomp.q,
+            IsDefectSeq I
+              (fun n => f (σ₀.1 (τ.1 n)) ∘
+                (affine_scaling a (scale₀ (τ.1 n)) (hpos₀ (τ.1 n))).toHomeo)
+              z (decomp.m_child z) (decomp.v (stereo_chart.symm z)))) :
+    OneLevelCertificate I thresh := by
+  intro f a m b hm h_def
+  obtain ⟨σ₀, _R, scale₀, hpos₀, _hleR, _hRle, hscale₀_tendsto, hcal₀, _hann₀⟩ :=
+    IsDefectSeq.exists_calibrated_subseq_scales I thresh hm h_def
+  obtain ⟨decomp, τ, h_conv, h_np, h_child⟩ :=
+    h_extract f a m b hm h_def σ₀ scale₀ hpos₀ hscale₀_tendsto hcal₀
+  exact ⟨SeqOneLevelDecomposition.of_rescaled_limit I thresh m b f a decomp
+    (σ₀.comp τ) (fun _ => a) (fun n => scale₀ (τ.1 n)) (fun n => hpos₀ (τ.1 n))
+    tendsto_const_nhds (hscale₀_tendsto.comp τ.2.tendsto_atTop)
+    h_conv h_np h_child⟩
+
 end GromovCompactness.Bubbling

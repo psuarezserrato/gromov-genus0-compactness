@@ -7,6 +7,7 @@ import Mathlib.Geometry.Manifold.IsManifold.ExtChartAt
 import Mathlib.Geometry.Manifold.IsManifold.Basic
 import Mathlib.Geometry.Manifold.MFDeriv.Defs
 import Mathlib.Geometry.Manifold.MFDeriv.Basic
+import Mathlib.Geometry.Manifold.MFDeriv.FDeriv
 import Mathlib.Geometry.Manifold.MFDeriv.Atlas
 import Mathlib.Geometry.Manifold.MFDeriv.Tangent
 import Mathlib.Geometry.Manifold.MFDeriv.SpecificFunctions
@@ -26,10 +27,20 @@ import GromovCompactness.Analysis.EnergyGap
 import Mathlib.Analysis.Calculus.FDeriv.Const
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.Analysis.Calculus.ContDiff.Basic
+import Mathlib.Analysis.Calculus.ContDiff.Bounds
 import Mathlib.Analysis.Calculus.ContDiff.Operations
+import Mathlib.Analysis.Calculus.ContDiff.RCLike
+import Mathlib.Analysis.Calculus.Deriv.Slope
+import Mathlib.Topology.Algebra.MetricSpace.Lipschitz
 import Mathlib.Analysis.Calculus.FDeriv.Bilinear
+import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ApproximatesLinearOn
 import Mathlib.Analysis.Calculus.InverseFunctionTheorem.ContDiff
+import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Analysis.Normed.Operator.Bilinear
+import Mathlib.Analysis.Normed.Operator.NormedSpace
+import Mathlib.Analysis.Normed.Ring.Units
+import Mathlib.LinearAlgebra.BilinearForm.Properties
+import Mathlib.Topology.Algebra.Module.FiniteDimension
 import Mathlib.Topology.OpenPartialHomeomorph.Composition
 import Mathlib.Topology.OpenPartialHomeomorph.Constructions
 import GromovCompactness.Analysis.Bochner
@@ -296,6 +307,158 @@ theorem J_eq_chart (x₀ : M) {x : M} (hx : x ∈ (extChartAt I x₀).source) :
   have h_inv : (extChartAt I x₀).symm (extChartAt I x₀ x) = x := (extChartAt I x₀).left_inv hx
   change (tgt.J x : E →L[ℝ] E) = (tgt.J ((extChartAt I x₀).symm (extChartAt I x₀ x)) : E →L[ℝ] E)
   rw [h_inv]
+
+omit [I.Boundaryless] in
+/-- Global continuity of `tgt.ω : M → E →L[ℝ] E →L[ℝ] ℝ` deduced from chartwise smoothness. -/
+theorem continuous_omega_global : Continuous (fun x : M => id (α := E →L[ℝ] E →L[ℝ] ℝ) (tgt.«ω» x)) := by
+  rw [continuous_iff_continuousAt]
+  intro x₀
+  have h_cont_chart : ContinuousOn (ω_chart I tgt.«ω» x₀) (extChartAt I x₀).target :=
+    (tgt.ω_smooth x₀).continuousOn
+  have h_comp : ContinuousOn (fun x => ω_chart I tgt.«ω» x₀ (extChartAt I x₀ x)) (extChartAt I x₀).source :=
+    h_cont_chart.comp (continuousOn_extChartAt x₀) (extChartAt I x₀).mapsTo
+  have h_congr : ContinuousOn (fun x : M => id (α := E →L[ℝ] E →L[ℝ] ℝ) (tgt.«ω» x)) (extChartAt I x₀).source :=
+    h_comp.congr (fun x hx => omega_eq_chart I x₀ hx)
+  exact h_congr.continuousAt ((isOpen_extChartAt_source x₀).mem_nhds (mem_extChartAt_source x₀))
+
+omit [I.Boundaryless] in
+/-- Global continuity of `tgt.J : M → E →L[ℝ] E` deduced from chartwise smoothness. -/
+theorem continuous_J_global : Continuous (fun x : M => id (α := E →L[ℝ] E) (tgt.J x)) := by
+  rw [continuous_iff_continuousAt]
+  intro x₀
+  have h_cont_chart : ContinuousOn (J_chart I tgt.J x₀) (extChartAt I x₀).target :=
+    (tgt.J_smooth x₀).continuousOn
+  have h_comp : ContinuousOn (fun x => J_chart I tgt.J x₀ (extChartAt I x₀ x)) (extChartAt I x₀).source :=
+    h_cont_chart.comp (continuousOn_extChartAt x₀) (extChartAt I x₀).mapsTo
+  have h_congr : ContinuousOn (fun x : M => id (α := E →L[ℝ] E) (tgt.J x)) (extChartAt I x₀).source :=
+    h_comp.congr (fun x hx => J_eq_chart I x₀ hx)
+  exact h_congr.continuousAt ((isOpen_extChartAt_source x₀).mem_nhds (mem_extChartAt_source x₀))
+
+omit [I.Boundaryless] in
+/-- Bundled continuous bilinear representation of `ClosedTameTarget.metric I x` at `x ∈ M`. -/
+noncomputable def metricCLM (x : M) : E →L[ℝ] E →L[ℝ] ℝ :=
+  let J₀ : E →L[ℝ] E := tgt.J x
+  let ω₀ : E →L[ℝ] E →L[ℝ] ℝ := tgt.«ω» x
+  (1 / 2 : ℝ) • (ω₀.bilinearComp (.id ℝ E) J₀ + (ω₀.bilinearComp (.id ℝ E) J₀).flip)
+
+omit [I.Boundaryless] in
+@[simp]
+theorem metricCLM_apply (x : M) (v w : E) :
+    metricCLM I x v w = ClosedTameTarget.metric I x v w :=
+  rfl
+
+omit [I.Boundaryless] in
+/-- Uniform positive-definiteness (coercivity) of `ClosedTameTarget.metric` across a compact
+target `M` with finite-dimensional model space `E`: there exists `c_min > 0` such that
+`c_min * ‖v‖^2 ≤ g_x(v, v)` for all `x ∈ M` and `v ∈ E`. -/
+theorem exists_metric_coercive [FiniteDimensional ℝ E] :
+    ∃ c_min : ℝ, 0 < c_min ∧ ∀ (x : M) (v : E),
+      c_min * ‖v‖ ^ 2 ≤ ClosedTameTarget.metric I x v v := by
+  by_cases hM : IsEmpty M
+  · exact ⟨1, one_pos, fun x => False.elim (hM.false x)⟩
+  rw [not_isEmpty_iff] at hM
+  by_cases hE : Subsingleton E
+  · refine ⟨1, one_pos, fun x v => ?_⟩
+    have hv : v = 0 := Subsingleton.elim v 0
+    subst hv
+    rw [← metricCLM_apply]
+    simp
+  · have : Nontrivial E := not_subsingleton_iff_nontrivial.mp hE
+    have : ProperSpace E := FiniteDimensional.proper ℝ E
+    let K : Set (M × E) := (Set.univ : Set M) ×ˢ Metric.sphere (0 : E) 1
+    have hK_compact : IsCompact K := isCompact_univ.prod (isCompact_sphere (0 : E) 1)
+    have hS_ne : (Metric.sphere (0 : E) 1).Nonempty :=
+      NormedSpace.sphere_nonempty.mpr zero_le_one
+    have hK_ne : K.Nonempty := Set.univ_nonempty.prod hS_ne
+    let f : M × E → ℝ := fun p => ClosedTameTarget.metric I p.1 p.2 p.2
+    have hf_cont : Continuous f := by
+      have hJ_app : Continuous (fun p : M × E => (id (α := E →L[ℝ] E) (tgt.J p.1)) p.2) :=
+        isBoundedBilinearMap_apply.continuous.comp
+          (((continuous_J_global I).comp continuous_fst).prodMk continuous_snd)
+      have hω_app1 : Continuous (fun p : M × E => (id (α := E →L[ℝ] E →L[ℝ] ℝ) (tgt.«ω» p.1)) p.2) :=
+        isBoundedBilinearMap_apply.continuous.comp
+          (((continuous_omega_global I).comp continuous_fst).prodMk continuous_snd)
+      have hω_app2 : Continuous (fun p : M × E => (id (α := E →L[ℝ] E →L[ℝ] ℝ) (tgt.«ω» p.1)) p.2
+          ((id (α := E →L[ℝ] E) (tgt.J p.1)) p.2)) :=
+        isBoundedBilinearMap_apply.continuous.comp (hω_app1.prodMk hJ_app)
+      exact continuous_const.mul (hω_app2.add hω_app2)
+    obtain ⟨p₀, hp₀K, hp₀_min⟩ := hK_compact.exists_isMinOn hK_ne hf_cont.continuousOn
+    have hv₀_norm : ‖p₀.2‖ = 1 := mem_sphere_zero_iff_norm.mp hp₀K.2
+    have hv₀_ne : p₀.2 ≠ 0 := by
+      intro h0; rw [h0, norm_zero] at hv₀_norm; norm_num at hv₀_norm
+    have hc_pos : 0 < f p₀ := metric_pos_def I p₀.1 p₀.2 hv₀_ne
+    refine ⟨f p₀, hc_pos, fun x v => ?_⟩
+    by_cases hv : v = 0
+    · subst hv
+      rw [← metricCLM_apply]
+      simp
+    · have h_norm_pos : 0 < ‖v‖ := norm_pos_iff.mpr hv
+      let u : E := (‖v‖⁻¹ : ℝ) • v
+      have hu_sphere : u ∈ Metric.sphere (0 : E) 1 := by
+        rw [mem_sphere_zero_iff_norm]
+        exact norm_smul_inv_norm hv
+      have h_le : f p₀ ≤ ClosedTameTarget.metric I x u u :=
+        isMinOn_iff.mp hp₀_min (x, u) ⟨Set.mem_univ x, hu_sphere⟩
+      have h_scale : ClosedTameTarget.metric I x u u = (‖v‖⁻¹) ^ 2 * ClosedTameTarget.metric I x v v := by
+        rw [← metricCLM_apply, ← metricCLM_apply]
+        simp only [u, map_smul, FunLike.coe_smul, Pi.smul_apply, smul_eq_mul]
+        ring
+      rw [h_scale] at h_le
+      have h_mul := mul_le_mul_of_nonneg_right h_le (sq_nonneg ‖v‖)
+      have h_cancel : (‖v‖⁻¹) ^ 2 * ClosedTameTarget.metric I x v v * ‖v‖ ^ 2 =
+          ClosedTameTarget.metric I x v v := by
+        have h_ne : ‖v‖ ≠ 0 := h_norm_pos.ne'
+        field_simp
+      linarith
+
+omit [I.Boundaryless] in
+set_option backward.isDefEq.respectTransparency false in
+/-- Operator norm bound on `mfderiv I_CP1 I u z` from coercivity of `ClosedTameTarget.metric`
+and `riemannianEnergyDensity I u z`. -/
+theorem norm_mfderiv_le_of_coercive {c_min : ℝ} (hc_pos : 0 < c_min)
+    (hc : ∀ (x : M) (v : E), c_min * ‖v‖ ^ 2 ≤ ClosedTameTarget.metric I x v v)
+    (u : CP1 → M) (z : CP1) :
+    ‖(mfderiv I_CP1 I u z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E)‖ ≤
+      2 * Real.sqrt (2 * riemannianEnergyDensity I u z / c_min) := by
+  let L : EuclideanSpace ℝ (Fin 2) →L[ℝ] E := mfderiv I_CP1 I u z
+  have he_nonneg : 0 ≤ riemannianEnergyDensity I u z := riemannianEnergyDensity_nonneg I u z
+  have h_bound_vec : ∀ b : EuclideanSpace ℝ (Fin 2),
+      ClosedTameTarget.metric I (u z) (L b) (L b) ≤ 2 * riemannianEnergyDensity I u z →
+      ‖L b‖ ≤ Real.sqrt (2 * riemannianEnergyDensity I u z / c_min) := by
+    intro b hb
+    have h1 : c_min * ‖L b‖ ^ 2 ≤ 2 * riemannianEnergyDensity I u z := (hc (u z) (L b)).trans hb
+    have h2 : ‖L b‖ ^ 2 ≤ 2 * riemannianEnergyDensity I u z / c_min := by
+      rwa [le_div_iff₀ hc_pos, mul_comm]
+    rw [← Real.sqrt_sq (norm_nonneg (L b))]
+    exact Real.sqrt_le_sqrt h2
+  have he1 : ‖L e1‖ ≤ Real.sqrt (2 * riemannianEnergyDensity I u z / c_min) := by
+    apply h_bound_vec e1
+    change ClosedTameTarget.metric I (u z) (mfderiv I_CP1 I u z e1) (mfderiv I_CP1 I u z e1) ≤
+      2 * riemannianEnergyDensity I u z
+    dsimp [riemannianEnergyDensity]
+    linarith [metric_self_nonneg I (u z) (mfderiv I_CP1 I u z e2)]
+  have he2 : ‖L e2‖ ≤ Real.sqrt (2 * riemannianEnergyDensity I u z / c_min) := by
+    apply h_bound_vec e2
+    change ClosedTameTarget.metric I (u z) (mfderiv I_CP1 I u z e2) (mfderiv I_CP1 I u z e2) ≤
+      2 * riemannianEnergyDensity I u z
+    dsimp [riemannianEnergyDensity]
+    linarith [metric_self_nonneg I (u z) (mfderiv I_CP1 I u z e1)]
+  refine ContinuousLinearMap.opNorm_le_bound L (by positivity) fun w => ?_
+  have hw_decomp : w = (w 0) • e1 + (w 1) • e2 := by
+    ext i
+    fin_cases i <;> simp [e1, e2]
+  have hw0 : |w 0| ≤ ‖w‖ := by
+    simpa [Real.norm_eq_abs] using (PiLp.norm_apply_le w 0)
+  have hw1 : |w 1| ≤ ‖w‖ := by
+    simpa [Real.norm_eq_abs] using (PiLp.norm_apply_le w 1)
+  calc ‖L w‖ = ‖L ((w 0) • e1 + (w 1) • e2)‖ := by rw [← hw_decomp]
+    _ = ‖(w 0) • L e1 + (w 1) • L e2‖ := by rw [map_add, map_smul, map_smul]
+    _ ≤ ‖(w 0) • L e1‖ + ‖(w 1) • L e2‖ := norm_add_le _ _
+    _ = |w 0| * ‖L e1‖ + |w 1| * ‖L e2‖ := by simp [norm_smul, Real.norm_eq_abs]
+    _ ≤ ‖w‖ * Real.sqrt (2 * riemannianEnergyDensity I u z / c_min) +
+        ‖w‖ * Real.sqrt (2 * riemannianEnergyDensity I u z / c_min) := by
+      gcongr
+    _ = 2 * Real.sqrt (2 * riemannianEnergyDensity I u z / c_min) * ‖w‖ := by ring
 
 omit [I.Boundaryless] in
 /-- Helper lemma: J-holomorphic maps on CP1 are smooth. -/
@@ -738,10 +901,19 @@ theorem christoffel_zero_of_dmetric_zero
    CenteredNormalChart & UniformNormalChartFamily Structures
    ========================================================================= -/
 
+omit [I.Boundaryless] in
+/-- The Riemannian metric tensor pulled back by a local coordinate chart `chart` at `p ∈ M`:
+$$(\Psi_p^* g)_z(v, w) := g_{\Psi_p(z)}\big(d(e_p \circ \Psi_p)_z(v),\; d(e_p \circ \Psi_p)_z(w)\big),$$
+where $\Psi_p = \mathrm{chart.symm}$ and $e_p = \mathrm{extChartAt}\; I\; p$. -/
+noncomputable def pulledBackMetricAt (p : M) (chart : OpenPartialHomeomorph M E) (z v w : E) : ℝ :=
+  ClosedTameTarget.metric I (chart.symm z)
+    (fderiv ℝ (extChartAt I p ∘ chart.symm) z v)
+    (fderiv ℝ (extChartAt I p ∘ chart.symm) z w)
+
 /-- Data of a centered normal coordinate chart centered at `p ∈ M` with guaranteed radius `r > 0`.
 The chart satisfies `chart p = 0`, `chart.symm 0 = p`, has differential `id_E` at the origin,
-has vanishing metric first derivatives at the origin (`Γ(0) = 0`), and satisfies $C^3$ bounds
-on the pulled-back tensors. -/
+has vanishing pulled-back metric first derivatives at the origin (`Γ(0) = 0`), and satisfies $C^3$
+bounds on the pulled-back tensors. -/
 structure CenteredNormalChart (p : M) (r : ℝ) where
   /-- The open partial homeomorphism from `M` to `E` -/
   chart : OpenPartialHomeomorph M E
@@ -756,13 +928,13 @@ structure CenteredNormalChart (p : M) (r : ℝ) where
   /-- The metric ball `B(0, r)` is contained within the target domain -/
   ball_subset_target : Metric.ball (0 : E) r ⊆ chart.target
   /-- Smoothness of the coordinate chart on its source -/
-  smooth_to : ContMDiffOn I (modelWithCornersSelf ℝ E) ⊤ chart chart.source
+  smooth_to : ContMDiffOn I (modelWithCornersSelf ℝ E) ∞ chart chart.source
   /-- Smoothness of the parametrization on its target -/
-  smooth_from : ContMDiffOn (modelWithCornersSelf ℝ E) I ⊤ chart.symm chart.target
+  smooth_from : ContMDiffOn (modelWithCornersSelf ℝ E) I ∞ chart.symm chart.target
   /-- Differential of parametrization at the origin is the identity -/
   fderiv_symm_zero : mfderiv (modelWithCornersSelf ℝ E) I chart.symm 0 = ContinuousLinearMap.id ℝ E
-  /-- Vanishing first derivatives of metric tensor components at the origin (`Γ(0) = 0`) -/
-  dmetric_zero : ∀ (v w : E), fderiv ℝ (fun z => ClosedTameTarget.metric I (chart.symm z) v w) 0 = 0
+  /-- Vanishing first derivatives of pulled-back metric tensor components at the origin (`Γ(0) = 0`) -/
+  dmetric_zero : ∀ (v w : E), fderiv ℝ (fun z => pulledBackMetricAt I p chart z v w) 0 = 0
   /-- $C^3$ bound on pulled-back metric tensor components -/
   metric_c3_bound : ∃ C > 0, ∀ (y : E), y ∈ Metric.ball (0 : E) r →
     ∀ (v w : E), ‖v‖ ≤ 1 → ‖w‖ ≤ 1 →
@@ -857,15 +1029,16 @@ structure UniformNormalChartFamily where
     ∀ (v w : E), ‖v‖ ≤ 1 → ‖w‖ ≤ 1 →
       ‖iteratedFDeriv ℝ 3 (fun z => tgt.«ω» ((chartAt p).chart.symm z) v w) y‖ ≤ C_omega3
 omit [I.Boundaryless] in
-/-- Existence of uniform centered normal chart family on any closed tame target. -/
+/-- Trivial `Nonempty` wrapper given an explicit `fam : UniformNormalChartFamily I (M := M)`
+(conditional on `fam`). -/
 theorem exists_uniform_normal_chart_family [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M)) :
     Nonempty (UniformNormalChartFamily I (M := M)) :=
   ⟨fam⟩
 
 omit [I.Boundaryless] in
-/-- Existence of a centered normal chart at every point of a closed tame target.
-Immediate corollary of `exists_uniform_normal_chart_family`. -/
+/-- Projection of a centered normal chart at `p` from a given `fam : UniformNormalChartFamily I (M := M)`
+(conditional on `fam`). -/
 theorem exists_centeredNormalChart [FiniteDimensional ℝ E] (p : M)
     (fam : UniformNormalChartFamily I (M := M)) :
     ∃ r > 0, Nonempty (CenteredNormalChart I p r) :=
@@ -946,12 +1119,22 @@ lemma cp1_chartAt_mfderiv_symm_zero (p : CP1) :
   rfl
 
 lemma cp1_dmetric_zero (p : CP1) (v w : EuclideanSpace ℝ (Fin 2)) :
-    fderiv ℝ (fun z => ClosedTameTarget.metric I_CP1 ((_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).symm z) v w) 0 = 0 := by
-  have h_const : (fun z : EuclideanSpace ℝ (Fin 2) => ClosedTameTarget.metric I_CP1 ((_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).symm z) v w) =
-                 Function.const (EuclideanSpace ℝ (Fin 2)) ((1 / 2 : ℝ) * (stdOmega v (J_CP1 w) + stdOmega w (J_CP1 v))) := by
-    ext z; rfl
-  rw [h_const]
-  rw [fderiv_const]
+    fderiv ℝ (fun z => pulledBackMetricAt I_CP1 p (_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p) z v w) 0 = 0 := by
+  have h_univ : (_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).target = Set.univ :=
+    cp1_chartAt_target_univ p
+  have h_comp_id : extChartAt I_CP1 p ∘ (_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).symm = id := by
+    funext z
+    change (_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p)
+      ((_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).symm z) = z
+    exact (_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).right_inv (by rw [h_univ]; exact Set.mem_univ z)
+  have h_const : (fun z : EuclideanSpace ℝ (Fin 2) =>
+      pulledBackMetricAt I_CP1 p (_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p) z v w) =
+      Function.const (EuclideanSpace ℝ (Fin 2)) ((1 / 2 : ℝ) * (stdOmega v (J_CP1 w) + stdOmega w (J_CP1 v))) := by
+    ext z
+    unfold pulledBackMetricAt
+    rw [h_comp_id, fderiv_id]
+    rfl
+  rw [h_const, fderiv_const]
   rfl
 
 /-- Inner product orthogonality between stereographic projection and center basepoint. -/
@@ -1161,18 +1344,2333 @@ noncomputable def concrete_CP1 : UniformNormalChartFamily I_CP1 (M := CP1) where
     rw [h_const, iteratedFDeriv_const_of_ne (𝕜 := ℝ) (by decide : 3 ≠ 0)]
     simp
 
+/-- Exact stereographic chordal distance identity on `CP1`:
+for `σ = chartAt (EuclideanSpace ℝ (Fin 2)) p`,
+$$\mathrm{dist}(\sigma^{-1}(y_1), \sigma^{-1}(y_2))^2 = \frac{16 \|y_1 - y_2\|^2}{(\|y_1\|^2 + 4)(\|y_2\|^2 + 4)}.$$ -/
+lemma cp1_dist_symm_sq (p : CP1) (y₁ y₂ : EuclideanSpace ℝ (Fin 2)) :
+    dist ((_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).symm y₁)
+         ((_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).symm y₂) ^ 2 =
+      16 * ‖y₁ - y₂‖ ^ 2 / ((‖y₁‖ ^ 2 + 4) * (‖y₂‖ ^ 2 + 4)) := by
+  let σ := _root_.chartAt (EuclideanSpace ℝ (Fin 2)) p
+  let q₁ : CP1 := σ.symm y₁
+  let q₂ : CP1 := σ.symm y₂
+  let v : CP1 := -p
+  let U := (OrthonormalBasis.fromOrthogonalSpanSingleton
+    (𝕜 := ℝ) (E := EuclideanSpace ℝ (Fin 3)) 2 (ne_zero_of_mem_unit_sphere v)).repr
+  let u₁ : EuclideanSpace ℝ (Fin 3) := (U.symm y₁ : EuclideanSpace ℝ (Fin 3))
+  let u₂ : EuclideanSpace ℝ (Fin 3) := (U.symm y₂ : EuclideanSpace ℝ (Fin 3))
+  have h_u₁_norm : ‖u₁‖ = ‖y₁‖ := by
+    change ‖(U.symm y₁).val‖ = ‖y₁‖
+    rw [Submodule.norm_coe]
+    exact U.symm.norm_map y₁
+  have h_u₂_norm : ‖u₂‖ = ‖y₂‖ := by
+    change ‖(U.symm y₂).val‖ = ‖y₂‖
+    rw [Submodule.norm_coe]
+    exact U.symm.norm_map y₂
+  have h_u_inner : inner ℝ u₁ u₂ = inner ℝ y₁ y₂ := by
+    change inner ℝ (U.symm y₁).val (U.symm y₂).val = inner ℝ y₁ y₂
+    rw [← Submodule.coe_inner]
+    exact U.symm.inner_map_map y₁ y₂
+  have h_orth₁ : inner ℝ u₁ (v.val : EuclideanSpace ℝ (Fin 3)) = 0 := by
+    have h0 := cp1_orthonormal_repr_orthogonal p y₁
+    change inner ℝ u₁ (p.val : EuclideanSpace ℝ (Fin 3)) = 0 at h0
+    change inner ℝ u₁ (-(p.val : EuclideanSpace ℝ (Fin 3))) = 0
+    rw [inner_neg_right, h0, neg_zero]
+  have h_orth₂ : inner ℝ u₂ (v.val : EuclideanSpace ℝ (Fin 3)) = 0 := by
+    have h0 := cp1_orthonormal_repr_orthogonal p y₂
+    change inner ℝ u₂ (p.val : EuclideanSpace ℝ (Fin 3)) = 0 at h0
+    change inner ℝ u₂ (-(p.val : EuclideanSpace ℝ (Fin 3))) = 0
+    rw [inner_neg_right, h0, neg_zero]
+  have h_orth₂' : inner ℝ (v.val : EuclideanSpace ℝ (Fin 3)) u₂ = 0 := by
+    rw [real_inner_comm, h_orth₂]
+  have h_v_norm : ‖(v.val : EuclideanSpace ℝ (Fin 3))‖ = 1 :=
+    mem_sphere_zero_iff_norm.mp v.2
+  have h_v_inner : inner ℝ (v.val : EuclideanSpace ℝ (Fin 3)) v.val = 1 := by
+    rw [real_inner_self_eq_norm_sq, h_v_norm, one_pow]
+  have h_q₁_norm : ‖(q₁.val : EuclideanSpace ℝ (Fin 3))‖ = 1 :=
+    mem_sphere_zero_iff_norm.mp q₁.2
+  have h_q₂_norm : ‖(q₂.val : EuclideanSpace ℝ (Fin 3))‖ = 1 :=
+    mem_sphere_zero_iff_norm.mp q₂.2
+  have h_fact : Fact (Module.finrank ℝ (EuclideanSpace ℝ (Fin 3)) = 2 + 1) := by
+    apply Fact.mk
+    simp only [finrank_euclideanSpace, Fintype.card_fin]
+  have h_symm₁ : (q₁.val : EuclideanSpace ℝ (Fin 3)) =
+      (‖u₁‖ ^ 2 + 4)⁻¹ • (4 : ℝ) • u₁ + (‖u₁‖ ^ 2 + 4)⁻¹ • (‖u₁‖ ^ 2 - 4) • (v.val : EuclideanSpace ℝ (Fin 3)) :=
+    @stereographic'_symm_apply (EuclideanSpace ℝ (Fin 3)) _ _ 2 h_fact v y₁
+  have h_symm₂ : (q₂.val : EuclideanSpace ℝ (Fin 3)) =
+      (‖u₂‖ ^ 2 + 4)⁻¹ • (4 : ℝ) • u₂ + (‖u₂‖ ^ 2 + 4)⁻¹ • (‖u₂‖ ^ 2 - 4) • (v.val : EuclideanSpace ℝ (Fin 3)) :=
+    @stereographic'_symm_apply (EuclideanSpace ℝ (Fin 3)) _ _ 2 h_fact v y₂
+  have h_dist_sq : dist q₁ q₂ ^ 2 = 2 - 2 * inner ℝ (q₁.val : EuclideanSpace ℝ (Fin 3)) q₂.val := by
+    change ‖(q₁.val : EuclideanSpace ℝ (Fin 3)) - q₂.val‖ ^ 2 = _
+    rw [norm_sub_sq_real, h_q₁_norm, h_q₂_norm]
+    ring
+  have h_y_sq : ‖y₁ - y₂‖ ^ 2 = ‖y₁‖ ^ 2 - 2 * inner ℝ y₁ y₂ + ‖y₂‖ ^ 2 :=
+    norm_sub_sq_real y₁ y₂
+  have h_q_inner : inner ℝ (q₁.val : EuclideanSpace ℝ (Fin 3)) q₂.val =
+      (‖y₁‖ ^ 2 + 4)⁻¹ * 4 * ((‖y₂‖ ^ 2 + 4)⁻¹ * 4 * inner ℝ y₁ y₂) +
+      (‖y₁‖ ^ 2 + 4)⁻¹ * (‖y₁‖ ^ 2 - 4) * ((‖y₂‖ ^ 2 + 4)⁻¹ * (‖y₂‖ ^ 2 - 4) * 1) := by
+    rw [h_symm₁, h_symm₂]
+    simp only [inner_add_left, inner_add_right, inner_smul_left, inner_smul_right,
+      RCLike.conj_to_real, h_orth₁, h_orth₂', h_v_inner, h_u_inner,
+      h_u₁_norm, h_u₂_norm, mul_zero, add_zero, zero_add]
+    ring
+  have hd₁ : 0 < ‖y₁‖ ^ 2 + 4 := by positivity
+  have hd₂ : 0 < ‖y₂‖ ^ 2 + 4 := by positivity
+  rw [h_dist_sq, h_q_inner, h_y_sq]
+  field_simp
+  ring
+
+/-- Pairwise `2`-bi-Lipschitz equivalence of stereographic charts on `Metric.ball 0 1 ⊆ ℝ²`. -/
+lemma cp1_dist_symm_bilipschitz (p : CP1) {y₁ y₂ : EuclideanSpace ℝ (Fin 2)}
+    (hy₁ : y₁ ∈ Metric.ball (0 : EuclideanSpace ℝ (Fin 2)) 1)
+    (hy₂ : y₂ ∈ Metric.ball (0 : EuclideanSpace ℝ (Fin 2)) 1) :
+    dist ((_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).symm y₁)
+         ((_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).symm y₂) ≤ 2 * ‖y₁ - y₂‖ ∧
+    ‖y₁ - y₂‖ ≤ 2 * dist ((_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).symm y₁)
+                         ((_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).symm y₂) := by
+  have hy₁_le : ‖y₁‖ ≤ 1 := le_of_lt (mem_ball_zero_iff.mp hy₁)
+  have hy₂_le : ‖y₂‖ ≤ 1 := le_of_lt (mem_ball_zero_iff.mp hy₂)
+  have hy₁_sq : ‖y₁‖ ^ 2 ≤ 1 := by nlinarith [norm_nonneg y₁]
+  have hy₂_sq : ‖y₂‖ ^ 2 ≤ 1 := by nlinarith [norm_nonneg y₂]
+  have hd₁_pos : 0 < ‖y₁‖ ^ 2 + 4 := by positivity
+  have hd₂_pos : 0 < ‖y₂‖ ^ 2 + 4 := by positivity
+  have hd_ge : 16 ≤ (‖y₁‖ ^ 2 + 4) * (‖y₂‖ ^ 2 + 4) := by nlinarith [sq_nonneg ‖y₁‖, sq_nonneg ‖y₂‖]
+  have hd_le : (‖y₁‖ ^ 2 + 4) * (‖y₂‖ ^ 2 + 4) ≤ 64 := by nlinarith [sq_nonneg ‖y₁‖, sq_nonneg ‖y₂‖]
+  have h_id := cp1_dist_symm_sq p y₁ y₂
+  set d := dist ((_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).symm y₁)
+                ((_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).symm y₂)
+  have hd_nonneg : 0 ≤ d := dist_nonneg
+  constructor
+  · have h_sq_le : d ^ 2 ≤ (2 * ‖y₁ - y₂‖) ^ 2 := by
+      rw [h_id, div_le_iff₀ (mul_pos hd₁_pos hd₂_pos)]
+      nlinarith [sq_nonneg ‖y₁ - y₂‖]
+    have h_sqrt := Real.sqrt_le_sqrt h_sq_le
+    rwa [Real.sqrt_sq hd_nonneg, Real.sqrt_sq (by positivity)] at h_sqrt
+  · have h_sq_le : ‖y₁ - y₂‖ ^ 2 ≤ (2 * d) ^ 2 := by
+      have h_mul : 16 * ‖y₁ - y₂‖ ^ 2 = d ^ 2 * ((‖y₁‖ ^ 2 + 4) * (‖y₂‖ ^ 2 + 4)) := by
+        rw [h_id, div_mul_cancel₀ _ (mul_pos hd₁_pos hd₂_pos).ne']
+      nlinarith [sq_nonneg d]
+    have h_sqrt := Real.sqrt_le_sqrt h_sq_le
+    rwa [Real.sqrt_sq (norm_nonneg _), Real.sqrt_sq (by positivity)] at h_sqrt
+
+set_option backward.isDefEq.respectTransparency false in
+/-- Operator norm bound on the manifold differential of the inverse stereographic chart on `B(0, 1)`. -/
+lemma cp1_norm_mfderiv_symm_le (p : CP1) {y₀ : EuclideanSpace ℝ (Fin 2)}
+    (hy₀ : y₀ ∈ Metric.ball (0 : EuclideanSpace ℝ (Fin 2)) 1) :
+    ‖(mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1
+        (_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).symm y₀ :
+      EuclideanSpace ℝ (Fin 2) →L[ℝ] EuclideanSpace ℝ (Fin 2))‖ ≤ 4 := by
+  let ψ := _root_.chartAt (EuclideanSpace ℝ (Fin 2)) p
+  by_cases h_mdiff : MDifferentiableAt 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ψ.symm y₀
+  · let p₁ : CP1 := ψ.symm y₀
+    let ψ₁ := _root_.chartAt (EuclideanSpace ℝ (Fin 2)) p₁
+    have h_mfderiv : (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ψ.symm y₀ :
+        EuclideanSpace ℝ (Fin 2) →L[ℝ] EuclideanSpace ℝ (Fin 2)) =
+        fderiv ℝ (ψ₁ ∘ ψ.symm) y₀ := by
+      dsimp [mfderiv]
+      rw [if_pos h_mdiff, range_id, fderivWithin_univ]
+      rfl
+    rw [h_mfderiv]
+    refine norm_fderiv_le_of_lip' ℝ (by norm_num : (0 : ℝ) ≤ 4) ?_
+    have h_univ : ψ.target = Set.univ := cp1_chartAt_target_univ p
+    have h_symm_cont : ContinuousAt ψ.symm y₀ :=
+      ψ.continuousOn_symm.continuousAt (by rw [h_univ]; exact isOpen_univ.mem_nhds (Set.mem_univ y₀))
+    have hp₁_src : p₁ ∈ ψ₁.source := mem_chart_source _ p₁
+    have hp₁_zero : ψ₁ p₁ = 0 := cp1_chartAt_apply_self p₁
+    have h_nhds₁ : ψ₁.source ∩ ψ₁ ⁻¹' Metric.ball (0 : EuclideanSpace ℝ (Fin 2)) 1 ∈ 𝓝 p₁ := by
+      refine Filter.inter_mem (ψ₁.open_source.mem_nhds hp₁_src) ?_
+      exact (ψ₁.continuousOn.continuousAt (ψ₁.open_source.mem_nhds hp₁_src)).preimage_mem_nhds
+        (by rw [hp₁_zero]; exact Metric.ball_mem_nhds 0 one_pos)
+    filter_upwards [IsOpen.mem_nhds isOpen_ball hy₀,
+      h_symm_cont.preimage_mem_nhds h_nhds₁] with x hx_ball hx_pre
+    rcases hx_pre with ⟨hx_src₁, hx_ball₁⟩
+    change ‖ψ₁ (ψ.symm x) - ψ₁ p₁‖ ≤ 4 * ‖x - y₀‖
+    rw [hp₁_zero, sub_zero]
+    have hx_le₁ : ‖ψ₁ (ψ.symm x)‖ ≤ 1 := le_of_lt (mem_ball_zero_iff.mp hx_ball₁)
+    have h_left₁ : ψ₁.symm (ψ₁ (ψ.symm x)) = ψ.symm x := ψ₁.left_inv hx_src₁
+    have h_step1 : ‖ψ₁ (ψ.symm x)‖ ≤ 2 * dist (ψ.symm x) p₁ := by
+      have h := chart_le_dist_symm_p p₁ (ψ₁ (ψ.symm x)) hx_le₁
+      rwa [h_left₁] at h
+    have h_step2 : dist (ψ.symm x) p₁ ≤ 2 * ‖x - y₀‖ :=
+      (cp1_dist_symm_bilipschitz p hx_ball hy₀).1
+    linarith
+  · have h_zero : (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ψ.symm y₀ :
+        EuclideanSpace ℝ (Fin 2) →L[ℝ] EuclideanSpace ℝ (Fin 2)) = 0 := by
+      dsimp [mfderiv]; rw [if_neg h_mdiff]
+    rw [h_zero, norm_zero]
+    norm_num
+
 end UniformNormalChartFamily
+
+/- =========================================================================
+   BoundedChartedTarget (Layer 0 Atlas/Metric Compatibility) & h_aa_lip
+   ========================================================================= -/
+
+/-- Compatibility between the `MetricSpace M` distance, the smooth atlas `extChartAt I p`,
+and the smooth target tensors `(ω, J)` on a closed tame target `(M, ω, J)`.
+
+Provides:
+1. A uniform coordinate ball radius `r₀ > 0` contained in `(extChartAt I p).target` at every `p : M`.
+2. Uniform pairwise `L₀`-bi-Lipschitz equivalence (`L₀ ≥ 1`) between Euclidean distance on
+   `Metric.ball (extChartAt I p p) r₀` and manifold distance `dist` on `M`.
+3. Uniform $C^3$ bounds (`0 ≤ k ≤ 3`) on the chart representations `ω_chart` and `J_chart` on
+   `Metric.ball (extChartAt I p p) r₀`. -/
+class BoundedChartedTarget (I : ModelWithCorners ℝ E H) [I.Boundaryless] (M : Type u)
+    [MetricSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [CompactSpace M]
+    [tgt : ClosedTameTarget I M] : Prop where
+  exists_chart_bounds :
+    ∃ (r₀ L₀ C_ω C_J : ℝ),
+      0 < r₀ ∧ 1 ≤ L₀ ∧ 0 < C_ω ∧ 0 < C_J ∧
+      (∀ p : M, Metric.ball (extChartAt I p p) r₀ ⊆ (extChartAt I p).target) ∧
+      (∀ (p : M) {y₁ y₂ : E},
+        y₁ ∈ Metric.ball (extChartAt I p p) r₀ →
+        y₂ ∈ Metric.ball (extChartAt I p p) r₀ →
+        dist ((extChartAt I p).symm y₁) ((extChartAt I p).symm y₂) ≤ L₀ * ‖y₁ - y₂‖ ∧
+        ‖y₁ - y₂‖ ≤ L₀ * dist ((extChartAt I p).symm y₁) ((extChartAt I p).symm y₂)) ∧
+      (∀ (p : M) {y : E}, y ∈ Metric.ball (extChartAt I p p) r₀ →
+        ∀ (v : E), ∀ k ≤ 3, ‖iteratedFDeriv ℝ k (fun z => ω_chart I tgt.«ω» p z v) y‖ ≤ C_ω * ‖v‖) ∧
+      (∀ (p : M) {y : E}, y ∈ Metric.ball (extChartAt I p p) r₀ →
+        ∀ k ≤ 3, ‖iteratedFDeriv ℝ k (J_chart I tgt.J p) y‖ ≤ C_J)
+
+/-- Unconditional `BoundedChartedTarget` instance on `(CP1, ω_FS, J_CP1)`. -/
+instance instBoundedChartedTargetCP1 : BoundedChartedTarget I_CP1 CP1 where
+  exists_chart_bounds := by
+    refine ⟨1, 2,
+      ‖(stdOmega : EuclideanSpace ℝ (Fin 2) →L[ℝ] EuclideanSpace ℝ (Fin 2) →L[ℝ] ℝ)‖ + 1,
+      ‖(J_CP1 : EuclideanSpace ℝ (Fin 2) →L[ℝ] EuclideanSpace ℝ (Fin 2))‖ + 1,
+      one_pos, by norm_num, by positivity, by positivity, ?_, ?_, ?_, ?_⟩
+    · intro p y _
+      have h_univ : (_root_.chartAt (EuclideanSpace ℝ (Fin 2)) p).target = Set.univ :=
+        UniformNormalChartFamily.cp1_chartAt_target_univ p
+      simp [extChartAt, h_univ]
+    · intro p y₁ y₂ hy₁ hy₂
+      have hp0 : extChartAt I_CP1 p p = 0 :=
+        UniformNormalChartFamily.cp1_chartAt_apply_self p
+      rw [hp0] at hy₁ hy₂
+      exact UniformNormalChartFamily.cp1_dist_symm_bilipschitz p hy₁ hy₂
+    · intro p y _ v k _
+      have h_const : (fun z => ω_chart I_CP1 CP1_ClosedTameTarget.«ω» p z v) = fun _ => stdOmega v := by
+        ext z; rfl
+      rw [h_const]
+      rcases Nat.eq_zero_or_pos k with rfl | hk
+      · rw [norm_iteratedFDeriv_zero]
+        have h_op : ‖stdOmega v‖ ≤ ‖stdOmega‖ * ‖v‖ := ContinuousLinearMap.le_opNorm stdOmega v
+        nlinarith [norm_nonneg v]
+      · simp only [iteratedFDeriv_const_of_ne (𝕜 := ℝ) hk.ne', Pi.zero_apply, norm_zero]
+        positivity
+    · intro p y _ k _
+      have h_const : J_chart I_CP1 CP1_ClosedTameTarget.J p = fun _ => J_CP1 := by
+        ext z; rfl
+      rw [h_const]
+      rcases Nat.eq_zero_or_pos k with rfl | hk
+      · rw [norm_iteratedFDeriv_zero]
+        linarith
+      · simp only [iteratedFDeriv_const_of_ne (𝕜 := ℝ) hk.ne', Pi.zero_apply, norm_zero]
+        positivity
+
+omit [I.Boundaryless] [CompactSpace M] tgt in
+/-- The manifold differential of `extChartAt I q` at its center `q` is the identity operator on `E`. -/
+theorem mfderiv_extChartAt_self (q : M) :
+    (mfderiv I 𝓘(ℝ, E) (extChartAt I q) q : E →L[ℝ] E) = ContinuousLinearMap.id ℝ E := by
+  have hsrc : q ∈ (chartAt H q).source := mem_chart_source H q
+  have h1 := (hasMFDerivAt_extChartAt (I := I) hsrc).mfderiv
+  rw [h1, mfderiv_chartAt_eq_tangentCoordChange hsrc]
+  ext v
+  exact tangentCoordChange_self (I := I) (mem_extChartAt_source q)
+
+set_option backward.isDefEq.respectTransparency false in
+/-- First-principles proof of local Lipschitz equicontinuity (`h_aa_lip`) for `J`-holomorphic
+sequences with locally uniformly bounded `riemannianEnergyDensity` on any `[BoundedChartedTarget I M]`
+with `[FiniteDimensional ℝ E]` (`0 sorryAx`). -/
+theorem local_lipschitz_of_bounded_energy_density
+    [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (h_open : IsOpen Ω)
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
+    (h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) :
+    ∀ z₀ ∈ Ω, ∃ ρ > 0, ∃ L ≥ 0, ∀ n : ℕ, ∀ z ∈ Metric.ball z₀ ρ,
+      dist (u_seq n z) (u_seq n z₀) ≤ L * dist z z₀ := by
+  obtain ⟨c_min, hc_min_pos, hc_coercive⟩ := exists_metric_coercive I (M := M)
+  obtain ⟨r₀, L₀, _, _, hr₀_pos, hL₀_ge, _, _, h_ball_target, h_bilip, _, _⟩ :=
+    BoundedChartedTarget.exists_chart_bounds (I := I) (M := M)
+  have hL₀_pos : 0 < L₀ := lt_of_lt_of_le one_pos hL₀_ge
+  intro z₀ hz₀
+  let ψ := _root_.chartAt (EuclideanSpace ℝ (Fin 2)) z₀
+  have hψ_univ : ψ.target = Set.univ := UniformNormalChartFamily.cp1_chartAt_target_univ z₀
+  have hψ_zero : ψ z₀ = 0 := UniformNormalChartFamily.cp1_chartAt_apply_self z₀
+  have hψ_symm_zero : ψ.symm 0 = z₀ := UniformNormalChartFamily.cp1_chartAt_symm_zero z₀
+  have hψ_symm_cont : Continuous ψ.symm := by
+    rw [← continuousOn_univ, ← hψ_univ]
+    exact ψ.continuousOn_symm
+  have h_pre_open : IsOpen (ψ.symm ⁻¹' Ω) := h_open.preimage hψ_symm_cont
+  have h_zero_mem_pre : (0 : EuclideanSpace ℝ (Fin 2)) ∈ ψ.symm ⁻¹' Ω := by
+    simp [Set.mem_preimage, hψ_symm_zero, hz₀]
+  obtain ⟨r₁, hr₁_pos, hr₁_sub⟩ := Metric.isOpen_iff.mp h_pre_open 0 h_zero_mem_pre
+  let r_dom : ℝ := min (r₁ / 2) (1 / 2)
+  have hr_dom_pos : 0 < r_dom := lt_min (half_pos hr₁_pos) (by norm_num)
+  have hr_dom_lt_one : r_dom < 1 := lt_of_le_of_lt (min_le_right _ _) (by norm_num)
+  have h_cball_sub_pre : Metric.closedBall (0 : EuclideanSpace ℝ (Fin 2)) r_dom ⊆ ψ.symm ⁻¹' Ω := by
+    intro y hy
+    apply hr₁_sub
+    rw [Metric.mem_ball, dist_zero_right]
+    have hy' : ‖y‖ ≤ r_dom := mem_closedBall_zero_iff.mp hy
+    have hr_le : r_dom ≤ r₁ / 2 := min_le_left _ _
+    linarith
+  have : ProperSpace (EuclideanSpace ℝ (Fin 2)) := FiniteDimensional.proper ℝ _
+  let K : Set CP1 := ψ.symm '' Metric.closedBall 0 r_dom
+  have hK_compact : IsCompact K := (isCompact_closedBall 0 r_dom).image hψ_symm_cont
+  have hK_sub : K ⊆ Ω := image_subset_iff.mpr h_cball_sub_pre
+  obtain ⟨C_e, hCe_pos, hCe_bdd⟩ := h_grad_bdd K hK_sub hK_compact
+  have h_nhds_z₀ : ψ.source ∩ ψ ⁻¹' Metric.ball (0 : EuclideanSpace ℝ (Fin 2)) r_dom ∈ 𝓝 z₀ := by
+    refine Filter.inter_mem (ψ.open_source.mem_nhds (mem_chart_source _ z₀)) ?_
+    exact (ψ.continuousOn.continuousAt (ψ.open_source.mem_nhds (mem_chart_source _ z₀))).preimage_mem_nhds
+      (by rw [hψ_zero]; exact Metric.ball_mem_nhds 0 hr_dom_pos)
+  obtain ⟨ρ, hρ_pos, hρ_sub⟩ := Metric.mem_nhds_iff.mp h_nhds_z₀
+  let C_grad : ℝ := 8 * Real.sqrt (2 * C_e / c_min)
+  have hC_grad_nonneg : 0 ≤ C_grad := by positivity
+  refine ⟨ρ, hρ_pos, 2 * L₀ * C_grad, by positivity, fun n z hz => ?_⟩
+  rcases hρ_sub hz with ⟨hz_src, hz_ball⟩
+  let w : EuclideanSpace ℝ (Fin 2) := ψ z
+  have hw_symm : ψ.symm w = z := ψ.left_inv hz_src
+  have hw_norm_lt : ‖w‖ < r_dom := mem_ball_zero_iff.mp hz_ball
+  have hw_ball1 : w ∈ Metric.ball (0 : EuclideanSpace ℝ (Fin 2)) 1 := by
+    rw [mem_ball_zero_iff]; exact lt_trans hw_norm_lt hr_dom_lt_one
+  have hw_le_dist : ‖w‖ ≤ 2 * dist z z₀ := by
+    have h := UniformNormalChartFamily.chart_le_dist_symm_p z₀ w (le_of_lt (lt_trans hw_norm_lt hr_dom_lt_one))
+    rwa [hw_symm] at h
+  let γ : ℝ → M := fun t => u_seq n (ψ.symm (t • w))
+  let f : ℝ → ℝ := fun t => dist (γ t) (γ 0)
+  let B : ℝ → ℝ := fun t => (L₀ * C_grad * ‖w‖) * t
+  let B' : ℝ → ℝ := fun _ => L₀ * C_grad * ‖w‖
+  have h_seg_mem_cball : ∀ t ∈ Icc (0 : ℝ) 1, t • w ∈ Metric.closedBall (0 : EuclideanSpace ℝ (Fin 2)) r_dom := by
+    intro t ht
+    rw [mem_closedBall_zero_iff, norm_smul, Real.norm_of_nonneg ht.1]
+    calc t * ‖w‖ ≤ 1 * r_dom := mul_le_mul ht.2 (le_of_lt hw_norm_lt) (norm_nonneg w) zero_le_one
+      _ = r_dom := one_mul r_dom
+  have h_seg_mem_K : ∀ t ∈ Icc (0 : ℝ) 1, ψ.symm (t • w) ∈ K :=
+    fun t ht => mem_image_of_mem ψ.symm (h_seg_mem_cball t ht)
+  have hγ_cont : ContinuousOn γ (Icc 0 1) := by
+    refine (h_jhol n).1.continuousOn.comp ?_ (fun t ht => hK_sub (h_seg_mem_K t ht))
+    exact hψ_symm_cont.comp_continuousOn (continuousOn_id.smul continuousOn_const)
+  have hf_cont : ContinuousOn f (Icc 0 1) :=
+    Continuous.comp_continuousOn (continuous_id.dist continuous_const) hγ_cont
+  have ha : f 0 ≤ B 0 := by simp [f, B]
+  have hB_cont : ContinuousOn B (Icc 0 1) :=
+    (continuous_const.mul continuous_id).continuousOn
+  have hB_deriv : ∀ t ∈ Ico (0 : ℝ) 1, HasDerivWithinAt B (B' t) (Ici t) t := by
+    intro t _
+    simpa [B, B'] using ((hasDerivAt_id t).const_mul (L₀ * C_grad * ‖w‖)).hasDerivWithinAt
+  have h_fencing := image_le_of_liminf_slope_right_le_deriv_boundary hf_cont ha hB_cont hB_deriv ?_
+  · have h1 := h_fencing (right_mem_Icc.mpr zero_le_one)
+    have hf1 : f 1 = dist (u_seq n z) (u_seq n z₀) := by
+      dsimp [f, γ]
+      rw [one_smul, zero_smul, hw_symm, hψ_symm_zero]
+    rw [hf1] at h1
+    dsimp [B] at h1
+    calc dist (u_seq n z) (u_seq n z₀) ≤ L₀ * C_grad * ‖w‖ * 1 := h1
+      _ ≤ L₀ * C_grad * (2 * dist z z₀) * 1 := by gcongr
+      _ = 2 * L₀ * C_grad * dist z z₀ := by ring
+  · intro t₀ ht₀ r hr
+    let y₀ : EuclideanSpace ℝ (Fin 2) := t₀ • w
+    let p_dom : CP1 := ψ.symm y₀
+    let q : M := u_seq n p_dom
+    have ht₀_Icc : t₀ ∈ Icc (0 : ℝ) 1 := ⟨ht₀.1, le_of_lt ht₀.2⟩
+    have hy₀_cball : y₀ ∈ Metric.closedBall (0 : EuclideanSpace ℝ (Fin 2)) r_dom := h_seg_mem_cball t₀ ht₀_Icc
+    have hy₀_ball1 : y₀ ∈ Metric.ball (0 : EuclideanSpace ℝ (Fin 2)) 1 := by
+      rw [mem_ball_zero_iff]
+      exact lt_of_le_of_lt (mem_closedBall_zero_iff.mp hy₀_cball) hr_dom_lt_one
+    have hp_dom_K : p_dom ∈ K := h_seg_mem_K t₀ ht₀_Icc
+    have hp_dom_Ω : p_dom ∈ Ω := hK_sub hp_dom_K
+    have h_d1 : HasMFDerivAt 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ψ.symm y₀
+        (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ψ.symm y₀) := by
+      have h_cont : ContMDiffOn I_CP1 I_CP1 ⊤ ψ.symm ψ.target := contMDiffOn_chart_symm
+      rw [hψ_univ] at h_cont
+      exact ((h_cont y₀ (Set.mem_univ y₀)).mdifferentiableWithinAt (by decide)
+        |>.mdifferentiableAt (isOpen_univ.mem_nhds (Set.mem_univ y₀))).hasMFDerivAt
+    have h_d2 : HasMFDerivAt I_CP1 I (u_seq n) p_dom (mfderiv I_CP1 I (u_seq n) p_dom) :=
+      (((h_jhol n).1 p_dom hp_dom_Ω).mdifferentiableWithinAt (by decide)
+        |>.mdifferentiableAt (h_open.mem_nhds hp_dom_Ω)).hasMFDerivAt
+    have h_d3 : HasMFDerivAt I 𝓘(ℝ, E) (extChartAt I q) q (mfderiv I 𝓘(ℝ, E) (extChartAt I q) q) :=
+      (mdifferentiableAt_extChartAt (I := I) (mem_chart_source H q)).hasMFDerivAt
+    let D_y₀ : EuclideanSpace ℝ (Fin 2) →L[ℝ] E :=
+      (mfderiv I 𝓘(ℝ, E) (extChartAt I q) q).comp
+        ((mfderiv I_CP1 I (u_seq n) p_dom).comp
+          (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ψ.symm y₀))
+    have h_G_fderiv : HasFDerivAt (extChartAt I q ∘ u_seq n ∘ ψ.symm) D_y₀ y₀ :=
+      ((h_d3.comp p_dom h_d2).comp y₀ h_d1).hasFDerivAt
+    let g : ℝ → E := fun t => (extChartAt I q ∘ u_seq n ∘ ψ.symm) (t • w)
+    have h_seg_deriv : HasDerivAt (fun t : ℝ => t • w) w t₀ := by
+      simpa using (hasDerivAt_id t₀).smul_const w
+    have hg_deriv : HasDerivAt g (D_y₀ w) t₀ := h_G_fderiv.comp_hasDerivAt t₀ h_seg_deriv
+    have h_D_norm : ‖D_y₀ w‖ ≤ C_grad * ‖w‖ := by
+      have h_id : (mfderiv I 𝓘(ℝ, E) (extChartAt I q) q : E →L[ℝ] E) = ContinuousLinearMap.id ℝ E :=
+        mfderiv_extChartAt_self I q
+      have h_u_norm : ‖mfderiv I_CP1 I (u_seq n) p_dom‖ ≤
+          2 * Real.sqrt (2 * C_e / c_min) := by
+        calc ‖mfderiv I_CP1 I (u_seq n) p_dom‖
+            ≤ 2 * Real.sqrt (2 * riemannianEnergyDensity I (u_seq n) p_dom / c_min) :=
+              norm_mfderiv_le_of_coercive I hc_min_pos hc_coercive (u_seq n) p_dom
+          _ ≤ 2 * Real.sqrt (2 * C_e / c_min) := by
+              gcongr
+              exact hCe_bdd n p_dom hp_dom_K
+      have h_ψ_norm : ‖mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ψ.symm y₀‖ ≤ 4 :=
+        UniformNormalChartFamily.cp1_norm_mfderiv_symm_le z₀ hy₀_ball1
+      have h_comp_eq : D_y₀ w = (mfderiv I_CP1 I (u_seq n) p_dom)
+          ((mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ψ.symm y₀) w) := by
+        change ((mfderiv I 𝓘(ℝ, E) (extChartAt I q) q : E →L[ℝ] E)
+          ((mfderiv I_CP1 I (u_seq n) p_dom)
+            ((mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ψ.symm y₀) w))) = _
+        rw [h_id]
+        rfl
+      rw [h_comp_eq]
+      calc ‖(mfderiv I_CP1 I (u_seq n) p_dom)
+              ((mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ψ.symm y₀) w)‖
+          ≤ ‖mfderiv I_CP1 I (u_seq n) p_dom‖ *
+            (‖mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ψ.symm y₀‖ * ‖w‖) := by
+            refine (ContinuousLinearMap.le_opNorm _ _).trans ?_
+            gcongr
+            exact ContinuousLinearMap.le_opNorm _ _
+        _ ≤ (2 * Real.sqrt (2 * C_e / c_min)) * (4 * ‖w‖) := by
+            gcongr
+        _ = C_grad * ‖w‖ := by dsimp [C_grad]; ring
+    have h_tendsto_slope : Filter.Tendsto (fun t => L₀ * ‖slope g t₀ t‖) (𝓝[>] t₀) (𝓝 (L₀ * ‖D_y₀ w‖)) :=
+      ((hg_deriv.tendsto_slope.mono_left (nhdsGT_le_nhdsNE t₀)).norm).const_mul L₀
+    have h_lt_r : L₀ * ‖D_y₀ w‖ < r := by
+      have h_le : L₀ * ‖D_y₀ w‖ ≤ B' t₀ := by
+        dsimp [B']
+        nlinarith [h_D_norm]
+      exact lt_of_le_of_lt h_le hr
+    have h_ev_lt : ∀ᶠ t in 𝓝[>] t₀, L₀ * ‖slope g t₀ t‖ < r :=
+      h_tendsto_slope.eventually (gt_mem_nhds h_lt_r)
+    have hγ_cont_at : ContinuousAt γ t₀ := by
+      have h_u_cont : ContinuousAt (u_seq n) p_dom :=
+        ((h_jhol n).1 p_dom hp_dom_Ω).continuousWithinAt.continuousAt (h_open.mem_nhds hp_dom_Ω)
+      exact h_u_cont.comp (hψ_symm_cont.continuousAt.comp (continuous_id.smul continuous_const).continuousAt)
+    have hq_nhds : (extChartAt I q).source ∩
+        (extChartAt I q) ⁻¹' Metric.ball (extChartAt I q q) r₀ ∈ 𝓝 q := by
+      refine Filter.inter_mem ((isOpen_extChartAt_source q).mem_nhds (mem_extChartAt_source q)) ?_
+      exact (continuousAt_extChartAt q).preimage_mem_nhds (Metric.ball_mem_nhds _ hr₀_pos)
+    have h_ev_chart : ∀ᶠ t in 𝓝[>] t₀,
+        γ t ∈ (extChartAt I q).source ∧ extChartAt I q (γ t) ∈ Metric.ball (extChartAt I q q) r₀ :=
+      nhdsWithin_le_nhds (hγ_cont_at.preimage_mem_nhds hq_nhds)
+    have h_ev_gt : ∀ᶠ t in 𝓝[>] t₀, t₀ < t := self_mem_nhdsWithin
+    have h_ev_all : ∀ᶠ t in 𝓝[>] t₀, slope f t₀ t < r := by
+      filter_upwards [h_ev_lt, h_ev_chart, h_ev_gt] with t ht_lt ⟨ht_src, ht_ball⟩ ht_gt
+      have h_pos : 0 < t - t₀ := sub_pos.mpr ht_gt
+      have hq_ball : extChartAt I q q ∈ Metric.ball (extChartAt I q q) r₀ := mem_ball_self hr₀_pos
+      have h_dist_le : dist (γ t) q ≤ L₀ * ‖g t - g t₀‖ := by
+        have h_bi := (h_bilip q ht_ball hq_ball).1
+        rwa [(extChartAt I q).left_inv ht_src, (extChartAt I q).left_inv (mem_extChartAt_source q)] at h_bi
+      have h_f_sub : f t - f t₀ ≤ dist (γ t) q := by
+        dsimp [f, q, p_dom, y₀]
+        linarith [dist_triangle (γ t) (γ t₀) (γ 0)]
+      have h_slope_f : slope f t₀ t ≤ L₀ * ‖slope g t₀ t‖ := by
+        rw [slope_def_field, slope_def_module, norm_smul, Real.norm_of_nonneg (inv_nonneg.mpr h_pos.le),
+          div_eq_inv_mul]
+        calc (t - t₀)⁻¹ * (f t - f t₀) ≤ (t - t₀)⁻¹ * dist (γ t) q :=
+              mul_le_mul_of_nonneg_left h_f_sub (inv_nonneg.mpr h_pos.le)
+          _ ≤ (t - t₀)⁻¹ * (L₀ * ‖g t - g t₀‖) :=
+              mul_le_mul_of_nonneg_left h_dist_le (inv_nonneg.mpr h_pos.le)
+          _ = L₀ * ((t - t₀)⁻¹ * ‖g t - g t₀‖) := by ring
+      exact lt_of_le_of_lt h_slope_f ht_lt
+    have : (𝓝[>] t₀).NeBot := nhdsWithin_Ioi_neBot le_rfl
+    exact h_ev_all.frequently
+
+set_option backward.isDefEq.respectTransparency false in
+/-- Uniform upper bound on `ClosedTameTarget.metric` across a compact target `M` (`0 sorryAx`). -/
+theorem exists_metric_upper_bound [BoundedChartedTarget I M] :
+    ∃ C_g : ℝ, 0 ≤ C_g ∧ ∀ (x : M) (v : E),
+      ClosedTameTarget.metric I x v v ≤ C_g * ‖v‖ ^ 2 := by
+  obtain ⟨r₀, _, C_ω, C_J, hr₀_pos, _, hCω_pos, hCJ_pos, _, _, hω_bdd, hJ_bdd⟩ :=
+    BoundedChartedTarget.exists_chart_bounds (I := I) (M := M)
+  refine ⟨C_ω * C_J, by positivity, fun x v => ?_⟩
+  have hx_ball : extChartAt I x x ∈ Metric.ball (extChartAt I x x) r₀ := mem_ball_self hr₀_pos
+  have hω0 := hω_bdd x hx_ball v 0 (Nat.zero_le 3)
+  rw [norm_iteratedFDeriv_zero] at hω0
+  have h_eq_ω : ω_chart I tgt.«ω» x (extChartAt I x x) v = (tgt.«ω» x : E →L[ℝ] E →L[ℝ] ℝ) v := by
+    rw [← omega_eq_chart I x (mem_extChartAt_source x)]
+    rfl
+  rw [h_eq_ω] at hω0
+  have hJ0 := hJ_bdd x hx_ball 0 (Nat.zero_le 3)
+  rw [norm_iteratedFDeriv_zero, ← J_eq_chart I x (mem_extChartAt_source x)] at hJ0
+  have h_met : ClosedTameTarget.metric I x v v = tgt.«ω» x v (tgt.J x v) := by
+    dsimp [ClosedTameTarget.metric]
+    ring
+  rw [h_met]
+  calc tgt.«ω» x v (tgt.J x v)
+      ≤ ‖tgt.«ω» x v (tgt.J x v)‖ := le_abs_self _
+    _ ≤ ‖(tgt.«ω» x : E →L[ℝ] E →L[ℝ] ℝ) v‖ * ‖(tgt.J x : E →L[ℝ] E) v‖ :=
+        ContinuousLinearMap.le_opNorm ((tgt.«ω» x : E →L[ℝ] E →L[ℝ] ℝ) v) _
+    _ ≤ (C_ω * ‖v‖) * (C_J * ‖v‖) := by
+        gcongr
+        exact (ContinuousLinearMap.le_opNorm (tgt.J x : E →L[ℝ] E) v).trans
+          (mul_le_mul_of_nonneg_right hJ0 (norm_nonneg v))
+    _ = C_ω * C_J * ‖v‖ ^ 2 := by ring
+
+omit [I.Boundaryless] in
+set_option backward.isDefEq.respectTransparency false in
+/-- Pointwise upper bound on `riemannianEnergyDensity I u z` in terms of `‖mfderiv I_CP1 I u z‖` (`0 sorryAx`). -/
+theorem riemannianEnergyDensity_le_of_metric_upper_bound {C_g : ℝ} (hCg_nonneg : 0 ≤ C_g)
+    (hCg : ∀ (x : M) (v : E), ClosedTameTarget.metric I x v v ≤ C_g * ‖v‖ ^ 2)
+    (u : CP1 → M) (z : CP1) :
+    riemannianEnergyDensity I u z ≤
+      (1 / 2 : ℝ) * C_g * (‖e1‖ ^ 2 + ‖e2‖ ^ 2) *
+        ‖(mfderiv I_CP1 I u z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E)‖ ^ 2 := by
+  let L : EuclideanSpace ℝ (Fin 2) →L[ℝ] E := mfderiv I_CP1 I u z
+  have hL_e1 : ‖L e1‖ ≤ ‖L‖ * ‖e1‖ := ContinuousLinearMap.le_opNorm L e1
+  have hL_e2 : ‖L e2‖ ≤ ‖L‖ * ‖e2‖ := ContinuousLinearMap.le_opNorm L e2
+  have h_met1 : ClosedTameTarget.metric I (u z) (L e1) (L e1) ≤ C_g * (‖L‖ * ‖e1‖) ^ 2 := by
+    calc ClosedTameTarget.metric I (u z) (L e1) (L e1)
+        ≤ C_g * ‖L e1‖ ^ 2 := hCg (u z) (L e1)
+      _ ≤ C_g * (‖L‖ * ‖e1‖) ^ 2 := by gcongr
+  have h_met2 : ClosedTameTarget.metric I (u z) (L e2) (L e2) ≤ C_g * (‖L‖ * ‖e2‖) ^ 2 := by
+    calc ClosedTameTarget.metric I (u z) (L e2) (L e2)
+        ≤ C_g * ‖L e2‖ ^ 2 := hCg (u z) (L e2)
+      _ ≤ C_g * (‖L‖ * ‖e2‖) ^ 2 := by gcongr
+  change (1 / 2 : ℝ) * (ClosedTameTarget.metric I (u z) (L e1) (L e1) +
+                        ClosedTameTarget.metric I (u z) (L e2) (L e2)) ≤ _
+  linarith
+
+set_option backward.isDefEq.respectTransparency false in
+/-- Every $C^1$ map `u : CP1 → M` on `[BoundedChartedTarget I M]` is locally Lipschitz (`0 sorryAx`). -/
+theorem locallyLipschitz_of_contMDiff
+    [BoundedChartedTarget I M]
+    (u : CP1 → M) (hu : ContMDiff I_CP1 I 1 u) :
+    LocallyLipschitz u := by
+  obtain ⟨r₀, L₀, _, _, hr₀_pos, hL₀_ge, _, _, _, h_bilip, _, _⟩ :=
+    BoundedChartedTarget.exists_chart_bounds (I := I) (M := M)
+  have hL₀_pos : 0 < L₀ := lt_of_lt_of_le one_pos hL₀_ge
+  intro p
+  let ψ := _root_.chartAt (EuclideanSpace ℝ (Fin 2)) p
+  let q : M := u p
+  let G : EuclideanSpace ℝ (Fin 2) → E := extChartAt I q ∘ u ∘ ψ.symm
+  have hψ_zero : ψ p = 0 := UniformNormalChartFamily.cp1_chartAt_apply_self p
+  have hG_cdiff : ContDiffAt ℝ 1 G 0 := by
+    have h_within := (contMDiffAt_iff.mp (hu p)).2
+    have h_eq_G : extChartAt I (u p) ∘ u ∘ (extChartAt I_CP1 p).symm = G := rfl
+    have h_eq_zero : extChartAt I_CP1 p p = 0 := hψ_zero
+    have h_range : Set.range I_CP1 = Set.univ := range_id
+    rw [h_eq_G, h_eq_zero, h_range, contDiffWithinAt_univ] at h_within
+    exact h_within
+  obtain ⟨K₀, t₀, ht₀, hlip₀⟩ := hG_cdiff.exists_lipschitzOnWith
+  have h_nhds_dom : ψ.source ∩ ψ ⁻¹' (t₀ ∩ Metric.ball (0 : EuclideanSpace ℝ (Fin 2)) 1) ∈ 𝓝 p := by
+    refine Filter.inter_mem (ψ.open_source.mem_nhds (mem_chart_source _ p)) ?_
+    exact (ψ.continuousOn.continuousAt (ψ.open_source.mem_nhds (mem_chart_source _ p))).preimage_mem_nhds
+      (by rw [hψ_zero]; exact Filter.inter_mem ht₀ (Metric.ball_mem_nhds 0 one_pos))
+  have h_nhds_tgt : u ⁻¹' ((extChartAt I q).source ∩
+      (extChartAt I q) ⁻¹' Metric.ball (extChartAt I q q) r₀) ∈ 𝓝 p := by
+    refine (hu p).continuousAt.preimage_mem_nhds ?_
+    refine Filter.inter_mem ((isOpen_extChartAt_source q).mem_nhds (mem_extChartAt_source q)) ?_
+    exact (continuousAt_extChartAt q).preimage_mem_nhds (Metric.ball_mem_nhds _ hr₀_pos)
+  let s : Set CP1 :=
+    (ψ.source ∩ ψ ⁻¹' (t₀ ∩ Metric.ball (0 : EuclideanSpace ℝ (Fin 2)) 1)) ∩
+    u ⁻¹' ((extChartAt I q).source ∩ (extChartAt I q) ⁻¹' Metric.ball (extChartAt I q q) r₀)
+  let K : NNReal := ⟨2 * L₀ * (K₀ : ℝ), by positivity⟩
+  refine ⟨K, s, Filter.inter_mem h_nhds_dom h_nhds_tgt, LipschitzOnWith.of_dist_le_mul fun z₁ hz₁ z₂ hz₂ => ?_⟩
+  rcases hz₁ with ⟨⟨hz₁_src, hz₁_t₀, hz₁_ball1⟩, ⟨hu₁_src, hu₁_ball⟩⟩
+  rcases hz₂ with ⟨⟨hz₂_src, hz₂_t₀, hz₂_ball1⟩, ⟨hu₂_src, hu₂_ball⟩⟩
+  have h_dist_u : dist (u z₁) (u z₂) ≤ L₀ * ‖G (ψ z₁) - G (ψ z₂)‖ := by
+    have h_bi := (h_bilip q hu₁_ball hu₂_ball).1
+    rw [(extChartAt I q).left_inv hu₁_src, (extChartAt I q).left_inv hu₂_src] at h_bi
+    have hG₁ : G (ψ z₁) = extChartAt I q (u z₁) := by
+      dsimp [G]; rw [ψ.left_inv hz₁_src]
+    have hG₂ : G (ψ z₂) = extChartAt I q (u z₂) := by
+      dsimp [G]; rw [ψ.left_inv hz₂_src]
+    rwa [hG₁, hG₂]
+  have h_dist_G : ‖G (ψ z₁) - G (ψ z₂)‖ ≤ (K₀ : ℝ) * ‖ψ z₁ - ψ z₂‖ := by
+    simpa [dist_eq_norm] using hlip₀.dist_le_mul (ψ z₁) hz₁_t₀ (ψ z₂) hz₂_t₀
+  have h_dist_ψ : ‖ψ z₁ - ψ z₂‖ ≤ 2 * dist z₁ z₂ := by
+    have h_bi := (UniformNormalChartFamily.cp1_dist_symm_bilipschitz p hz₁_ball1 hz₂_ball1).2
+    rwa [ψ.left_inv hz₁_src, ψ.left_inv hz₂_src] at h_bi
+  calc dist (u z₁) (u z₂)
+      ≤ L₀ * ‖G (ψ z₁) - G (ψ z₂)‖ := h_dist_u
+    _ ≤ L₀ * ((K₀ : ℝ) * ‖ψ z₁ - ψ z₂‖) := by gcongr
+    _ ≤ L₀ * ((K₀ : ℝ) * (2 * dist z₁ z₂)) := by gcongr
+    _ = (K : ℝ) * dist z₁ z₂ := by
+      change L₀ * ((K₀ : ℝ) * (2 * dist z₁ z₂)) = (2 * L₀ * (K₀ : ℝ)) * dist z₁ z₂
+      ring
+
+/-- Every $C^1$ map `u : CP1 → M` on `[BoundedChartedTarget I M]` is globally Lipschitz on `CP1` (`0 sorryAx`). -/
+theorem exists_lipschitz_of_contMDiff
+    [BoundedChartedTarget I M]
+    (u : CP1 → M) (hu : ContMDiff I_CP1 I 1 u) :
+    ∃ K : ℝ, 0 ≤ K ∧ ∀ z₁ z₂ : CP1, dist (u z₁) (u z₂) ≤ K * dist z₁ z₂ := by
+  have h_loc_on : LocallyLipschitzOn Set.univ u := by
+    intro p _
+    simpa [nhdsWithin_univ] using locallyLipschitz_of_contMDiff I u hu p
+  obtain ⟨K, hK⟩ := h_loc_on.exists_lipschitzOnWith_of_compact isCompact_univ
+  exact ⟨(K : ℝ), K.coe_nonneg, fun z₁ z₂ => hK.dist_le_mul z₁ (Set.mem_univ z₁) z₂ (Set.mem_univ z₂)⟩
+
+set_option backward.isDefEq.respectTransparency false in
+/-- Every $C^1$ map `u : CP1 → M` on `[BoundedChartedTarget I M]` has uniformly bounded manifold
+differential `‖mfderiv I_CP1 I u z‖` across all `z ∈ CP1` (`0 sorryAx`). -/
+theorem exists_mfderiv_bound_of_contMDiff
+    [BoundedChartedTarget I M]
+    (u : CP1 → M) (hu : ContMDiff I_CP1 I 1 u) :
+    ∃ M_d : ℝ, 0 ≤ M_d ∧ ∀ z : CP1,
+      ‖(mfderiv I_CP1 I u z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E)‖ ≤ M_d := by
+  obtain ⟨r₀, L₀, _, _, hr₀_pos, hL₀_ge, _, _, _, h_bilip, _, _⟩ :=
+    BoundedChartedTarget.exists_chart_bounds (I := I) (M := M)
+  have hL₀_pos : 0 < L₀ := lt_of_lt_of_le one_pos hL₀_ge
+  obtain ⟨K, hK_nonneg, hK_lip⟩ := exists_lipschitz_of_contMDiff I u hu
+  refine ⟨2 * L₀ * K, by positivity, fun z₀ => ?_⟩
+  by_cases h_mdiff : MDifferentiableAt I_CP1 I u z₀
+  · let ψ₀ := _root_.chartAt (EuclideanSpace ℝ (Fin 2)) z₀
+    let q₀ : M := u z₀
+    have hψ₀_univ : ψ₀.target = Set.univ := UniformNormalChartFamily.cp1_chartAt_target_univ z₀
+    have hψ₀_zero : ψ₀ z₀ = 0 := UniformNormalChartFamily.cp1_chartAt_apply_self z₀
+    have hψ₀_symm_zero : ψ₀.symm 0 = z₀ := UniformNormalChartFamily.cp1_chartAt_symm_zero z₀
+    have h_mfderiv : (mfderiv I_CP1 I u z₀ : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) =
+        fderiv ℝ (extChartAt I q₀ ∘ u ∘ ψ₀.symm) 0 := by
+      dsimp [mfderiv]
+      rw [if_pos h_mdiff, range_id, fderivWithin_univ]
+      change fderiv ℝ (writtenInExtChartAt I_CP1 I z₀ u) (ψ₀ z₀) = _
+      rw [hψ₀_zero]
+      rfl
+    rw [h_mfderiv]
+    refine norm_fderiv_le_of_lip' ℝ (by positivity : (0 : ℝ) ≤ 2 * L₀ * K) ?_
+    have hψ₀_symm_cont : ContinuousAt ψ₀.symm 0 :=
+      ψ₀.continuousOn_symm.continuousAt (by rw [hψ₀_univ]; exact isOpen_univ.mem_nhds (Set.mem_univ 0))
+    have hu_cont : ContinuousAt (u ∘ ψ₀.symm) 0 := by
+      have h_u0 : ContinuousAt u (ψ₀.symm 0) := by
+        rw [hψ₀_symm_zero]
+        exact (hu z₀).continuousAt
+      exact h_u0.comp hψ₀_symm_cont
+    have hq₀_nhds : (extChartAt I q₀).source ∩
+        (extChartAt I q₀) ⁻¹' Metric.ball (extChartAt I q₀ q₀) r₀ ∈ 𝓝 (u (ψ₀.symm 0)) := by
+      rw [hψ₀_symm_zero]
+      refine Filter.inter_mem ((isOpen_extChartAt_source q₀).mem_nhds (mem_extChartAt_source q₀)) ?_
+      exact (continuousAt_extChartAt q₀).preimage_mem_nhds (Metric.ball_mem_nhds _ hr₀_pos)
+    filter_upwards [Metric.ball_mem_nhds (0 : EuclideanSpace ℝ (Fin 2)) one_pos,
+      hu_cont.preimage_mem_nhds hq₀_nhds] with x hx_ball ⟨hx_src, hx_tgt_ball⟩
+    change ‖extChartAt I q₀ (u (ψ₀.symm x)) - extChartAt I q₀ (u (ψ₀.symm 0))‖ ≤ (2 * L₀ * K) * ‖x - 0‖
+    rw [hψ₀_symm_zero]
+    have hq₀_ball : extChartAt I q₀ q₀ ∈ Metric.ball (extChartAt I q₀ q₀) r₀ := mem_ball_self hr₀_pos
+    have h_step1 : ‖extChartAt I q₀ (u (ψ₀.symm x)) - extChartAt I q₀ q₀‖ ≤
+        L₀ * dist (u (ψ₀.symm x)) q₀ := by
+      have h_bi := (h_bilip q₀ hx_tgt_ball hq₀_ball).2
+      rwa [(extChartAt I q₀).left_inv hx_src, (extChartAt I q₀).left_inv (mem_extChartAt_source q₀)] at h_bi
+    have h_step2 : dist (u (ψ₀.symm x)) q₀ ≤ K * dist (ψ₀.symm x) z₀ :=
+      hK_lip (ψ₀.symm x) z₀
+    have h_step3 : dist (ψ₀.symm x) z₀ ≤ 2 * ‖x - 0‖ := by
+      have h0_ball : (0 : EuclideanSpace ℝ (Fin 2)) ∈ Metric.ball 0 1 := mem_ball_self one_pos
+      have h_bi := (UniformNormalChartFamily.cp1_dist_symm_bilipschitz z₀ hx_ball h0_ball).1
+      rwa [hψ₀_symm_zero] at h_bi
+    calc ‖extChartAt I q₀ (u (ψ₀.symm x)) - extChartAt I q₀ q₀‖
+        ≤ L₀ * dist (u (ψ₀.symm x)) q₀ := h_step1
+      _ ≤ L₀ * (K * dist (ψ₀.symm x) z₀) := by gcongr
+      _ ≤ L₀ * (K * (2 * ‖x - 0‖)) := by gcongr
+      _ = (2 * L₀ * K) * ‖x - 0‖ := by ring
+  · have h_zero : (mfderiv I_CP1 I u z₀ : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) = 0 := by
+      dsimp [mfderiv]; rw [if_neg h_mdiff]
+    rw [h_zero, norm_zero]
+    positivity
+
+set_option backward.isDefEq.respectTransparency false in
+/-- First-principles proof that every $C^1$ map `u : CP1 → M` on `[BoundedChartedTarget I M]`
+has globally bounded `riemannianEnergyDensity` (`0 sorryAx`). -/
+theorem exists_energyDensity_bound_of_contMDiff
+    [BoundedChartedTarget I M]
+    (u : CP1 → M) (hu : ContMDiff I_CP1 I 1 u) :
+    ∃ C : ℝ, ∀ z : CP1, riemannianEnergyDensity I u z ≤ C := by
+  obtain ⟨C_g, hCg_nonneg, hCg⟩ := exists_metric_upper_bound I (M := M)
+  obtain ⟨M_d, hMd_nonneg, hMd⟩ := exists_mfderiv_bound_of_contMDiff I u hu
+  refine ⟨(1 / 2 : ℝ) * C_g * (‖e1‖ ^ 2 + ‖e2‖ ^ 2) * M_d ^ 2, fun z => ?_⟩
+  calc riemannianEnergyDensity I u z
+      ≤ (1 / 2 : ℝ) * C_g * (‖e1‖ ^ 2 + ‖e2‖ ^ 2) *
+          ‖(mfderiv I_CP1 I u z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E)‖ ^ 2 :=
+        riemannianEnergyDensity_le_of_metric_upper_bound I hCg_nonneg hCg u z
+    _ ≤ (1 / 2 : ℝ) * C_g * (‖e1‖ ^ 2 + ‖e2‖ ^ 2) * M_d ^ 2 := by
+        gcongr
+        exact hMd z
+
+/-- Unconditional construction of `EnergyDensityCertificate I u` for any $C^1$ map `u : CP1 → M`
+on `[BoundedChartedTarget I M]` (`0 sorryAx`). -/
+noncomputable def EnergyDensityCertificate.of_contMDiff
+    [BoundedChartedTarget I M]
+    (u : CP1 → M) (hu : ContMDiff I_CP1 I 1 u) :
+    EnergyDensityCertificate I u :=
+  EnergyDensityCertificate.of_exists_le I u (exists_energyDensity_bound_of_contMDiff I u hu)
+
+/-- First-principles unconditional proof of `h_fin` (`energyMeasureExtended I u Set.univ < ⊤`)
+for any $C^1$ map `u : CP1 → M` on `[BoundedChartedTarget I M]` (`0 sorryAx`). -/
+theorem energyMeasureExtended_lt_top_of_contMDiff
+    [BoundedChartedTarget I M]
+    (u : CP1 → M) (hu : ContMDiff I_CP1 I 1 u) :
+    energyMeasureExtended I u Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_certificate I u (EnergyDensityCertificate.of_contMDiff I u hu)
+
+/-- First-principles unconditional proof of `h_fin` (`energyMeasureExtended I u Set.univ < ⊤`)
+for any smooth map `u : CP1 → M` on `[BoundedChartedTarget I M]` (`0 sorryAx`). -/
+theorem energyMeasureExtended_lt_top_of_smooth_uncond
+    [BoundedChartedTarget I M]
+    (u : CP1 → M) (hu : ContMDiff I_CP1 I ∞ u) :
+    energyMeasureExtended I u Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_contMDiff I u (hu.of_le (by decide))
+
+/-- First-principles unconditional proof of `h_fin` (`energyMeasureExtended I u Set.univ < ⊤`)
+for any `J`-holomorphic map `u : CP1 → M` on `[BoundedChartedTarget I M]` (`0 sorryAx`). -/
+theorem energyMeasureExtended_lt_top_of_jhol_uncond
+    [BoundedChartedTarget I M]
+    (u : CP1 → M) (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
+    energyMeasureExtended I u Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_smooth_uncond I u (contMDiffOn_univ.mp hu.1)
+
+/-- First-principles unconditional finiteness `energyMeasureExtended I u s ≠ ⊤` on any measurable
+or arbitrary subset `s : Set CP1` for a globally `J`-holomorphic map `u : CP1 → M` on
+`[BoundedChartedTarget I M]` (`0 sorryAx`). -/
+theorem energyMeasureExtended_ne_top_of_jhol_uncond
+    [BoundedChartedTarget I M]
+    (u : CP1 → M) (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) (s : Set CP1) :
+    energyMeasureExtended I u s ≠ ⊤ :=
+  ne_top_of_le_ne_top (energyMeasureExtended_lt_top_of_jhol_uncond I u hu).ne
+    (MeasureTheory.measure_mono (Set.subset_univ s))
+
+/-- First-principles derivation of `CylinderEnergyDecayProperty I M` (`cert_decay` / Contract A10)
+from single-step collar Widman hole-filling on `[BoundedChartedTarget I M]`, discharging annular
+energy finiteness automatically via `energyMeasureExtended_ne_top_of_jhol_uncond` (`0 sorryAx`). -/
+theorem cylinderEnergyDecayProperty_of_collar_hole_filling_uncond
+    [BoundedChartedTarget I M]
+    {K ε_neck : ℝ} (hK : 0 < K) (hε : 0 < ε_neck)
+    (h_collar : ∀ (u : CP1 → M) (center : ℂ) (r' R' : ℝ),
+      0 < r' → 4 * r' < R' →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r' R') < ε_neck →
+      energyMeasure I u (annulus_at center (2 * r') (R' / 2)) ≤
+        K * (energyMeasure I u (annulus_at center r' (2 * r')) +
+             energyMeasure I u (annulus_at center (R' / 2) R'))) :
+    Analysis.CylinderEnergyDecayProperty I M :=
+  Analysis.cylinderEnergyDecayProperty_of_collar_hole_filling I M hK hε
+    (fun u center r R _ _ hu _ => energyMeasureExtended_ne_top_of_jhol_uncond I u hu (annulus_at center r R))
+    h_collar
+
+/-- First-principles derivation of Contract A10 (`cylinder_exponential_decay`) from single-step
+collar Widman hole-filling on `[BoundedChartedTarget I M]` (`0 sorryAx`). -/
+theorem cylinder_exponential_decay_of_collar_hole_filling_uncond
+    [BoundedChartedTarget I M]
+    {K ε_neck : ℝ} (hK : 0 < K) (hε : 0 < ε_neck)
+    (h_collar : ∀ (u : CP1 → M) (center : ℂ) (r' R' : ℝ),
+      0 < r' → 4 * r' < R' →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r' R') < ε_neck →
+      energyMeasure I u (annulus_at center (2 * r') (R' / 2)) ≤
+        K * (energyMeasure I u (annulus_at center r' (2 * r')) +
+             energyMeasure I u (annulus_at center (R' / 2) R'))) :
+    ∃ (C₀ a_decay ε_neck' : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck' ∧
+    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+      0 < r → 2 * r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r R) < ε_neck' →
+      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
+        energyMeasure I u (annulus_at center r₁ r₂) ≤
+          C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R) :=
+  Analysis.cylinder_exponential_decay_of_collar_hole_filling I M hK hε
+    (fun u center r R _ _ hu _ => energyMeasureExtended_ne_top_of_jhol_uncond I u hu (annulus_at center r R))
+    h_collar
+
+/-- First-principles derivation of `CollarOscillationProperty I M` (`cert_osc` / Contract A09)
+from bounded-modulus (`R ≤ 18 * r`) radial/angular slice bounds and single-step collar Widman
+hole-filling on `[BoundedChartedTarget I M]`, discharging annular energy finiteness automatically
+via `energyMeasureExtended_ne_top_of_jhol_uncond` (`0 sorryAx`). -/
+theorem collarOscillationProperty_of_slices_and_collar_hole_filling_uncond
+    [BoundedChartedTarget I M]
+    (h_slices : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        energyMeasure I u (annulus_at a r R) < ε_ring →
+        ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+          ∃ z_mid : CP1,
+            dist (u z₁) (u z_mid) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)) ∧
+            dist (u z_mid) (u z₂) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)))
+    {K ε_neck : ℝ} (hK : 0 < K) (hε : 0 < ε_neck)
+    (h_collar : ∀ (u : CP1 → M) (center : ℂ) (r' R' : ℝ),
+      0 < r' → 4 * r' < R' →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r' R') < ε_neck →
+      energyMeasure I u (annulus_at center (2 * r') (R' / 2)) ≤
+        K * (energyMeasure I u (annulus_at center r' (2 * r')) +
+             energyMeasure I u (annulus_at center (R' / 2) R'))) :
+    Analysis.CollarOscillationProperty I M :=
+  Analysis.collarOscillationProperty_of_slices_and_collar_hole_filling I M h_slices hK hε
+    (fun u center r R _ _ hu _ => energyMeasureExtended_ne_top_of_jhol_uncond I u hu (annulus_at center r R))
+    h_collar
+
+omit [I.Boundaryless] in
+set_option backward.isDefEq.respectTransparency false in
+/-- Because `RiemannDomain.j z = J_CP1` is constant on `CP1` and `ClosedTameTarget.J` is globally
+continuous (`continuous_J_global`), any map `u_ext : CP1 → M` continuous at `p` whose directional
+manifold derivatives `z ↦ (mfderiv I_CP1 I u_ext z w : E)` are continuous at `p` automatically has
+a continuous Cauchy–Riemann defect at `p` (`0 sorryAx`). -/
+theorem continuousAt_cr_defect_of_continuousAt_mfderiv
+    (u_ext : CP1 → M) (p : CP1)
+    (hu_cont : ContinuousAt u_ext p)
+    (hd_cont : ∀ w : EuclideanSpace ℝ (Fin 2),
+      ContinuousAt (fun z : CP1 => (mfderiv I_CP1 I u_ext z w : E)) p)
+    (v : TangentSpace I_CP1 p) :
+    ContinuousAt (fun z : CP1 =>
+      mfderiv I_CP1 I u_ext z (RiemannDomain.j z v) -
+        (ClosedTameTarget.J (I := I) (u_ext z)) (mfderiv I_CP1 I u_ext z v)) p := by
+  have h1 : ContinuousAt (fun z : CP1 =>
+      (mfderiv I_CP1 I u_ext z (J_CP1 v) : E)) p :=
+    hd_cont (J_CP1 v)
+  have hJ : ContinuousAt (fun z : CP1 => id (α := E →L[ℝ] E) (tgt.J (u_ext z))) p :=
+    (continuous_J_global I).continuousAt.comp hu_cont
+  have h2 : ContinuousAt (fun z : CP1 =>
+      (tgt.J (u_ext z) : E →L[ℝ] E) (mfderiv I_CP1 I u_ext z v : E)) p :=
+    hJ.clm_apply (hd_cont v)
+  exact h1.sub h2
+
+omit [I.Boundaryless] in
+set_option backward.isDefEq.respectTransparency false in
+/-- Single-point criterion at `p` for `WeakJHolomorphicOn I (Function.update u p m_star) Set.univ`:
+if `u` is `J`-holomorphic on `punctured_sphere {p}`, `Function.update u p m_star` is $C^1$ at `p`,
+and its directional manifold derivatives `mfderiv I_CP1 I (Function.update u p m_star) · w` are
+continuous at `p`, then `Function.update u p m_star` is globally `WeakJHolomorphicOn` on `CP1` (`0 sorryAx`). -/
+theorem weakJHolomorphicOn_univ_of_contMDiffAt_and_continuousAt_mfderiv_at_puncture
+    (u : CP1 → M) (p : CP1) (m_star : M)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (h_at : ContMDiffAt I_CP1 I 1 (Function.update u p m_star) p)
+    (hd_cont : ∀ w : EuclideanSpace ℝ (Fin 2),
+      ContinuousAt (fun z : CP1 =>
+        (mfderiv I_CP1 I (Function.update u p m_star) z w : E)) p) :
+    Analysis.WeakJHolomorphicOn I (Function.update u p m_star) Set.univ :=
+  Analysis.weakJHolomorphicOn_univ_of_c1_and_continuousAt_cr_at_puncture
+    I u (Function.update u p m_star) p
+    (Analysis.contMDiffOn_one_update_of_contMDiffAt_puncture I u p m_star hu h_at)
+    (Analysis.eqOn_update_punctured_sphere u p m_star) hu
+    (continuousAt_cr_defect_of_continuousAt_mfderiv I (Function.update u p m_star) p
+      h_at.continuousAt hd_cont)
+
+omit [I.Boundaryless] in
+set_option backward.isDefEq.respectTransparency false in
+/-- First-principles proof of `SatisfiesPunctureSobolevExtension I u p` (`cert_punc`) from
+bounded-modulus (`R ≤ 18 * r`) radial/angular slice bounds, local exponential cylinder energy decay,
+and single-point $C^1$ / `mfderiv` continuity at the puncture limit `m_star` (`0 sorryAx`). -/
+theorem satisfiesPunctureSobolevExtension_of_slices_and_decay_and_mfderiv
+    (h_slices : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u' : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at a r R) →
+        energyMeasure I u' (annulus_at a r R) < ε_ring →
+        ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+          ∃ z_mid : CP1,
+            dist (u' z₁) (u' z_mid) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u' (annulus_at a r R)) ∧
+            dist (u' z_mid) (u' z₂) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u' (annulus_at a r R)))
+    (h_decay : ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+      ∀ (u' : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at center r R) →
+        energyMeasure I u' (annulus_at center r R) < ε_neck →
+        Analysis.SatisfiesCylinderEnergyDecayWith I C₀ a_decay u' center r R)
+    (u : CP1 → M) (p : CP1)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (he : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤)
+    (h_c1 : ∀ m_star : M, Filter.Tendsto u (𝓝[≠] p) (𝓝 m_star) →
+      ContMDiffAt I_CP1 I 1 (Function.update u p m_star) p ∧
+      ∀ w : EuclideanSpace ℝ (Fin 2),
+        ContinuousAt (fun z : CP1 =>
+          (mfderiv I_CP1 I (Function.update u p m_star) z w : E)) p) :
+    Analysis.SatisfiesPunctureSobolevExtension I u p :=
+  Analysis.satisfiesPunctureSobolevExtension_of_slices_and_decay_and_c1 I h_slices h_decay u p hu he
+    (fun m_star hm_star => by
+      obtain ⟨h_at, hd_cont⟩ := h_c1 m_star hm_star
+      exact ⟨h_at, continuousAt_cr_defect_of_continuousAt_mfderiv I
+        (Function.update u p m_star) p h_at.continuousAt hd_cont⟩)
+
+omit [I.Boundaryless] in
+/-- First-principles proof of `Analysis.WeitzenbockDecompositionProperty I M` (`cert_weitz`) on
+`[FiniteDimensional ℝ E]` `[Nonempty M]` from the centered normal-chart Weitzenböck remainder
+bound `|rem| ≤ |K_tensor g J v|`, discharging uniform metric coercivity automatically via
+`exists_metric_coercive I` (`0 sorryAx`). -/
+theorem weitzenbockDecompositionProperty_of_normal_chart_weitz_uncond
+    [FiniteDimensional ℝ E] [Nonempty M]
+    {C_metric3 C_J3 : ℝ} (hCm : 0 ≤ C_metric3) (hCJ : 0 ≤ C_J3)
+    (h_norm_weitz : ∀ {c_min : ℝ}, 0 < c_min →
+      (∀ (x : M) (v : E), c_min * ‖v‖ ^ 2 ≤ ClosedTameTarget.metric I x v v) →
+      ∀ (u : CP1 → M),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+        ∀ (w : ℂ), ∃ (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E) (v : ℂ → E),
+          v 0 = 0 ∧
+          (∀ y : E, c_min * ‖y‖ ^ 2 ≤ g 0 y y) ∧
+          (∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => g z y y) 0‖ ≤ C_metric3 * ‖y‖ ^ 2) ∧
+          (∀ y : E, ‖fderiv ℝ (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖) ∧
+          (∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖) ∧
+          Analysis.localEnergyDensity v g 0 = riemannianEnergyDensity I u (stereo_chart.symm w) ∧
+          ∃ (hessNorm rem : ℝ),
+            Analysis.laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+              hessNorm ^ 2 + rem ∧
+            |rem| ≤ |Analysis.K_tensor g J v|) :
+    Analysis.WeitzenbockDecompositionProperty I M := by
+  obtain ⟨c_min, hc_min_pos, hc_coercive⟩ := exists_metric_coercive I (M := M)
+  exact Analysis.weitzenbockDecompositionProperty_of_normal_chart_weitz I M
+    hc_min_pos hCm hCJ (h_norm_weitz hc_min_pos hc_coercive)
+
+omit [I.Boundaryless] in
+set_option backward.isDefEq.respectTransparency false in
+/-- Contract A12 (`removal_of_singularities`) proved from bounded-modulus (`R ≤ 18 * r`)
+radial/angular slice bounds, local exponential cylinder energy decay, single-point $C^1$ / `mfderiv`
+continuity at `p`, and the chart-level elliptic step (`0 sorryAx`). -/
+theorem removal_of_singularities_of_slices_and_decay_and_mfderiv_and_chart_step
+    (h_slices : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u' : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at a r R) →
+        energyMeasure I u' (annulus_at a r R) < ε_ring →
+        ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+          ∃ z_mid : CP1,
+            dist (u' z₁) (u' z_mid) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u' (annulus_at a r R)) ∧
+            dist (u' z_mid) (u' z₂) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u' (annulus_at a r R)))
+    (h_decay : ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+      ∀ (u' : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at center r R) →
+        energyMeasure I u' (annulus_at center r R) < ε_neck →
+        Analysis.SatisfiesCylinderEnergyDecayWith I C₀ a_decay u' center r R)
+    (h_chart_step : ∀ (u' : CP1 → M) (Ω : Set CP1), IsOpen Ω → Analysis.WeakJHolomorphicOn I u' Ω →
+      ∀ (k : ℕ), 1 ≤ k → ∀ z ∈ Ω,
+        ContDiffAt ℝ (k : WithTop ℕ∞) (writtenInExtChartAt I_CP1 I z u') ((extChartAt I_CP1 z) z) →
+        ContDiffAt ℝ ((k + 1 : ℕ) : WithTop ℕ∞) (writtenInExtChartAt I_CP1 I z u') ((extChartAt I_CP1 z) z))
+    (u : CP1 → M) (p : CP1)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (he : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤)
+    (h_c1 : ∀ m_star : M, Filter.Tendsto u (𝓝[≠] p) (𝓝 m_star) →
+      ContMDiffAt I_CP1 I 1 (Function.update u p m_star) p ∧
+      ∀ w : EuclideanSpace ℝ (Fin 2),
+        ContinuousAt (fun z : CP1 =>
+          (mfderiv I_CP1 I (Function.update u p m_star) z w : E)) p) :
+    ∃! (u_smooth : CP1 → M),
+      Set.EqOn u_smooth u (punctured_sphere {p}) ∧
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u_smooth Set.univ :=
+  Analysis.removal_of_singularities I u p hu he
+    (satisfiesPunctureSobolevExtension_of_slices_and_decay_and_mfderiv I h_slices h_decay u p hu he h_c1)
+    (fun u_ext hu_weak n =>
+      Analysis.regularityTowerProperty_of_chart_step I M h_chart_step u_ext Set.univ isOpen_univ hu_weak n)
+
+omit [I.Boundaryless] in
+set_option backward.isDefEq.respectTransparency false in
+/-- First-principles proof that vanishing `riemannianEnergyDensity I u z` forces the manifold
+differential `mfderiv I_CP1 I u z` to vanish (`0 sorryAx`). -/
+theorem mfderiv_eq_zero_of_riemannianEnergyDensity_eq_zero
+    [FiniteDimensional ℝ E] (u : CP1 → M) (z : CP1)
+    (he : riemannianEnergyDensity I u z = 0) :
+    mfderiv I_CP1 I u z = 0 := by
+  have : Nonempty M := ⟨u z⟩
+  obtain ⟨c_min, hc_min_pos, hc_coercive⟩ := exists_metric_coercive I (M := M)
+  have h_norm := norm_mfderiv_le_of_coercive I hc_min_pos hc_coercive u z
+  rw [he, mul_zero, zero_div, Real.sqrt_zero, mul_zero] at h_norm
+  exact norm_le_zero_iff.mp h_norm
+
+set_option backward.isDefEq.respectTransparency false in
+/-- First-principles proof of local constancy on an open connected domain `Ω ⊆ CP1` for any $C^1$
+map `u : CP1 → M` whose `riemannianEnergyDensity` vanishes on `Ω` (`0 sorryAx`). -/
+theorem eqOn_const_of_riemannianEnergyDensity_eq_zero_on
+    [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (u : CP1 → M) {Ω : Set CP1} (h_open : IsOpen Ω) (h_conn : IsConnected Ω)
+    (h_c1 : ContMDiffOn I_CP1 I 1 u Ω)
+    (h_zero : ∀ z ∈ Ω, riemannianEnergyDensity I u z = 0) :
+    ∃ c : M, EqOn u (fun _ => c) Ω := by
+  obtain ⟨c_min, hc_min_pos, hc_coercive⟩ := exists_metric_coercive I (M := M)
+  obtain ⟨r₀, L₀, _, _, hr₀_pos, hL₀_ge, _, _, _, h_bilip, _, _⟩ :=
+    BoundedChartedTarget.exists_chart_bounds (I := I) (M := M)
+  have h_loc_const : IsLocallyConstant (Ω.domRestrict u) := by
+    rw [IsLocallyConstant.iff_eventually_eq]
+    rintro ⟨z₀, hz₀⟩
+    let ψ := _root_.chartAt (EuclideanSpace ℝ (Fin 2)) z₀
+    have hψ_univ : ψ.target = Set.univ := UniformNormalChartFamily.cp1_chartAt_target_univ z₀
+    have hψ_zero : ψ z₀ = 0 := UniformNormalChartFamily.cp1_chartAt_apply_self z₀
+    have hψ_symm_zero : ψ.symm 0 = z₀ := UniformNormalChartFamily.cp1_chartAt_symm_zero z₀
+    have hψ_symm_cont : Continuous ψ.symm := by
+      rw [← continuousOn_univ, ← hψ_univ]
+      exact ψ.continuousOn_symm
+    have h_pre_open : IsOpen (ψ.symm ⁻¹' Ω) := h_open.preimage hψ_symm_cont
+    have h_zero_mem_pre : (0 : EuclideanSpace ℝ (Fin 2)) ∈ ψ.symm ⁻¹' Ω := by
+      simp [Set.mem_preimage, hψ_symm_zero, hz₀]
+    obtain ⟨r₁, hr₁_pos, hr₁_sub⟩ := Metric.isOpen_iff.mp h_pre_open 0 h_zero_mem_pre
+    let r_dom : ℝ := min (r₁ / 2) (1 / 2)
+    have hr_dom_pos : 0 < r_dom := lt_min (half_pos hr₁_pos) (by norm_num)
+    have hr_dom_lt_one : r_dom < 1 := lt_of_le_of_lt (min_le_right _ _) (by norm_num)
+    have h_cball_sub_pre : Metric.closedBall (0 : EuclideanSpace ℝ (Fin 2)) r_dom ⊆ ψ.symm ⁻¹' Ω := by
+      intro y hy
+      apply hr₁_sub
+      rw [Metric.mem_ball, dist_zero_right]
+      have hy' : ‖y‖ ≤ r_dom := mem_closedBall_zero_iff.mp hy
+      have hr_le : r_dom ≤ r₁ / 2 := min_le_left _ _
+      linarith
+    let K : Set CP1 := ψ.symm '' Metric.closedBall 0 r_dom
+    have hK_sub : K ⊆ Ω := image_subset_iff.mpr h_cball_sub_pre
+    have h_nhds_z₀ : ψ.source ∩ ψ ⁻¹' Metric.ball (0 : EuclideanSpace ℝ (Fin 2)) r_dom ∈ 𝓝 z₀ := by
+      refine Filter.inter_mem (ψ.open_source.mem_nhds (mem_chart_source _ z₀)) ?_
+      exact (ψ.continuousOn.continuousAt (ψ.open_source.mem_nhds (mem_chart_source _ z₀))).preimage_mem_nhds
+        (by rw [hψ_zero]; exact Metric.ball_mem_nhds 0 hr_dom_pos)
+    obtain ⟨ρ, hρ_pos, hρ_sub⟩ := Metric.mem_nhds_iff.mp h_nhds_z₀
+    have h_sub_nhds : {x : Ω | (x : CP1) ∈ Metric.ball z₀ ρ} ∈ 𝓝 (⟨z₀, hz₀⟩ : Ω) :=
+      (continuous_subtype_val.tendsto _).eventually (Metric.ball_mem_nhds z₀ hρ_pos)
+    filter_upwards [h_sub_nhds] with ⟨z, hz_Ω⟩ hz
+    change u z = u z₀
+    rcases hρ_sub hz with ⟨hz_src, hz_ball⟩
+    let w : EuclideanSpace ℝ (Fin 2) := ψ z
+    have hw_symm : ψ.symm w = z := ψ.left_inv hz_src
+    have hw_norm_lt : ‖w‖ < r_dom := mem_ball_zero_iff.mp hz_ball
+    let γ : ℝ → M := fun t => u (ψ.symm (t • w))
+    let f : ℝ → ℝ := fun t => dist (γ t) (γ 0)
+    let B : ℝ → ℝ := fun _ => 0
+    let B' : ℝ → ℝ := fun _ => 0
+    have h_seg_mem_cball : ∀ t ∈ Icc (0 : ℝ) 1, t • w ∈ Metric.closedBall (0 : EuclideanSpace ℝ (Fin 2)) r_dom := by
+      intro t ht
+      rw [mem_closedBall_zero_iff, norm_smul, Real.norm_of_nonneg ht.1]
+      calc t * ‖w‖ ≤ 1 * r_dom := mul_le_mul ht.2 (le_of_lt hw_norm_lt) (norm_nonneg w) zero_le_one
+        _ = r_dom := one_mul r_dom
+    have h_seg_mem_K : ∀ t ∈ Icc (0 : ℝ) 1, ψ.symm (t • w) ∈ K :=
+      fun t ht => mem_image_of_mem ψ.symm (h_seg_mem_cball t ht)
+    have hγ_cont : ContinuousOn γ (Icc 0 1) := by
+      refine h_c1.continuousOn.comp ?_ (fun t ht => hK_sub (h_seg_mem_K t ht))
+      exact hψ_symm_cont.comp_continuousOn (continuousOn_id.smul continuousOn_const)
+    have hf_cont : ContinuousOn f (Icc 0 1) :=
+      Continuous.comp_continuousOn (continuous_id.dist continuous_const) hγ_cont
+    have ha : f 0 ≤ B 0 := by simp [f, B]
+    have hB_cont : ContinuousOn B (Icc 0 1) := continuousOn_const
+    have hB_deriv : ∀ t ∈ Ico (0 : ℝ) 1, HasDerivWithinAt B (B' t) (Ici t) t :=
+      fun t _ => hasDerivWithinAt_const t (Ici t) 0
+    have h_fencing := image_le_of_liminf_slope_right_le_deriv_boundary hf_cont ha hB_cont hB_deriv ?_
+    · have h1 := h_fencing (right_mem_Icc.mpr zero_le_one)
+      have hf1 : f 1 = dist (u z) (u z₀) := by
+        dsimp [f, γ]
+        rw [one_smul, zero_smul, hw_symm, hψ_symm_zero]
+      rw [hf1] at h1
+      exact dist_le_zero.mp h1
+    · intro t₀ ht₀ r hr
+      let y₀ : EuclideanSpace ℝ (Fin 2) := t₀ • w
+      let p_dom : CP1 := ψ.symm y₀
+      let q : M := u p_dom
+      have ht₀_Icc : t₀ ∈ Icc (0 : ℝ) 1 := ⟨ht₀.1, le_of_lt ht₀.2⟩
+      have hp_dom_K : p_dom ∈ K := h_seg_mem_K t₀ ht₀_Icc
+      have hp_dom_Ω : p_dom ∈ Ω := hK_sub hp_dom_K
+      have h_d1 : HasMFDerivAt 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ψ.symm y₀
+          (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ψ.symm y₀) := by
+        have h_cont : ContMDiffOn I_CP1 I_CP1 ⊤ ψ.symm ψ.target := contMDiffOn_chart_symm
+        rw [hψ_univ] at h_cont
+        exact ((h_cont y₀ (Set.mem_univ y₀)).mdifferentiableWithinAt (by decide)
+          |>.mdifferentiableAt (isOpen_univ.mem_nhds (Set.mem_univ y₀))).hasMFDerivAt
+      have h_d2 : HasMFDerivAt I_CP1 I u p_dom (mfderiv I_CP1 I u p_dom) :=
+        ((h_c1 p_dom hp_dom_Ω).mdifferentiableWithinAt one_ne_zero
+          |>.mdifferentiableAt (h_open.mem_nhds hp_dom_Ω)).hasMFDerivAt
+      have h_d3 : HasMFDerivAt I 𝓘(ℝ, E) (extChartAt I q) q (mfderiv I 𝓘(ℝ, E) (extChartAt I q) q) :=
+        (mdifferentiableAt_extChartAt (I := I) (mem_chart_source H q)).hasMFDerivAt
+      let D_y₀ : EuclideanSpace ℝ (Fin 2) →L[ℝ] E :=
+        (mfderiv I 𝓘(ℝ, E) (extChartAt I q) q).comp
+          ((mfderiv I_CP1 I u p_dom).comp
+            (mfderiv 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ψ.symm y₀))
+      have h_G_fderiv : HasFDerivAt (extChartAt I q ∘ u ∘ ψ.symm) D_y₀ y₀ :=
+        ((h_d3.comp p_dom h_d2).comp y₀ h_d1).hasFDerivAt
+      let g : ℝ → E := fun t => (extChartAt I q ∘ u ∘ ψ.symm) (t • w)
+      have h_seg_deriv : HasDerivAt (fun t : ℝ => t • w) w t₀ := by
+        simpa using (hasDerivAt_id t₀).smul_const w
+      have hg_deriv : HasDerivAt g (D_y₀ w) t₀ := h_G_fderiv.comp_hasDerivAt t₀ h_seg_deriv
+      have h_D_zero : D_y₀ w = 0 := by
+        have h_u_zero : mfderiv I_CP1 I u p_dom = 0 :=
+          mfderiv_eq_zero_of_riemannianEnergyDensity_eq_zero I u p_dom (h_zero p_dom hp_dom_Ω)
+        dsimp [D_y₀]
+        rw [h_u_zero]
+        simp
+      have h_tendsto_slope : Filter.Tendsto (fun t => L₀ * ‖slope g t₀ t‖) (𝓝[>] t₀) (𝓝 0) := by
+        have h_t := ((hg_deriv.tendsto_slope.mono_left (nhdsGT_le_nhdsNE t₀)).norm).const_mul L₀
+        rwa [h_D_zero, norm_zero, mul_zero] at h_t
+      have hr_pos : 0 < r := hr
+      have h_ev_lt : ∀ᶠ t in 𝓝[>] t₀, L₀ * ‖slope g t₀ t‖ < r :=
+        h_tendsto_slope.eventually (gt_mem_nhds hr_pos)
+      have hγ_cont_at : ContinuousAt γ t₀ := by
+        have h_u_cont : ContinuousAt u p_dom :=
+          (h_c1 p_dom hp_dom_Ω).continuousWithinAt.continuousAt (h_open.mem_nhds hp_dom_Ω)
+        exact h_u_cont.comp (hψ_symm_cont.continuousAt.comp (continuous_id.smul continuous_const).continuousAt)
+      have hq_nhds : (extChartAt I q).source ∩
+          (extChartAt I q) ⁻¹' Metric.ball (extChartAt I q q) r₀ ∈ 𝓝 q := by
+        refine Filter.inter_mem ((isOpen_extChartAt_source q).mem_nhds (mem_extChartAt_source q)) ?_
+        exact (continuousAt_extChartAt q).preimage_mem_nhds (Metric.ball_mem_nhds _ hr₀_pos)
+      have h_ev_chart : ∀ᶠ t in 𝓝[>] t₀,
+          γ t ∈ (extChartAt I q).source ∧ extChartAt I q (γ t) ∈ Metric.ball (extChartAt I q q) r₀ :=
+        nhdsWithin_le_nhds (hγ_cont_at.preimage_mem_nhds hq_nhds)
+      have h_ev_gt : ∀ᶠ t in 𝓝[>] t₀, t₀ < t := self_mem_nhdsWithin
+      have h_ev_all : ∀ᶠ t in 𝓝[>] t₀, slope f t₀ t < r := by
+        filter_upwards [h_ev_lt, h_ev_chart, h_ev_gt] with t ht_lt ⟨ht_src, ht_ball⟩ ht_gt
+        have h_pos : 0 < t - t₀ := sub_pos.mpr ht_gt
+        have hq_ball : extChartAt I q q ∈ Metric.ball (extChartAt I q q) r₀ := mem_ball_self hr₀_pos
+        have h_dist_le : dist (γ t) q ≤ L₀ * ‖g t - g t₀‖ := by
+          have h_bi := (h_bilip q ht_ball hq_ball).1
+          rwa [(extChartAt I q).left_inv ht_src, (extChartAt I q).left_inv (mem_extChartAt_source q)] at h_bi
+        have h_f_sub : f t - f t₀ ≤ dist (γ t) q := by
+          dsimp [f, q, p_dom, y₀]
+          linarith [dist_triangle (γ t) (γ t₀) (γ 0)]
+        have h_slope_f : slope f t₀ t ≤ L₀ * ‖slope g t₀ t‖ := by
+          rw [slope_def_field, slope_def_module, norm_smul, Real.norm_of_nonneg (inv_nonneg.mpr h_pos.le),
+            div_eq_inv_mul]
+          calc (t - t₀)⁻¹ * (f t - f t₀) ≤ (t - t₀)⁻¹ * dist (γ t) q :=
+                mul_le_mul_of_nonneg_left h_f_sub (inv_nonneg.mpr h_pos.le)
+            _ ≤ (t - t₀)⁻¹ * (L₀ * ‖g t - g t₀‖) :=
+                mul_le_mul_of_nonneg_left h_dist_le (inv_nonneg.mpr h_pos.le)
+            _ = L₀ * ((t - t₀)⁻¹ * ‖g t - g t₀‖) := by ring
+        exact lt_of_le_of_lt h_slope_f ht_lt
+      have : (𝓝[>] t₀).NeBot := nhdsWithin_Ioi_neBot le_rfl
+      exact h_ev_all.frequently
+  have : PreconnectedSpace Ω := Subtype.preconnectedSpace h_conn.isPreconnected
+  obtain ⟨z₀, hz₀⟩ := h_conn.nonempty
+  refine ⟨u z₀, fun z hz => ?_⟩
+  exact h_loc_const.apply_eq_of_preconnectedSpace ⟨z, hz⟩ ⟨z₀, hz₀⟩
+
+/-- First-principles proof that any $C^1$ map `u : CP1 → M` whose `riemannianEnergyDensity`
+vanishes on `ℂ` (via `stereo_chart.symm`) is globally constant on `CP1` (`0 sorryAx`). -/
+theorem eq_const_of_riemannianEnergyDensity_stereo_eq_zero
+    [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (u : CP1 → M) (h_c1 : ContMDiffOn I_CP1 I 1 u Set.univ)
+    (h_zero : ∀ w : ℂ, riemannianEnergyDensity I u (stereo_chart.symm w) = 0) :
+    ∃ c : M, ∀ z : CP1, u z = c := by
+  have h_zero_punc : ∀ z ∈ punctured_sphere {north_pole}, riemannianEnergyDensity I u z = 0 := by
+    intro z hz
+    rw [Analysis.punctured_sphere_singleton_eq_compl, Set.mem_compl_iff, Set.mem_singleton_iff] at hz
+    have hz_src : z ∈ stereo_chart.source := by
+      rw [stereo_chart_source]
+      exact hz
+    have h_eq := stereo_chart.left_inv hz_src
+    rw [← h_eq]
+    exact h_zero (stereo_chart z)
+  obtain ⟨c, hc⟩ := eqOn_const_of_riemannianEnergyDensity_eq_zero_on I u
+    (Analysis.isOpen_punctured_sphere north_pole)
+    (Analysis.isConnected_punctured_sphere_singleton north_pole)
+    (h_c1.mono (Set.subset_univ _))
+    h_zero_punc
+  refine ⟨c, ?_⟩
+  have hu_cont : Continuous u := continuousOn_univ.mp h_c1.continuousOn
+  have h_ext : u = fun _ => c :=
+    Continuous.ext_on (Analysis.dense_punctured_sphere north_pole) hu_cont continuous_const hc
+  intro z
+  exact congr_fun h_ext z
+
+/-- First-principles theorem: if `u : CP1 → M` is $C^1$, has continuous chart energy density
+`w ↦ riemannianEnergyDensity I u (stereo_chart.symm w)`, and has `totalEnergy I u = 0`, then
+`u` is constant (`0 sorryAx`, discharging `energyMeasureExtended I u Set.univ < ⊤` automatically
+via `energyMeasureExtended_lt_top_of_contMDiff`). -/
+theorem eq_const_of_totalEnergy_eq_zero_uncond
+    [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (u : CP1 → M) (h_c1 : ContMDiffOn I_CP1 I 1 u Set.univ)
+    (h_cont_ed : Continuous (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))
+    (h_zero_en : totalEnergy I u = 0) :
+    ∃ c : M, ∀ z : CP1, u z = c := by
+  have h_fin : energyMeasureExtended I u Set.univ < ⊤ :=
+    energyMeasureExtended_lt_top_of_contMDiff I u (contMDiffOn_univ.mp h_c1)
+  apply eq_const_of_riemannianEnergyDensity_stereo_eq_zero I u h_c1
+  intro w₀
+  by_contra h_ne
+  have h_pos : 0 < riemannianEnergyDensity I u (stereo_chart.symm w₀) :=
+    lt_of_le_of_ne (riemannianEnergyDensity_nonneg I u _) (Ne.symm h_ne)
+  let c₀ := riemannianEnergyDensity I u (stereo_chart.symm w₀) / 2
+  have hc₀_pos : 0 < c₀ := half_pos h_pos
+  have h_open : IsOpen {w : ℂ | c₀ < riemannianEnergyDensity I u (stereo_chart.symm w)} :=
+    isOpen_Ioi.preimage h_cont_ed
+  have hw₀_mem : w₀ ∈ {w : ℂ | c₀ < riemannianEnergyDensity I u (stereo_chart.symm w)} := by
+    dsimp [c₀]; linarith
+  obtain ⟨r, hr_pos, hr_sub⟩ := Metric.isOpen_iff.mp h_open w₀ hw₀_mem
+  have h_tot_pos : 0 < totalEnergy I u :=
+    totalEnergy_pos_of_exists_ball I u w₀ r hr_pos c₀ hc₀_pos
+      (fun w hw => le_of_lt (show c₀ < riemannianEnergyDensity I u (stereo_chart.symm w) from hr_sub hw))
+      h_fin
+  linarith
+
+/-- First-principles theorem: if `u : CP1 → M` is $C^1$, has continuous chart energy density
+`w ↦ riemannianEnergyDensity I u (stereo_chart.symm w)`, and has `totalEnergy I u = 0`, then
+`u` is constant (`0 sorryAx`). -/
+theorem eq_const_of_totalEnergy_eq_zero
+    [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (u : CP1 → M) (h_c1 : ContMDiffOn I_CP1 I 1 u Set.univ)
+    (h_cont_ed : Continuous (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))
+    (_h_fin : energyMeasureExtended I u Set.univ < ⊤)
+    (h_zero_en : totalEnergy I u = 0) :
+    ∃ c : M, ∀ z : CP1, u z = c :=
+  eq_const_of_totalEnergy_eq_zero_uncond I u h_c1 h_cont_ed h_zero_en
+
+/-- First-principles theorem: every non-constant $C^1$ map `u : CP1 → M` with continuous chart
+energy density has strictly positive `totalEnergy I u > 0` (`0 sorryAx`, discharging `h_fin`
+automatically via `energyMeasureExtended_lt_top_of_contMDiff`). -/
+theorem totalEnergy_pos_of_nonconstant_uncond
+    [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (u : CP1 → M) (h_c1 : ContMDiffOn I_CP1 I 1 u Set.univ)
+    (h_cont_ed : Continuous (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))
+    (h_nonconst : ¬ ∃ c : M, ∀ z : CP1, u z = c) :
+    0 < totalEnergy I u := by
+  have h_nonneg : 0 ≤ totalEnergy I u := energy_nonneg I u Set.univ
+  rcases eq_or_lt_of_le h_nonneg with h_zero | h_pos
+  · exfalso
+    exact h_nonconst (eq_const_of_totalEnergy_eq_zero_uncond I u h_c1 h_cont_ed h_zero.symm)
+  · exact h_pos
+
+/-- First-principles theorem: every non-constant $C^1$ map `u : CP1 → M` with continuous chart
+energy density and finite energy has strictly positive `totalEnergy I u > 0` (`0 sorryAx`). -/
+theorem totalEnergy_pos_of_nonconstant
+    [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (u : CP1 → M) (h_c1 : ContMDiffOn I_CP1 I 1 u Set.univ)
+    (h_cont_ed : Continuous (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))
+    (_h_fin : energyMeasureExtended I u Set.univ < ⊤)
+    (h_nonconst : ¬ ∃ c : M, ∀ z : CP1, u z = c) :
+    0 < totalEnergy I u :=
+  totalEnergy_pos_of_nonconstant_uncond I u h_c1 h_cont_ed h_nonconst
+
+/- =========================================================================
+   First-Principles Construction of UniformNormalChartFamily
+   ========================================================================= -/
+
+section ConstructUniformNormalChartFamily
+
+open ContinuousLinearMap
+open scoped NNReal
+
+omit [I.Boundaryless] in
+lemma smooth_ω_apply (p : M) (v : E) :
+    ContDiffOn ℝ ∞ (fun z => ω_chart I tgt.«ω» p z v) (extChartAt I p).target :=
+  (tgt.ω_smooth p).clm_apply contDiffOn_const
+
+omit [I.Boundaryless] in
+lemma smooth_J_apply (p : M) (v : E) :
+    ContDiffOn ℝ ∞ (fun z => J_chart I tgt.J p z v) (extChartAt I p).target :=
+  (tgt.J_smooth p).clm_apply contDiffOn_const
+
+omit [I.Boundaryless] in
+lemma smooth_metric_apply (p : M) (v w : E) :
+    ContDiffOn ℝ ∞ (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w)
+      (extChartAt I p).target :=
+  contDiffOn_const.mul
+    (((smooth_ω_apply I p v).clm_apply (smooth_J_apply I p w)).add
+      ((smooth_ω_apply I p w).clm_apply (smooth_J_apply I p v)))
+
+lemma differentiableAt_metric_apply (p : M) (v w : E) :
+    DifferentiableAt ℝ (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w)
+      (extChartAt I p p) := by
+  have h_mem : extChartAt I p p ∈ (extChartAt I p).target :=
+    (extChartAt I p).map_source (mem_extChartAt_source p)
+  exact ((smooth_metric_apply I p v w).contDiffAt
+    ((isOpen_extChartAt_target p).mem_nhds h_mem)).differentiableAt (by decide)
+
+set_option backward.isDefEq.respectTransparency false in
+/-- The directional derivative of the symmetrized metric in `extChartAt I p` at `y₀ = extChartAt I p p`,
+bundled as a trilinear map `E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ`. -/
+noncomputable def dmetricAt [FiniteDimensional ℝ E] (p : M) : E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ :=
+  LinearMap.toContinuousLinearMap
+    { toFun := fun u => LinearMap.toContinuousLinearMap
+        { toFun := fun v => LinearMap.toContinuousLinearMap
+            { toFun := fun w =>
+                fderiv ℝ (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w)
+                  (extChartAt I p p) u
+              map_add' := fun w₁ w₂ => by
+                have h_eq : (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v (w₁ + w₂)) =
+                    ((fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w₁) +
+                    (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w₂)) := by
+                  ext z; exact map_add (metricCLM I ((extChartAt I p).symm z) v) w₁ w₂
+                rw [h_eq, ((differentiableAt_metric_apply I p v w₁).hasFDerivAt.add
+                  (differentiableAt_metric_apply I p v w₂).hasFDerivAt).fderiv,
+                  add_apply]
+              map_smul' := fun c w => by
+                have h_eq : (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v (c • w)) =
+                    c • (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w) := by
+                  ext z; exact map_smul (metricCLM I ((extChartAt I p).symm z) v) c w
+                rw [h_eq, ((differentiableAt_metric_apply I p v w).hasFDerivAt.const_smul c).fderiv,
+                  smul_apply, RingHom.id_apply] }
+          map_add' := fun v₁ v₂ => by
+            ext w
+            change fderiv ℝ (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) (v₁ + v₂) w)
+                (extChartAt I p p) u =
+              fderiv ℝ (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v₁ w)
+                (extChartAt I p p) u +
+              fderiv ℝ (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v₂ w)
+                (extChartAt I p p) u
+            have h_eq : (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) (v₁ + v₂) w) =
+                ((fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v₁ w) +
+                (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v₂ w)) := by
+              ext z; simp [← metricCLM_apply]
+            rw [h_eq, ((differentiableAt_metric_apply I p v₁ w).hasFDerivAt.add
+              (differentiableAt_metric_apply I p v₂ w).hasFDerivAt).fderiv,
+              add_apply]
+          map_smul' := fun c v => by
+            ext w
+            change fderiv ℝ (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) (c • v) w)
+                (extChartAt I p p) u =
+              c * fderiv ℝ (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w)
+                (extChartAt I p p) u
+            have h_eq : (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) (c • v) w) =
+                c • (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w) := by
+              ext z; simp [← metricCLM_apply]
+            rw [h_eq, ((differentiableAt_metric_apply I p v w).hasFDerivAt.const_smul c).fderiv,
+              smul_apply, smul_eq_mul] }
+      map_add' := fun u₁ u₂ => by
+        ext v w
+        exact map_add (fderiv ℝ (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w)
+          (extChartAt I p p)) u₁ u₂
+      map_smul' := fun c u => by
+        ext v w
+        exact map_smul (fderiv ℝ (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w)
+          (extChartAt I p p)) c u }
+
+lemma dmetricAt_apply [FiniteDimensional ℝ E] (p : M) (u v w : E) :
+    dmetricAt I p u v w =
+      fderiv ℝ (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w)
+        (extChartAt I p p) u := rfl
+
+lemma dmetricAt_symm [FiniteDimensional ℝ E] (p : M) (u v w : E) :
+    dmetricAt I p u v w = dmetricAt I p u w v := by
+  simp only [dmetricAt_apply]
+  congr 2
+  ext z
+  exact metric_symm I ((extChartAt I p).symm z) v w
+
+lemma abs_fderiv_ω_J_apply_le (p : M) {C_ω C_J : ℝ} (hC_ω : 0 ≤ C_ω) (_hC_J : 0 ≤ C_J)
+    (h_ω0 : ∀ a : E, ‖ω_chart I tgt.«ω» p (extChartAt I p p) a‖ ≤ C_ω * ‖a‖)
+    (h_ω1 : ∀ a : E, ‖fderiv ℝ (fun z => ω_chart I tgt.«ω» p z a) (extChartAt I p p)‖ ≤ C_ω * ‖a‖)
+    (h_J0 : ‖J_chart I tgt.J p (extChartAt I p p)‖ ≤ C_J)
+    (h_J1 : ‖fderiv ℝ (J_chart I tgt.J p) (extChartAt I p p)‖ ≤ C_J)
+    (u a b : E) :
+    |fderiv ℝ (fun z => ω_chart I tgt.«ω» p z a (J_chart I tgt.J p z b)) (extChartAt I p p) u| ≤
+      2 * C_ω * C_J * ‖u‖ * ‖a‖ * ‖b‖ := by
+  let y₀ := extChartAt I p p
+  have h_mem : y₀ ∈ (extChartAt I p).target :=
+    (extChartAt I p).map_source (mem_extChartAt_source p)
+  have h_nhds : (extChartAt I p).target ∈ 𝓝 y₀ :=
+    (isOpen_extChartAt_target p).mem_nhds h_mem
+  have hf : HasFDerivAt (fun z => ω_chart I tgt.«ω» p z a)
+      (fderiv ℝ (fun z => ω_chart I tgt.«ω» p z a) y₀) y₀ :=
+    (((smooth_ω_apply I p a).contDiffAt h_nhds).differentiableAt (by decide)).hasFDerivAt
+  have hJ : HasFDerivAt (J_chart I tgt.J p) (fderiv ℝ (J_chart I tgt.J p) y₀) y₀ :=
+    (((tgt.J_smooth p).contDiffAt h_nhds).differentiableAt (by decide)).hasFDerivAt
+  have hg : HasFDerivAt (fun z => J_chart I tgt.J p z b)
+      ((J_chart I tgt.J p y₀).comp (0 : E →L[ℝ] E) + (fderiv ℝ (J_chart I tgt.J p) y₀).flip b) y₀ :=
+    hJ.clm_apply (hasFDerivAt_const b y₀)
+  have hfg := (hf.clm_apply hg).fderiv
+  rw [hfg]
+  simp only [comp_zero, zero_add, add_apply, flip_apply]
+  rw [ContinuousLinearMap.comp_apply, flip_apply]
+  have h1 : |ω_chart I tgt.«ω» p y₀ a (fderiv ℝ (J_chart I tgt.J p) y₀ u b)| ≤
+      C_ω * C_J * ‖u‖ * ‖a‖ * ‖b‖ := by
+    rw [← Real.norm_eq_abs]
+    calc ‖ω_chart I tgt.«ω» p y₀ a (fderiv ℝ (J_chart I tgt.J p) y₀ u b)‖
+        ≤ ‖ω_chart I tgt.«ω» p y₀ a‖ * ‖fderiv ℝ (J_chart I tgt.J p) y₀ u b‖ :=
+          le_opNorm _ _
+      _ ≤ (C_ω * ‖a‖) * (‖fderiv ℝ (J_chart I tgt.J p) y₀ u‖ * ‖b‖) := by
+          gcongr
+          · exact h_ω0 a
+          · exact le_opNorm _ _
+      _ ≤ (C_ω * ‖a‖) * ((‖fderiv ℝ (J_chart I tgt.J p) y₀‖ * ‖u‖) * ‖b‖) := by
+          gcongr
+          exact le_opNorm _ _
+      _ ≤ (C_ω * ‖a‖) * ((C_J * ‖u‖) * ‖b‖) := by
+          gcongr
+      _ = C_ω * C_J * ‖u‖ * ‖a‖ * ‖b‖ := by ring
+  have h2 : |fderiv ℝ (fun z => ω_chart I tgt.«ω» p z a) y₀ u (J_chart I tgt.J p y₀ b)| ≤
+      C_ω * C_J * ‖u‖ * ‖a‖ * ‖b‖ := by
+    rw [← Real.norm_eq_abs]
+    calc ‖fderiv ℝ (fun z => ω_chart I tgt.«ω» p z a) y₀ u (J_chart I tgt.J p y₀ b)‖
+        ≤ ‖fderiv ℝ (fun z => ω_chart I tgt.«ω» p z a) y₀ u‖ * ‖J_chart I tgt.J p y₀ b‖ :=
+          le_opNorm _ _
+      _ ≤ (‖fderiv ℝ (fun z => ω_chart I tgt.«ω» p z a) y₀‖ * ‖u‖) * (‖J_chart I tgt.J p y₀‖ * ‖b‖) := by
+          gcongr <;> exact le_opNorm _ _
+      _ ≤ ((C_ω * ‖a‖) * ‖u‖) * (C_J * ‖b‖) := by
+          gcongr
+          exact h_ω1 a
+      _ = C_ω * C_J * ‖u‖ * ‖a‖ * ‖b‖ := by ring
+  have h_tri := abs_add_le
+    (ω_chart I tgt.«ω» p y₀ a (fderiv ℝ (J_chart I tgt.J p) y₀ u b))
+    (fderiv ℝ (fun z => ω_chart I tgt.«ω» p z a) y₀ u (J_chart I tgt.J p y₀ b))
+  linarith
+
+lemma abs_dmetricAt_le [FiniteDimensional ℝ E] (p : M) {C_ω C_J : ℝ}
+    (hC_ω : 0 ≤ C_ω) (hC_J : 0 ≤ C_J)
+    (h_ω0 : ∀ a : E, ‖ω_chart I tgt.«ω» p (extChartAt I p p) a‖ ≤ C_ω * ‖a‖)
+    (h_ω1 : ∀ a : E, ‖fderiv ℝ (fun z => ω_chart I tgt.«ω» p z a) (extChartAt I p p)‖ ≤ C_ω * ‖a‖)
+    (h_J0 : ‖J_chart I tgt.J p (extChartAt I p p)‖ ≤ C_J)
+    (h_J1 : ‖fderiv ℝ (J_chart I tgt.J p) (extChartAt I p p)‖ ≤ C_J)
+    (u v w : E) :
+    |dmetricAt I p u v w| ≤ 2 * C_ω * C_J * ‖u‖ * ‖v‖ * ‖w‖ := by
+  let y₀ := extChartAt I p p
+  have h_mem : y₀ ∈ (extChartAt I p).target :=
+    (extChartAt I p).map_source (mem_extChartAt_source p)
+  have h_nhds : (extChartAt I p).target ∈ 𝓝 y₀ :=
+    (isOpen_extChartAt_target p).mem_nhds h_mem
+  have hd_vw : DifferentiableAt ℝ (fun z => ω_chart I tgt.«ω» p z v (J_chart I tgt.J p z w)) y₀ :=
+    (((smooth_ω_apply I p v).clm_apply (smooth_J_apply I p w)).contDiffAt h_nhds).differentiableAt (by decide)
+  have hd_wv : DifferentiableAt ℝ (fun z => ω_chart I tgt.«ω» p z w (J_chart I tgt.J p z v)) y₀ :=
+    (((smooth_ω_apply I p w).clm_apply (smooth_J_apply I p v)).contDiffAt h_nhds).differentiableAt (by decide)
+  rw [dmetricAt_apply]
+  have h_eq : (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w) =
+      (1 / 2 : ℝ) • ((fun z => ω_chart I tgt.«ω» p z v (J_chart I tgt.J p z w)) +
+        (fun z => ω_chart I tgt.«ω» p z w (J_chart I tgt.J p z v))) := rfl
+  rw [h_eq, ((hd_vw.hasFDerivAt.add hd_wv.hasFDerivAt).const_smul (1 / 2 : ℝ)).fderiv,
+    smul_apply, add_apply, smul_eq_mul, abs_mul, abs_of_pos (by norm_num : (0 : ℝ) < 1 / 2)]
+  have h1 := abs_fderiv_ω_J_apply_le I p hC_ω hC_J h_ω0 h_ω1 h_J0 h_J1 u v w
+  have h2 := abs_fderiv_ω_J_apply_le I p hC_ω hC_J h_ω0 h_ω1 h_J0 h_J1 u w v
+  have h_tri := abs_add_le
+    (fderiv ℝ (fun z => ω_chart I tgt.«ω» p z v (J_chart I tgt.J p z w)) y₀ u)
+    (fderiv ℝ (fun z => ω_chart I tgt.«ω» p z w (J_chart I tgt.J p z v)) y₀ u)
+  linarith
+
+omit [I.Boundaryless] in
+lemma nondegenerate_metricBilin (p : M) :
+    LinearMap.BilinForm.Nondegenerate (metricCLM I p).toLinearMap₁₂ := by
+  constructor
+  · intro v hv
+    by_contra hv0
+    have hpos : 0 < ClosedTameTarget.metric I p v v := metric_pos_def I p v hv0
+    have hz : ClosedTameTarget.metric I p v v = 0 := hv v
+    linarith
+  · intro w hw
+    by_contra hw0
+    have hpos : 0 < ClosedTameTarget.metric I p w w := metric_pos_def I p w hw0
+    have hz : ClosedTameTarget.metric I p w w = 0 := hw w
+    linarith
+
+/-- The Christoffel bilinear operator `Γ(p) : E →L[ℝ] E →L[ℝ] E` constructed from the Koszul
+identity `g_p(Γ(u, v), w) = (1/2) (∂_u g(v, w) + ∂_v g(u, w) - ∂_w g(u, v))` via the Riesz
+isomorphism of the nondegenerate symmetric bilinear form `g_p`. -/
+noncomputable def christoffelFromKoszul [FiniteDimensional ℝ E] (p : M)
+    (dg0 : E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ) : E →L[ℝ] E →L[ℝ] E :=
+  let B : LinearMap.BilinForm ℝ E := (metricCLM I p).toLinearMap₁₂
+  let hB : B.Nondegenerate := nondegenerate_metricBilin I p
+  let Φ := (LinearMap.BilinForm.toDual B hB).symm
+  LinearMap.toContinuousLinearMap
+    { toFun := fun u => LinearMap.toContinuousLinearMap
+        { toFun := fun v => Φ
+            { toFun := fun w => koszulForm dg0 u v w
+              map_add' := fun w₁ w₂ => by
+                dsimp [koszulForm]
+                simp only [map_add, add_apply]
+                ring
+              map_smul' := fun c w => by
+                dsimp [koszulForm]
+                simp only [map_smul, smul_apply, smul_eq_mul]
+                ring }
+          map_add' := fun v₁ v₂ => by
+            rw [← LinearEquiv.map_add]
+            apply congr_arg Φ
+            ext w
+            change koszulForm dg0 u (v₁ + v₂) w = koszulForm dg0 u v₁ w + koszulForm dg0 u v₂ w
+            dsimp [koszulForm]
+            simp only [map_add, add_apply]
+            ring
+          map_smul' := fun c v => by
+            rw [← LinearEquiv.map_smul]
+            apply congr_arg Φ
+            ext w
+            change koszulForm dg0 u (c • v) w = c * koszulForm dg0 u v w
+            dsimp [koszulForm]
+            simp only [map_smul, smul_apply, smul_eq_mul]
+            ring }
+      map_add' := fun u₁ u₂ => by
+        ext v
+        change Φ _ = Φ _ + Φ _
+        rw [← LinearEquiv.map_add]
+        apply congr_arg Φ
+        ext w
+        change koszulForm dg0 (u₁ + u₂) v w = koszulForm dg0 u₁ v w + koszulForm dg0 u₂ v w
+        dsimp [koszulForm]
+        simp only [map_add, add_apply]
+        ring
+      map_smul' := fun c u => by
+        ext v
+        change Φ _ = c • Φ _
+        rw [← LinearEquiv.map_smul]
+        apply congr_arg Φ
+        ext w
+        change koszulForm dg0 (c • u) v w = c * koszulForm dg0 u v w
+        dsimp [koszulForm]
+        simp only [map_smul, smul_apply, smul_eq_mul]
+        ring }
+
+omit [I.Boundaryless] in
+lemma christoffelFromKoszul_koszul [FiniteDimensional ℝ E] (p : M)
+    (dg0 : E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ) (u v w : E) :
+    ClosedTameTarget.metric I p (christoffelFromKoszul I p dg0 u v) w =
+      koszulForm dg0 u v w := by
+  change (metricCLM I p).toLinearMap₁₂ (christoffelFromKoszul I p dg0 u v) w = _
+  exact LinearMap.BilinForm.apply_toDual_symm_apply (B := (metricCLM I p).toLinearMap₁₂)
+    (hB := nondegenerate_metricBilin I p) _ w
+
+omit [I.Boundaryless] in
+lemma christoffelFromKoszul_symm [FiniteDimensional ℝ E] (p : M)
+    (dg0 : E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ) (h_symm : ∀ u v w, dg0 u v w = dg0 u w v) (u v : E) :
+    christoffelFromKoszul I p dg0 u v = christoffelFromKoszul I p dg0 v u := by
+  apply sub_eq_zero.mp
+  apply (nondegenerate_metricBilin I p).1
+  intro w
+  change ClosedTameTarget.metric I p (christoffelFromKoszul I p dg0 u v - christoffelFromKoszul I p dg0 v u) w = 0
+  have h1 : ClosedTameTarget.metric I p (christoffelFromKoszul I p dg0 u v - christoffelFromKoszul I p dg0 v u) w =
+      ClosedTameTarget.metric I p (christoffelFromKoszul I p dg0 u v) w -
+      ClosedTameTarget.metric I p (christoffelFromKoszul I p dg0 v u) w := by
+    simp [← metricCLM_apply]
+  rw [h1, christoffelFromKoszul_koszul, christoffelFromKoszul_koszul, koszulForm_symm dg0 h_symm u v w, sub_self]
+
+omit [I.Boundaryless] in
+lemma norm_christoffelFromKoszul_le [FiniteDimensional ℝ E] (p : M)
+    (dg0 : E →L[ℝ] E →L[ℝ] E →L[ℝ] ℝ)
+    {c_min C_dg : ℝ} (hc_min : 0 < c_min) (hC_dg : 0 ≤ C_dg)
+    (h_coercive : ∀ v : E, c_min * ‖v‖ ^ 2 ≤ ClosedTameTarget.metric I p v v)
+    (h_dg_bound : ∀ u v w : E, |dg0 u v w| ≤ C_dg * ‖u‖ * ‖v‖ * ‖w‖) :
+    ‖christoffelFromKoszul I p dg0‖ ≤ (3 / 2) * C_dg / c_min := by
+  refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) (fun u => ?_)
+  refine ContinuousLinearMap.opNorm_le_bound _ (by positivity) (fun v => ?_)
+  let Γuv := christoffelFromKoszul I p dg0 u v
+  by_cases h0 : ‖Γuv‖ = 0
+  · rw [h0]; positivity
+  · have h_pos : 0 < ‖Γuv‖ := lt_of_le_of_ne (norm_nonneg _) (Ne.symm h0)
+    have h_coer : c_min * ‖Γuv‖ ^ 2 ≤ koszulForm dg0 u v Γuv := by
+      rw [← christoffelFromKoszul_koszul I p dg0 u v Γuv]
+      exact h_coercive Γuv
+    have h_kosz : koszulForm dg0 u v Γuv ≤ (3 / 2) * C_dg * ‖u‖ * ‖v‖ * ‖Γuv‖ := by
+      dsimp [koszulForm]
+      have h1 := (le_abs_self _).trans (h_dg_bound u v Γuv)
+      have h2 := (le_abs_self _).trans (h_dg_bound v u Γuv)
+      have h3 := (neg_le_abs _).trans (h_dg_bound Γuv u v)
+      linarith
+    have h_ineq : c_min * ‖Γuv‖ * ‖Γuv‖ ≤ ((3 / 2) * C_dg * ‖u‖ * ‖v‖) * ‖Γuv‖ := by
+      calc c_min * ‖Γuv‖ * ‖Γuv‖ = c_min * ‖Γuv‖ ^ 2 := by ring
+        _ ≤ koszulForm dg0 u v Γuv := h_coer
+        _ ≤ ((3 / 2) * C_dg * ‖u‖ * ‖v‖) * ‖Γuv‖ := by linarith
+    have h_div : c_min * ‖Γuv‖ ≤ (3 / 2) * C_dg * ‖u‖ * ‖v‖ :=
+      le_of_mul_le_mul_right h_ineq h_pos
+    rw [div_mul_eq_mul_div, div_mul_eq_mul_div, le_div_iff₀ hc_min]
+    linarith
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma extChartOpenPartialHomeomorph_source (x : M) :
+    (extChartOpenPartialHomeomorph I x).source = (extChartAt I x).source := by
+  simp [extChartOpenPartialHomeomorph, extChartAt]
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma extChartOpenPartialHomeomorph_target (x : M) :
+    (extChartOpenPartialHomeomorph I x).target = (extChartAt I x).target := by
+  ext y
+  simp [extChartOpenPartialHomeomorph, extChartAt, I.range_eq_univ]
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma refl_hc : Subsingleton E ∨ (1 / 2 : ℝ≥0) < ‖((ContinuousLinearEquiv.refl ℝ E).symm : E →L[ℝ] E)‖₊⁻¹ := by
+  rcases subsingleton_or_nontrivial E with hSub | hNontriv
+  · exact Or.inl hSub
+  · right
+    have h_id : ((ContinuousLinearEquiv.refl ℝ E).symm : E →L[ℝ] E) = ContinuousLinearMap.id ℝ E := rfl
+    rw [h_id, ContinuousLinearMap.nnnorm_id, inv_one]
+    norm_num
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma quadraticTaylorMap_sub_sub (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) (z₁ z₂ : E) :
+    quadraticTaylorMap y₀ Γ z₁ - quadraticTaylorMap y₀ Γ z₂ -
+      (ContinuousLinearEquiv.refl ℝ E : E →L[ℝ] E) (z₁ - z₂) =
+      -((1 / 2 : ℝ) • Γ (z₁ + z₂) (z₁ - z₂)) := by
+  dsimp [quadraticTaylorMap]
+  have h_quad : Γ z₁ z₁ - Γ z₂ z₂ = Γ (z₁ + z₂) (z₁ - z₂) := by
+    simp only [map_add, map_sub, add_apply, hΓ_symm z₂ z₁]
+    abel
+  rw [← h_quad, smul_sub]
+  abel
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma quadraticTaylorMap_approximatesLinearOn (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R : ℝ} (hΓR : ‖Γ‖ * R ≤ 1 / 2) :
+    ApproximatesLinearOn (quadraticTaylorMap y₀ Γ)
+      (ContinuousLinearEquiv.refl ℝ E : E →L[ℝ] E) (Metric.ball (0 : E) R) (1 / 2) := by
+  intro z₁ hz₁ z₂ hz₂
+  rw [quadraticTaylorMap_sub_sub y₀ Γ hΓ_symm z₁ z₂, norm_neg, norm_smul,
+    Real.norm_of_nonneg (by norm_num : (0 : ℝ) ≤ 1 / 2)]
+  have hz₁_le : ‖z₁‖ ≤ R := le_of_lt (mem_ball_zero_iff.mp hz₁)
+  have hz₂_le : ‖z₂‖ ≤ R := le_of_lt (mem_ball_zero_iff.mp hz₂)
+  have h_sum : ‖z₁ + z₂‖ ≤ 2 * R := by
+    calc ‖z₁ + z₂‖ ≤ ‖z₁‖ + ‖z₂‖ := norm_add_le z₁ z₂
+      _ ≤ R + R := add_le_add hz₁_le hz₂_le
+      _ = 2 * R := by ring
+  calc (1 / 2 : ℝ) * ‖Γ (z₁ + z₂) (z₁ - z₂)‖
+      ≤ (1 / 2 : ℝ) * (‖Γ (z₁ + z₂)‖ * ‖z₁ - z₂‖) := by
+        gcongr; exact le_opNorm _ _
+    _ ≤ (1 / 2 : ℝ) * ((‖Γ‖ * ‖z₁ + z₂‖) * ‖z₁ - z₂‖) := by
+        gcongr; exact le_opNorm _ _
+    _ ≤ (1 / 2 : ℝ) * ((‖Γ‖ * (2 * R)) * ‖z₁ - z₂‖) := by gcongr
+    _ = (‖Γ‖ * R) * ‖z₁ - z₂‖ := by ring
+    _ ≤ (1 / 2 : ℝ) * ‖z₁ - z₂‖ := by gcongr
+    _ = ((1 / 2 : ℝ≥0) : ℝ) * ‖z₁ - z₂‖ := by norm_num
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma quadraticTaylorMap_bilipschitz (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R : ℝ} (hΓR : ‖Γ‖ * R ≤ 1 / 2)
+    {z₁ z₂ : E} (hz₁ : z₁ ∈ Metric.ball (0 : E) R) (hz₂ : z₂ ∈ Metric.ball (0 : E) R) :
+    (1 / 2 : ℝ) * ‖z₁ - z₂‖ ≤ ‖quadraticTaylorMap y₀ Γ z₁ - quadraticTaylorMap y₀ Γ z₂‖ ∧
+    ‖quadraticTaylorMap y₀ Γ z₁ - quadraticTaylorMap y₀ Γ z₂‖ ≤ (3 / 2 : ℝ) * ‖z₁ - z₂‖ := by
+  have h_approx := quadraticTaylorMap_approximatesLinearOn y₀ Γ hΓ_symm hΓR z₁ hz₁ z₂ hz₂
+  have h_coe : ((1 / 2 : ℝ≥0) : ℝ) = 1 / 2 := by norm_num
+  rw [h_coe] at h_approx
+  change ‖quadraticTaylorMap y₀ Γ z₁ - quadraticTaylorMap y₀ Γ z₂ - (z₁ - z₂)‖ ≤
+    (1 / 2 : ℝ) * ‖z₁ - z₂‖ at h_approx
+  set Δ := quadraticTaylorMap y₀ Γ z₁ - quadraticTaylorMap y₀ Γ z₂
+  set δ := z₁ - z₂
+  constructor
+  · have h_tri : ‖δ‖ ≤ ‖Δ‖ + ‖Δ - δ‖ := by
+      simpa using norm_sub_le Δ (Δ - δ)
+    linarith
+  · have h_tri : ‖Δ‖ ≤ ‖Δ - δ‖ + ‖δ‖ := by
+      simpa using norm_add_le (Δ - δ) δ
+    linarith
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma quadraticTaylorMap_mapsTo_ball (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R r₀ : ℝ} (hR : 0 < R)
+    (hΓR : ‖Γ‖ * R ≤ 1 / 2) (hRr₀ : (3 / 2 : ℝ) * R ≤ r₀) :
+    Set.MapsTo (quadraticTaylorMap y₀ Γ) (Metric.ball (0 : E) R) (Metric.ball y₀ r₀) := by
+  intro z hz
+  have h0 : (0 : E) ∈ Metric.ball (0 : E) R := mem_ball_self hR
+  have h_bi := (quadraticTaylorMap_bilipschitz y₀ Γ hΓ_symm hΓR hz h0).2
+  rw [quadraticTaylorMap_zero, sub_zero] at h_bi
+  rw [mem_ball, dist_eq_norm]
+  have hz_lt : ‖z‖ < R := mem_ball_zero_iff.mp hz
+  linarith
+
+noncomputable def quantTaylorHomeomorph [CompleteSpace E] (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R : ℝ} (hΓR : ‖Γ‖ * R ≤ 1 / 2) :
+    OpenPartialHomeomorph E E :=
+  (quadraticTaylorMap_approximatesLinearOn y₀ Γ hΓ_symm hΓR).toOpenPartialHomeomorph
+    (quadraticTaylorMap y₀ Γ) (Metric.ball (0 : E) R) refl_hc isOpen_ball
+
+noncomputable def oneSubCLE [CompleteSpace E] (A : E →L[ℝ] E) (hA : ‖A‖ < 1) : E ≃L[ℝ] E :=
+  ContinuousLinearEquiv.unitsEquiv ℝ E (Units.oneSub A hA)
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma contDiffOn_quantTaylorHomeomorph_symm [CompleteSpace E] (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R : ℝ} (hΓR : ‖Γ‖ * R ≤ 1 / 2) :
+    ContDiffOn ℝ ⊤ (quantTaylorHomeomorph y₀ Γ hΓ_symm hΓR).symm
+      (quantTaylorHomeomorph y₀ Γ hΓ_symm hΓR).target := by
+  let O := quantTaylorHomeomorph y₀ Γ hΓ_symm hΓR
+  intro y hy
+  have hz : O.symm y ∈ Metric.ball (0 : E) R := O.map_target hy
+  have hz_lt : ‖O.symm y‖ < R := mem_ball_zero_iff.mp hz
+  have hΓz : ‖Γ (O.symm y)‖ < 1 := by
+    calc ‖Γ (O.symm y)‖ ≤ ‖Γ‖ * ‖O.symm y‖ := le_opNorm _ _
+      _ ≤ ‖Γ‖ * R := by gcongr
+      _ ≤ 1 / 2 := hΓR
+      _ < 1 := by norm_num
+  have h_fderiv : HasFDerivAt O (oneSubCLE (Γ (O.symm y)) hΓz : E →L[ℝ] E) (O.symm y) :=
+    quadraticTaylorMap_hasFDerivAt y₀ Γ hΓ_symm (O.symm y)
+  have h_cd : ContDiffAt ℝ ⊤ O (O.symm y) :=
+    (quadraticTaylorMap_contDiff y₀ Γ).contDiffAt
+  exact (O.contDiffAt_symm hy h_fderiv h_cd).contDiffWithinAt
+
+noncomputable def quantCenteredChart [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R : ℝ} (hΓR : ‖Γ‖ * R ≤ 1 / 2) :
+    OpenPartialHomeomorph M E :=
+  (extChartOpenPartialHomeomorph I p).trans
+    (quantTaylorHomeomorph (extChartAt I p p) Γ hΓ_symm hΓR).symm
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma quantCenteredChart_target [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R r₀ : ℝ} (hR : 0 < R)
+    (hΓR : ‖Γ‖ * R ≤ 1 / 2) (hRr₀ : (3 / 2 : ℝ) * R ≤ r₀)
+    (h_sub : Metric.ball (extChartAt I p p) r₀ ⊆ (extChartAt I p).target) :
+    (quantCenteredChart I p Γ hΓ_symm hΓR).target = Metric.ball (0 : E) R := by
+  rw [quantCenteredChart, OpenPartialHomeomorph.trans_target]
+  have h_src : (quantTaylorHomeomorph (extChartAt I p p) Γ hΓ_symm hΓR).symm.target =
+      Metric.ball (0 : E) R := rfl
+  rw [h_src, extChartOpenPartialHomeomorph_target, inter_eq_left]
+  intro z hz
+  exact h_sub (quadraticTaylorMap_mapsTo_ball (extChartAt I p p) Γ hΓ_symm hR hΓR hRr₀ hz)
+
+omit [CompactSpace M] tgt in
+lemma quantCenteredChart_smooth_to [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R : ℝ} (hΓR : ‖Γ‖ * R ≤ 1 / 2) :
+    ContMDiffOn I (modelWithCornersSelf ℝ E) ∞
+      (quantCenteredChart I p Γ hΓ_symm hΓR) (quantCenteredChart I p Γ hΓ_symm hΓR).source := by
+  let O := quantTaylorHomeomorph (extChartAt I p p) Γ hΓ_symm hΓR
+  have h1 : ContMDiffOn (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ E) ∞ O.symm O.target :=
+    ((contDiffOn_quantTaylorHomeomorph_symm (extChartAt I p p) Γ hΓ_symm hΓR).of_le le_top).contMDiffOn
+  have h2 : ContMDiffOn I (modelWithCornersSelf ℝ E) ∞ (extChartAt I p) (extChartAt I p).source := by
+    simpa using contMDiffOn_extChartAt (I := I) (x := p)
+  refine h1.comp (h2.mono ?_) ?_
+  · rw [quantCenteredChart, OpenPartialHomeomorph.trans_source, extChartOpenPartialHomeomorph_source]
+    exact inter_subset_left
+  · intro x hx
+    rw [quantCenteredChart, OpenPartialHomeomorph.trans_source] at hx
+    exact hx.2
+
+omit [CompactSpace M] tgt in
+lemma quantCenteredChart_smooth_from [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R r₀ : ℝ} (hR : 0 < R)
+    (hΓR : ‖Γ‖ * R ≤ 1 / 2) (hRr₀ : (3 / 2 : ℝ) * R ≤ r₀)
+    (h_sub : Metric.ball (extChartAt I p p) r₀ ⊆ (extChartAt I p).target) :
+    ContMDiffOn (modelWithCornersSelf ℝ E) I ∞
+      (quantCenteredChart I p Γ hΓ_symm hΓR).symm (quantCenteredChart I p Γ hΓ_symm hΓR).target := by
+  rw [quantCenteredChart_target I p Γ hΓ_symm hR hΓR hRr₀ h_sub]
+  have h1 : ContMDiffOn (modelWithCornersSelf ℝ E) I ∞ (extChartAt I p).symm (extChartAt I p).target :=
+    contMDiffOn_extChartAt_symm p
+  have h2 : ContMDiffOn (modelWithCornersSelf ℝ E) (modelWithCornersSelf ℝ E) ∞
+      (quadraticTaylorMap (extChartAt I p p) Γ) (Metric.ball (0 : E) R) :=
+    ((quadraticTaylorMap_contDiff (extChartAt I p p) Γ).contDiffOn.of_le le_top).contMDiffOn
+  exact h1.comp h2 ((quadraticTaylorMap_mapsTo_ball (extChartAt I p p) Γ hΓ_symm hR hΓR hRr₀).mono_right h_sub)
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma quantCenteredChart_symm_center [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R : ℝ} (hΓR : ‖Γ‖ * R ≤ 1 / 2) :
+    (quantCenteredChart I p Γ hΓ_symm hΓR).symm 0 = p := by
+  change (extChartAt I p).symm (quadraticTaylorMap (extChartAt I p p) Γ 0) = p
+  rw [quadraticTaylorMap_zero]
+  exact (extChartAt I p).left_inv (mem_extChartAt_source p)
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma quantCenteredChart_p_mem_source [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R : ℝ} (hR : 0 < R) (hΓR : ‖Γ‖ * R ≤ 1 / 2) :
+    p ∈ (quantCenteredChart I p Γ hΓ_symm hΓR).source := by
+  rw [quantCenteredChart, OpenPartialHomeomorph.trans_source, extChartOpenPartialHomeomorph_source]
+  refine ⟨mem_extChartAt_source p, ?_⟩
+  let O := quantTaylorHomeomorph (extChartAt I p p) Γ hΓ_symm hΓR
+  change extChartAt I p p ∈ O.target
+  have h0 : (0 : E) ∈ O.source := mem_ball_self hR
+  have hO0 : O 0 = extChartAt I p p := quadraticTaylorMap_zero (extChartAt I p p) Γ
+  rw [← hO0]
+  exact O.map_source h0
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma quantCenteredChart_map_center [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R : ℝ} (hR : 0 < R) (hΓR : ‖Γ‖ * R ≤ 1 / 2) :
+    quantCenteredChart I p Γ hΓ_symm hΓR p = 0 := by
+  let O := quantTaylorHomeomorph (extChartAt I p p) Γ hΓ_symm hΓR
+  change O.symm (extChartAt I p p) = 0
+  have h0 : (0 : E) ∈ O.source := mem_ball_self hR
+  have hO0 : O 0 = extChartAt I p p := quadraticTaylorMap_zero (extChartAt I p p) Γ
+  rw [← hO0]
+  exact O.left_inv h0
+
+omit [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma extChartAt_comp_quantCenteredChart_symm_eqOn [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R r₀ : ℝ} (hR : 0 < R)
+    (hΓR : ‖Γ‖ * R ≤ 1 / 2) (hRr₀ : (3 / 2 : ℝ) * R ≤ r₀)
+    (h_sub : Metric.ball (extChartAt I p p) r₀ ⊆ (extChartAt I p).target) :
+    Set.EqOn (extChartAt I p ∘ (quantCenteredChart I p Γ hΓ_symm hΓR).symm)
+      (quadraticTaylorMap (extChartAt I p p) Γ) (Metric.ball (0 : E) R) := by
+  intro z hz
+  change extChartAt I p ((extChartAt I p).symm (quadraticTaylorMap (extChartAt I p p) Γ z)) =
+    quadraticTaylorMap (extChartAt I p p) Γ z
+  exact (extChartAt I p).right_inv
+    (h_sub (quadraticTaylorMap_mapsTo_ball (extChartAt I p p) Γ hΓ_symm hR hΓR hRr₀ hz))
+
+set_option backward.isDefEq.respectTransparency false in
+omit [CompactSpace M] tgt in
+lemma quantCenteredChart_fderiv_symm_zero [CompleteSpace E] (p : M) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R r₀ : ℝ} (hR : 0 < R)
+    (hΓR : ‖Γ‖ * R ≤ 1 / 2) (hRr₀ : (3 / 2 : ℝ) * R ≤ r₀)
+    (h_sub : Metric.ball (extChartAt I p p) r₀ ⊆ (extChartAt I p).target) :
+    mfderiv (modelWithCornersSelf ℝ E) I (quantCenteredChart I p Γ hΓ_symm hΓR).symm 0 =
+      ContinuousLinearMap.id ℝ E := by
+  let chart_p := quantCenteredChart I p Γ hΓ_symm hΓR
+  have h_tgt := quantCenteredChart_target I p Γ hΓ_symm hR hΓR hRr₀ h_sub
+  have h0_mem : (0 : E) ∈ chart_p.target := by rw [h_tgt]; exact mem_ball_self hR
+  have h_mdiff : MDifferentiableAt (modelWithCornersSelf ℝ E) I chart_p.symm 0 := by
+    have h_cont := quantCenteredChart_smooth_from I p Γ hΓ_symm hR hΓR hRr₀ h_sub 0 h0_mem
+    exact (h_cont.mdifferentiableWithinAt (by decide)).mdifferentiableAt
+      (by rw [h_tgt]; exact isOpen_ball.mem_nhds (mem_ball_self hR))
+  dsimp [mfderiv]
+  rw [if_pos h_mdiff, quantCenteredChart_symm_center I p Γ hΓ_symm hΓR]
+  have h_local : (extChartAt I p ∘ chart_p.symm) =ᶠ[𝓝 0] quadraticTaylorMap (extChartAt I p p) Γ :=
+    Filter.eventuallyEq_of_mem (isOpen_ball.mem_nhds (mem_ball_self hR))
+      (extChartAt_comp_quantCenteredChart_symm_eqOn I p Γ hΓ_symm hR hΓR hRr₀ h_sub)
+  change fderivWithin ℝ (extChartAt I p ∘ chart_p.symm) (Set.range id) 0 = ContinuousLinearMap.id ℝ E
+  rw [Set.range_id, fderivWithin_univ, h_local.fderiv_eq]
+  exact (quadraticTaylorMap_hasFDerivAt_zero (extChartAt I p p) Γ).fderiv
+
+lemma hasFDerivAt_metric_zero_of_map_zero (p : M) (Γ : E →L[ℝ] E →L[ℝ] E)
+    {g h : E → E} {g' : E →L[ℝ] E}
+    (hg0 : g 0 = 0) (hg : HasFDerivAt g g' 0) (hh : ContDiffAt ℝ ∞ h 0) :
+    HasFDerivAt
+      (fun z => ClosedTameTarget.metric I
+        ((extChartAt I p).symm (quadraticTaylorMap (extChartAt I p p) Γ z)) (g z) (h z))
+      ((metricCLM I p (h 0)).comp g')
+      0 := by
+  let y₀ := extChartAt I p p
+  let Φ := quadraticTaylorMap y₀ Γ
+  have hΦ0 : Φ 0 = y₀ := quadraticTaylorMap_zero y₀ Γ
+  have hx0 : (extChartAt I p).symm y₀ = p :=
+    (extChartAt I p).left_inv (mem_extChartAt_source p)
+  have h_mem : y₀ ∈ (extChartAt I p).target :=
+    (extChartAt I p).map_source (mem_extChartAt_source p)
+  have h_nhds : (extChartAt I p).target ∈ 𝓝 (Φ 0) := by
+    rw [hΦ0]
+    exact (isOpen_extChartAt_target p).mem_nhds h_mem
+  have hΦ_cd : ContDiffAt ℝ ∞ Φ 0 :=
+    (quadraticTaylorMap_contDiff y₀ Γ).contDiffAt.of_le le_top
+  have hω_cd : ContDiffAt ℝ ∞ (fun z => ω_chart I tgt.«ω» p (Φ z)) 0 :=
+    ((tgt.ω_smooth p).contDiffAt h_nhds).comp 0 hΦ_cd
+  have hJ_cd : ContDiffAt ℝ ∞ (fun z => J_chart I tgt.J p (Φ z)) 0 :=
+    ((tgt.J_smooth p).contDiffAt h_nhds).comp 0 hΦ_cd
+  have hc1_diff : DifferentiableAt ℝ (fun z => ω_chart I tgt.«ω» p (Φ z) (h z)) 0 :=
+    (hω_cd.clm_apply hh).differentiableAt (by decide)
+  have hJ_diff : DifferentiableAt ℝ (fun z => J_chart I tgt.J p (Φ z)) 0 :=
+    hJ_cd.differentiableAt (by decide)
+  have hJg : HasFDerivAt (fun z => J_chart I tgt.J p (Φ z) (g z))
+      (J_chart I tgt.J p (Φ 0) ∘L g' + (fderiv ℝ (fun z => J_chart I tgt.J p (Φ z)) 0).flip (g 0)) 0 :=
+    hJ_diff.hasFDerivAt.clm_apply hg
+  have h_term1 := hc1_diff.hasFDerivAt.clm_apply hJg
+  have hc2_diff : DifferentiableAt ℝ (fun z => ω_chart I tgt.«ω» p (Φ z) (J_chart I tgt.J p (Φ z) (h z))) 0 :=
+    (hω_cd.clm_apply (hJ_cd.clm_apply hh)).differentiableAt (by decide)
+  have h_term2 := (hc2_diff.hasFDerivAt.clm_apply hg).neg
+  have h_comb := (h_term1.add h_term2).const_smul (1 / 2 : ℝ)
+  have h_eq_fn : (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm (Φ z)) (g z) (h z)) =
+      (1 / 2 : ℝ) • ((fun z => ω_chart I tgt.«ω» p (Φ z) (h z) (J_chart I tgt.J p (Φ z) (g z))) +
+        -(fun z => ω_chart I tgt.«ω» p (Φ z) (J_chart I tgt.J p (Φ z) (h z)) (g z))) := by
+    ext z
+    dsimp [ClosedTameTarget.metric, ω_chart, J_chart]
+    have h_skew := tgt.ω_skew ((extChartAt I p).symm (Φ z)) (g z) (tgt.J ((extChartAt I p).symm (Φ z)) (h z))
+    change (1 / 2 : ℝ) * (tgt.«ω» ((extChartAt I p).symm (Φ z)) (g z) (tgt.J ((extChartAt I p).symm (Φ z)) (h z)) +
+        tgt.«ω» ((extChartAt I p).symm (Φ z)) (h z) (tgt.J ((extChartAt I p).symm (Φ z)) (g z))) =
+      (1 / 2 : ℝ) * (tgt.«ω» ((extChartAt I p).symm (Φ z)) (h z) (tgt.J ((extChartAt I p).symm (Φ z)) (g z)) +
+        - tgt.«ω» ((extChartAt I p).symm (Φ z)) (tgt.J ((extChartAt I p).symm (Φ z)) (h z)) (g z))
+    rw [h_skew]
+    ring
+  rw [h_eq_fn]
+  refine h_comb.congr_fderiv ?_
+  ext u
+  simp only [hg0, map_zero, add_zero, smul_apply, add_apply, neg_apply,
+    ContinuousLinearMap.comp_apply, smul_eq_mul]
+  change (1 / 2 : ℝ) * (tgt.«ω» ((extChartAt I p).symm (Φ 0)) (h 0) (tgt.J ((extChartAt I p).symm (Φ 0)) (g' u)) +
+      - tgt.«ω» ((extChartAt I p).symm (Φ 0)) (tgt.J ((extChartAt I p).symm (Φ 0)) (h 0)) (g' u)) =
+    ClosedTameTarget.metric I p (h 0) (g' u)
+  rw [hΦ0, hx0]
+  have h_skew0 := tgt.ω_skew p (g' u) (tgt.J p (h 0))
+  dsimp [ClosedTameTarget.metric]
+  linarith
+
+lemma hasFDerivAt_taylor_metric_zero (p : M) (Γ : E →L[ℝ] E →L[ℝ] E) (v w : E) :
+    HasFDerivAt
+      (fun z => ClosedTameTarget.metric I
+        ((extChartAt I p).symm (quadraticTaylorMap (extChartAt I p p) Γ z))
+        (v - Γ z v) (w - Γ z w))
+      (fderiv ℝ (fun y => ClosedTameTarget.metric I ((extChartAt I p).symm y) v w) (extChartAt I p p) -
+        (metricCLM I p w).comp (Γ.flip v) -
+        (metricCLM I p v).comp (Γ.flip w))
+      0 := by
+  let y₀ := extChartAt I p p
+  let Φ := quadraticTaylorMap y₀ Γ
+  let x : E → M := fun z => (extChartAt I p).symm (Φ z)
+  have hΦ0 : Φ 0 = y₀ := quadraticTaylorMap_zero y₀ Γ
+  have h1 : HasFDerivAt (fun z => ClosedTameTarget.metric I (x z) v w)
+      (fderiv ℝ (fun y => ClosedTameTarget.metric I ((extChartAt I p).symm y) v w) y₀) 0 := by
+    have h_base : HasFDerivAt (fun y => ClosedTameTarget.metric I ((extChartAt I p).symm y) v w)
+        (fderiv ℝ (fun y => ClosedTameTarget.metric I ((extChartAt I p).symm y) v w) y₀) (Φ 0) := by
+      rw [hΦ0]
+      exact (differentiableAt_metric_apply I p v w).hasFDerivAt
+    exact (h_base.comp 0 (quadraticTaylorMap_hasFDerivAt_zero y₀ Γ)).congr_fderiv
+      (ContinuousLinearMap.comp_id _)
+  have h2 : HasFDerivAt (fun z => ClosedTameTarget.metric I (x z) (Γ z v) w)
+      ((metricCLM I p w).comp (Γ.flip v)) 0 :=
+    hasFDerivAt_metric_zero_of_map_zero I p Γ (g := fun z => Γ z v) (h := fun _ => w)
+      (by simp) (Γ.flip v).hasFDerivAt contDiffAt_const
+  have h3_symm : HasFDerivAt (fun z => ClosedTameTarget.metric I (x z) (Γ z w) v)
+      ((metricCLM I p v).comp (Γ.flip w)) 0 :=
+    hasFDerivAt_metric_zero_of_map_zero I p Γ (g := fun z => Γ z w) (h := fun _ => v)
+      (by simp) (Γ.flip w).hasFDerivAt contDiffAt_const
+  have h4 : HasFDerivAt (fun z => ClosedTameTarget.metric I (x z) (Γ z v) (Γ z w)) (0 : E →L[ℝ] ℝ) 0 := by
+    have h4' := hasFDerivAt_metric_zero_of_map_zero I p Γ (g := fun z => Γ z v) (h := fun z => Γ z w)
+      (by simp) (Γ.flip v).hasFDerivAt ((Γ.flip w).contDiff.contDiffAt.of_le le_top)
+    exact h4'.congr_fderiv (by simp)
+  have h_comb := ((h1.sub h2).sub h3_symm).add h4
+  rw [add_zero] at h_comb
+  refine h_comb.congr_of_eventuallyEq (Eventually.of_forall fun z => ?_)
+  change ClosedTameTarget.metric I (x z) (v - Γ z v) (w - Γ z w) =
+    ClosedTameTarget.metric I (x z) v w -
+      ClosedTameTarget.metric I (x z) (Γ z v) w -
+      ClosedTameTarget.metric I (x z) (Γ z w) v +
+      ClosedTameTarget.metric I (x z) (Γ z v) (Γ z w)
+  have h_vw : ClosedTameTarget.metric I (x z) v (Γ z w) = ClosedTameTarget.metric I (x z) (Γ z w) v :=
+    metric_symm I (x z) v (Γ z w)
+  simp only [← metricCLM_apply] at h_vw ⊢
+  simp only [map_sub, sub_apply, h_vw]
+  ring
+
+set_option backward.isDefEq.respectTransparency false in
+lemma quantCenteredChart_dmetric_zero [FiniteDimensional ℝ E] (p : M)
+    {R r₀ : ℝ} (hR : 0 < R)
+    (hΓR : ‖christoffelFromKoszul I p (dmetricAt I p)‖ * R ≤ 1 / 2)
+    (hRr₀ : (3 / 2 : ℝ) * R ≤ r₀)
+    (h_sub : Metric.ball (extChartAt I p p) r₀ ⊆ (extChartAt I p).target)
+    (v w : E) :
+    fderiv ℝ (fun z => pulledBackMetricAt I p
+      (quantCenteredChart I p (christoffelFromKoszul I p (dmetricAt I p))
+        (christoffelFromKoszul_symm I p (dmetricAt I p) (dmetricAt_symm I p)) hΓR) z v w) 0 = 0 := by
+  let Γ := christoffelFromKoszul I p (dmetricAt I p)
+  have hΓ_symm := christoffelFromKoszul_symm I p (dmetricAt I p) (dmetricAt_symm I p)
+  let chart_p := quantCenteredChart I p Γ hΓ_symm hΓR
+  let y₀ := extChartAt I p p
+  let Φ := quadraticTaylorMap y₀ Γ
+  have h_nhds : Metric.ball (0 : E) R ∈ 𝓝 (0 : E) := isOpen_ball.mem_nhds (mem_ball_self hR)
+  have h_local_comp : (extChartAt I p ∘ chart_p.symm) =ᶠ[𝓝 0] Φ :=
+    Filter.eventuallyEq_of_mem h_nhds
+      (extChartAt_comp_quantCenteredChart_symm_eqOn I p Γ hΓ_symm hR hΓR hRr₀ h_sub)
+  have h_ev : (fun z => pulledBackMetricAt I p chart_p z v w) =ᶠ[𝓝 0]
+      (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm (Φ z)) (v - Γ z v) (w - Γ z w)) := by
+    have h_fderiv_ev : ∀ᶠ z in 𝓝 (0 : E), fderiv ℝ (extChartAt I p ∘ chart_p.symm) z = fderiv ℝ Φ z :=
+      h_local_comp.fderiv
+    filter_upwards [h_nhds, h_fderiv_ev] with z _ hz_fd
+    change ClosedTameTarget.metric I (chart_p.symm z)
+        (fderiv ℝ (extChartAt I p ∘ chart_p.symm) z v)
+        (fderiv ℝ (extChartAt I p ∘ chart_p.symm) z w) =
+      ClosedTameTarget.metric I ((extChartAt I p).symm (Φ z)) (v - Γ z v) (w - Γ z w)
+    rw [hz_fd, quadraticTaylorMap_fderiv y₀ Γ hΓ_symm z]
+    rfl
+  rw [h_ev.fderiv_eq, (hasFDerivAt_taylor_metric_zero I p Γ v w).fderiv]
+  ext u
+  simp only [sub_apply, ContinuousLinearMap.comp_apply, flip_apply, zero_apply]
+  change dmetricAt I p u v w -
+      ClosedTameTarget.metric I p w (Γ u v) -
+      ClosedTameTarget.metric I p v (Γ u w) = 0
+  rw [metric_symm I p w (Γ u v), metric_symm I p v (Γ u w)]
+  dsimp [Γ]
+  rw [christoffelFromKoszul_koszul, christoffelFromKoszul_koszul]
+  linarith [koszul_cancellation (dmetricAt I p) (dmetricAt_symm I p) u v w]
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma fderiv_quadraticTaylorMap_eq (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) :
+    fderiv ℝ (quadraticTaylorMap y₀ Γ) = fun z => ContinuousLinearMap.id ℝ E - Γ z := by
+  ext z v
+  rw [quadraticTaylorMap_fderiv y₀ Γ hΓ_symm z]
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma fderiv_fderiv_quadraticTaylorMap_eq (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) :
+    fderiv ℝ (fderiv ℝ (quadraticTaylorMap y₀ Γ)) = fun _ => -Γ := by
+  rw [fderiv_quadraticTaylorMap_eq y₀ Γ hΓ_symm]
+  ext z u v
+  have h_sub : HasFDerivAt (fun w : E => ContinuousLinearMap.id ℝ E - Γ w) (0 - Γ) z :=
+    (hasFDerivAt_const (ContinuousLinearMap.id ℝ E) z).sub Γ.hasFDerivAt
+  rw [h_sub.fderiv, zero_sub]
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma norm_iteratedFDeriv_quadraticTaylorMap_le (y₀ : E) (Γ : E →L[ℝ] E →L[ℝ] E)
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R D : ℝ} (hΓR : ‖Γ‖ * R ≤ 1 / 2)
+    (hD2 : 2 ≤ D) (hDΓ : ‖Γ‖ ≤ D)
+    {z : E} (hz : z ∈ Metric.ball (0 : E) R) {i : ℕ} (hi1 : 1 ≤ i) (hi3 : i ≤ 3) :
+    ‖iteratedFDeriv ℝ i (quadraticTaylorMap y₀ Γ) z‖ ≤ D ^ i := by
+  have hD_pos : 0 ≤ D := by linarith
+  interval_cases i
+  · rw [norm_iteratedFDeriv_one, fderiv_quadraticTaylorMap_eq y₀ Γ hΓ_symm, pow_one]
+    have hz_le : ‖z‖ ≤ R := le_of_lt (mem_ball_zero_iff.mp hz)
+    have hΓz : ‖Γ z‖ ≤ 1 / 2 := by
+      calc ‖Γ z‖ ≤ ‖Γ‖ * ‖z‖ := le_opNorm _ _
+        _ ≤ ‖Γ‖ * R := by gcongr
+        _ ≤ 1 / 2 := hΓR
+    have h_id : ‖(ContinuousLinearMap.id ℝ E : E →L[ℝ] E)‖ ≤ 1 := norm_id_le
+    calc ‖ContinuousLinearMap.id ℝ E - Γ z‖
+        ≤ ‖(ContinuousLinearMap.id ℝ E : E →L[ℝ] E)‖ + ‖Γ z‖ := norm_sub_le _ _
+      _ ≤ 1 + 1 / 2 := add_le_add h_id hΓz
+      _ ≤ 2 := by norm_num
+      _ ≤ D := hD2
+  · rw [show (2 : ℕ) = 1 + 1 from rfl, iteratedFDeriv_succ_eq_comp_right,
+      Function.comp_apply, LinearIsometryEquiv.norm_map, norm_iteratedFDeriv_one,
+      fderiv_fderiv_quadraticTaylorMap_eq y₀ Γ hΓ_symm, norm_neg]
+    calc ‖Γ‖ = ‖Γ‖ * 1 := by ring
+      _ ≤ D * D := mul_le_mul hDΓ (by linarith) zero_le_one hD_pos
+      _ = D ^ 2 := by ring
+  · rw [show (3 : ℕ) = 2 + 1 from rfl, iteratedFDeriv_succ_eq_comp_right,
+      Function.comp_apply, LinearIsometryEquiv.norm_map,
+      show (2 : ℕ) = 1 + 1 from rfl, iteratedFDeriv_succ_eq_comp_right,
+      Function.comp_apply, LinearIsometryEquiv.norm_map, norm_iteratedFDeriv_one,
+      fderiv_fderiv_quadraticTaylorMap_eq y₀ Γ hΓ_symm, fderiv_const_apply, norm_zero]
+    positivity
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma norm_iteratedFDeriv_comp_taylor_le {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G]
+    {g : E → G} {y₀ : E} {Γ : E →L[ℝ] E →L[ℝ] E}
+    (hΓ_symm : ∀ u v, Γ u v = Γ v u) {R r₀ C D : ℝ}
+    (hΓR : ‖Γ‖ * R ≤ 1 / 2) (hD2 : 2 ≤ D) (hDΓ : ‖Γ‖ ≤ D)
+    (hg : ContDiffOn ℝ ∞ g (Metric.ball y₀ r₀))
+    (hst : Set.MapsTo (quadraticTaylorMap y₀ Γ) (Metric.ball (0 : E) R) (Metric.ball y₀ r₀))
+    {y : E} (hy : y ∈ Metric.ball (0 : E) R)
+    (hC : ∀ i ≤ 3, ‖iteratedFDeriv ℝ i g (quadraticTaylorMap y₀ Γ y)‖ ≤ C) :
+    ‖iteratedFDeriv ℝ 3 (g ∘ quadraticTaylorMap y₀ Γ) y‖ ≤ 6 * C * D ^ 3 := by
+  let s := Metric.ball (0 : E) R
+  let t := Metric.ball y₀ r₀
+  have hs_open : IsOpen s := isOpen_ball
+  have ht_open : IsOpen t := isOpen_ball
+  have hΦ_cd : ContDiffOn ℝ ∞ (quadraticTaylorMap y₀ Γ) s :=
+    (quadraticTaylorMap_contDiff y₀ Γ).contDiffOn.of_le le_top
+  rw [← iteratedFDerivWithin_of_isOpen 3 hs_open hy]
+  have h_comp := norm_iteratedFDerivWithin_comp_le (N := ∞) (n := 3)
+    hg hΦ_cd (by simp) ht_open.uniqueDiffOn hs_open.uniqueDiffOn hst hy
+    (C := C) (D := D)
+    (fun i hi => by
+      rw [iteratedFDerivWithin_of_isOpen i ht_open (hst hy)]
+      exact hC i hi)
+    (fun i hi1 hi3 => by
+      rw [iteratedFDerivWithin_of_isOpen i hs_open hy]
+      exact norm_iteratedFDeriv_quadraticTaylorMap_le y₀ Γ hΓ_symm hΓR hD2 hDΓ hy hi1 hi3)
+  simpa [Nat.factorial] using h_comp
+
+omit [I.Boundaryless] [IsManifold I ∞ M] [CompactSpace M] tgt in
+lemma norm_iteratedFDeriv_clm_apply_const_le {F G : Type*}
+    [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedAddCommGroup G] [NormedSpace ℝ G]
+    {f : E → F →L[ℝ] G} {s : Set E} (hs : IsOpen s) (hf : ContDiffOn ℝ ∞ f s)
+    {y : E} (hy : y ∈ s) (c : F) (k : ℕ) :
+    ‖iteratedFDeriv ℝ k (fun z => f z c) y‖ ≤ ‖c‖ * ‖iteratedFDeriv ℝ k f y‖ := by
+  rw [← iteratedFDerivWithin_of_isOpen k hs hy, ← iteratedFDerivWithin_of_isOpen k hs hy]
+  exact norm_iteratedFDerivWithin_clm_apply_const (N := ∞) (hf y hy) hs.uniqueDiffOn hy (by simp)
+
+omit [I.Boundaryless] in
+lemma norm_iteratedFDeriv_ω_J_le (p : M) {r₀ C_ω C_J : ℝ} (hC_ω : 0 ≤ C_ω) (_hC_J : 0 ≤ C_J)
+    (h_sub : Metric.ball (extChartAt I p p) r₀ ⊆ (extChartAt I p).target)
+    (h_ω : ∀ {y : E}, y ∈ Metric.ball (extChartAt I p p) r₀ → ∀ (a : E), ∀ k ≤ 3,
+      ‖iteratedFDeriv ℝ k (fun z => ω_chart I tgt.«ω» p z a) y‖ ≤ C_ω * ‖a‖)
+    (h_J : ∀ {y : E}, y ∈ Metric.ball (extChartAt I p p) r₀ → ∀ k ≤ 3,
+      ‖iteratedFDeriv ℝ k (J_chart I tgt.J p) y‖ ≤ C_J)
+    {y : E} (hy : y ∈ Metric.ball (extChartAt I p p) r₀)
+    {a b : E} (ha : ‖a‖ ≤ 1) (hb : ‖b‖ ≤ 1) {k : ℕ} (hk : k ≤ 3) :
+    ‖iteratedFDeriv ℝ k (fun z => ω_chart I tgt.«ω» p z a (J_chart I tgt.J p z b)) y‖ ≤
+      8 * C_ω * C_J := by
+  let t := Metric.ball (extChartAt I p p) r₀
+  have ht_open : IsOpen t := isOpen_ball
+  have hf_cd : ContDiffOn ℝ ∞ (fun z => ω_chart I tgt.«ω» p z a) t :=
+    (smooth_ω_apply I p a).mono h_sub
+  have hg_cd : ContDiffOn ℝ ∞ (fun z => J_chart I tgt.J p z b) t :=
+    (smooth_J_apply I p b).mono h_sub
+  have hJ_cd : ContDiffOn ℝ ∞ (J_chart I tgt.J p) t :=
+    (tgt.J_smooth p).mono h_sub
+  rw [← iteratedFDerivWithin_of_isOpen k ht_open hy]
+  have h_le := norm_iteratedFDerivWithin_clm_apply (N := ∞) (n := k) hf_cd hg_cd ht_open.uniqueDiffOn hy (by simp)
+  refine h_le.trans ?_
+  have h_term : ∀ i ∈ Finset.range (k + 1),
+      (k.choose i : ℝ) * ‖iteratedFDerivWithin ℝ i (fun z => ω_chart I tgt.«ω» p z a) t y‖ *
+        ‖iteratedFDerivWithin ℝ (k - i) (fun z => J_chart I tgt.J p z b) t y‖ ≤
+      (k.choose i : ℝ) * (C_ω * C_J) := by
+    intro i hi
+    have hi_le : i ≤ k := Nat.lt_succ_iff.mp (Finset.mem_range.mp hi)
+    rw [iteratedFDerivWithin_of_isOpen i ht_open hy, iteratedFDerivWithin_of_isOpen (k - i) ht_open hy]
+    have h1 : ‖iteratedFDeriv ℝ i (fun z => ω_chart I tgt.«ω» p z a) y‖ ≤ C_ω := by
+      calc ‖iteratedFDeriv ℝ i (fun z => ω_chart I tgt.«ω» p z a) y‖
+          ≤ C_ω * ‖a‖ := h_ω hy a i (hi_le.trans hk)
+        _ ≤ C_ω * 1 := by gcongr
+        _ = C_ω := mul_one C_ω
+    have h2 : ‖iteratedFDeriv ℝ (k - i) (fun z => J_chart I tgt.J p z b) y‖ ≤ C_J := by
+      calc ‖iteratedFDeriv ℝ (k - i) (fun z => J_chart I tgt.J p z b) y‖
+          ≤ ‖b‖ * ‖iteratedFDeriv ℝ (k - i) (J_chart I tgt.J p) y‖ :=
+            norm_iteratedFDeriv_clm_apply_const_le ht_open hJ_cd hy b (k - i)
+        _ ≤ 1 * C_J := mul_le_mul hb (h_J hy (k - i) (Nat.sub_le k i |>.trans hk)) (norm_nonneg _) zero_le_one
+        _ = C_J := one_mul C_J
+    calc (k.choose i : ℝ) * ‖iteratedFDeriv ℝ i (fun z => ω_chart I tgt.«ω» p z a) y‖ *
+          ‖iteratedFDeriv ℝ (k - i) (fun z => J_chart I tgt.J p z b) y‖
+        = (k.choose i : ℝ) * (‖iteratedFDeriv ℝ i (fun z => ω_chart I tgt.«ω» p z a) y‖ *
+            ‖iteratedFDeriv ℝ (k - i) (fun z => J_chart I tgt.J p z b) y‖) := by ring
+      _ ≤ (k.choose i : ℝ) * (C_ω * C_J) := by
+          gcongr
+  calc ∑ i ∈ Finset.range (k + 1),
+        (k.choose i : ℝ) * ‖iteratedFDerivWithin ℝ i (fun z => ω_chart I tgt.«ω» p z a) t y‖ *
+          ‖iteratedFDerivWithin ℝ (k - i) (fun z => J_chart I tgt.J p z b) t y‖
+      ≤ ∑ i ∈ Finset.range (k + 1), (k.choose i : ℝ) * (C_ω * C_J) :=
+        Finset.sum_le_sum h_term
+    _ = (∑ i ∈ Finset.range (k + 1), (k.choose i : ℝ)) * (C_ω * C_J) := by
+        rw [← Finset.sum_mul]
+    _ ≤ 8 * (C_ω * C_J) := by
+        gcongr
+        rw [← Nat.cast_sum, Nat.sum_range_choose]
+        have : 2 ^ k ≤ 8 := by interval_cases k <;> decide
+        exact_mod_cast this
+    _ = 8 * C_ω * C_J := by ring
+
+omit [I.Boundaryless] in
+lemma norm_iteratedFDeriv_metric_le (p : M) {r₀ C_ω C_J : ℝ} (hC_ω : 0 ≤ C_ω) (hC_J : 0 ≤ C_J)
+    (h_sub : Metric.ball (extChartAt I p p) r₀ ⊆ (extChartAt I p).target)
+    (h_ω : ∀ {y : E}, y ∈ Metric.ball (extChartAt I p p) r₀ → ∀ (a : E), ∀ k ≤ 3,
+      ‖iteratedFDeriv ℝ k (fun z => ω_chart I tgt.«ω» p z a) y‖ ≤ C_ω * ‖a‖)
+    (h_J : ∀ {y : E}, y ∈ Metric.ball (extChartAt I p p) r₀ → ∀ k ≤ 3,
+      ‖iteratedFDeriv ℝ k (J_chart I tgt.J p) y‖ ≤ C_J)
+    {y : E} (hy : y ∈ Metric.ball (extChartAt I p p) r₀)
+    {v w : E} (hv : ‖v‖ ≤ 1) (hw : ‖w‖ ≤ 1) {k : ℕ} (hk : k ≤ 3) :
+    ‖iteratedFDeriv ℝ k (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w) y‖ ≤
+      8 * C_ω * C_J := by
+  let t := Metric.ball (extChartAt I p p) r₀
+  have ht_open : IsOpen t := isOpen_ball
+  let f1 : E → ℝ := fun z => ω_chart I tgt.«ω» p z v (J_chart I tgt.J p z w)
+  let f2 : E → ℝ := fun z => ω_chart I tgt.«ω» p z w (J_chart I tgt.J p z v)
+  have h1_cd : ContDiffOn ℝ ∞ f1 t :=
+    ((smooth_ω_apply I p v).clm_apply (smooth_J_apply I p w)).mono h_sub
+  have h2_cd : ContDiffOn ℝ ∞ f2 t :=
+    ((smooth_ω_apply I p w).clm_apply (smooth_J_apply I p v)).mono h_sub
+  have h12_cd : ContDiffWithinAt ℝ k (f1 + f2) t y :=
+    ((h1_cd.add h2_cd) y hy).of_le (by simp)
+  have h_eq : (fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w) =
+      (1 / 2 : ℝ) • (f1 + f2) := rfl
+  rw [h_eq, ← iteratedFDerivWithin_of_isOpen k ht_open hy,
+    iteratedFDerivWithin_const_smul_apply h12_cd ht_open.uniqueDiffOn hy,
+    iteratedFDerivWithin_add_apply ((h1_cd y hy).of_le (by simp)) ((h2_cd y hy).of_le (by simp))
+      ht_open.uniqueDiffOn hy,
+    iteratedFDerivWithin_of_isOpen k ht_open hy, iteratedFDerivWithin_of_isOpen k ht_open hy,
+    norm_smul, Real.norm_of_nonneg (by norm_num : (0 : ℝ) ≤ 1 / 2)]
+  have hvw := norm_iteratedFDeriv_ω_J_le I p hC_ω hC_J h_sub h_ω h_J hy hv hw hk
+  have hwv := norm_iteratedFDeriv_ω_J_le I p hC_ω hC_J h_sub h_ω h_J hy hw hv hk
+  linarith [norm_add_le (iteratedFDeriv ℝ k f1 y) (iteratedFDeriv ℝ k f2 y)]
+
+/-- Explicit construction of a `UniformNormalChartFamily` from explicit metric coercivity and
+atlas/tensor $C^3$ bounds (`0 sorryAx`). -/
+noncomputable def construct_uniform_normal_chart_family_of_bounds
+    [FiniteDimensional ℝ E]
+    (c_min r₀ L₀ C_ω C_J : ℝ)
+    (hc_min_pos : 0 < c_min)
+    (hc_coercive : ∀ (x : M) (v : E), c_min * ‖v‖ ^ 2 ≤ ClosedTameTarget.metric I x v v)
+    (hr₀_pos : 0 < r₀) (hL₀_ge : 1 ≤ L₀) (hC_ω_pos : 0 < C_ω) (hC_J_pos : 0 < C_J)
+    (h_ball_target : ∀ p : M, Metric.ball (extChartAt I p p) r₀ ⊆ (extChartAt I p).target)
+    (h_bilip : ∀ (p : M) {y₁ y₂ : E},
+      y₁ ∈ Metric.ball (extChartAt I p p) r₀ →
+      y₂ ∈ Metric.ball (extChartAt I p p) r₀ →
+      dist ((extChartAt I p).symm y₁) ((extChartAt I p).symm y₂) ≤ L₀ * ‖y₁ - y₂‖ ∧
+      ‖y₁ - y₂‖ ≤ L₀ * dist ((extChartAt I p).symm y₁) ((extChartAt I p).symm y₂))
+    (h_ω_c3 : ∀ (p : M) {y : E}, y ∈ Metric.ball (extChartAt I p p) r₀ →
+      ∀ (v : E), ∀ k ≤ 3, ‖iteratedFDeriv ℝ k (fun z => ω_chart I tgt.«ω» p z v) y‖ ≤ C_ω * ‖v‖)
+    (h_J_c3 : ∀ (p : M) {y : E}, y ∈ Metric.ball (extChartAt I p p) r₀ →
+      ∀ k ≤ 3, ‖iteratedFDeriv ℝ k (J_chart I tgt.J p) y‖ ≤ C_J) :
+    UniformNormalChartFamily I (M := M) := by
+  have : CompleteSpace E := FiniteDimensional.complete ℝ E
+  let C_Γ : ℝ := 3 * C_ω * C_J / c_min + 1
+  have hC_Γ_pos : 0 < C_Γ := by positivity
+  let r_norm : ℝ := min (r₀ / 2) (1 / (2 * C_Γ))
+  have hr_norm_pos : 0 < r_norm := lt_min (half_pos hr₀_pos) (by positivity)
+  have hr_norm_r₀ : (3 / 2 : ℝ) * r_norm ≤ r₀ := by
+    have h1 : r_norm ≤ r₀ / 2 := min_le_left _ _
+    linarith
+  have hΓ_norm_le : ∀ p : M, ‖christoffelFromKoszul I p (dmetricAt I p)‖ ≤ 3 * C_ω * C_J / c_min := by
+    intro p
+    have hp_mem : extChartAt I p p ∈ Metric.ball (extChartAt I p p) r₀ := mem_ball_self hr₀_pos
+    have h_bound := norm_christoffelFromKoszul_le I p (dmetricAt I p)
+      hc_min_pos (by positivity : 0 ≤ 2 * C_ω * C_J) (hc_coercive p)
+      (abs_dmetricAt_le I p hC_ω_pos.le hC_J_pos.le
+        (fun a => by
+          rw [← norm_iteratedFDeriv_zero (𝕜 := ℝ) (f := fun z => ω_chart I tgt.«ω» p z a)]
+          exact h_ω_c3 p hp_mem a 0 (Nat.zero_le 3))
+        (fun a => by
+          rw [← norm_iteratedFDeriv_one (𝕜 := ℝ) (f := fun z => ω_chart I tgt.«ω» p z a)]
+          exact h_ω_c3 p hp_mem a 1 (by decide))
+        (by
+          rw [← norm_iteratedFDeriv_zero (𝕜 := ℝ) (f := J_chart I tgt.J p)]
+          exact h_J_c3 p hp_mem 0 (Nat.zero_le 3))
+        (by
+          rw [← norm_iteratedFDeriv_one (𝕜 := ℝ) (f := J_chart I tgt.J p)]
+          exact h_J_c3 p hp_mem 1 (by decide)))
+    refine h_bound.trans (le_of_eq ?_)
+    ring
+  have hΓR : ∀ p : M, ‖christoffelFromKoszul I p (dmetricAt I p)‖ * r_norm ≤ 1 / 2 := by
+    intro p
+    have h1 : ‖christoffelFromKoszul I p (dmetricAt I p)‖ ≤ C_Γ := by
+      have := hΓ_norm_le p
+      dsimp [C_Γ]; linarith
+    have h2 : r_norm ≤ 1 / (2 * C_Γ) := min_le_right _ _
+    calc ‖christoffelFromKoszul I p (dmetricAt I p)‖ * r_norm
+        ≤ C_Γ * (1 / (2 * C_Γ)) := mul_le_mul h1 h2 hr_norm_pos.le hC_Γ_pos.le
+      _ = 1 / 2 := by field_simp
+  let D : ℝ := max 2 C_Γ
+  have hD2 : 2 ≤ D := le_max_left 2 C_Γ
+  have hDΓ : ∀ p : M, ‖christoffelFromKoszul I p (dmetricAt I p)‖ ≤ D := by
+    intro p
+    calc ‖christoffelFromKoszul I p (dmetricAt I p)‖ ≤ C_Γ := by
+          have := hΓ_norm_le p; dsimp [C_Γ]; linarith
+      _ ≤ D := le_max_right 2 C_Γ
+  have hD_pos : 0 < D := lt_of_lt_of_le two_pos hD2
+  let C_metric3 : ℝ := 48 * C_ω * C_J * D ^ 3
+  let C_J3 : ℝ := 6 * C_J * D ^ 3
+  let C_omega3 : ℝ := 6 * C_ω * D ^ 3
+  have h_metric_c3 : ∀ (p : M) (y : E), y ∈ Metric.ball (0 : E) r_norm →
+      ∀ (v w : E), ‖v‖ ≤ 1 → ‖w‖ ≤ 1 →
+        ‖iteratedFDeriv ℝ 3 (fun z => ClosedTameTarget.metric I
+          ((quantCenteredChart I p (christoffelFromKoszul I p (dmetricAt I p))
+            (christoffelFromKoszul_symm I p (dmetricAt I p) (dmetricAt_symm I p)) (hΓR p)).symm z) v w) y‖ ≤
+          C_metric3 := by
+    intro p y hy v w hv hw
+    let Γ := christoffelFromKoszul I p (dmetricAt I p)
+    have hΓ_symm := christoffelFromKoszul_symm I p (dmetricAt I p) (dmetricAt_symm I p)
+    let y₀ := extChartAt I p p
+    let g : E → ℝ := fun z => ClosedTameTarget.metric I ((extChartAt I p).symm z) v w
+    have hg : ContDiffOn ℝ ∞ g (Metric.ball y₀ r₀) :=
+      (smooth_metric_apply I p v w).mono (h_ball_target p)
+    have hst := quadraticTaylorMap_mapsTo_ball y₀ Γ hΓ_symm hr_norm_pos (hΓR p) hr_norm_r₀
+    have h_comp := norm_iteratedFDeriv_comp_taylor_le hΓ_symm (hΓR p) hD2 (hDΓ p) hg hst hy
+      (C := 8 * C_ω * C_J)
+      (fun i hi => norm_iteratedFDeriv_metric_le I p hC_ω_pos.le hC_J_pos.le (h_ball_target p)
+        (h_ω_c3 p) (h_J_c3 p) (hst hy) hv hw hi)
+    refine h_comp.trans (le_of_eq ?_)
+    dsimp [C_metric3]; ring
+  have h_J_c3_bound : ∀ (p : M) (y : E), y ∈ Metric.ball (0 : E) r_norm →
+      ∀ (v : E), ‖v‖ ≤ 1 →
+        ‖iteratedFDeriv ℝ 3 (fun z => tgt.J
+          ((quantCenteredChart I p (christoffelFromKoszul I p (dmetricAt I p))
+            (christoffelFromKoszul_symm I p (dmetricAt I p) (dmetricAt_symm I p)) (hΓR p)).symm z) v) y‖ ≤
+          C_J3 := by
+    intro p y hy v hv
+    let Γ := christoffelFromKoszul I p (dmetricAt I p)
+    have hΓ_symm := christoffelFromKoszul_symm I p (dmetricAt I p) (dmetricAt_symm I p)
+    let y₀ := extChartAt I p p
+    let g : E → E := fun z => J_chart I tgt.J p z v
+    have hg : ContDiffOn ℝ ∞ g (Metric.ball y₀ r₀) :=
+      (smooth_J_apply I p v).mono (h_ball_target p)
+    have hJ_cd : ContDiffOn ℝ ∞ (J_chart I tgt.J p) (Metric.ball y₀ r₀) :=
+      (tgt.J_smooth p).mono (h_ball_target p)
+    have hst := quadraticTaylorMap_mapsTo_ball y₀ Γ hΓ_symm hr_norm_pos (hΓR p) hr_norm_r₀
+    have h_comp := norm_iteratedFDeriv_comp_taylor_le hΓ_symm (hΓR p) hD2 (hDΓ p) hg hst hy
+      (C := C_J)
+      (fun i hi => by
+        calc ‖iteratedFDeriv ℝ i g (quadraticTaylorMap y₀ Γ y)‖
+            ≤ ‖v‖ * ‖iteratedFDeriv ℝ i (J_chart I tgt.J p) (quadraticTaylorMap y₀ Γ y)‖ :=
+              norm_iteratedFDeriv_clm_apply_const_le isOpen_ball hJ_cd (hst hy) v i
+          _ ≤ 1 * C_J := mul_le_mul hv (h_J_c3 p (hst hy) i hi) (norm_nonneg _) zero_le_one
+          _ = C_J := one_mul C_J)
+    exact h_comp
+  have h_omega_c3_bound : ∀ (p : M) (y : E), y ∈ Metric.ball (0 : E) r_norm →
+      ∀ (v w : E), ‖v‖ ≤ 1 → ‖w‖ ≤ 1 →
+        ‖iteratedFDeriv ℝ 3 (fun z => tgt.«ω»
+          ((quantCenteredChart I p (christoffelFromKoszul I p (dmetricAt I p))
+            (christoffelFromKoszul_symm I p (dmetricAt I p) (dmetricAt_symm I p)) (hΓR p)).symm z) v w) y‖ ≤
+          C_omega3 := by
+    intro p y hy v w hv hw
+    let Γ := christoffelFromKoszul I p (dmetricAt I p)
+    have hΓ_symm := christoffelFromKoszul_symm I p (dmetricAt I p) (dmetricAt_symm I p)
+    let y₀ := extChartAt I p p
+    let g : E → ℝ := fun z => ω_chart I tgt.«ω» p z v w
+    have hωv_cd : ContDiffOn ℝ ∞ (fun z => ω_chart I tgt.«ω» p z v) (Metric.ball y₀ r₀) :=
+      (smooth_ω_apply I p v).mono (h_ball_target p)
+    have hg : ContDiffOn ℝ ∞ g (Metric.ball y₀ r₀) :=
+      hωv_cd.clm_apply contDiffOn_const
+    have hst := quadraticTaylorMap_mapsTo_ball y₀ Γ hΓ_symm hr_norm_pos (hΓR p) hr_norm_r₀
+    have h_comp := norm_iteratedFDeriv_comp_taylor_le hΓ_symm (hΓR p) hD2 (hDΓ p) hg hst hy
+      (C := C_ω)
+      (fun i hi => by
+        have h_v : ‖iteratedFDeriv ℝ i (fun z => ω_chart I tgt.«ω» p z v) (quadraticTaylorMap y₀ Γ y)‖ ≤ C_ω := by
+          calc ‖iteratedFDeriv ℝ i (fun z => ω_chart I tgt.«ω» p z v) (quadraticTaylorMap y₀ Γ y)‖
+              ≤ C_ω * ‖v‖ := h_ω_c3 p (hst hy) v i hi
+            _ ≤ C_ω * 1 := by gcongr
+            _ = C_ω := mul_one C_ω
+        calc ‖iteratedFDeriv ℝ i g (quadraticTaylorMap y₀ Γ y)‖
+            ≤ ‖w‖ * ‖iteratedFDeriv ℝ i (fun z => ω_chart I tgt.«ω» p z v) (quadraticTaylorMap y₀ Γ y)‖ :=
+              norm_iteratedFDeriv_clm_apply_const_le isOpen_ball hωv_cd (hst hy) w i
+          _ ≤ 1 * C_ω := mul_le_mul hw h_v (norm_nonneg _) zero_le_one
+          _ = C_ω := one_mul C_ω)
+    exact h_comp
+  exact
+    { r_norm := r_norm
+      r_norm_pos := hr_norm_pos
+      chartAt := fun p =>
+        let Γ := christoffelFromKoszul I p (dmetricAt I p)
+        have hΓ_symm := christoffelFromKoszul_symm I p (dmetricAt I p) (dmetricAt_symm I p)
+        { chart := quantCenteredChart I p Γ hΓ_symm (hΓR p)
+          zero_mem_target := by
+            rw [quantCenteredChart_target I p Γ hΓ_symm hr_norm_pos (hΓR p) hr_norm_r₀ (h_ball_target p)]
+            exact mem_ball_self hr_norm_pos
+          p_mem_source := quantCenteredChart_p_mem_source I p Γ hΓ_symm hr_norm_pos (hΓR p)
+          map_center := quantCenteredChart_map_center I p Γ hΓ_symm hr_norm_pos (hΓR p)
+          symm_center := quantCenteredChart_symm_center I p Γ hΓ_symm (hΓR p)
+          ball_subset_target := by
+            rw [quantCenteredChart_target I p Γ hΓ_symm hr_norm_pos (hΓR p) hr_norm_r₀ (h_ball_target p)]
+          smooth_to := quantCenteredChart_smooth_to I p Γ hΓ_symm (hΓR p)
+          smooth_from := quantCenteredChart_smooth_from I p Γ hΓ_symm hr_norm_pos (hΓR p) hr_norm_r₀ (h_ball_target p)
+          fderiv_symm_zero := quantCenteredChart_fderiv_symm_zero I p Γ hΓ_symm hr_norm_pos (hΓR p) hr_norm_r₀ (h_ball_target p)
+          dmetric_zero := quantCenteredChart_dmetric_zero I p hr_norm_pos (hΓR p) hr_norm_r₀ (h_ball_target p)
+          metric_c3_bound := ⟨C_metric3, by positivity, h_metric_c3 p⟩
+          J_c3_bound := ⟨C_J3, by positivity, h_J_c3_bound p⟩
+          omega_c3_bound := ⟨C_omega3, by positivity, h_omega_c3_bound p⟩ }
+      L_dist := 2 * L₀
+      L_dist_ge := by linarith
+      dist_le_chart := fun p y hy => by
+        let Γ := christoffelFromKoszul I p (dmetricAt I p)
+        have hΓ_symm := christoffelFromKoszul_symm I p (dmetricAt I p) (dmetricAt_symm I p)
+        let y₀ := extChartAt I p p
+        have hst := quadraticTaylorMap_mapsTo_ball y₀ Γ hΓ_symm hr_norm_pos (hΓR p) hr_norm_r₀
+        have hy_ball : quadraticTaylorMap y₀ Γ y ∈ Metric.ball y₀ r₀ := hst hy
+        have h0_ball : y₀ ∈ Metric.ball y₀ r₀ := mem_ball_self hr₀_pos
+        have h_bi := (h_bilip p hy_ball h0_ball).1
+        have hp_left : (extChartAt I p).symm y₀ = p :=
+          (extChartAt I p).left_inv (mem_extChartAt_source p)
+        rw [hp_left] at h_bi
+        have h_quad := (quadraticTaylorMap_bilipschitz y₀ Γ hΓ_symm (hΓR p) hy (mem_ball_self hr_norm_pos)).2
+        rw [quadraticTaylorMap_zero, sub_zero] at h_quad
+        change dist ((extChartAt I p).symm (quadraticTaylorMap y₀ Γ y)) p ≤ (2 * L₀) * ‖y‖
+        have hL₀_nonneg : 0 ≤ L₀ := by linarith
+        calc dist ((extChartAt I p).symm (quadraticTaylorMap y₀ Γ y)) p
+            ≤ L₀ * ‖quadraticTaylorMap y₀ Γ y - y₀‖ := h_bi
+          _ ≤ L₀ * ((3 / 2 : ℝ) * ‖y‖) := mul_le_mul_of_nonneg_left h_quad hL₀_nonneg
+          _ ≤ (2 * L₀) * ‖y‖ := by nlinarith [norm_nonneg y]
+      chart_le_dist := fun p y hy => by
+        let Γ := christoffelFromKoszul I p (dmetricAt I p)
+        have hΓ_symm := christoffelFromKoszul_symm I p (dmetricAt I p) (dmetricAt_symm I p)
+        let y₀ := extChartAt I p p
+        have hst := quadraticTaylorMap_mapsTo_ball y₀ Γ hΓ_symm hr_norm_pos (hΓR p) hr_norm_r₀
+        have hy_ball : quadraticTaylorMap y₀ Γ y ∈ Metric.ball y₀ r₀ := hst hy
+        have h0_ball : y₀ ∈ Metric.ball y₀ r₀ := mem_ball_self hr₀_pos
+        have h_bi := (h_bilip p hy_ball h0_ball).2
+        have hp_left : (extChartAt I p).symm y₀ = p :=
+          (extChartAt I p).left_inv (mem_extChartAt_source p)
+        rw [hp_left] at h_bi
+        have h_quad := (quadraticTaylorMap_bilipschitz y₀ Γ hΓ_symm (hΓR p) hy (mem_ball_self hr_norm_pos)).1
+        rw [quadraticTaylorMap_zero, sub_zero] at h_quad
+        change ‖y‖ ≤ (2 * L₀) * dist ((extChartAt I p).symm (quadraticTaylorMap y₀ Γ y)) p
+        linarith
+      C_curv := C_metric3
+      C_curv_nonneg := by positivity
+      C_metric3 := C_metric3
+      C_J3 := C_J3
+      C_omega3 := C_omega3
+      metric_c3_uniform := h_metric_c3
+      J_c3_uniform := h_J_c3_bound
+      omega_c3_uniform := h_omega_c3_bound }
+
+/-- First-principles construction of a `UniformNormalChartFamily` on any `[BoundedChartedTarget I M]`
+with `[FiniteDimensional ℝ E]` (`0 sorryAx`). -/
+noncomputable def construct_uniform_normal_chart_family
+    [BoundedChartedTarget I M] [FiniteDimensional ℝ E] :
+    UniformNormalChartFamily I (M := M) := by
+  have h_all : ∃ P : ℝ × ℝ × ℝ × ℝ × ℝ,
+      0 < P.1 ∧
+      (∀ (x : M) (v : E), P.1 * ‖v‖ ^ 2 ≤ ClosedTameTarget.metric I x v v) ∧
+      0 < P.2.1 ∧ 1 ≤ P.2.2.1 ∧ 0 < P.2.2.2.1 ∧ 0 < P.2.2.2.2 ∧
+      (∀ p : M, Metric.ball (extChartAt I p p) P.2.1 ⊆ (extChartAt I p).target) ∧
+      (∀ (p : M) {y₁ y₂ : E},
+        y₁ ∈ Metric.ball (extChartAt I p p) P.2.1 →
+        y₂ ∈ Metric.ball (extChartAt I p p) P.2.1 →
+        dist ((extChartAt I p).symm y₁) ((extChartAt I p).symm y₂) ≤ P.2.2.1 * ‖y₁ - y₂‖ ∧
+        ‖y₁ - y₂‖ ≤ P.2.2.1 * dist ((extChartAt I p).symm y₁) ((extChartAt I p).symm y₂)) ∧
+      (∀ (p : M) {y : E}, y ∈ Metric.ball (extChartAt I p p) P.2.1 →
+        ∀ (v : E), ∀ k ≤ 3, ‖iteratedFDeriv ℝ k (fun z => ω_chart I tgt.«ω» p z v) y‖ ≤ P.2.2.2.1 * ‖v‖) ∧
+      (∀ (p : M) {y : E}, y ∈ Metric.ball (extChartAt I p p) P.2.1 →
+        ∀ k ≤ 3, ‖iteratedFDeriv ℝ k (J_chart I tgt.J p) y‖ ≤ P.2.2.2.2) := by
+    obtain ⟨c_min, hc_min_pos, hc_coercive⟩ := exists_metric_coercive I (M := M)
+    obtain ⟨r₀, L₀, C_ω, C_J, hr₀_pos, hL₀_ge, hC_ω_pos, hC_J_pos,
+      h_ball_target, h_bilip, h_ω_c3, h_J_c3⟩ :=
+      BoundedChartedTarget.exists_chart_bounds (I := I) (M := M)
+    exact ⟨(c_min, r₀, L₀, C_ω, C_J), hc_min_pos, hc_coercive, hr₀_pos, hL₀_ge, hC_ω_pos, hC_J_pos,
+      h_ball_target, h_bilip, h_ω_c3, h_J_c3⟩
+  rcases Classical.indefiniteDescription _ h_all with
+    ⟨⟨c_min, r₀, L₀, C_ω, C_J⟩, hc_min_pos, hc_coercive, hr₀_pos, hL₀_ge, hC_ω_pos, hC_J_pos,
+      h_ball_target, h_bilip, h_ω_c3, h_J_c3⟩
+  exact construct_uniform_normal_chart_family_of_bounds I c_min r₀ L₀ C_ω C_J
+    hc_min_pos hc_coercive hr₀_pos hL₀_ge hC_ω_pos hC_J_pos h_ball_target h_bilip h_ω_c3 h_J_c3
+
+/-- First-principles existence of a `UniformNormalChartFamily` on any `[BoundedChartedTarget I M]`
+with `[FiniteDimensional ℝ E]` (`0 sorryAx`). -/
+theorem exists_uniform_normal_chart_family_of_bounded_geometry
+    [BoundedChartedTarget I M] [FiniteDimensional ℝ E] :
+    Nonempty (UniformNormalChartFamily I (M := M)) :=
+  ⟨construct_uniform_normal_chart_family I⟩
+
+end ConstructUniformNormalChartFamily
+
 
 --------------------------------------------------------------------------------
 -- SECTION 4: Local-Chart PDE Certificates (Milestone N3 Bridge Signatures)
 --------------------------------------------------------------------------------
 
 /-- Local-chart PDE certificates certified alongside a uniform normal chart family.
-All oscillation, decay, and singularity removal propositions are properly conditioned on
-J-holomorphicity, finite energy, and non-degenerate radii. -/
+
+All seven fields are true theorems about compact tame targets (none is proved here).
+Earlier versions of this structure contained statements that are false on standard targets and
+have been corrected (see `certificate_free_audit.md`, items D1-D5):
+* `h_weitz_curv` no longer ties the Bochner constant to the constants of `fam`;
+* `h_hit_exit_prop`, `h_osc_prop`, `h_decay_prop` use target-dependent constants and, for the
+  oscillation and decay bounds, a small-energy hypothesis;
+* `h_aa_prop` now requires the sequence to be `J`-holomorphic (without it, a constant sequence
+  of discontinuous maps, whose `mfderiv` and hence energy density vanish, is a counterexample). -/
 structure UniformNormalChartCertificates (fam : UniformNormalChartFamily I (M := M)) : Prop where
-  /-- Bochner–Weitzenböck curvature decomposition property at chart centers -/
+  /-- Bochner–Weitzenböck decomposition with a target constant `b`
+  (equivalent to the Bochner inequality `Δe ≥ -b e²`, cf. `Analysis.decomposition_of_bochner_lower_bound`). -/
   h_weitz_curv :
+    ∃ b : ℝ, 0 ≤ b ∧
     ∀ (u : CP1 → M),
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
       ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
@@ -1181,37 +3679,14 @@ structure UniformNormalChartCertificates (fam : UniformNormalChartFamily I (M :=
           Analysis.laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
             hessNorm ^ 2 + curvTerm ∧
           |curvTerm| ≤
-            (fam.C_curv + fam.C_metric3 ^ 2 + fam.C_J3 ^ 2 + 1) * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
+            b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
             0 * (riemannianEnergyDensity I u (stereo_chart.symm w))
-  /-- Boundary-hit monotonicity and Stokes ball exit property -/
-  h_hit_exit_prop :
-    (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 → x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) ∧
-    (∀ (u : CP1 → M) (x : M),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x))
-  /-- Cylindrical collar oscillation property for J-holomorphic curves with non-degenerate separation -/
-  h_osc_prop :
-    ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
-      0 < r → 2 * r < R / 2 →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      Analysis.SatisfiesCylinderCollarOscillation I u a r R
-  /-- Cylindrical exponential energy decay property for J-holomorphic curves -/
-  h_decay_prop :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
-      0 < r → 2 * r < R →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      Analysis.SatisfiesCylinderEnergyDecay I u center r R
+  /-- Boundary-hit monotonicity and small-ball exit with target constants `c, r₀ > 0`. -/
+  h_hit_exit_prop : Analysis.HitExitProperty I M
+  /-- Small-energy collar oscillation bound with target constants `C, ε > 0`. -/
+  h_osc_prop : Analysis.CollarOscillationProperty I M
+  /-- Small-energy cylinder energy decay with target constants `C₀, a, ε > 0`. -/
+  h_decay_prop : Analysis.CylinderEnergyDecayProperty I M
   /-- Puncture Sobolev extension across removable singularity for finite-energy J-holomorphic curves -/
   h_punc_prop :
     ∀ (u : CP1 → M) (p : CP1),
@@ -1223,9 +3698,11 @@ structure UniformNormalChartCertificates (fam : UniformNormalChartFamily I (M :=
     ∀ (u : CP1 → M) (Ω : Set CP1) (_hΩ : IsOpen Ω)
       (_h_weak : Analysis.WeakJHolomorphicOn I u Ω) (n : ℕ),
       ContMDiffOn I_CP1 I (n : WithTop ℕ∞) u Ω
-  /-- Smooth local Arzelà-Ascoli subsequence extraction property -/
+  /-- Smooth local Arzelà-Ascoli subsequence extraction for `J`-holomorphic sequences with
+  uniform local energy-density bounds. -/
   h_aa_prop :
     ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
       (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C),
       ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
         SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω
@@ -1246,60 +3723,32 @@ theorem discharge_h_weitz
             |curvTerm| ≤
               b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
               c * (riemannianEnergyDensity I u (stereo_chart.symm w)) := by
-  let b := fam.C_curv + fam.C_metric3 ^ 2 + fam.C_J3 ^ 2 + 1
-  have hb : 0 ≤ b := by
-    dsimp [b]
-    have h1 := fam.C_curv_nonneg
-    have h2 : 0 ≤ fam.C_metric3 ^ 2 := sq_nonneg fam.C_metric3
-    have h3 : 0 ≤ fam.C_J3 ^ 2 := sq_nonneg fam.C_J3
-    linarith
-  refine ⟨b, 0, hb, rfl, certs.h_weitz_curv⟩
+  obtain ⟨b, hb, h⟩ := certs.h_weitz_curv
+  exact ⟨b, 0, hb, rfl, h⟩
 
 omit [I.Boundaryless] in
-/-- Discharge of `h_hit_exit` (Boundary-hit monotonicity and ball exit) via normal charts. -/
+/-- Discharge of `h_hit_exit` (boundary-hit monotonicity and small-ball exit) via normal charts. -/
 theorem discharge_h_hit_exit
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 → x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) ∧
-    (∀ (u : CP1 → M) (x : M),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
+    Analysis.HitExitProperty I M :=
   certs.h_hit_exit_prop
 
 omit [I.Boundaryless] in
-/-- Discharge of `h_osc` (Cylindrical collar oscillation) via normal charts. -/
+/-- Discharge of `h_osc` (small-energy collar oscillation) via normal charts. -/
 theorem discharge_h_osc
     (fam : UniformNormalChartFamily I (M := M))
-    (certs : UniformNormalChartCertificates I fam)
-    (u : CP1 → M) (a : ℂ) (r R : ℝ)
-    (hr : 0 < r)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
-    Analysis.SatisfiesCylinderCollarOscillation I u a r R := by
-  by_cases h_le : R / 2 ≤ 2 * r
-  · exact Analysis.satisfiesCylinderCollarOscillation_of_le I u a h_le
-  · exact certs.h_osc_prop u a r R hr (not_le.mp h_le) hu
+    (certs : UniformNormalChartCertificates I fam) :
+    Analysis.CollarOscillationProperty I M :=
+  certs.h_osc_prop
 
 omit [I.Boundaryless] in
-/-- Discharge of `h_decay` (Cylindrical exponential energy decay) via normal charts. -/
+/-- Discharge of `h_decay` (small-energy cylindrical energy decay) via normal charts. -/
 theorem discharge_h_decay
     (fam : UniformNormalChartFamily I (M := M))
-    (certs : UniformNormalChartCertificates I fam)
-    (u : CP1 → M) (center : ℂ) (r R : ℝ)
-    (hr : 0 < r) (h2rR : 2 * r < R)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
-    Analysis.SatisfiesCylinderEnergyDecay I u center r R :=
-  certs.h_decay_prop u center r R hr h2rR hu
+    (certs : UniformNormalChartCertificates I fam) :
+    Analysis.CylinderEnergyDecayProperty I M :=
+  certs.h_decay_prop
 
 omit [I.Boundaryless] in
 /-- Discharge of `h_punc` (Puncture Sobolev extension across removable singularity) via normal charts. -/
@@ -1323,22 +3772,26 @@ theorem discharge_h_tower
   certs.h_tower_prop u Ω _hΩ _h_weak n
 
 omit [I.Boundaryless] in
-/-- Discharge of `h_aa` (Smooth local Arzelà-Ascoli extraction) via normal charts and good atlas. -/
+/-- Discharge of `h_aa` (Smooth local Arzelà-Ascoli extraction for `J`-holomorphic sequences). -/
 theorem discharge_h_aa
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam)
     (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+    (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
     (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) :
     ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
       SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
-  certs.h_aa_prop u_seq Ω _h_open _h_grad_bdd
+  certs.h_aa_prop u_seq Ω _h_open _h_jhol _h_grad_bdd
 
 --------------------------------------------------------------------------------
--- SECTION 4b: First-Principles Contract Theorems (Milestone M1 Deliverables)
+-- SECTION 4b: Contract-named re-exports (Milestone M1/M2 names)
 --------------------------------------------------------------------------------
+
+/-! These `*_first_principles` theorems are re-exports of the projections above under the contract
+names used by the milestone plans. They still take `certs` as a hypothesis. -/
 
 omit [I.Boundaryless] in
-/-- First-principles discharge of `h_weitz` (Contract M1 / Interface Contracts). -/
+/-- Contract-named re-export of `discharge_h_weitz`. -/
 theorem discharge_h_weitz_first_principles
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
@@ -1356,78 +3809,38 @@ theorem discharge_h_weitz_first_principles
   discharge_h_weitz I fam certs
 
 omit [I.Boundaryless] in
-/-- First-principles discharge of `h_hit_exit` (Contract M1 / Interface Contracts). -/
+/-- Contract-named re-export of `discharge_h_hit_exit`. -/
 theorem discharge_h_hit_exit_first_principles
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 → x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) ∧
-    (∀ (u : CP1 → M) (x : M),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
+    Analysis.HitExitProperty I M :=
   discharge_h_hit_exit I fam certs
 
 omit [I.Boundaryless] in
-/-- First-principles discharge of `h_osc` (Contract M2 / Interface Contracts).
-Annular collar oscillation bound via normal charts. -/
+/-- Contract-named re-export of `discharge_h_osc`. -/
 theorem discharge_h_osc_first_principles
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ) (hr : 0 < r)
-      (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
-        dist (u z₁) (u z₂) ≤ 4 * Real.sqrt (energyMeasure I u (annulus_at a r R)) :=
-  fun u a r R hr hu => discharge_h_osc I fam certs u a r R hr hu
+    Analysis.CollarOscillationProperty I M :=
+  discharge_h_osc I fam certs
 
 omit [I.Boundaryless] in
-/-- First-principles discharge of `h_decay` (Contract M2 / Interface Contracts).
-Cylindrical exponential energy decay via normal charts. -/
+/-- Contract-named re-export of `discharge_h_decay`. -/
 theorem discharge_h_decay_first_principles
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ) (hr : 0 < r) (h2rR : 2 * r < R)
-      (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^(1 : ℝ) + (r₂ / R)^(1 : ℝ)) * energyMeasure I u (annulus_at center r R) :=
-  fun u center r R hr h2rR hu r₁ r₂ hr₁ hr₁₂ hr₂ =>
-    discharge_h_decay I fam certs u center r R hr h2rR hu r₁ r₂ hr₁ hr₁₂ hr₂
+    Analysis.CylinderEnergyDecayProperty I M :=
+  discharge_h_decay I fam certs
 
 omit [I.Boundaryless] in
-/-- First-principles discharge of `h_decay` with natural exponent 1. -/
-theorem discharge_h_decay_first_principles_pow_nat
-    (fam : UniformNormalChartFamily I (M := M))
-    (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ) (hr : 0 < r) (h2rR : 2 * r < R)
-      (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^1 + (r₂ / R)^1) * energyMeasure I u (annulus_at center r R) := by
-  intro u center r R hr h2rR hu r₁ r₂ hr₁ hr₁₂ hr₂
-  have h := discharge_h_decay_first_principles I fam certs u center r R hr h2rR hu r₁ r₂ hr₁ hr₁₂ hr₂
-  rw [Real.rpow_one, Real.rpow_one] at h
-  rw [pow_one, pow_one]
-  exact h
-
-omit [I.Boundaryless] in
-/-- First-principles discharge of `h_punc` (Contract M2 / Interface Contracts).
-Finite-energy curve on CP1 \ {p} extends continuously and as a weak C¹ J-holomorphic curve across p. -/
+/-- Contract-named re-export of `discharge_h_punc`: a finite-energy curve on CP1 \ {p} extends
+continuously and as a weak C¹ J-holomorphic curve across p. -/
 theorem discharge_h_punc_first_principles
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
     ∀ (u : CP1 → M) (p : CP1)
-      (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
-      (h_energy : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤),
+      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+      (_h_energy : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤),
       ∃ (u_ext : CP1 → M),
         Continuous u_ext ∧
         Analysis.WeakJHolomorphicOn I u_ext Set.univ ∧
@@ -1451,12 +3864,11 @@ theorem discharge_removal_of_singularities
     (fun u_ext hu_weak n => discharge_h_tower I fam certs u_ext Set.univ isOpen_univ hu_weak n)
 
 --------------------------------------------------------------------------------
--- SECTION 4c: First-Principles Regularity & Compactness (Milestone M3 Deliverables)
+-- SECTION 4c: Regularity & Compactness re-exports (Milestone M3 names)
 --------------------------------------------------------------------------------
 
 omit [I.Boundaryless] in
-/-- First-principles discharge of `h_tower` (Contract M3 / Interface Contracts).
-Continuous weak J-holomorphic maps satisfy the finite-order Cⁿ regularity tower for every n. -/
+/-- Contract-named re-export of `discharge_h_tower`. -/
 theorem discharge_h_tower_first_principles
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
@@ -1466,12 +3878,12 @@ theorem discharge_h_tower_first_principles
   discharge_h_tower I fam certs
 
 omit [I.Boundaryless] in
-/-- First-principles discharge of `h_aa` (Contract M3 / Interface Contracts).
-Countable Cantor diagonal extraction across finite good atlas yields smooth local convergence. -/
+/-- Contract-named re-export of `discharge_h_aa`. -/
 theorem discharge_h_aa_first_principles
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
     ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
       (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C),
       ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
         SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
@@ -1499,7 +3911,7 @@ theorem discharge_local_smooth_compactness_of_arzela_ascoli
       SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω ∧
       JHolomorphicOn (I := I) (I_dom := I_CP1) u_lim Ω :=
   Analysis.local_smooth_compactness_of_arzela_ascoli I u_seq Ω h_open h_jhol h_grad_bdd
-    (fun h => certs.h_aa_prop u_seq Ω h_open h)
+    (fun h => certs.h_aa_prop u_seq Ω h_open h_jhol h)
 
 --------------------------------------------------------------------------------
 -- SECTION 5: Companion Mathematical Limit Theorems (Tier 2 Verification)
@@ -1602,9 +4014,9 @@ theorem discharge_h_aa_const
   ⟨Bookkeeping.SubseqMap.id, fun _ => c, smoothLocalConvergesOn_const_map I c Ω⟩
 
 omit [I.Boundaryless] in
-/-- Constructive satisfiability theorem: For any target manifold where curves reduce to constants,
-or on the constant curve subspace, `UniformNormalChartCertificates` is non-vacuously inhabited (`0 sorryAx`).
-Demonstrates that `UniformNormalChartCertificates` is consistent and non-empty. -/
+/-- Satisfiability check: on targets where every `J`-holomorphic sphere is constant,
+`UniformNormalChartCertificates` is inhabited, given the remaining per-target inputs
+(`h_punc_const`, `h_tower_const`, `h_aa_extract`) (`0 sorryAx`). -/
 theorem conditioned_certificates_inhabited_of_all_const
     (fam : UniformNormalChartFamily I (M := M))
     (h_all_const : ∀ (u : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ → ∃ c : M, ∀ z, u z = c)
@@ -1614,36 +4026,34 @@ theorem conditioned_certificates_inhabited_of_all_const
     (h_tower_const : ∀ (u : CP1 → M) (Ω : Set CP1), IsOpen Ω → Analysis.WeakJHolomorphicOn I u Ω →
       ∃ c : M, EqOn u (fun _ => c) Ω)
     (h_aa_extract : ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
       (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C),
       ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
         SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω) :
     Nonempty (UniformNormalChartCertificates I fam) := by
   refine ⟨⟨?_, ?_, ?_, ?_, ?_, ?_, h_aa_extract⟩⟩
-  · intro u hu
+  · refine ⟨0, le_rfl, fun u hu => ?_⟩
     obtain ⟨c, hc⟩ := h_all_const u hu
     have hu_eq : u = fun _ => c := funext hc
     subst hu_eq
-    refine ⟨Analysis.contDiff_energy_density_chart_const I c, fun w =>
-      Analysis.bochner_curvature_decomposition_const I
-        (fam.C_curv + fam.C_metric3 ^ 2 + fam.C_J3 ^ 2 + 1) 0 c w⟩
-  · constructor
-    · intro u x r hr hr1 hx hu h_nonconst z_hit hz_front hz_dist
+    exact ⟨Analysis.contDiff_energy_density_chart_const I c, fun w =>
+      Analysis.bochner_curvature_decomposition_const I 0 0 c w⟩
+  · refine ⟨1, 1, one_pos, one_pos, ?_, ?_⟩
+    · intro u x r _ _ _ hu h_nonconst _ _ _
       exfalso
-      obtain ⟨c, hc⟩ := h_all_const u hu
-      exact h_nonconst ⟨c, hc⟩
-    · intro u x hx hu h_nonconst
+      exact h_nonconst (h_all_const u hu)
+    · intro u x _ hu h_nonconst
       exfalso
-      obtain ⟨c, hc⟩ := h_all_const u hu
-      exact h_nonconst ⟨c, hc⟩
-  · intro u a r R hr h2r hu
+      exact h_nonconst (h_all_const u hu)
+  · refine ⟨1, 1, one_pos, one_pos, fun u a r R _ _ hu _ => ?_⟩
     obtain ⟨c, hc⟩ := h_all_const u hu
     have hu_eq : u = fun _ => c := funext hc
-    rw [hu_eq]
-    exact Analysis.satisfiesCylinderCollarOscillation_const I c a r R
-  · intro u center r R hr h2r hu
+    subst hu_eq
+    exact Analysis.satisfiesCylinderCollarOscillationWith_const I zero_le_one c a r R
+  · refine ⟨1, 1, 1, one_pos, one_pos, one_pos, fun u center r R _ _ hu _ => ?_⟩
     obtain ⟨c, hc⟩ := h_all_const u hu
     have hu_eq : u = fun _ => c := funext hc
-    rw [hu_eq]
+    subst hu_eq
     exact Analysis.satisfiesCylinderEnergyDecay_const I c center r R
   · intro u p hu he
     obtain ⟨c, hc⟩ := h_punc_const u p hu he
@@ -1654,71 +4064,80 @@ theorem conditioned_certificates_inhabited_of_all_const
       contMDiffOn_const
     exact h_c_smooth.congr hc
 
-omit [I.Boundaryless] in
-/-- First-principles synthesis constructor assembling `UniformNormalChartCertificates I fam`
-directly from the Phase 1, Phase 2, and Phase 3 coordinate-level PDE bridges (`0 sorryAx`):
-1. `h_weitz_curv` via `Analysis.bochner_curvature_decomposition_of_centered_normal_chart`
-2. `h_hit_exit_prop` via `Analysis.boundary_hit_energy_of_radial_diff_ineq`
-3. `h_osc_prop` via `Analysis.satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds`
-4. `h_decay_prop` via `Analysis.energy_exponential_decay`
-5. `h_punc_prop` via `Analysis.exists_limit_point_of_puncture` +
-   `Analysis.weakJHolomorphicOn_univ_of_c1_and_continuousAt_cr_at_puncture`
-6. `h_tower_prop` via `Analysis.contMDiffOn_nat_of_weakJHolomorphicOn_aux` +
-   `Analysis.contMDiffOn_succ_of_local_laplacian_gain`
-7. `h_aa_prop` via `Analysis.equicontinuous_of_local_lipschitz_on_domain` +
-   `Analysis.exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_moebius_core` -/
-def UniformNormalChartCertificates.of_first_principles
+/-- Assembly of `UniformNormalChartCertificates I fam` from the remaining open analytic inputs,
+using the coordinate-level reductions proved in Phases 1–3 and the Steps 1–3 first-principles
+theorems (`Analysis.punctured_oscillation_of_local_collar_oscillation`,
+`local_lipschitz_of_bounded_energy_density`, `Analysis.local_collar_oscillation_of_bounded_modulus_and_decay`,
+`Analysis.smallBallExit_of_contDiff_stereo_and_exit`, and
+`Analysis.exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_local_jet_bounds`) (`0 sorryAx`).
+
+Both `h_punc_osc` (vanishing punctured oscillation for all `p : CP1`) and `h_aa_lip`
+(local Lipschitz equicontinuity from bounded energy density) are proved here from first principles
+rather than assumed as hypotheses, `h_osc_slices` is reduced to **bounded-modulus rings**
+(`R ≤ 18 * r`) via dyadic sub-annulus chaining, and `h_aa_jets` reduces full frame-invariant
+`SmoothLocalConvergesOn` (eliminating `MoebiusFrame` and all 5 clauses of `CoreSmoothLocalConvergesOn`)
+to local chart higher-jet bounds `Analysis.HasLocalChartJetBoundsAt` on `Ω`.
+The reductions used are:
+1. `h_weitz_curv` ⇐ the Bochner inequality `h_bochner`
+   (`Analysis.bochner_curvature_decomposition_of_lower_bound`);
+2. `h_hit_exit_prop` ⇐ the radial differential inequality `h_hit_ode` plus north-pole continuity and
+   small-ball exit (`Analysis.boundary_hit_energy_of_radial_diff_ineq` and
+   `Analysis.smallBallExit_of_contDiff_stereo_and_exit`);
+3. `h_osc_prop` ⇐ bounded-modulus (`R ≤ 18 * r`) radial/angular slice bounds `h_osc_slices`
+   plus local cylinder energy decay `h_decay`
+   (`Analysis.satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds` and
+   `Analysis.local_collar_oscillation_of_bounded_modulus_and_decay`);
+4. `h_decay_prop` ⇐ local cylinder energy decay `h_decay`;
+5. `h_punc_prop` ⇐ bounded-modulus (`R ≤ 18 * r`) slice bounds `h_osc_slices` + `h_decay`
+   (via `Analysis.local_collar_oscillation_of_bounded_modulus_and_decay`,
+   `Analysis.punctured_oscillation_of_local_collar_oscillation`, and
+   `Analysis.exists_limit_point_of_puncture`) plus `C¹` regularity of the extension `h_punc_c1`
+   (`Analysis.weakJHolomorphicOn_univ_of_c1_and_continuousAt_cr_at_puncture`);
+6. `h_tower_prop` ⇐ the local one-step regularity gain `h_tower_step`
+   (`Analysis.contMDiffOn_nat_of_weakJHolomorphicOn_aux`);
+7. `h_aa_prop` ⇐ `local_lipschitz_of_bounded_energy_density` plus local chart higher-jet bounds `h_aa_jets`
+   (`Analysis.exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_local_jet_bounds`). -/
+theorem UniformNormalChartCertificates.of_first_principles
+    [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M))
-    (h_ed_smooth : ∀ (u : CP1 → M),
+    (h_bochner : ∃ b : ℝ, 0 ≤ b ∧ ∀ (u : CP1 → M),
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))
-    (h_weitz_chart : ∀ (u : CP1 → M),
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      ∀ (w : ℂ), ∃ (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E) (C_m C_J : ℝ),
-        0 ≤ C_m ∧ 0 ≤ C_J ∧
-        2 * C_m + 4 * C_J ^ 2 + 8 * C_J ≤ fam.C_curv + fam.C_metric3 ^ 2 + fam.C_J3 ^ 2 + 1 ∧
-        v 0 = 0 ∧
-        (∀ y : E, ‖y‖ ^ 2 ≤ g 0 y y) ∧
-        (∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => g z y y) 0‖ ≤ C_m * ‖y‖ ^ 2) ∧
-        (∀ y : E, ‖fderiv ℝ (fun z => J z y) 0‖ ≤ C_J * ‖y‖) ∧
-        (∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => J z y) 0‖ ≤ C_J * ‖y‖) ∧
-        Analysis.localEnergyDensity v g 0 = riemannianEnergyDensity I u (stereo_chart.symm w) ∧
-        Analysis.laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
-          Analysis.laplacian2D (Analysis.localEnergyDensity v g) 0 ∧
-        Analysis.laplacian2D (Analysis.localEnergyDensity v g) 0 =
-          ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 + Analysis.K_tensor g J v)
-    (h_hit_ode : ∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 → x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        ∃ (F F' : ℝ → ℝ) (r_min : ℝ),
-          0 < r_min ∧ r_min ≤ r ∧
-          (∀ t ∈ Icc r_min r, HasDerivAt F (F' t) t) ∧
-          (∀ t ∈ Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t) ∧
-          r_min ^ 2 ≤ F r_min ∧
-          F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)))
-    (h_exit : ∀ (u : CP1 → M) (x : M),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x))
-    (h_osc_slices : ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
-      0 < r → 2 * r < R / 2 →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
-        ∃ z_mid : CP1,
-          dist (u z₁) (u z_mid) ≤ 2 * Real.sqrt (energyMeasure I u (annulus_at a r R)) ∧
-          dist (u z_mid) (u z₂) ≤ 2 * Real.sqrt (energyMeasure I u (annulus_at a r R)))
-    (h_decay : ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
-      0 < r → 2 * r < R →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      Analysis.SatisfiesCylinderEnergyDecay I u center r R)
-    (h_punc_osc : ∀ (u : CP1 → M) (p : CP1),
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}) →
-      energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤ →
-      ∀ ε > 0, ∃ U ∈ 𝓝 p, ∀ z₁ ∈ U \ {p}, ∀ z₂ ∈ U \ {p}, dist (u z₁) (u z₂) < ε)
+      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+      ∀ (w : ℂ), -b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 ≤
+        Analysis.laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w)
+    (h_hit_ode : ∃ (c r₀ : ℝ), 0 < c ∧ 0 < r₀ ∧
+      (∀ (u : CP1 → M) (x : M) (r : ℝ),
+        0 < r → r ≤ r₀ → x ∈ Set.range u →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        (¬ ∃ c' : M, ∀ z, u z = c') →
+        ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
+          dist (u z_hit) x = r →
+          ∃ (F F' : ℝ → ℝ) (r_min : ℝ),
+            0 < r_min ∧ r_min ≤ r ∧
+            (∀ t ∈ Icc r_min r, HasDerivAt F (F' t) t) ∧
+            (∀ t ∈ Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t) ∧
+            c * r_min ^ 2 ≤ F r_min ∧
+            F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r))) ∧
+      (∀ (u : CP1 → M),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        (¬ ∃ c' : M, ∀ z, u z = c') →
+        ContinuousAt (riemannianEnergyDensity I u) north_pole ∧
+        ∀ x ∈ Set.range u, ∃ z : CP1, r₀ ≤ dist (u z) x))
+    (h_osc_slices : ∃ (C ε : ℝ), 0 < C ∧ 0 < ε ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at a r R) →
+        energyMeasure I u (annulus_at a r R) < ε →
+        ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+          ∃ z_mid : CP1,
+            dist (u z₁) (u z_mid) ≤ (C / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)) ∧
+            dist (u z_mid) (u z₂) ≤ (C / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)))
+    (h_decay : ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+      ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at center r R) →
+        energyMeasure I u (annulus_at center r R) < ε_neck →
+        Analysis.SatisfiesCylinderEnergyDecayWith I C₀ a_decay u center r R)
     (h_punc_c1 : ∀ (u : CP1 → M) (p : CP1),
       JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}) →
       energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤ →
@@ -1733,70 +4152,183 @@ def UniformNormalChartCertificates.of_first_principles
       IsOpen Ω → Analysis.WeakJHolomorphicOn I u Ω →
       ∀ k : ℕ, ContMDiffOn I_CP1 I (k : WithTop ℕ∞) u Ω →
         ∀ z ∈ Ω, ContMDiffWithinAt I_CP1 I ((k + 1 : ℕ) : WithTop ℕ∞) u Ω z)
-    (h_aa_lip : ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1),
+    (h_aa_jets : ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1),
       IsOpen Ω →
-      (∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) →
-      ∀ z₀ ∈ Ω, ∃ ρ > 0, ∃ L ≥ 0, ∀ n : ℕ, ∀ z ∈ Metric.ball z₀ ρ,
-        dist (u_seq n z) (u_seq n z₀) ≤ L * dist z z₀)
-    (h_aa_core : ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1),
-      IsOpen Ω →
+      (∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω) →
       (∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) →
       ∀ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+        ContinuousOn u_lim Ω →
+        (∀ K ⊆ Ω, IsCompact K →
+          TendstoUniformlyOn (fun n => u_seq (σ.1 n)) u_lim Filter.atTop K) →
         (∀ z ∈ Ω, Filter.Tendsto (fun n => u_seq (σ.1 n) z) Filter.atTop (𝓝 (u_lim z))) →
-        ∀ ϕ : MoebiusFrame,
-          CoreSmoothLocalConvergesOn I
-            (fun n => u_seq (σ.1 n) ∘ ϕ.toHomeo) (u_lim ∘ ϕ.toHomeo) (ϕ.toHomeo ⁻¹' Ω)) :
+        ∀ z ∈ Ω, Analysis.HasLocalChartJetBoundsAt I (fun n => u_seq (σ.1 n)) u_lim z) :
     UniformNormalChartCertificates I fam where
-  h_weitz_curv u hu := ⟨h_ed_smooth u hu, fun w => by
-    obtain ⟨v, g, J, C_m, C_J, hCm, hCJ, hb, hv0, hg_eucl, hg2, hJ1, hJ2, h_ed, h_lap, h_exp⟩ :=
-      h_weitz_chart u hu w
-    exact Analysis.bochner_curvature_decomposition_of_centered_normal_chart
-      I u w v g J hCm hCJ hb hv0 hg_eucl hg2 hJ1 hJ2 h_ed h_lap h_exp⟩
-  h_hit_exit_prop := ⟨fun u x r hr hr1 hx hu h_nonconst z_hit hz_front hz_dist => by
+  h_weitz_curv := by
+    obtain ⟨b, hb, h⟩ := h_bochner
+    exact ⟨b, hb, fun u hu => ⟨(h u hu).1, fun w =>
+      Analysis.bochner_curvature_decomposition_of_lower_bound I u w hb ((h u hu).2 w)⟩⟩
+  h_hit_exit_prop := by
+    obtain ⟨b, _hb, h_boch⟩ := h_bochner
+    obtain ⟨c, r₀, hc, hr₀, h_ode, h_exit⟩ := h_hit_ode
+    refine ⟨c, r₀, hc, hr₀, ?_,
+      Analysis.smallBallExit_of_contDiff_stereo_and_exit I (fun u hu => (h_boch u hu).1) h_exit⟩
+    intro u x r hr hr0 hx hu h_nonconst z_hit hz_front hz_dist
     obtain ⟨F, F', r_min, hr_min, hle, h_deriv, h_ineq, h_init, h_sublevel⟩ :=
-      h_hit_ode u x r hr hr1 hx hu h_nonconst z_hit hz_front hz_dist
+      h_ode u x r hr hr0 hx hu h_nonconst z_hit hz_front hz_dist
     exact Analysis.boundary_hit_energy_of_radial_diff_ineq
-      I u x F F' hr_min hle h_deriv h_ineq h_init h_sublevel, h_exit⟩
-  h_osc_prop u a r R hr h2r hu :=
-    Analysis.satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds
-      I u a r R (h_osc_slices u a r R hr h2r hu)
-  h_decay_prop u center r R hr h2r hu :=
-    Analysis.energy_exponential_decay I u center r R (h_decay u center r R hr h2r hu)
+      I u x F F' hr_min hle h_deriv h_ineq h_init h_sublevel
+  h_osc_prop := by
+    obtain ⟨C_ring, ε_ring, hC_ring, hε_ring, h_slices⟩ := h_osc_slices
+    have h_ring_osc : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+        ∀ (u' : CP1 → M) (a : ℂ) (r R : ℝ),
+          0 < r → r < R → R ≤ 18 * r →
+          JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at a r R) →
+          energyMeasure I u' (annulus_at a r R) < ε_ring →
+          Analysis.SatisfiesCylinderCollarOscillationWith I C_ring u' a r R :=
+      ⟨C_ring, ε_ring, hC_ring, hε_ring, fun u' a r R hr hrR hr18 hu_ann hE =>
+        Analysis.satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds
+          I C_ring u' a r R (h_slices u' a r R hr hrR hr18 hu_ann hE)⟩
+    obtain ⟨C, ε_osc, hC, hε_osc, h_loc_osc⟩ :=
+      Analysis.local_collar_oscillation_of_bounded_modulus_and_decay I h_ring_osc h_decay
+    refine ⟨C, ε_osc, hC, hε_osc, fun u a r R hr hrR hu hE => ?_⟩
+    have hu_loc : JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at a r R) :=
+      ⟨hu.1.mono (Set.subset_univ _), fun z _ => hu.2 z (Set.mem_univ z)⟩
+    exact h_loc_osc u a r R hr hrR hu_loc hE
+  h_decay_prop := by
+    obtain ⟨C₀, a_decay, ε_neck, hC₀, ha, hε_neck, h_dec⟩ := h_decay
+    refine ⟨C₀, a_decay, ε_neck, hC₀, ha, hε_neck, fun u center r R hr h2r hu hE => ?_⟩
+    have hu_loc : JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at center r R) :=
+      ⟨hu.1.mono (Set.subset_univ _), fun z _ => hu.2 z (Set.mem_univ z)⟩
+    exact h_dec u center r R hr h2r hu_loc hE
   h_punc_prop u p hu he := by
-    obtain ⟨m_star, hm_star⟩ := Analysis.exists_limit_point_of_puncture u p (h_punc_osc u p hu he)
+    obtain ⟨C_ring, ε_ring, hC_ring, hε_ring, h_slices⟩ := h_osc_slices
+    have h_ring_osc : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+        ∀ (u' : CP1 → M) (a : ℂ) (r R : ℝ),
+          0 < r → r < R → R ≤ 18 * r →
+          JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at a r R) →
+          energyMeasure I u' (annulus_at a r R) < ε_ring →
+          Analysis.SatisfiesCylinderCollarOscillationWith I C_ring u' a r R :=
+      ⟨C_ring, ε_ring, hC_ring, hε_ring, fun u' a r R hr hrR hr18 hu_ann hE =>
+        Analysis.satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds
+          I C_ring u' a r R (h_slices u' a r R hr hrR hr18 hu_ann hE)⟩
+    have h_loc_osc :=
+      Analysis.local_collar_oscillation_of_bounded_modulus_and_decay I h_ring_osc h_decay
+    have h_osc := Analysis.punctured_oscillation_of_local_collar_oscillation
+      I h_loc_osc u p hu he
+    obtain ⟨m_star, hm_star⟩ := Analysis.exists_limit_point_of_puncture u p h_osc
     obtain ⟨hc1, hcr⟩ := h_punc_c1 u p hu he m_star hm_star
     have h_weak := Analysis.weakJHolomorphicOn_univ_of_c1_and_continuousAt_cr_at_puncture
       I u (Function.update u p m_star) p hc1 (Analysis.eqOn_update_punctured_sphere u p m_star) hu hcr
     exact Analysis.satisfiesPunctureSobolevExtension_of_update_weakJHolomorphicOn I u p m_star h_weak
   h_tower_prop u Ω hΩ h_weak n :=
     Analysis.contMDiffOn_nat_of_weakJHolomorphicOn_aux I u Ω h_weak
-      (fun k hk => Analysis.contMDiffOn_succ_of_local_laplacian_gain
-        I u Ω k hk (h_tower_step u Ω hΩ h_weak k)) n
-  h_aa_prop u_seq Ω h_open h_grad_bdd :=
-    Analysis.exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_moebius_core
-      I u_seq Ω
-      (Analysis.equicontinuous_of_local_lipschitz_on_domain u_seq Ω (h_aa_lip u_seq Ω h_open h_grad_bdd))
-      (h_aa_core u_seq Ω h_open h_grad_bdd)
+      (fun k hk z hz => h_tower_step u Ω hΩ h_weak k hk z hz) n
+  h_aa_prop u_seq Ω h_open h_jhol h_grad_bdd :=
+    Analysis.exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_local_jet_bounds
+      I u_seq Ω h_open (fun n => (h_jhol n).1)
+      (Analysis.equicontinuous_of_local_lipschitz_on_domain u_seq Ω
+        (local_lipschitz_of_bounded_energy_density I u_seq Ω h_open h_jhol h_grad_bdd))
+      (h_aa_jets u_seq Ω h_open h_jhol h_grad_bdd)
+
+theorem UniformNormalChartCertificates.of_collar_hole_filling
+    [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (fam : UniformNormalChartFamily I (M := M))
+    (h_bochner : ∃ b : ℝ, 0 ≤ b ∧ ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+      ∀ (w : ℂ), -b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 ≤
+        Analysis.laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w)
+    (h_hit_ode : ∃ (c r₀ : ℝ), 0 < c ∧ 0 < r₀ ∧
+      (∀ (u : CP1 → M) (x : M) (r : ℝ),
+        0 < r → r ≤ r₀ → x ∈ Set.range u →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        (¬ ∃ c' : M, ∀ z, u z = c') →
+        ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
+          dist (u z_hit) x = r →
+          ∃ (F F' : ℝ → ℝ) (r_min : ℝ),
+            0 < r_min ∧ r_min ≤ r ∧
+            (∀ t ∈ Icc r_min r, HasDerivAt F (F' t) t) ∧
+            (∀ t ∈ Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t) ∧
+            c * r_min ^ 2 ≤ F r_min ∧
+            F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r))) ∧
+      (∀ (u : CP1 → M),
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        (¬ ∃ c' : M, ∀ z, u z = c') →
+        ContinuousAt (riemannianEnergyDensity I u) north_pole ∧
+        ∀ x ∈ Set.range u, ∃ z : CP1, r₀ ≤ dist (u z) x))
+    (h_osc_slices : ∃ (C ε : ℝ), 0 < C ∧ 0 < ε ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at a r R) →
+        energyMeasure I u (annulus_at a r R) < ε →
+        ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+          ∃ z_mid : CP1,
+            dist (u z₁) (u z_mid) ≤ (C / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)) ∧
+            dist (u z_mid) (u z₂) ≤ (C / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)))
+    (h_collar_decay : ∃ (K ε_neck : ℝ), 0 < K ∧ 0 < ε_neck ∧
+      ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at center r R) →
+        energyMeasure I u (annulus_at center r R) < ε_neck →
+        energyMeasureExtended I u (annulus_at center r R) ≠ ⊤ ∧
+        (∀ r' R' : ℝ, r ≤ r' → R' ≤ R → 4 * r' < R' →
+          energyMeasure I u (annulus_at center (2 * r') (R' / 2)) ≤
+            K * (energyMeasure I u (annulus_at center r' (2 * r')) +
+                 energyMeasure I u (annulus_at center (R' / 2) R'))))
+    (h_punc_c1 : ∀ (u : CP1 → M) (p : CP1),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}) →
+      energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤ →
+      ∀ m_star : M, Filter.Tendsto u (𝓝[≠] p) (𝓝 m_star) →
+        ContMDiffOn I_CP1 I 1 (Function.update u p m_star) Set.univ ∧
+        ∀ v : TangentSpace I_CP1 p,
+          ContinuousAt (fun z : CP1 =>
+            mfderiv I_CP1 I (Function.update u p m_star) z (RiemannDomain.j z v) -
+              (ClosedTameTarget.J (I := I) (Function.update u p m_star z))
+                (mfderiv I_CP1 I (Function.update u p m_star) z v)) p)
+    (h_tower_step : ∀ (u : CP1 → M) (Ω : Set CP1),
+      IsOpen Ω → Analysis.WeakJHolomorphicOn I u Ω →
+      ∀ k : ℕ, ContMDiffOn I_CP1 I (k : WithTop ℕ∞) u Ω →
+        ∀ z ∈ Ω, ContMDiffWithinAt I_CP1 I ((k + 1 : ℕ) : WithTop ℕ∞) u Ω z)
+    (h_aa_jets : ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1),
+      IsOpen Ω →
+      (∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω) →
+      (∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) →
+      ∀ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+        ContinuousOn u_lim Ω →
+        (∀ K ⊆ Ω, IsCompact K →
+          TendstoUniformlyOn (fun n => u_seq (σ.1 n)) u_lim Filter.atTop K) →
+        (∀ z ∈ Ω, Filter.Tendsto (fun n => u_seq (σ.1 n) z) Filter.atTop (𝓝 (u_lim z))) →
+        ∀ z ∈ Ω, Analysis.HasLocalChartJetBoundsAt I (fun n => u_seq (σ.1 n)) u_lim z) :
+    UniformNormalChartCertificates I fam :=
+  UniformNormalChartCertificates.of_first_principles I fam h_bochner h_hit_ode h_osc_slices
+    (by
+      obtain ⟨K, ε_neck, hK, hε_neck, h_col⟩ := h_collar_decay
+      let C₀ : ℝ := (1 + K) / K
+      let a_decay : ℝ := Real.log C₀ / Real.log 2
+      have hC₀_gt_one : 1 < C₀ := (one_lt_div hK).mpr (by linarith)
+      have hC₀_pos : 0 < C₀ := lt_trans zero_lt_one hC₀_gt_one
+      have ha_pos : 0 < a_decay :=
+        div_pos (Real.log_pos hC₀_gt_one) (Real.log_pos (by norm_num : (1 : ℝ) < 2))
+      refine ⟨C₀, a_decay, ε_neck, hC₀_pos, ha_pos, hε_neck, ?_⟩
+      intro u center r R hr h2rR hu hE
+      obtain ⟨h_fin, h_step⟩ := h_col u center r R hr h2rR hu hE
+      exact Analysis.satisfiesCylinderEnergyDecayWith_of_collar_hole_filling I u center hr hK h_fin h_step)
+    h_punc_c1 h_tower_step h_aa_jets
 
 --------------------------------------------------------------------------------
--- SECTION 6: Master Unconditional Certificates (Milestone M4 Deliverables)
+-- SECTION 6: `_unconditional` re-exports (Milestone M4 names)
 --------------------------------------------------------------------------------
 
 /-!
-### Master Unconditional Declarations (Stage 2 / Milestone M4)
+### `_unconditional` re-exports (Milestone M4 names)
 
-These theorems discharge all 7 coordinate PDE certificates (`h_weitz`, `h_hit_exit`,
-`h_osc`, `h_decay`, `h_punc`, `h_tower`, `h_aa`) on an arbitrary closed tame target
-manifold equipped with `[ClosedTameTarget I M]`, with zero `sorryAx` and zero custom axioms.
-
-Each theorem delegates directly to the verified first-principles certificate contracts
-(`Sections 4b & 4c`), reusing all analytical machinery without duplication.
+Despite their names, these theorems are **not** unconditional: each takes
+`certs : UniformNormalChartCertificates I fam` as a hypothesis and re-exports the corresponding
+projection under the milestone M4 contract name.
 -/
 
 omit [I.Boundaryless] in
-/-- Master unconditional discharge of `h_weitz` (Milestone M4).
-Tensorial Bochner–Weitzenböck energy Laplacian identity on an arbitrary closed tame target:
-local stereographic energy density satisfies $\Delta e = \|\nabla du\|^2 + K$ with $|K| \le b e^2$ ($c = 0$). -/
+/-- Re-export of `discharge_h_weitz` (still conditional on `certs`). -/
 theorem discharge_h_weitz_unconditional [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
@@ -1814,72 +4346,31 @@ theorem discharge_h_weitz_unconditional [FiniteDimensional ℝ E]
   discharge_h_weitz_first_principles I fam certs
 
 omit [I.Boundaryless] in
-/-- Master unconditional discharge of `h_hit_exit` (Milestone M4).
-Radial Stokes monotonicity and small-ball exit on an arbitrary closed tame target:
-sublevel energy satisfies $r^2 \le E(u; B(x, r))$ and non-constant curves exit small balls. -/
+/-- Re-export of `discharge_h_hit_exit` (still conditional on `certs`). -/
 theorem discharge_h_hit_exit_unconditional [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 → x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) ∧
-    (∀ (u : CP1 → M) (x : M),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
+    Analysis.HitExitProperty I M :=
   discharge_h_hit_exit_first_principles I fam certs
 
 omit [I.Boundaryless] in
-/-- Master unconditional discharge of `h_osc` (Milestone M4).
-Annular collar oscillation bound on an arbitrary closed tame target:
-Courant–Lebesgue 1D slice integration yields $\operatorname{osc} u \le 4 \sqrt{E(u; A(r, R))}$. -/
+/-- Re-export of `discharge_h_osc` (still conditional on `certs`). -/
 theorem discharge_h_osc_unconditional [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ) (_hr : 0 < r)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
-        dist (u z₁) (u z₂) ≤ 4 * Real.sqrt (energyMeasure I u (annulus_at a r R)) :=
+    Analysis.CollarOscillationProperty I M :=
   discharge_h_osc_first_principles I fam certs
 
 omit [I.Boundaryless] in
-/-- Master unconditional discharge of `h_decay` (Milestone M4).
-Cylindrical exponential energy decay on an arbitrary closed tame target:
-Widman hole-filling annular recurrence yields geometric dyadic energy decay. -/
+/-- Re-export of `discharge_h_decay` (still conditional on `certs`). -/
 theorem discharge_h_decay_unconditional [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^(1 : ℝ) + (r₂ / R)^(1 : ℝ)) * energyMeasure I u (annulus_at center r R) :=
+    Analysis.CylinderEnergyDecayProperty I M :=
   discharge_h_decay_first_principles I fam certs
 
 omit [I.Boundaryless] in
-/-- Master unconditional discharge of `h_decay` with natural exponent 1 (Milestone M4). -/
-theorem discharge_h_decay_unconditional_pow_nat [FiniteDimensional ℝ E]
-    (fam : UniformNormalChartFamily I (M := M))
-    (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^1 + (r₂ / R)^1) * energyMeasure I u (annulus_at center r R) :=
-  discharge_h_decay_first_principles_pow_nat I fam certs
-
-omit [I.Boundaryless] in
-/-- Master unconditional discharge of `h_punc` (Milestone M4).
-Puncture Sobolev extension across removable singularity on an arbitrary closed tame target:
-every finite-energy curve on CP1 \ {p} extends continuously and as a weak C¹ J-holomorphic curve across p. -/
+/-- Re-export of `discharge_h_punc` (still conditional on `certs`). -/
 theorem discharge_h_punc_unconditional [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
@@ -1893,8 +4384,7 @@ theorem discharge_h_punc_unconditional [FiniteDimensional ℝ E]
   discharge_h_punc_first_principles I fam certs
 
 omit [I.Boundaryless] in
-/-- Master unconditional discharge of smooth removable singularity extension (Milestone M4).
-Smooth removal of isolated punctures (Contract A12) via coupling of `h_punc` and `h_tower`. -/
+/-- Re-export of `discharge_removal_of_singularities` (still conditional on `certs`). -/
 theorem discharge_removal_of_singularities_unconditional [FiniteDimensional ℝ E]
     [T2Space M]
     (fam : UniformNormalChartFamily I (M := M))
@@ -1908,9 +4398,7 @@ theorem discharge_removal_of_singularities_unconditional [FiniteDimensional ℝ 
   discharge_removal_of_singularities I fam certs u p h_jhol h_energy
 
 omit [I.Boundaryless] in
-/-- Master unconditional discharge of `h_tower` (Milestone M4).
-Nonlinear elliptic bootstrap tower on an arbitrary closed tame target:
-continuous weak J-holomorphic maps satisfy the finite-order Cⁿ regularity tower for every n. -/
+/-- Re-export of `discharge_h_tower` (still conditional on `certs`). -/
 theorem discharge_h_tower_unconditional [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
@@ -1920,8 +4408,7 @@ theorem discharge_h_tower_unconditional [FiniteDimensional ℝ E]
   discharge_h_tower_first_principles I fam certs
 
 omit [I.Boundaryless] in
-/-- Master unconditional discharge of nonlinear elliptic bootstrap to C^∞ (Milestone M4).
-Nonlinear elliptic bootstrap (Contract A05) unconditionally promoting weak J-holomorphic maps to C^∞. -/
+/-- Re-export of `discharge_nonlinear_elliptic_bootstrap` (still conditional on `certs`). -/
 theorem discharge_nonlinear_elliptic_bootstrap_unconditional [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam)
@@ -1931,21 +4418,19 @@ theorem discharge_nonlinear_elliptic_bootstrap_unconditional [FiniteDimensional 
   discharge_nonlinear_elliptic_bootstrap I fam certs u Ω hΩ h_weak
 
 omit [I.Boundaryless] in
-/-- Master unconditional discharge of `h_aa` (Milestone M4).
-Smooth local Arzelà–Ascoli subsequence extraction on an arbitrary closed tame target:
-countable Cantor diagonal extraction across finite good atlas yields smooth local convergence. -/
+/-- Re-export of `discharge_h_aa` (still conditional on `certs`). -/
 theorem discharge_h_aa_unconditional [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
     ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
       (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C),
       ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
         SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
   discharge_h_aa_first_principles I fam certs
 
 omit [I.Boundaryless] in
-/-- Master unconditional discharge of local smooth compactness under gradient bounds (Milestone M4).
-Local smooth compactness via Arzelà–Ascoli (Contract A06) unconditionally on closed tame targets. -/
+/-- Re-export of `discharge_local_smooth_compactness_of_arzela_ascoli` (still conditional on `certs`). -/
 theorem discharge_local_smooth_compactness_of_arzela_ascoli_unconditional [FiniteDimensional ℝ E]
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam)
@@ -1956,5 +4441,55 @@ theorem discharge_local_smooth_compactness_of_arzela_ascoli_unconditional [Finit
       SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω ∧
       JHolomorphicOn (I := I) (I_dom := I_CP1) u_lim Ω :=
   discharge_local_smooth_compactness_of_arzela_ascoli I fam certs u_seq Ω h_open h_jhol h_grad_bdd
+
+/-- First-principles proof of `Analysis.ArzelaAscoliProperty I M` (`cert_aa`) on any
+`[BoundedChartedTarget I M] [FiniteDimensional ℝ E]` (`0 sorryAx`):
+equicontinuity and $C^0_{\mathrm{loc}}(\Omega)$ extraction are discharged unconditionally via
+`local_lipschitz_of_bounded_energy_density`, `Analysis.equicontinuous_of_local_lipschitz_on_domain`,
+and `Analysis.exists_continuousOn_pointwise_convergent_subseq_on_domain`, and upgraded to full
+frame-invariant `SmoothLocalConvergesOn` via `Analysis.smoothLocalConvergesOn_of_eventually_local_jet_bounds`. -/
+theorem arzelaAscoliProperty_of_bounded_geometry_and_eventually_jet_bounds
+    [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (h_jets : ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1),
+      IsOpen Ω →
+      (∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω) →
+      (∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) →
+      ∀ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+        ContinuousOn u_lim Ω →
+        (∀ K ⊆ Ω, IsCompact K →
+          TendstoUniformlyOn (fun n => u_seq (σ.1 n)) u_lim Filter.atTop K) →
+        (∀ z ∈ Ω, Filter.Tendsto (fun n => u_seq (σ.1 n) z) Filter.atTop (𝓝 (u_lim z))) →
+        ∀ z ∈ Ω, Analysis.EventuallyHasLocalChartJetBoundsAt I (fun n => u_seq (σ.1 n)) u_lim z) :
+    Analysis.ArzelaAscoliProperty I M :=
+  Analysis.arzelaAscoliProperty_of_equicontinuous_and_eventually_jet_bounds I M
+    (fun u_seq Ω h_open h_jhol h_grad_bdd =>
+      Analysis.equicontinuous_of_local_lipschitz_on_domain u_seq Ω
+        (local_lipschitz_of_bounded_energy_density I u_seq Ω h_open h_jhol h_grad_bdd))
+    h_jets
+
+/-- First-principles proof of Contract A06 (`local_smooth_compactness`) on any
+`[BoundedChartedTarget I M] [FiniteDimensional ℝ E]` via
+`arzelaAscoliProperty_of_bounded_geometry_and_eventually_jet_bounds` (`0 sorryAx`). -/
+theorem local_smooth_compactness_of_bounded_geometry_and_eventually_jet_bounds
+    [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (h_jets : ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1),
+      IsOpen Ω →
+      (∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω) →
+      (∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) →
+      ∀ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+        ContinuousOn u_lim Ω →
+        (∀ K ⊆ Ω, IsCompact K →
+          TendstoUniformlyOn (fun n => u_seq (σ.1 n)) u_lim Filter.atTop K) →
+        (∀ z ∈ Ω, Filter.Tendsto (fun n => u_seq (σ.1 n) z) Filter.atTop (𝓝 (u_lim z))) →
+        ∀ z ∈ Ω, Analysis.EventuallyHasLocalChartJetBoundsAt I (fun n => u_seq (σ.1 n)) u_lim z)
+    (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (h_open : IsOpen Ω)
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
+    (h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) :
+    ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω ∧
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u_lim Ω :=
+  Analysis.local_smooth_compactness_of_arzelaAscoliProperty I
+    (arzelaAscoliProperty_of_bounded_geometry_and_eventually_jet_bounds I h_jets)
+    u_seq Ω h_open h_jhol h_grad_bdd
 
 end GromovCompactness

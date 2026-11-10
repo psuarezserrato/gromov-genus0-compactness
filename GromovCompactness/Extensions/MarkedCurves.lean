@@ -23,6 +23,7 @@ import GromovCompactness.Compactness.Assembly
 import GromovCompactness.Compactness.Stabilize
 import GromovCompactness.Compactness.GenusZero
 import GromovCompactness.Main
+import GromovCompactness.Extensions.Automorphisms
 
 open scoped Manifold ContDiff Topology Classical
 open Metric Set Filter GromovCompactness Classical
@@ -1764,6 +1765,288 @@ theorem deligne_mumford_0_4_crossRatio
     rcases mul_eq_zero.mp h_prod_zero with h_zero1 | h_zero2
     · exact hd12 h_zero1
     · exact hd34 h_zero2
+
+/-! ### First-Principles Marked Extraction & Constant 3-Marked Normalization (`cert_extensions`) -/
+
+private lemma applyFramesSeq_const_seq (frames : List ConvergingFrame) (c_seq : ℕ → M) :
+    applyFramesSeq frames (fun n _ => c_seq n) = fun n _ => c_seq n := by
+  induction frames with
+  | nil => rfl
+  | cons F Fs ih => exact ih
+
+/-- **Smooth Local Convergence of Converging Constant Maps (`0 sorryAx`)**:
+For any sequence `c_seq : ℕ → M` converging to `c_lim : M` whose basepoint chart values
+`(extChartAt I (c_seq n)) (c_seq n)` converge to `(extChartAt I c_lim) c_lim` (in particular
+whenever `p ↦ (extChartAt I p) p` is continuous at `c_lim`, e.g. on any centered normal-chart
+atlas `(extChartAt I p) p = 0` or any vector-space target), the constant maps `fun _ => c_seq n`
+converge in the full frame-invariant `SmoothLocalConvergesOn` sense to `fun _ => c_lim`. -/
+theorem smoothLocalConvergesOn_of_tendsto_const_map
+    (c_seq : ℕ → M) (c_lim : M) (Ω : Set CP1)
+    (h_lim : Tendsto c_seq atTop (𝓝 c_lim))
+    (h_chart : Tendsto (fun n => (extChartAt I (c_seq n)) (c_seq n))
+      atTop (𝓝 ((extChartAt I c_lim) c_lim))) :
+    SmoothLocalConvergesOn I (fun n _ => c_seq n) (fun _ => c_lim) Ω := by
+  intro frames
+  rw [applyFramesSeq_const_seq frames c_seq, applyFramesLim_const frames c_lim]
+  refine ⟨contMDiffOn_const, fun K _ _ => ⟨fun _ _ => h_lim, ?_, ?_, ?_⟩⟩
+  · intro z _
+    simp only [mfderiv_const]
+    exact tendsto_const_nhds
+  · intro r z _
+    have hw : ∀ c : M, writtenInExtChartAt I_CP1 I z (fun _ : CP1 => c) =
+        fun _ : EuclideanSpace ℝ (Fin 2) => (extChartAt I c) c := fun _ => rfl
+    simp only [hw]
+    cases r with
+    | zero =>
+      simp only [iteratedFDeriv_zero_eq_comp, Function.comp_apply]
+      exact ((continuousMultilinearCurryFin0 ℝ (EuclideanSpace ℝ (Fin 2)) E).symm.continuous.tendsto _).comp h_chart
+    | succ m =>
+      simp only [iteratedFDeriv_const_of_ne (𝕜 := ℝ) (Nat.succ_ne_zero m)]
+      exact tendsto_const_nhds
+  · intro tgt z _ v
+    have h0 : ∀ c : M, tgt.J c (mfderiv I_CP1 I (fun _ : CP1 => c) z v) = 0 := by
+      intro c
+      have hm : mfderiv I_CP1 I (fun _ : CP1 => c) z = 0 := mfderiv_const
+      have hv := congr_arg (fun L => tgt.J c (L v)) hm
+      exact hv.trans (map_zero _)
+    simp only [h0]
+    exact tendsto_const_nhds
+
+/-- Corollary of `smoothLocalConvergesOn_of_tendsto_const_map` under basepoint chart continuity (`0 sorryAx`). -/
+theorem smoothLocalConvergesOn_of_tendsto_const_map_of_chart_cont
+    (c_seq : ℕ → M) (c_lim : M) (Ω : Set CP1)
+    (h_lim : Tendsto c_seq atTop (𝓝 c_lim))
+    (h_chart_cont : Continuous (fun p : M => (extChartAt I p) p)) :
+    SmoothLocalConvergesOn I (fun n _ => c_seq n) (fun _ => c_lim) Ω :=
+  smoothLocalConvergesOn_of_tendsto_const_map I c_seq c_lim Ω h_lim
+    ((h_chart_cont.tendsto c_lim).comp h_lim)
+
+/-- Canonical triple `(0, 1, ∞)` of pairwise distinct reference points on `CP1` (`0 sorryAx`). -/
+noncomputable def stdThreeMarks : Fin 3 → CP1 :=
+  ![south_pole, stereo_chart.symm 1, north_pole]
+
+/-- Pairwise distinctness of `stdThreeMarks` on `CP1` (`0 sorryAx`). -/
+theorem stdThreeMarks_distinct : ∀ (i j : Fin 3), i ≠ j → stdThreeMarks i ≠ stdThreeMarks j := by
+  have h01 : south_pole ≠ stereo_chart.symm 1 := by
+    intro h
+    have h_ap := congr_arg stereo_chart h
+    rw [stereo_chart_south_pole, stereo_chart.right_inv (by simp [stereo_chart_target])] at h_ap
+    exact zero_ne_one h_ap
+  have h02 : south_pole ≠ north_pole := south_pole_ne_north_pole
+  have h12 : stereo_chart.symm 1 ≠ north_pole := by
+    intro h
+    have h_src := stereo_chart.map_target (show (1 : ℂ) ∈ stereo_chart.target by simp [stereo_chart_target])
+    rw [h, stereo_chart_source] at h_src
+    exact h_src rfl
+  intro i j hij
+  fin_cases i <;> fin_cases j <;> simp [stdThreeMarks] at hij ⊢
+  · exact h01
+  · exact h02
+  · exact h01.symm
+  · exact h12
+  · exact h02.symm
+  · exact h12.symm
+
+/-- **Marked Gromov Compactness for Arbitrary Constant 3-Marked Spheres (`0 sorryAx`)**:
+Even when the three marked points `(u_seq n).points 0, 1, 2` collide arbitrarily on `CP1`,
+3-point Möbius transitivity (`exists_moebiusFrame_three_points`) normalizes `(0, 1, ∞) ↦ (z_{n,0}, z_{n,1}, z_{n,2})`,
+and sequential compactness of `M` extracts a subsequence converging to a stable 3-marked constant sphere! -/
+theorem marked_gromov_compactness_three_const_of_chart_cont
+    (u_seq : ℕ → MarkedSphere M 3) (B : ℝ) (hB : 0 ≤ B)
+    (c_seq : ℕ → M)
+    (hc : ∀ n z, (u_seq n).map z = c_seq n)
+    (h_chart_cont : Continuous (fun p : M => (extChartAt I p) p)) :
+    ∃ (u_lim : MarkedStableTreeLimit I (M := M) 3)
+      (_wit : MarkedCompactnessWitness I u_seq u_lim),
+      markedTreeTotalEnergy I u_lim ≤ B := by
+  -- Step 1: Extract a convergent subsequence `c_seq (φ n) → c_lim` in compact metric `M`.
+  obtain ⟨c_lim, _, φ, hφ, h_c_tendsto⟩ := isCompact_univ.tendsto_subseq (fun n => Set.mem_univ (c_seq n))
+  -- Step 2: Normalize the 3 marked points at each `n` via `exists_moebiusFrame_three_points`.
+  have h_frames : ∀ n : ℕ, ∃ ϕ : MoebiusFrame,
+      ∀ i : Fin 3, ϕ.toHomeo (stdThreeMarks i) = (u_seq (φ n)).points i := by
+    intro n
+    obtain ⟨ϕ, h0, h1, h2⟩ := exists_moebiusFrame_three_points
+      (stdThreeMarks 0) (stdThreeMarks 1) (stdThreeMarks 2)
+      ((u_seq (φ n)).points 0) ((u_seq (φ n)).points 1) ((u_seq (φ n)).points 2)
+      (stdThreeMarks_distinct (0 : Fin 3) 1 (by decide))
+      (stdThreeMarks_distinct (0 : Fin 3) 2 (by decide))
+      (stdThreeMarks_distinct (1 : Fin 3) 2 (by decide))
+      ((u_seq (φ n)).points_distinct 0 1 (by decide))
+      ((u_seq (φ n)).points_distinct 0 2 (by decide))
+      ((u_seq (φ n)).points_distinct 1 2 (by decide))
+    refine ⟨ϕ, fun i => ?_⟩
+    fin_cases i
+    · exact h0
+    · exact h1
+    · exact h2
+  choose ϕ_seq hϕ_seq using h_frames
+  let u₀ : MarkedSphere M 3 := ⟨fun _ => c_lim, stdThreeMarks, stdThreeMarks_distinct⟩
+  let u_lim := MarkedStableTreeLimit.of_markedSphere I u₀
+    (Analysis.jholomorphicOn_const I c_lim Set.univ) (fun _ => le_rfl)
+  have h_tot_lim : markedTreeTotalEnergy I u_lim = 0 := by
+    rw [markedTreeTotalEnergy_of_markedSphere]
+    exact Analysis.totalEnergy_const I c_lim
+  let wit : MarkedCompactnessWitness I u_seq u_lim :=
+    { σ := ⟨φ, hφ⟩
+      frames := fun _ n => ϕ_seq n
+      smooth_conv := fun v => by
+        have h_seq_eq : (fun n => (u_seq (φ n)).map ∘ (ϕ_seq n).toHomeo) =
+            fun n _ => c_seq (φ n) := by
+          ext n z
+          exact hc (φ n) ((ϕ_seq n).toHomeo z)
+        rw [h_seq_eq]
+        exact smoothLocalConvergesOn_of_tendsto_const_map_of_chart_cont I
+          (fun n => c_seq (φ n)) c_lim _ h_c_tendsto h_chart_cont
+      frame_collapse := fun _ _ h => False.elim h
+      mark_conv := fun i => by
+        have h_inv_eq : (fun n => (MoebiusFrame.inv (ϕ_seq n)).toHomeo ((u_seq (φ n)).points i)) =
+            fun _ => stdThreeMarks i := by
+          ext n
+          dsimp [MoebiusFrame.inv]
+          rw [← hϕ_seq n i, (ϕ_seq n).toHomeo.symm_apply_apply]
+        rw [h_inv_eq]
+        exact tendsto_const_nhds
+      energy_conv := by
+        rw [h_tot_lim]
+        have h_en_eq : (fun n => totalEnergy I (u_seq (φ n)).map) = fun _ => (0 : ℝ) := by
+          ext n
+          have hm : (u_seq (φ n)).map = fun _ => c_seq (φ n) := funext (hc (φ n))
+          rw [hm, Analysis.totalEnergy_const]
+        rw [h_en_eq]
+        exact tendsto_const_nhds }
+  exact ⟨u_lim, wit, by rw [h_tot_lim]; exact hB⟩
+
+/-- **Unconditional Subsequential Convergence of All Pulled-Back Marked Points (`0 sorryAx`)**:
+Given any unmarked bubble tree limit `u_core : StableSphereTreeLimit I` and convergence witness
+`wit_core : CompactnessWitness I (fun n => (u_seq n).map) u_core` for a sequence of `k`-marked spheres,
+compactness of the finite product `(u_core.tree.V × Fin k) → CP1` unconditionally extracts a further
+subsequence `τ : SubseqMap` along which every pulled-back marked point `ϕ_{v,n}⁻¹(z_{σ(n),i})`
+converges on every bubble component `v ∈ V`. -/
+theorem exists_convergent_pulled_back_marks_subseq {k : ℕ}
+    (u_seq : ℕ → MarkedSphere M k)
+    (u_core : StableSphereTreeLimit I (M := M))
+    (wit_core : CompactnessWitness I (fun n => (u_seq n).map) u_core) :
+    ∃ (τ : Bookkeeping.SubseqMap) (q : u_core.tree.V → Fin k → CP1),
+      ∀ (v : u_core.tree.V) (i : Fin k),
+        Tendsto
+          (fun n => (MoebiusFrame.inv (wit_core.frames v (τ.1 n))).toHomeo
+            ((u_seq (wit_core.σ.1 (τ.1 n))).points i))
+          atTop (𝓝 (q v i)) := by
+  let P_seq : ℕ → (u_core.tree.V × Fin k → CP1) :=
+    fun n p => (MoebiusFrame.inv (wit_core.frames p.1 n)).toHomeo ((u_seq (wit_core.σ.1 n)).points p.2)
+  obtain ⟨q_prod, _, φ, hφ, h_tendsto⟩ :=
+    isCompact_univ.tendsto_subseq (fun n => Set.mem_univ (P_seq n))
+  refine ⟨⟨φ, hφ⟩, fun v i => q_prod (v, i), fun v i => ?_⟩
+  exact (continuous_apply (v, i)).tendsto q_prod |>.comp h_tendsto
+
+/-- **Core-to-Marked Compactness Upgrade (`0 sorryAx`)**:
+Upgrades an unmarked `StableSphereTreeLimit` and `CompactnessWitness` via `exists_convergent_pulled_back_marks_subseq`
+whenever the extracted limit coordinates admit a nodal-disjoint pairwise-distinct home component assignment. -/
+theorem marked_gromov_compactness_of_core_nodal_disjoint {k : ℕ}
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → MarkedSphere M k) (B : ℝ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n).map ≤ B)
+    (u_core : StableSphereTreeLimit I (M := M))
+    (wit_core : CompactnessWitness I (fun n => (u_seq n).map) u_core)
+    (h_home : ∀ (q : u_core.tree.V → Fin k → CP1),
+      (∃ τ : Bookkeeping.SubseqMap, ∀ v i,
+        Tendsto (fun n => (MoebiusFrame.inv (wit_core.frames v (τ.1 n))).toHomeo
+          ((u_seq (wit_core.σ.1 (τ.1 n))).points i)) atTop (𝓝 (q v i))) →
+      ∃ mark_v : Fin k → u_core.tree.V,
+        (∀ i j, i ≠ j → mark_v i = mark_v j → q (mark_v i) i ≠ q (mark_v j) j) ∧
+        (∀ i w (h : u_core.tree.adj.Adj (mark_v i) w),
+          q (mark_v i) i ≠ u_core.tree.node_point (mark_v i) w h)) :
+    ∃ (u_lim : MarkedStableTreeLimit I (M := M) k)
+      (_wit : MarkedCompactnessWitness I u_seq u_lim),
+      markedTreeTotalEnergy I u_lim ≤ B ∧
+      (Fintype.card { v : u_lim.tree.V // is_principal_component_marked I u_lim v } : ℝ) * th.h ≤ B ∧
+      ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ + (k : ℤ) - 2)) := by
+  obtain ⟨τ, q, hq⟩ := exists_convergent_pulled_back_marks_subseq I u_seq u_core wit_core
+  obtain ⟨mark_v, h_dist, h_ne_node⟩ := h_home q ⟨τ, hq⟩
+  let u_lim : MarkedStableTreeLimit I (M := M) k :=
+    { tree := u_core.tree
+      map := u_core.map
+      is_jhol := u_core.is_jhol
+      nodal_match := u_core.nodal_match
+      mark_vertex := mark_v
+      mark_point := fun i => q (mark_v i) i
+      mark_distinct := h_dist
+      mark_ne_node := h_ne_node
+      stable := fun v hv => le_trans (u_core.stable v hv) (Nat.le_add_right _ _) }
+  let wit_sub := CompactnessWitness.subseq I wit_core τ
+  let wit : MarkedCompactnessWitness I u_seq u_lim :=
+    { σ := wit_sub.σ
+      frames := wit_sub.frames
+      smooth_conv := wit_sub.smooth_conv
+      frame_collapse := wit_sub.frame_collapse
+      mark_conv := fun i => hq (mark_v i) i
+      energy_conv := wit_sub.energy_conv }
+  have h_tot_le : markedTreeTotalEnergy I u_lim ≤ B :=
+    markedTreeTotalEnergy_le_of_witness I u_seq u_lim B wit h_energy
+  have h_bounds := marked_component_count_bounds I th u_lim B h_tot_le
+  exact ⟨u_lim, wit, h_tot_le, h_bounds.1, h_bounds.2.2⟩
+
+/-- **Unconditional Zero-Marked Gromov Compactness from Rotations (`0 sorryAx`)**:
+For `k = 0`, `gromov_compactness_core_of_rotations` upgrades unconditionally (with zero nodal/collision
+hypotheses) to a full `MarkedStableTreeLimit I 0` and `MarkedCompactnessWitness`. -/
+theorem marked_gromov_compactness_zero_marks_of_rotations
+    [I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → MarkedSphere M 0) (B : ℝ)
+    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, (u_seq n).map z = c)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n).map Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n).map ≤ B)
+    (h_conc_extract : Compactness.SmoothConcentrationExtractProperty I (fun n => (u_seq n).map) th)
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_rot : ∀ p : CP1, (∃ a : ℂ, ‖a‖ < 1 ∧ stereo_chart.symm a = p) ∨
+      ∃ rot : MoebiusFrame, Assembly.IsConformalRotationTo I (M := M) p rot) :
+    ∃ (u_lim : MarkedStableTreeLimit I (M := M) 0)
+      (_wit : MarkedCompactnessWitness I u_seq u_lim),
+      markedTreeTotalEnergy I u_lim ≤ B := by
+  obtain ⟨u_core, ⟨wit_core⟩⟩ :=
+    gromov_compactness_core_of_rotations I th
+      (fun n => (u_seq n).map) B h_nonconst h_jhol h_energy h_conc_extract h_cert h_rot
+  obtain ⟨u_lim, wit, h_le, _, _⟩ :=
+    marked_gromov_compactness_of_core_nodal_disjoint I th u_seq B h_energy u_core wit_core
+      (fun _ _ => ⟨Fin.elim0, fun i => i.elim0, fun i => i.elim0⟩)
+  exact ⟨u_lim, wit, h_le⟩
+
+/-- **General `k`-Marked Gromov Compactness from Rotations (`0 sorryAx`)**:
+Combines `gromov_compactness_core_of_rotations`, `exists_convergent_pulled_back_marks_subseq`,
+and `marked_gromov_compactness_of_core_nodal_disjoint` to extract a `MarkedStableTreeLimit I k`,
+`MarkedCompactnessWitness`, and universal vertex bounds for any bounded-energy sequence of
+non-constant `k`-marked `J`-holomorphic spheres with nodal-disjoint limit markings. -/
+theorem marked_gromov_compactness_of_rotations_nodal_disjoint {k : ℕ}
+    [I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → MarkedSphere M k) (B : ℝ)
+    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, (u_seq n).map z = c)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n).map Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n).map ≤ B)
+    (h_conc_extract : Compactness.SmoothConcentrationExtractProperty I (fun n => (u_seq n).map) th)
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_rot : ∀ p : CP1, (∃ a : ℂ, ‖a‖ < 1 ∧ stereo_chart.symm a = p) ∨
+      ∃ rot : MoebiusFrame, Assembly.IsConformalRotationTo I (M := M) p rot)
+    (h_home : ∀ (u_core : StableSphereTreeLimit I (M := M))
+      (wit_core : CompactnessWitness I (fun n => (u_seq n).map) u_core)
+      (q : u_core.tree.V → Fin k → CP1),
+      (∃ τ : Bookkeeping.SubseqMap, ∀ v i,
+        Tendsto (fun n => (MoebiusFrame.inv (wit_core.frames v (τ.1 n))).toHomeo
+          ((u_seq (wit_core.σ.1 (τ.1 n))).points i)) atTop (𝓝 (q v i))) →
+      ∃ mark_v : Fin k → u_core.tree.V,
+        (∀ i j, i ≠ j → mark_v i = mark_v j → q (mark_v i) i ≠ q (mark_v j) j) ∧
+        (∀ i w (h : u_core.tree.adj.Adj (mark_v i) w),
+          q (mark_v i) i ≠ u_core.tree.node_point (mark_v i) w h)) :
+    ∃ (u_lim : MarkedStableTreeLimit I (M := M) k)
+      (_wit : MarkedCompactnessWitness I u_seq u_lim),
+      markedTreeTotalEnergy I u_lim ≤ B ∧
+      (Fintype.card { v : u_lim.tree.V // is_principal_component_marked I u_lim v } : ℝ) * th.h ≤ B ∧
+      ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ + (k : ℤ) - 2)) := by
+  obtain ⟨u_core, ⟨wit_core⟩⟩ :=
+    gromov_compactness_core_of_rotations I th
+      (fun n => (u_seq n).map) B h_nonconst h_jhol h_energy h_conc_extract h_cert h_rot
+  exact marked_gromov_compactness_of_core_nodal_disjoint I th u_seq B h_energy u_core wit_core
+    (h_home u_core wit_core)
 
 #print axioms crossRatioC_translation
 #print axioms crossRatioC_scaling

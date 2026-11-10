@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Autoformalization Team
 -/
 import Mathlib.Analysis.Calculus.FDeriv.Basic
+import Mathlib.Analysis.Calculus.ContDiff.Bounds
 import Mathlib.Analysis.Calculus.FDeriv.Mul
 import Mathlib.Analysis.Calculus.FDeriv.Add
 import Mathlib.Analysis.Calculus.FDeriv.Comp
@@ -6869,10 +6870,9 @@ theorem interior_cauchy_riemann_estimate_of_eq_zero
 (`h_tower` and `h_aa`)
 
 This section implements the coordinate-level derivations for Certificates 6 (`h_tower`) and 7 (`h_aa`):
-1. `laplacian2D_vec`, `nonlinearLaplacianRHS`, and `delta_v_eq_nonlinear_term`: algebraic
-   reduction of the first-order Cauchy–Riemann system `∂_s v + J(v) ∂_t v = 0` to the second-order
-   Laplacian system `Δv = N(v, Dv)` with the operator-norm quadratic gradient bound
-   `‖N(v, Dv)(w)‖ ≤ (1 + C_J0) * C_J1 * ‖fderiv ℝ v w‖ ^ 2`.
+1. `laplacian2D_vec`, `nonlinearLaplacianRHS`, and `norm_nonlinearLaplacianRHS_le`: operator-norm
+   quadratic gradient bound `‖N(v, Dv)(w)‖ ≤ (1 + C_J0) * C_J1 * ‖fderiv ℝ v w‖ ^ 2` on the
+   nonlinear first-jet right-hand side `N(v, Dv)`.
 2. `contMDiffOn_nat_of_weakJHolomorphicOn_aux`: inductive jet bootstrap across all `n ∈ ℕ` from
    the base `C^0` regularity `contMDiffOn_zero_of_weakJHolomorphicOn` and one-step elliptic gain.
 3. `equicontinuous_of_local_lipschitz_on_domain`, `exists_pointwise_convergent_subseq_on_domain`,
@@ -6967,19 +6967,6 @@ theorem norm_nonlinearLaplacianRHS_le
   have h_tri := norm_sub_le (J (v w) (fderiv ℝ (fun y => J y ds) (v w) dt))
     (fderiv ℝ (fun y => J y dt) (v w) ds)
   linarith
-
-/-- Second-order Laplacian reduction `Δv = N(v, Dv)` with quadratic gradient growth
-`‖N(v, Dv)(w)‖ ≤ (1 + C_J0) * C_J1 * ‖fderiv ℝ v w‖ ^ 2` (`0 sorryAx`). -/
-theorem delta_v_eq_nonlinear_term
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    (v : ℂ → E) (J : E → E →L[ℝ] E)
-    {C_J0 C_J1 : ℝ} (hCJ0 : 0 ≤ C_J0) (hCJ1 : 0 ≤ C_J1)
-    (hJ0 : ∀ y u : E, ‖J y u‖ ≤ C_J0 * ‖u‖)
-    (hJ1 : ∀ y u : E, ‖fderiv ℝ (fun z => J z u) y‖ ≤ C_J1 * ‖u‖)
-    (h_lap : laplacian2D_vec v = nonlinearLaplacianRHS J v) :
-    laplacian2D_vec v = nonlinearLaplacianRHS J v ∧
-      ∀ w : ℂ, ‖nonlinearLaplacianRHS J v w‖ ≤ (1 + C_J0) * C_J1 * ‖fderiv ℝ v w‖ ^ 2 :=
-  ⟨h_lap, norm_nonlinearLaplacianRHS_le J v hCJ0 hCJ1 hJ0 hJ1⟩
 
 /-- Inductive elliptic regularity tower (`h_tower`) across all `n ∈ ℕ` for a weak `J`-holomorphic
 map `u` on `Ω` from the base `C^0` regularity `contMDiffOn_zero_of_weakJHolomorphicOn` and the
@@ -7195,22 +7182,372 @@ theorem exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_moebius_core
   exact ⟨σ, u_lim, smoothLocalConvergesOn_of_moebius_core I
     (fun n => u_seq (σ.1 n)) u_lim Ω (h_core σ u_lim h_pt)⟩
 
-/-- Phase 3 Elliptic Regularity Step for Certificate 6 (`h_tower`):
-If `u : CP1 → M` has manifold regularity `ContMDiffOn I_CP1 I k u Ω` and at every point `z ∈ Ω`
-the local quasilinear Laplacian reduction (`delta_v_eq_nonlinear_term`) and first-jet regularity
-(`contDiffOn_chart_cauchyRiemann_of_contDiffOn`) yield `ContMDiffWithinAt I_CP1 I (k + 1) u Ω z`,
-then `u` has global manifold regularity `ContMDiffOn I_CP1 I (k + 1) u Ω` (`0 sorryAx`). -/
-theorem contMDiffOn_succ_of_local_laplacian_gain
+/-- Strengthened Arzelà–Ascoli subsequence extraction on `Ω ⊆ CP1`: in addition to pointwise
+convergence on `Ω`, `tendstoUniformlyOn_of_equicontinuous_of_dense` provides continuity of `u_lim`
+on `Ω` and uniform convergence `TendstoUniformlyOn` on all compact subsets `K ⊆ Ω` (`0 sorryAx`). -/
+theorem exists_continuousOn_pointwise_convergent_subseq_on_domain
+    {M : Type*} [MetricSpace M] [CompactSpace M]
+    (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1)
+    (h_equi : Equicontinuous (fun n (x : Ω) => u_seq n (x : CP1))) :
+    ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      ContinuousOn u_lim Ω ∧
+      (∀ K ⊆ Ω, IsCompact K →
+        TendstoUniformlyOn (fun n => u_seq (σ.1 n)) u_lim Filter.atTop K) ∧
+      (∀ z ∈ Ω, Filter.Tendsto (fun n => u_seq (σ.1 n) z) Filter.atTop (𝓝 (u_lim z))) := by
+  classical
+  by_cases hΩne : Ω.Nonempty
+  · have : Nonempty Ω := hΩne.to_subtype
+    obtain ⟨d, hd⟩ := TopologicalSpace.exists_dense_seq Ω
+    have hcpt_pi : IsCompact (Set.univ.pi (fun _ : ℕ => (Set.univ : Set M))) :=
+      isCompact_univ_pi (fun _ => isCompact_univ)
+    let xseq : ℕ → (ℕ → M) := fun n m => u_seq n (d m : CP1)
+    have hxseq_mem : ∀ n : ℕ, xseq n ∈ Set.univ.pi (fun _ : ℕ => (Set.univ : Set M)) :=
+      fun _ _ _ => Set.mem_univ _
+    obtain ⟨a_lim, -, φ, hφ, ha_lim⟩ := hcpt_pi.tendsto_subseq hxseq_mem
+    have h_dense_conv : ∀ m : ℕ, ∃ l : M,
+        Filter.Tendsto (fun n => u_seq (φ n) (d m : CP1)) Filter.atTop (nhds l) :=
+      fun m => ⟨a_lim m, (tendsto_pi_nhds.mp ha_lim) m⟩
+    have h_equi_sub : Equicontinuous (fun n (x : Ω) => u_seq (φ n) (x : CP1)) := by
+      intro x₀
+      rw [Metric.equicontinuousAt_iff]
+      intro ε hε
+      obtain ⟨δ, hδ_pos, hδ⟩ := Metric.equicontinuousAt_iff.mp (h_equi x₀) ε hε
+      exact ⟨δ, hδ_pos, fun y hy n => hδ y hy (φ n)⟩
+    obtain ⟨g, hg_cont, hg_unif⟩ :=
+      tendstoUniformlyOn_of_equicontinuous_of_dense
+        (fun n (x : Ω) => u_seq (φ n) (x : CP1))
+        h_equi_sub d hd h_dense_conv
+    let u_lim : CP1 → M := fun z => if hz : z ∈ Ω then g ⟨z, hz⟩ else u_seq 0 z
+    have hu_lim_eq : ∀ x : Ω, u_lim (x : CP1) = g x :=
+      fun x => by simp [u_lim, x.2]
+    have hu_lim_cont : ContinuousOn u_lim Ω := by
+      rw [continuousOn_iff_continuous_domRestrict]
+      exact hg_cont.congr (fun x => (hu_lim_eq x).symm)
+    refine ⟨⟨φ, hφ⟩, u_lim, hu_lim_cont, ?_, ?_⟩
+    · intro K hK_sub hK_cpt
+      let K_Ω : Set Ω := (Subtype.val : Ω → CP1) ⁻¹' K
+      have hK_Ω_cpt : IsCompact K_Ω :=
+        Topology.IsInducing.isCompact_preimage' Topology.IsInducing.subtypeVal hK_cpt
+          (by simpa [Subtype.range_coe] using hK_sub)
+      have h_unif := hg_unif K_Ω hK_Ω_cpt
+      rw [Metric.tendstoUniformlyOn_iff] at h_unif ⊢
+      intro ε hε
+      filter_upwards [h_unif ε hε] with n hn z hzK
+      have hzΩ : z ∈ Ω := hK_sub hzK
+      let z_Ω : Ω := ⟨z, hzΩ⟩
+      have hz_KΩ : z_Ω ∈ K_Ω := hzK
+      simpa [u_lim, z_Ω, hzΩ] using hn z_Ω hz_KΩ
+    · intro z hz
+      let z_Ω : Ω := ⟨z, hz⟩
+      have h_at := (hg_unif {z_Ω} isCompact_singleton).tendsto_at (Set.mem_singleton z_Ω)
+      simpa [u_lim, z_Ω, hz] using h_at
+  · rw [Set.not_nonempty_iff_eq_empty] at hΩne
+    subst hΩne
+    exact ⟨Bookkeeping.SubseqMap.id, u_seq 0, continuousOn_empty _,
+      fun K hK _ => by rw [Set.subset_empty_iff.mp hK]; exact tendstoUniformlyOn_empty,
+      fun _ hz => False.elim hz⟩
+
+/-- Global continuity of `ClosedTameTarget.J : M → (E →L[ℝ] E)` deduced from `ClosedTameTarget.J_smooth`
+(`0 sorryAx`). -/
+theorem continuous_closedTameTarget_J
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
     {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M]
-    (u : CP1 → M) (Ω : Set CP1) (k : ℕ)
-    (hk : ContMDiffOn I_CP1 I (k : WithTop ℕ∞) u Ω)
-    (h_local_gain : ContMDiffOn I_CP1 I (k : WithTop ℕ∞) u Ω →
-      ∀ z ∈ Ω, ContMDiffWithinAt I_CP1 I ((k + 1 : ℕ) : WithTop ℕ∞) u Ω z) :
-    ContMDiffOn I_CP1 I ((k + 1 : ℕ) : WithTop ℕ∞) u Ω :=
-  fun z hz => h_local_gain hk z hz
+    [IsManifold I ∞ M] [CompactSpace M] [tgt : ClosedTameTarget I M] :
+    Continuous (fun x : M => id (α := E →L[ℝ] E) (tgt.J x)) := by
+  rw [continuous_iff_continuousAt]
+  intro x₀
+  have h_cont_chart : ContinuousOn (J_chart I tgt.J x₀) (extChartAt I x₀).target :=
+    (tgt.J_smooth x₀).continuousOn
+  have h_comp : ContinuousOn (fun x => J_chart I tgt.J x₀ (extChartAt I x₀ x)) (extChartAt I x₀).source :=
+    h_cont_chart.comp (continuousOn_extChartAt x₀) (extChartAt I x₀).mapsTo
+  have h_congr : ContinuousOn (fun x : M => id (α := E →L[ℝ] E) (tgt.J x)) (extChartAt I x₀).source :=
+    h_comp.congr (fun x hx => by
+      change (tgt.J x : E →L[ℝ] E) = (tgt.J ((extChartAt I x₀).symm (extChartAt I x₀ x)) : E →L[ℝ] E)
+      rw [(extChartAt I x₀).left_inv hx])
+  exact h_congr.continuousAt ((isOpen_extChartAt_source x₀).mem_nhds (mem_extChartAt_source x₀))
+
+/-- At any point `z : CP1` where `f : CP1 → M` is manifold-differentiable, `mfderiv I_CP1 I f z`
+equals `continuousMultilinearCurryFin1` applied to the first chart jet
+`iteratedFDeriv ℝ 1 (writtenInExtChartAt I_CP1 I z f) ((extChartAt I_CP1 z) z)` (`0 sorryAx`). -/
+theorem mfderiv_eq_curry_iteratedFDeriv_one
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    (f : CP1 → M) (z : CP1) (hf : MDifferentiableAt I_CP1 I f z) :
+    (mfderiv I_CP1 I f z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) =
+      (continuousMultilinearCurryFin1 ℝ (EuclideanSpace ℝ (Fin 2)) E)
+        (iteratedFDeriv ℝ 1 (writtenInExtChartAt I_CP1 I z f) ((extChartAt I_CP1 z) z)) := by
+  classical
+  have h1 : (mfderiv I_CP1 I f z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) =
+      fderiv ℝ (writtenInExtChartAt I_CP1 I z f) ((extChartAt I_CP1 z) z) := by
+    change (if MDifferentiableAt I_CP1 I f z then
+        fderivWithin ℝ (writtenInExtChartAt I_CP1 I z f) (Set.range I_CP1) ((extChartAt I_CP1 z) z)
+      else 0) = fderiv ℝ (writtenInExtChartAt I_CP1 I z f) ((extChartAt I_CP1 z) z)
+    rw [ite_eq_left_iff.mpr (fun h => absurd hf h), I_CP1.range_eq_univ, fderivWithin_univ]
+  have h2 : iteratedFDeriv ℝ 1 (writtenInExtChartAt I_CP1 I z f) ((extChartAt I_CP1 z) z) =
+      (continuousMultilinearCurryFin1 ℝ (EuclideanSpace ℝ (Fin 2)) E).symm
+        (fderiv ℝ (writtenInExtChartAt I_CP1 I z f) ((extChartAt I_CP1 z) z)) := by
+    ext m
+    rw [iteratedFDeriv_one_apply]
+    rfl
+  rw [h1, h2, LinearIsometryEquiv.apply_symm_apply]
+
+/-- Local higher-jet compactness condition at `z : CP1` in extended chart coordinates:
+there exists an open neighborhood `U_z` of `extChartAt I_CP1 z z` on which the chart
+representations `writtenInExtChartAt I_CP1 I z (v_seq n)` are smooth, have uniformly bounded
+derivatives of every order `r : ℕ` on compact subsets, and converge pointwise to
+`writtenInExtChartAt I_CP1 I z v_lim`. -/
+def HasLocalChartJetBoundsAt
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    (v_seq : ℕ → (CP1 → M)) (v_lim : CP1 → M) (z : CP1) : Prop :=
+  ∃ U_z : Set (EuclideanSpace ℝ (Fin 2)),
+    IsOpen U_z ∧ (extChartAt I_CP1 z) z ∈ U_z ∧
+    (∀ n : ℕ, ContDiffOn ℝ (⊤ : ℕ∞) (writtenInExtChartAt I_CP1 I z (v_seq n)) U_z) ∧
+    (∀ (r : ℕ) (K : Set (EuclideanSpace ℝ (Fin 2))), IsCompact K → K ⊆ U_z →
+      ∃ C : ℝ, ∀ n : ℕ, ∀ x ∈ K,
+        ‖iteratedFDeriv ℝ r (writtenInExtChartAt I_CP1 I z (v_seq n)) x‖ ≤ C) ∧
+    (∀ x ∈ U_z, Filter.Tendsto
+      (fun n => writtenInExtChartAt I_CP1 I z (v_seq n) x) Filter.atTop
+      (nhds (writtenInExtChartAt I_CP1 I z v_lim x)))
+
+/-- Uniform higher-jet bounds on compact subsets are preserved under right-composition with a fixed
+smooth map `ψ : U_z → U_w` between open subsets of `ℝ²` (`0 sorryAx`, via `norm_iteratedFDerivWithin_comp_le`). -/
+lemma uniform_jet_bounds_comp_of_open
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {U_z U_w : Set (EuclideanSpace ℝ (Fin 2))}
+    (hU_z : IsOpen U_z) (hU_w : IsOpen U_w)
+    {ψ : EuclideanSpace ℝ (Fin 2) → EuclideanSpace ℝ (Fin 2)}
+    (hψ : ContDiffOn ℝ (⊤ : ℕ∞) ψ U_z)
+    (hst : Set.MapsTo ψ U_z U_w)
+    {g_seq : ℕ → EuclideanSpace ℝ (Fin 2) → E}
+    (hg : ∀ n, ContDiffOn ℝ (⊤ : ℕ∞) (g_seq n) U_w)
+    (hbdd : ∀ (i : ℕ) (K' : Set (EuclideanSpace ℝ (Fin 2))), IsCompact K' → K' ⊆ U_w →
+      ∃ C : ℝ, ∀ n : ℕ, ∀ y ∈ K', ‖iteratedFDeriv ℝ i (g_seq n) y‖ ≤ C)
+    (r : ℕ) (K : Set (EuclideanSpace ℝ (Fin 2))) (hK : IsCompact K) (hKU : K ⊆ U_z) :
+    ∃ C_comp : ℝ, ∀ n : ℕ, ∀ x ∈ K,
+      ‖iteratedFDeriv ℝ r (g_seq n ∘ ψ) x‖ ≤ C_comp := by
+  classical
+  have hK' : IsCompact (ψ '' K) := hK.image_of_continuousOn (hψ.continuousOn.mono hKU)
+  have hK'U : ψ '' K ⊆ U_w := Set.image_subset_iff.mpr (hKU.trans hst)
+  choose C_fn hC_fn using fun i : ℕ => hbdd i (ψ '' K) hK' hK'U
+  let C : ℝ := ∑ i ∈ Finset.range (r + 1), max 0 (C_fn i)
+  have hψ_bdd : ∀ i : ℕ, ∃ D_i : ℝ, ∀ x ∈ K, ‖iteratedFDeriv ℝ i ψ x‖ ≤ D_i := by
+    intro i
+    have hcont_within := hψ.continuousOn_iteratedFDerivWithin (m := i) (by simp) hU_z.uniqueDiffOn
+    have hcont : ContinuousOn (iteratedFDeriv ℝ i ψ) U_z :=
+      hcont_within.congr (fun x hx => (iteratedFDerivWithin_of_isOpen i hU_z hx).symm)
+    exact hK.exists_bound_of_continuousOn (hcont.mono hKU)
+  choose D_fn hD_fn using hψ_bdd
+  let D : ℝ := 1 + ∑ i ∈ Finset.range (r + 1), max 0 (D_fn i)
+  have hD_one : 1 ≤ D := by
+    dsimp [D]
+    have h_nonneg : 0 ≤ ∑ i ∈ Finset.range (r + 1), max 0 (D_fn i) :=
+      Finset.sum_nonneg (fun i _ => le_max_left 0 (D_fn i))
+    linarith
+  refine ⟨(r.factorial : ℝ) * C * D ^ r, fun n x hx => ?_⟩
+  have hxU : x ∈ U_z := hKU hx
+  rw [← iteratedFDerivWithin_of_isOpen r hU_z hxU]
+  refine norm_iteratedFDerivWithin_comp_le (N := (⊤ : ℕ∞)) (n := r)
+    (hg n) hψ (by simp) hU_w.uniqueDiffOn hU_z.uniqueDiffOn hst hxU
+    (fun i hi => ?_) (fun i hi1 hir => ?_)
+  · rw [iteratedFDerivWithin_of_isOpen i hU_w (hst hxU)]
+    have hi_mem : i ∈ Finset.range (r + 1) := Finset.mem_range.mpr (Nat.lt_succ_of_le hi)
+    calc ‖iteratedFDeriv ℝ i (g_seq n) (ψ x)‖
+        ≤ C_fn i := hC_fn i n (ψ x) ⟨x, hx, rfl⟩
+      _ ≤ max 0 (C_fn i) := le_max_right 0 (C_fn i)
+      _ ≤ C := Finset.single_le_sum (fun j _ => le_max_left 0 (C_fn j)) hi_mem
+  · rw [iteratedFDerivWithin_of_isOpen i hU_z hxU]
+    have hi_mem : i ∈ Finset.range (r + 1) := Finset.mem_range.mpr (Nat.lt_succ_of_le hir)
+    calc ‖iteratedFDeriv ℝ i ψ x‖
+        ≤ D_fn i := hD_fn i x hx
+      _ ≤ max 0 (D_fn i) := le_max_right 0 (D_fn i)
+      _ ≤ ∑ j ∈ Finset.range (r + 1), max 0 (D_fn j) :=
+          Finset.single_le_sum (fun j _ => le_max_left 0 (D_fn j)) hi_mem
+      _ ≤ D := by dsimp [D]; linarith
+      _ = D ^ 1 := (pow_one D).symm
+      _ ≤ D ^ i := pow_le_pow_right₀ hD_one hi1
+
+/-- Invariance of `HasLocalChartJetBoundsAt` under precomposition with any smooth Möbius frame
+`ϕ : MoebiusFrame`: since `(f ∘ ϕ.toHomeo) z = f (ϕ.toHomeo z)` has the exact same target chart
+basepoint, `writtenInExtChartAt I_CP1 I z (f ∘ ϕ.toHomeo)` factors locally as
+`(writtenInExtChartAt I_CP1 I (ϕ.toHomeo z) f) ∘ (writtenInExtChartAt I_CP1 I_CP1 z ϕ.toHomeo)` (`0 sorryAx`). -/
+theorem hasLocalChartJetBoundsAt_comp_moebius
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    (v_seq : ℕ → (CP1 → M)) (v_lim : CP1 → M) (ϕ : MoebiusFrame) (z : CP1)
+    (h_w : HasLocalChartJetBoundsAt I v_seq v_lim (ϕ.toHomeo z)) :
+    HasLocalChartJetBoundsAt I (fun n => v_seq n ∘ ϕ.toHomeo) (v_lim ∘ ϕ.toHomeo) z := by
+  obtain ⟨U_w, hU_w, hx_w, hf_w, hbdd_w, hpoint_w⟩ := h_w
+  let w := ϕ.toHomeo z
+  let ψ := writtenInExtChartAt I_CP1 I_CP1 z ϕ.toHomeo
+  let V_z : Set (EuclideanSpace ℝ (Fin 2)) :=
+    (extChartAt I_CP1 z).target ∩
+      (extChartAt I_CP1 z).symm ⁻¹' (ϕ.toHomeo ⁻¹' (extChartAt I_CP1 w).source)
+  have hV_open : IsOpen V_z :=
+    (continuousOn_extChartAt_symm z).isOpen_inter_preimage
+      (isOpen_extChartAt_target z)
+      ((isOpen_extChartAt_source w).preimage ϕ.toHomeo.continuous)
+  have hx_V : (extChartAt I_CP1 z) z ∈ V_z := by
+    refine ⟨mem_extChartAt_target z, ?_⟩
+    simp only [Set.mem_preimage, (extChartAt I_CP1 z).left_inv (mem_extChartAt_source z)]
+    exact mem_extChartAt_source w
+  have hψ_smooth_V : ContDiffOn ℝ (⊤ : ℕ∞) ψ V_z := by
+    have h1 : ContMDiffOn 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ∞ (extChartAt I_CP1 z).symm V_z :=
+      (contMDiffOn_extChartAt_symm z).mono Set.inter_subset_left
+    have h2 : ContMDiffOn 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ∞
+        (ϕ.toHomeo ∘ (extChartAt I_CP1 z).symm) V_z :=
+      ϕ.is_smooth.comp_contMDiffOn h1
+    have h3 : ContMDiffOn 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) ∞ ψ V_z :=
+      (contMDiffOn_extChartAt (I := I_CP1) (x := w)).comp h2
+        (fun x hx => by simpa [extChartAt_source] using hx.2)
+    exact contMDiffOn_iff_contDiffOn.mp h3
+  let U_z : Set (EuclideanSpace ℝ (Fin 2)) := V_z ∩ ψ ⁻¹' U_w
+  have hU_z : IsOpen U_z :=
+    hψ_smooth_V.continuousOn.isOpen_inter_preimage hV_open hU_w
+  have hx_z : (extChartAt I_CP1 z) z ∈ U_z := by
+    refine ⟨hx_V, ?_⟩
+    change (extChartAt I_CP1 w) (ϕ.toHomeo ((extChartAt I_CP1 z).symm ((extChartAt I_CP1 z) z))) ∈ U_w
+    rw [(extChartAt I_CP1 z).left_inv (mem_extChartAt_source z)]
+    exact hx_w
+  have hψ_smooth : ContDiffOn ℝ (⊤ : ℕ∞) ψ U_z :=
+    hψ_smooth_V.mono Set.inter_subset_left
+  have hst : Set.MapsTo ψ U_z U_w := fun _ hx => hx.2
+  have h_eq : ∀ (f : CP1 → M),
+      Set.EqOn (writtenInExtChartAt I_CP1 I z (f ∘ ϕ.toHomeo))
+        ((writtenInExtChartAt I_CP1 I w f) ∘ ψ) U_z := by
+    intro f x hx
+    change (extChartAt I (f w)) (f (ϕ.toHomeo ((extChartAt I_CP1 z).symm x))) =
+      (extChartAt I (f w)) (f ((extChartAt I_CP1 w).symm ((extChartAt I_CP1 w) (ϕ.toHomeo ((extChartAt I_CP1 z).symm x)))))
+    rw [(extChartAt I_CP1 w).left_inv hx.1.2]
+  refine ⟨U_z, hU_z, hx_z, ?_, ?_, ?_⟩
+  · intro n
+    exact ((hf_w n).comp hψ_smooth hst).congr (h_eq (v_seq n))
+  · intro r K hK hKU
+    obtain ⟨C, hC⟩ := uniform_jet_bounds_comp_of_open hU_z hU_w hψ_smooth hst hf_w hbdd_w r K hK hKU
+    refine ⟨C, fun n x hx => ?_⟩
+    have hxU : x ∈ U_z := hKU hx
+    have h_ev : writtenInExtChartAt I_CP1 I z (v_seq n ∘ ϕ.toHomeo) =ᶠ[𝓝 x]
+        ((writtenInExtChartAt I_CP1 I w (v_seq n)) ∘ ψ) :=
+      Filter.eventuallyEq_of_mem (hU_z.mem_nhds hxU) (h_eq (v_seq n))
+    rw [(h_ev.iteratedFDeriv ℝ r).eq_of_nhds]
+    exact hC n x hx
+  · intro x hx
+    have h_lim := hpoint_w (ψ x) hx.2
+    rw [h_eq v_lim hx]
+    refine h_lim.congr' ?_
+    filter_upwards with n
+    exact (h_eq (v_seq n) hx).symm
+
+/-- First-principles synthesis of all 5 clauses of `CoreSmoothLocalConvergesOn I v_seq v_lim Ω`
+from `HasLocalChartJetBoundsAt I v_seq v_lim z` at each `z ∈ Ω` (`0 sorryAx`). -/
+theorem coreSmoothLocalConvergesOn_of_local_jet_bounds
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M]
+    (v_seq : ℕ → (CP1 → M)) (v_lim : CP1 → M) (Ω : Set CP1) (hΩ : IsOpen Ω)
+    (hv_seq : ∀ n, ContMDiffOn I_CP1 I ∞ (v_seq n) Ω)
+    (hv_lim_cont : ContinuousOn v_lim Ω)
+    (h_pt : ∀ z ∈ Ω, Filter.Tendsto (fun n => v_seq n z) Filter.atTop (nhds (v_lim z)))
+    (h_jets : ∀ z ∈ Ω, HasLocalChartJetBoundsAt I v_seq v_lim z) :
+    CoreSmoothLocalConvergesOn I v_seq v_lim Ω := by
+  have h_at_z : ∀ z ∈ Ω,
+      ContMDiffWithinAt I_CP1 I ∞ v_lim Ω z ∧
+      ∀ k : ℕ, Filter.Tendsto
+        (fun n => iteratedFDeriv ℝ k (writtenInExtChartAt I_CP1 I z (v_seq n)) ((extChartAt I_CP1 z) z))
+        Filter.atTop
+        (nhds (iteratedFDeriv ℝ k (writtenInExtChartAt I_CP1 I z v_lim) ((extChartAt I_CP1 z) z))) := by
+    intro z hz
+    obtain ⟨U_z, hU_z, hx_z, hf_z, hbdd_z, hpoint_z⟩ := h_jets z hz
+    obtain ⟨hsmooth_z, hjets_z⟩ :=
+      tendsto_iteratedFDeriv_writtenInExtChartAt_of_local_jet_bounds I v_seq v_lim z hU_z hx_z hf_z hbdd_z hpoint_z
+    refine ⟨?_, hjets_z⟩
+    have h_cont_at : ContinuousAt v_lim z := (hv_lim_cont z hz).continuousAt (hΩ.mem_nhds hz)
+    have h_cd_at : ContDiffWithinAt ℝ ∞ (writtenInExtChartAt I_CP1 I z v_lim) (Set.range I_CP1) ((extChartAt I_CP1 z) z) :=
+      (hsmooth_z.contDiffAt (hU_z.mem_nhds hx_z)).contDiffWithinAt
+    exact (contMDiffAt_iff.mpr ⟨h_cont_at, h_cd_at⟩).contMDiffWithinAt
+  have hv_lim_smooth : ContMDiffOn I_CP1 I ∞ v_lim Ω := fun z hz => (h_at_z z hz).1
+  refine ⟨hv_lim_smooth, fun K hK_sub _hK_cpt => ?_⟩
+  have h_mfderiv : ∀ z ∈ K,
+      Filter.Tendsto (fun n => (mfderiv I_CP1 I (v_seq n) z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E))
+        Filter.atTop (nhds (mfderiv I_CP1 I v_lim z)) := by
+    intro z hzK
+    have hz : z ∈ Ω := hK_sub hzK
+    have h_jet1 := (h_at_z z hz).2 1
+    have h_curry := (continuousMultilinearCurryFin1 ℝ (EuclideanSpace ℝ (Fin 2)) E).continuous.tendsto
+      (iteratedFDeriv ℝ 1 (writtenInExtChartAt I_CP1 I z v_lim) ((extChartAt I_CP1 z) z)) |>.comp h_jet1
+    have h_lim_mdiff : MDifferentiableAt I_CP1 I v_lim z :=
+      ((hv_lim_smooth z hz).mdifferentiableWithinAt (by simp)).mdifferentiableAt (hΩ.mem_nhds hz)
+    rw [mfderiv_eq_curry_iteratedFDeriv_one I v_lim z h_lim_mdiff]
+    refine h_curry.congr' ?_
+    filter_upwards with n
+    have h_seq_mdiff : MDifferentiableAt I_CP1 I (v_seq n) z :=
+      ((hv_seq n z hz).mdifferentiableWithinAt (by simp)).mdifferentiableAt (hΩ.mem_nhds hz)
+    exact (mfderiv_eq_curry_iteratedFDeriv_one I (v_seq n) z h_seq_mdiff).symm
+  refine ⟨fun z hzK => h_pt z (hK_sub hzK), h_mfderiv,
+    fun k z hzK => (h_at_z z (hK_sub hzK)).2 k, ?_⟩
+  intro tgt z hzK v
+  have hz : z ∈ Ω := hK_sub hzK
+  have hJ_tendsto : Filter.Tendsto (fun n => id (α := E →L[ℝ] E) (tgt.J (v_seq n z)))
+      Filter.atTop (nhds (id (α := E →L[ℝ] E) (tgt.J (v_lim z)))) :=
+    ((continuous_closedTameTarget_J I).tendsto (v_lim z)).comp (h_pt z hz)
+  have h_dv_tendsto : Filter.Tendsto (fun n => (mfderiv I_CP1 I (v_seq n) z v : E))
+      Filter.atTop (nhds (mfderiv I_CP1 I v_lim z v : E)) :=
+    ((ContinuousLinearMap.apply ℝ E v).continuous.tendsto (mfderiv I_CP1 I v_lim z)).comp (h_mfderiv z hzK)
+  exact (isBoundedBilinearMap_apply.continuous.tendsto
+    (id (α := E →L[ℝ] E) (tgt.J (v_lim z)), (mfderiv I_CP1 I v_lim z v : E))).comp
+    (hJ_tendsto.prodMk_nhds h_dv_tendsto)
+
+/-- Full frame-invariant `SmoothLocalConvergesOn I v_seq v_lim Ω` deduced from `HasLocalChartJetBoundsAt`
+on `Ω` alone (`0 sorryAx`), eliminating quantification over `MoebiusFrame` via
+`hasLocalChartJetBoundsAt_comp_moebius` and `smoothLocalConvergesOn_of_moebius_core`. -/
+theorem smoothLocalConvergesOn_of_local_jet_bounds
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M]
+    (v_seq : ℕ → (CP1 → M)) (v_lim : CP1 → M) (Ω : Set CP1) (hΩ : IsOpen Ω)
+    (hv_seq : ∀ n, ContMDiffOn I_CP1 I ∞ (v_seq n) Ω)
+    (hv_lim_cont : ContinuousOn v_lim Ω)
+    (h_pt : ∀ z ∈ Ω, Filter.Tendsto (fun n => v_seq n z) Filter.atTop (nhds (v_lim z)))
+    (h_jets : ∀ z ∈ Ω, HasLocalChartJetBoundsAt I v_seq v_lim z) :
+    SmoothLocalConvergesOn I v_seq v_lim Ω := by
+  refine smoothLocalConvergesOn_of_moebius_core I v_seq v_lim Ω (fun ϕ => ?_)
+  refine coreSmoothLocalConvergesOn_of_local_jet_bounds I
+    (fun n => v_seq n ∘ ϕ.toHomeo) (v_lim ∘ ϕ.toHomeo) (ϕ.toHomeo ⁻¹' Ω)
+    (hΩ.preimage ϕ.toHomeo.continuous)
+    (fun n => (hv_seq n).comp ϕ.is_smooth.contMDiffOn (fun _ hz => hz))
+    (hv_lim_cont.comp ϕ.toHomeo.continuous.continuousOn (fun _ hz => hz))
+    (fun z hz => h_pt (ϕ.toHomeo z) hz)
+    (fun z hz => hasLocalChartJetBoundsAt_comp_moebius I v_seq v_lim ϕ z (h_jets (ϕ.toHomeo z) hz))
+
+/-- First-principles synthesis of `SmoothLocalConvergesOn` subsequence extraction for Certificate 7 (`h_aa`)
+from equicontinuity and local chart higher-jet bounds on `Ω` (`0 sorryAx`). -/
+theorem exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_local_jet_bounds
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M]
+    (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (hΩ : IsOpen Ω)
+    (hu_seq : ∀ n, ContMDiffOn I_CP1 I ∞ (u_seq n) Ω)
+    (h_equi : Equicontinuous (fun n (x : Ω) => u_seq n (x : CP1)))
+    (h_jets : ∀ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      ContinuousOn u_lim Ω →
+      (∀ K ⊆ Ω, IsCompact K →
+        TendstoUniformlyOn (fun n => u_seq (σ.1 n)) u_lim Filter.atTop K) →
+      (∀ z ∈ Ω, Filter.Tendsto (fun n => u_seq (σ.1 n) z) Filter.atTop (𝓝 (u_lim z))) →
+      ∀ z ∈ Ω, HasLocalChartJetBoundsAt I (fun n => u_seq (σ.1 n)) u_lim z) :
+    ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω := by
+  obtain ⟨σ, u_lim, hu_lim_cont, h_unif, h_pt⟩ :=
+    exists_continuousOn_pointwise_convergent_subseq_on_domain u_seq Ω h_equi
+  exact ⟨σ, u_lim, smoothLocalConvergesOn_of_local_jet_bounds I
+    (fun n => u_seq (σ.1 n)) u_lim Ω hΩ (fun n => hu_seq (σ.1 n)) hu_lim_cont h_pt
+    (h_jets σ u_lim hu_lim_cont h_unif h_pt)⟩
 
 /-- Phase 3 Full $C^\infty$ Elliptic Regularity Tower Synthesis (`h_tower`):
 Combining `contMDiffOn_nat_of_weakJHolomorphicOn_aux` and `nonlinear_elliptic_bootstrap_of_tower`
@@ -7242,5 +7579,418 @@ theorem jholomorphicOn_of_weakJHolomorphicOn_and_step
       ContMDiffOn I_CP1 I ((k + 1 : ℕ) : WithTop ℕ∞) u Ω) :
     JHolomorphicOn (I := I) (I_dom := I_CP1) u Ω :=
   ⟨contMDiffOn_infty_of_weakJHolomorphicOn_and_step I u Ω hΩ h_weak h_step, h_weak.2⟩
+
+/-- Target-level elliptic regularity tower property (`cert_tower`):
+every weak $C^1$ $J$-holomorphic map `u : CP1 → M` on an open subset `Ω ⊆ CP1` is of class $C^n$
+on `Ω` for every `n : ℕ`. -/
+def RegularityTowerProperty
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    (M : Type*) [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] : Prop :=
+  ∀ (u : CP1 → M) (Ω : Set CP1),
+    IsOpen Ω → WeakJHolomorphicOn I u Ω →
+    ∀ (n : ℕ), ContMDiffOn I_CP1 I (n : WithTop ℕ∞) u Ω
+
+/-- At any point `z ∈ Ω` of an open domain `Ω ⊆ CP1`, `ContMDiffOn I_CP1 I m u Ω` implies flat
+coordinate regularity `ContDiffAt ℝ m (writtenInExtChartAt I_CP1 I z u) ((extChartAt I_CP1 z) z)` (`0 sorryAx`). -/
+theorem contDiffAt_writtenInExtChartAt_of_contMDiffOn
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    {m : WithTop ℕ∞} {u : CP1 → M} {Ω : Set CP1} (hΩ : IsOpen Ω)
+    (hu : ContMDiffOn I_CP1 I m u Ω) {z : CP1} (hz : z ∈ Ω) :
+    ContDiffAt ℝ m (writtenInExtChartAt I_CP1 I z u) ((extChartAt I_CP1 z) z) := by
+  have h_at : ContMDiffAt I_CP1 I m u z := (hu z hz).contMDiffAt (hΩ.mem_nhds hz)
+  have h_cd := (contMDiffAt_iff.mp h_at).2
+  rwa [I_CP1.range_eq_univ, contDiffWithinAt_univ] at h_cd
+
+/-- Conversely, for a weak $C^1$ $J$-holomorphic map `u` on an open domain `Ω ⊆ CP1`, flat
+coordinate regularity `ContDiffAt ℝ m (writtenInExtChartAt I_CP1 I z u) ((extChartAt I_CP1 z) z)`
+at `z ∈ Ω` implies `ContMDiffWithinAt I_CP1 I m u Ω z` (`0 sorryAx`). -/
+theorem contMDiffWithinAt_of_weakJHolomorphicOn_and_contDiffAt_writtenInExtChartAt
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {m : WithTop ℕ∞} {u : CP1 → M} {Ω : Set CP1} (hΩ : IsOpen Ω)
+    (h_weak : WeakJHolomorphicOn I u Ω) {z : CP1} (hz : z ∈ Ω)
+    (h_cd : ContDiffAt ℝ m (writtenInExtChartAt I_CP1 I z u) ((extChartAt I_CP1 z) z)) :
+    ContMDiffWithinAt I_CP1 I m u Ω z := by
+  have h_cont_at : ContinuousAt u z :=
+    (h_weak.1.continuousOn z hz).continuousAt (hΩ.mem_nhds hz)
+  exact (contMDiffAt_iff.mpr ⟨h_cont_at, h_cd.contDiffWithinAt⟩).contMDiffWithinAt
+
+/-- Inductive $C^n$ regularity tower (`cert_tower`) starting from the proved $C^1$ base case
+(`contMDiffOn_one_of_weakJHolomorphicOn`) and a local chart regularity gain
+`ContDiffAt ℝ k (writtenInExtChartAt I_CP1 I z u) ((extChartAt I_CP1 z) z) → ContDiffAt ℝ (k + 1) ...`
+for `k ≥ 1` (`0 sorryAx`). -/
+theorem contMDiffOn_nat_of_weakJHolomorphicOn_and_chart_step
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (Ω : Set CP1) (hΩ : IsOpen Ω)
+    (h_weak : WeakJHolomorphicOn I u Ω)
+    (h_chart_step : ∀ k : ℕ, 1 ≤ k → ∀ z ∈ Ω,
+      ContDiffAt ℝ (k : WithTop ℕ∞) (writtenInExtChartAt I_CP1 I z u) ((extChartAt I_CP1 z) z) →
+      ContDiffAt ℝ ((k + 1 : ℕ) : WithTop ℕ∞) (writtenInExtChartAt I_CP1 I z u) ((extChartAt I_CP1 z) z))
+    (n : ℕ) :
+    ContMDiffOn I_CP1 I (n : WithTop ℕ∞) u Ω := by
+  induction n with
+  | zero => exact contMDiffOn_zero_of_weakJHolomorphicOn I u Ω h_weak
+  | succ k ih =>
+    rcases Nat.eq_zero_or_pos k with rfl | hk_pos
+    · simpa using contMDiffOn_one_of_weakJHolomorphicOn I u Ω h_weak
+    · intro z hz
+      have h_cd_k : ContDiffAt ℝ (k : WithTop ℕ∞) (writtenInExtChartAt I_CP1 I z u) ((extChartAt I_CP1 z) z) :=
+        contDiffAt_writtenInExtChartAt_of_contMDiffOn I hΩ ih hz
+      have h_cd_succ := h_chart_step k hk_pos z hz h_cd_k
+      exact contMDiffWithinAt_of_weakJHolomorphicOn_and_contDiffAt_writtenInExtChartAt I hΩ h_weak hz h_cd_succ
+
+/-- Proof of `RegularityTowerProperty I M` (`cert_tower`) from the inductive manifold step
+`C^k → C^{k+1}` (`0 sorryAx`). -/
+theorem regularityTowerProperty_of_step
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    (M : Type*) [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_step : ∀ (u : CP1 → M) (Ω : Set CP1),
+      IsOpen Ω → WeakJHolomorphicOn I u Ω →
+      ∀ k : ℕ, ContMDiffOn I_CP1 I (k : WithTop ℕ∞) u Ω →
+        ContMDiffOn I_CP1 I ((k + 1 : ℕ) : WithTop ℕ∞) u Ω) :
+    RegularityTowerProperty I M :=
+  fun u Ω hΩ h_weak n => contMDiffOn_nat_of_weakJHolomorphicOn_aux I u Ω h_weak (h_step u Ω hΩ h_weak) n
+
+/-- Proof of `RegularityTowerProperty I M` (`cert_tower`) from the local chart regularity gain
+`C^k → C^{k+1}` (`k ≥ 1`) in `writtenInExtChartAt` (`0 sorryAx`). -/
+theorem regularityTowerProperty_of_chart_step
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    (M : Type*) [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_chart_step : ∀ (u : CP1 → M) (Ω : Set CP1),
+      IsOpen Ω → WeakJHolomorphicOn I u Ω →
+      ∀ k : ℕ, 1 ≤ k → ∀ z ∈ Ω,
+        ContDiffAt ℝ (k : WithTop ℕ∞) (writtenInExtChartAt I_CP1 I z u) ((extChartAt I_CP1 z) z) →
+        ContDiffAt ℝ ((k + 1 : ℕ) : WithTop ℕ∞) (writtenInExtChartAt I_CP1 I z u) ((extChartAt I_CP1 z) z)) :
+    RegularityTowerProperty I M :=
+  fun u Ω hΩ h_weak n =>
+    contMDiffOn_nat_of_weakJHolomorphicOn_and_chart_step I u Ω hΩ h_weak (h_chart_step u Ω hΩ h_weak) n
+
+/-- Contract A05 (`nonlinear_elliptic_bootstrap`) proved from the local chart regularity gain
+`C^k → C^{k+1}` (`k ≥ 1`) in `writtenInExtChartAt` (`0 sorryAx`). -/
+theorem nonlinear_elliptic_bootstrap_of_chart_step
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (Ω : Set CP1) (hΩ : IsOpen Ω)
+    (h_weak : WeakJHolomorphicOn I u Ω)
+    (h_chart_step : ∀ k : ℕ, 1 ≤ k → ∀ z ∈ Ω,
+      ContDiffAt ℝ (k : WithTop ℕ∞) (writtenInExtChartAt I_CP1 I z u) ((extChartAt I_CP1 z) z) →
+      ContDiffAt ℝ ((k + 1 : ℕ) : WithTop ℕ∞) (writtenInExtChartAt I_CP1 I z u) ((extChartAt I_CP1 z) z)) :
+    ContMDiffOn I_CP1 I ∞ u Ω :=
+  nonlinear_elliptic_bootstrap I u Ω hΩ h_weak
+    (contMDiffOn_nat_of_weakJHolomorphicOn_and_chart_step I u Ω hΩ h_weak h_chart_step)
+
+/-! ### First-principles Arzelà–Ascoli smooth extraction (`cert_aa` / Contract A06) (`0 sorryAx`) -/
+
+/-- Target-level Arzelà–Ascoli smooth local extraction property (`cert_aa`):
+for every sequence of $J$-holomorphic maps `u_seq` on an open subset `Ω ⊆ CP1` with locally
+uniformly bounded `riemannianEnergyDensity` on compact subsets of `Ω`, a subsequence converges in
+`SmoothLocalConvergesOn` on `Ω`. -/
+def ArzelaAscoliProperty
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    (M : Type*) [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] : Prop :=
+  ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1),
+    IsOpen Ω →
+    (∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω) →
+    (∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) →
+    ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω
+
+/-- Eventual local chart higher-jet bounds at `z : CP1`: allows dropping finitely many initial
+indices `n < N₀` (where `N₀` may depend on `z`) before `v_seq n` enters the local target chart
+around `v_lim z`. -/
+def EventuallyHasLocalChartJetBoundsAt
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    (v_seq : ℕ → (CP1 → M)) (v_lim : CP1 → M) (z : CP1) : Prop :=
+  ∃ N₀ : ℕ, HasLocalChartJetBoundsAt I (fun n => v_seq (n + N₀)) v_lim z
+
+/-- `HasLocalChartJetBoundsAt` implies `EventuallyHasLocalChartJetBoundsAt` with `N₀ = 0` (`0 sorryAx`). -/
+theorem HasLocalChartJetBoundsAt.eventually
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    {v_seq : ℕ → (CP1 → M)} {v_lim : CP1 → M} {z : CP1}
+    (h : HasLocalChartJetBoundsAt I v_seq v_lim z) :
+    EventuallyHasLocalChartJetBoundsAt I v_seq v_lim z :=
+  ⟨0, by simpa using h⟩
+
+/-- Invariance of `EventuallyHasLocalChartJetBoundsAt` under precomposition with any smooth Möbius
+frame `ϕ : MoebiusFrame` (`0 sorryAx`). -/
+theorem eventuallyHasLocalChartJetBoundsAt_comp_moebius
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    (v_seq : ℕ → (CP1 → M)) (v_lim : CP1 → M) (ϕ : MoebiusFrame) (z : CP1)
+    (h_w : EventuallyHasLocalChartJetBoundsAt I v_seq v_lim (ϕ.toHomeo z)) :
+    EventuallyHasLocalChartJetBoundsAt I (fun n => v_seq n ∘ ϕ.toHomeo) (v_lim ∘ ϕ.toHomeo) z := by
+  obtain ⟨N₀, hN₀⟩ := h_w
+  exact ⟨N₀, hasLocalChartJetBoundsAt_comp_moebius I (fun n => v_seq (n + N₀)) v_lim ϕ z hN₀⟩
+
+/-- First-principles synthesis of all 5 clauses of `CoreSmoothLocalConvergesOn I v_seq v_lim Ω`
+from `EventuallyHasLocalChartJetBoundsAt I v_seq v_lim z` at each `z ∈ Ω` (`0 sorryAx`), allowing
+the index threshold `N_z` to vary point-by-point via `tendsto_add_atTop_iff_nat`. -/
+theorem coreSmoothLocalConvergesOn_of_eventually_local_jet_bounds
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M]
+    (v_seq : ℕ → (CP1 → M)) (v_lim : CP1 → M) (Ω : Set CP1) (hΩ : IsOpen Ω)
+    (hv_seq : ∀ n, ContMDiffOn I_CP1 I ∞ (v_seq n) Ω)
+    (hv_lim_cont : ContinuousOn v_lim Ω)
+    (h_pt : ∀ z ∈ Ω, Filter.Tendsto (fun n => v_seq n z) Filter.atTop (nhds (v_lim z)))
+    (h_jets : ∀ z ∈ Ω, EventuallyHasLocalChartJetBoundsAt I v_seq v_lim z) :
+    CoreSmoothLocalConvergesOn I v_seq v_lim Ω := by
+  have h_at_z : ∀ z ∈ Ω,
+      ContMDiffWithinAt I_CP1 I ∞ v_lim Ω z ∧
+      ∀ k : ℕ, Filter.Tendsto
+        (fun n => iteratedFDeriv ℝ k (writtenInExtChartAt I_CP1 I z (v_seq n)) ((extChartAt I_CP1 z) z))
+        Filter.atTop
+        (nhds (iteratedFDeriv ℝ k (writtenInExtChartAt I_CP1 I z v_lim) ((extChartAt I_CP1 z) z))) := by
+    intro z hz
+    obtain ⟨N_z, U_z, hU_z, hx_z, hf_z, hbdd_z, hpoint_z⟩ := h_jets z hz
+    obtain ⟨hsmooth_z, hjets_shift⟩ :=
+      tendsto_iteratedFDeriv_writtenInExtChartAt_of_local_jet_bounds I
+        (fun n => v_seq (n + N_z)) v_lim z hU_z hx_z hf_z hbdd_z hpoint_z
+    refine ⟨?_, fun k => (Filter.tendsto_add_atTop_iff_nat N_z).mp (hjets_shift k)⟩
+    have h_cont_at : ContinuousAt v_lim z := (hv_lim_cont z hz).continuousAt (hΩ.mem_nhds hz)
+    have h_cd_at : ContDiffWithinAt ℝ ∞ (writtenInExtChartAt I_CP1 I z v_lim) (Set.range I_CP1) ((extChartAt I_CP1 z) z) :=
+      (hsmooth_z.contDiffAt (hU_z.mem_nhds hx_z)).contDiffWithinAt
+    exact (contMDiffAt_iff.mpr ⟨h_cont_at, h_cd_at⟩).contMDiffWithinAt
+  have hv_lim_smooth : ContMDiffOn I_CP1 I ∞ v_lim Ω := fun z hz => (h_at_z z hz).1
+  refine ⟨hv_lim_smooth, fun K hK_sub _hK_cpt => ?_⟩
+  have h_mfderiv : ∀ z ∈ K,
+      Filter.Tendsto (fun n => (mfderiv I_CP1 I (v_seq n) z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E))
+        Filter.atTop (nhds (mfderiv I_CP1 I v_lim z)) := by
+    intro z hzK
+    have hz : z ∈ Ω := hK_sub hzK
+    have h_jet1 := (h_at_z z hz).2 1
+    have h_curry := (continuousMultilinearCurryFin1 ℝ (EuclideanSpace ℝ (Fin 2)) E).continuous.tendsto
+      (iteratedFDeriv ℝ 1 (writtenInExtChartAt I_CP1 I z v_lim) ((extChartAt I_CP1 z) z)) |>.comp h_jet1
+    have h_lim_mdiff : MDifferentiableAt I_CP1 I v_lim z :=
+      ((hv_lim_smooth z hz).mdifferentiableWithinAt (by simp)).mdifferentiableAt (hΩ.mem_nhds hz)
+    rw [mfderiv_eq_curry_iteratedFDeriv_one I v_lim z h_lim_mdiff]
+    refine h_curry.congr' ?_
+    filter_upwards with n
+    have h_seq_mdiff : MDifferentiableAt I_CP1 I (v_seq n) z :=
+      ((hv_seq n z hz).mdifferentiableWithinAt (by simp)).mdifferentiableAt (hΩ.mem_nhds hz)
+    exact (mfderiv_eq_curry_iteratedFDeriv_one I (v_seq n) z h_seq_mdiff).symm
+  refine ⟨fun z hzK => h_pt z (hK_sub hzK), h_mfderiv,
+    fun k z hzK => (h_at_z z (hK_sub hzK)).2 k, ?_⟩
+  intro tgt z hzK v
+  have hz : z ∈ Ω := hK_sub hzK
+  have hJ_tendsto : Filter.Tendsto (fun n => id (α := E →L[ℝ] E) (tgt.J (v_seq n z)))
+      Filter.atTop (nhds (id (α := E →L[ℝ] E) (tgt.J (v_lim z)))) :=
+    ((continuous_closedTameTarget_J I).tendsto (v_lim z)).comp (h_pt z hz)
+  have h_dv_tendsto : Filter.Tendsto (fun n => (mfderiv I_CP1 I (v_seq n) z v : E))
+      Filter.atTop (nhds (mfderiv I_CP1 I v_lim z v : E)) :=
+    ((ContinuousLinearMap.apply ℝ E v).continuous.tendsto (mfderiv I_CP1 I v_lim z)).comp (h_mfderiv z hzK)
+  exact (isBoundedBilinearMap_apply.continuous.tendsto
+    (id (α := E →L[ℝ] E) (tgt.J (v_lim z)), (mfderiv I_CP1 I v_lim z v : E))).comp
+    (hJ_tendsto.prodMk_nhds h_dv_tendsto)
+
+/-- Full frame-invariant `SmoothLocalConvergesOn I v_seq v_lim Ω` deduced from
+`EventuallyHasLocalChartJetBoundsAt` on `Ω` (`0 sorryAx`). -/
+theorem smoothLocalConvergesOn_of_eventually_local_jet_bounds
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M]
+    (v_seq : ℕ → (CP1 → M)) (v_lim : CP1 → M) (Ω : Set CP1) (hΩ : IsOpen Ω)
+    (hv_seq : ∀ n, ContMDiffOn I_CP1 I ∞ (v_seq n) Ω)
+    (hv_lim_cont : ContinuousOn v_lim Ω)
+    (h_pt : ∀ z ∈ Ω, Filter.Tendsto (fun n => v_seq n z) Filter.atTop (nhds (v_lim z)))
+    (h_jets : ∀ z ∈ Ω, EventuallyHasLocalChartJetBoundsAt I v_seq v_lim z) :
+    SmoothLocalConvergesOn I v_seq v_lim Ω := by
+  refine smoothLocalConvergesOn_of_moebius_core I v_seq v_lim Ω (fun ϕ => ?_)
+  refine coreSmoothLocalConvergesOn_of_eventually_local_jet_bounds I
+    (fun n => v_seq n ∘ ϕ.toHomeo) (v_lim ∘ ϕ.toHomeo) (ϕ.toHomeo ⁻¹' Ω)
+    (hΩ.preimage ϕ.toHomeo.continuous)
+    (fun n => (hv_seq n).comp ϕ.is_smooth.contMDiffOn (fun _ hz => hz))
+    (hv_lim_cont.comp ϕ.toHomeo.continuous.continuousOn (fun _ hz => hz))
+    (fun z hz => h_pt (ϕ.toHomeo z) hz)
+    (fun z hz => eventuallyHasLocalChartJetBoundsAt_comp_moebius I v_seq v_lim ϕ z (h_jets (ϕ.toHomeo z) hz))
+
+/-- First-principles fixed-chart localization from uniform convergence on compact subsets (`0 sorryAx`):
+for any `z ∈ Ω`, if `v_lim` is continuous on `Ω` and `v_seq → v_lim` uniformly on compact subsets of `Ω`,
+there exist an open coordinate ball `U_z` around `extChartAt I_CP1 z z` and an index `N_z : ℕ` such that
+for all `n ≥ N_z`, the fixed-target-chart representation
+`x ↦ extChartAt I (v_lim z) (v_seq n ((extChartAt I_CP1 z).symm x))` is `ContDiffOn ℝ ⊤` on `U_z` and
+converges pointwise on `U_z` to `writtenInExtChartAt I_CP1 I z v_lim`. -/
+theorem exists_fixed_chart_ball_eventually_smooth_and_pointwise
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
+    (v_seq : ℕ → (CP1 → M)) (v_lim : CP1 → M) (Ω : Set CP1) (hΩ : IsOpen Ω)
+    (hv_seq : ∀ n, ContMDiffOn I_CP1 I ∞ (v_seq n) Ω)
+    (hv_lim_cont : ContinuousOn v_lim Ω)
+    (h_unif : ∀ K ⊆ Ω, IsCompact K → TendstoUniformlyOn v_seq v_lim Filter.atTop K)
+    {z : CP1} (hz : z ∈ Ω) :
+    ∃ (U_z : Set (EuclideanSpace ℝ (Fin 2))) (N_z : ℕ),
+      IsOpen U_z ∧ (extChartAt I_CP1 z) z ∈ U_z ∧
+      (∀ n ≥ N_z, ContDiffOn ℝ (⊤ : ℕ∞)
+        (fun x => (extChartAt I (v_lim z)) (v_seq n ((extChartAt I_CP1 z).symm x))) U_z) ∧
+      (∀ x ∈ U_z, Filter.Tendsto
+        (fun n => (extChartAt I (v_lim z)) (v_seq n ((extChartAt I_CP1 z).symm x)))
+        Filter.atTop
+        (nhds (writtenInExtChartAt I_CP1 I z v_lim x))) := by
+  obtain ⟨ε_z, hε_pos, hε_src⟩ := Metric.isOpen_iff.mp
+    (isOpen_extChartAt_source (I := I) (v_lim z)) (v_lim z) (mem_extChartAt_source (v_lim z))
+  let x₀ : EuclideanSpace ℝ (Fin 2) := (extChartAt I_CP1 z) z
+  have hx₀_symm : (extChartAt I_CP1 z).symm x₀ = z :=
+    (extChartAt I_CP1 z).left_inv (mem_extChartAt_source z)
+  have h_lim_cont_at : ContinuousAt v_lim z := (hv_lim_cont z hz).continuousAt (hΩ.mem_nhds hz)
+  have h_symm_cont_at : ContinuousAt (extChartAt I_CP1 z).symm x₀ :=
+    (continuousOn_extChartAt_symm z).continuousAt
+      ((isOpen_extChartAt_target z).mem_nhds (mem_extChartAt_target z))
+  have h_W_nhds : (extChartAt I_CP1 z).target ∩
+      (extChartAt I_CP1 z).symm ⁻¹' (Ω ∩ v_lim ⁻¹' Metric.ball (v_lim z) (ε_z / 2)) ∈ 𝓝 x₀ := by
+    refine Filter.inter_mem ((isOpen_extChartAt_target z).mem_nhds (mem_extChartAt_target z)) ?_
+    apply h_symm_cont_at.preimage_mem_nhds
+    rw [hx₀_symm]
+    exact Filter.inter_mem (hΩ.mem_nhds hz)
+      (h_lim_cont_at.preimage_mem_nhds (Metric.ball_mem_nhds (v_lim z) (half_pos hε_pos)))
+  obtain ⟨δ_z, hδ_pos, hδ_sub⟩ := Metric.mem_nhds_iff.mp h_W_nhds
+  let r_z : ℝ := δ_z / 2
+  have hr_pos : 0 < r_z := half_pos hδ_pos
+  have hcball_sub : Metric.closedBall x₀ r_z ⊆ Metric.ball x₀ δ_z :=
+    Metric.closedBall_subset_ball (half_lt_self hδ_pos)
+  have hcball_W : Metric.closedBall x₀ r_z ⊆ (extChartAt I_CP1 z).target ∩
+      (extChartAt I_CP1 z).symm ⁻¹' (Ω ∩ v_lim ⁻¹' Metric.ball (v_lim z) (ε_z / 2)) :=
+    hcball_sub.trans hδ_sub
+  have : ProperSpace (EuclideanSpace ℝ (Fin 2)) := FiniteDimensional.proper ℝ _
+  let K_z : Set CP1 := (extChartAt I_CP1 z).symm '' Metric.closedBall x₀ r_z
+  have hKz_cpt : IsCompact K_z :=
+    (isCompact_closedBall x₀ r_z).image_of_continuousOn
+      ((continuousOn_extChartAt_symm z).mono (fun x hx => (hcball_W hx).1))
+  have hKz_sub : K_z ⊆ Ω := by
+    rintro w ⟨x, hx, rfl⟩
+    exact (hcball_W hx).2.1
+  have h_ev_unif := Metric.tendstoUniformlyOn_iff.mp (h_unif K_z hKz_sub hKz_cpt) (ε_z / 2) (half_pos hε_pos)
+  obtain ⟨N_z, hN_z⟩ := Filter.eventually_atTop.mp h_ev_unif
+  let U_z : Set (EuclideanSpace ℝ (Fin 2)) := Metric.ball x₀ r_z
+  have hUz_cball : U_z ⊆ Metric.closedBall x₀ r_z := Metric.ball_subset_closedBall
+  refine ⟨U_z, N_z, Metric.isOpen_ball, Metric.mem_ball_self hr_pos, ?_, ?_⟩
+  · intro n hn
+    have h1 : ContMDiffOn 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I_CP1 ∞ (extChartAt I_CP1 z).symm U_z :=
+      (contMDiffOn_extChartAt_symm z).mono (fun x hx => (hcball_W (hUz_cball hx)).1)
+    have h2 : ContMDiffOn 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) I ∞
+        (v_seq n ∘ (extChartAt I_CP1 z).symm) U_z :=
+      (hv_seq n).comp h1 (fun x hx => (hcball_W (hUz_cball hx)).2.1)
+    have h3 : ContMDiffOn 𝓘(ℝ, EuclideanSpace ℝ (Fin 2)) 𝓘(ℝ, E) ∞
+        (fun x => (extChartAt I (v_lim z)) (v_seq n ((extChartAt I_CP1 z).symm x))) U_z := by
+      refine (contMDiffOn_extChartAt (I := I) (x := v_lim z)).comp h2 (fun x hx => ?_)
+      let w : CP1 := (extChartAt I_CP1 z).symm x
+      have hw_Kz : w ∈ K_z := ⟨x, hUz_cball hx, rfl⟩
+      have hd1 : dist (v_lim w) (v_seq n w) < ε_z / 2 := hN_z n hn w hw_Kz
+      have hd2 : dist (v_lim w) (v_lim z) < ε_z / 2 := (hcball_W (hUz_cball hx)).2.2
+      have hd_tot : dist (v_seq n w) (v_lim z) < ε_z := by
+        calc dist (v_seq n w) (v_lim z)
+            ≤ dist (v_seq n w) (v_lim w) + dist (v_lim w) (v_lim z) := dist_triangle _ _ _
+          _ = dist (v_lim w) (v_seq n w) + dist (v_lim w) (v_lim z) := by rw [dist_comm (v_seq n w)]
+          _ < ε_z / 2 + ε_z / 2 := add_lt_add hd1 hd2
+          _ = ε_z := add_halves ε_z
+      have hw_mem : v_seq n ((extChartAt I_CP1 z).symm x) ∈ (extChartAt I (v_lim z)).source := hε_src hd_tot
+      simpa [extChartAt_source] using hw_mem
+    exact contMDiffOn_iff_contDiffOn.mp h3
+  · intro x hx
+    let w : CP1 := (extChartAt I_CP1 z).symm x
+    have hw_Kz : w ∈ K_z := ⟨x, hUz_cball hx, rfl⟩
+    have hw_pt : Filter.Tendsto (fun n => v_seq n w) Filter.atTop (𝓝 (v_lim w)) :=
+      (h_unif K_z hKz_sub hKz_cpt).tendsto_at hw_Kz
+    have hw_src : v_lim w ∈ (extChartAt I (v_lim z)).source := by
+      have hd : dist (v_lim w) (v_lim z) < ε_z :=
+        lt_trans (hcball_W (hUz_cball hx)).2.2 (half_lt_self hε_pos)
+      exact hε_src hd
+    have h_ext_cont : ContinuousAt (extChartAt I (v_lim z)) (v_lim w) :=
+      (continuousOn_extChartAt (v_lim z)).continuousAt
+        ((isOpen_extChartAt_source (v_lim z)).mem_nhds hw_src)
+    exact h_ext_cont.tendsto.comp hw_pt
+
+/-- Synthesis of `SmoothLocalConvergesOn` subsequence extraction for `cert_aa` from equicontinuity
+and `EventuallyHasLocalChartJetBoundsAt` (`0 sorryAx`). -/
+theorem exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_eventually_jet_bounds
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M]
+    (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (hΩ : IsOpen Ω)
+    (hu_seq : ∀ n, ContMDiffOn I_CP1 I ∞ (u_seq n) Ω)
+    (h_equi : Equicontinuous (fun n (x : Ω) => u_seq n (x : CP1)))
+    (h_jets : ∀ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      ContinuousOn u_lim Ω →
+      (∀ K ⊆ Ω, IsCompact K →
+        TendstoUniformlyOn (fun n => u_seq (σ.1 n)) u_lim Filter.atTop K) →
+      (∀ z ∈ Ω, Filter.Tendsto (fun n => u_seq (σ.1 n) z) Filter.atTop (𝓝 (u_lim z))) →
+      ∀ z ∈ Ω, EventuallyHasLocalChartJetBoundsAt I (fun n => u_seq (σ.1 n)) u_lim z) :
+    ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω := by
+  obtain ⟨σ, u_lim, hu_lim_cont, h_unif, h_pt⟩ :=
+    exists_continuousOn_pointwise_convergent_subseq_on_domain u_seq Ω h_equi
+  exact ⟨σ, u_lim, smoothLocalConvergesOn_of_eventually_local_jet_bounds I
+    (fun n => u_seq (σ.1 n)) u_lim Ω hΩ (fun n => hu_seq (σ.1 n)) hu_lim_cont h_pt
+    (h_jets σ u_lim hu_lim_cont h_unif h_pt)⟩
+
+/-- Proof of `ArzelaAscoliProperty I M` (`cert_aa`) from equicontinuity under bounded energy density
+and eventual local chart higher-jet bounds (`0 sorryAx`). -/
+theorem arzelaAscoliProperty_of_equicontinuous_and_eventually_jet_bounds
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    (M : Type*) [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_equi : ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1),
+      IsOpen Ω →
+      (∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω) →
+      (∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) →
+      Equicontinuous (fun n (x : Ω) => u_seq n (x : CP1)))
+    (h_jets : ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1),
+      IsOpen Ω →
+      (∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω) →
+      (∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) →
+      ∀ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+        ContinuousOn u_lim Ω →
+        (∀ K ⊆ Ω, IsCompact K →
+          TendstoUniformlyOn (fun n => u_seq (σ.1 n)) u_lim Filter.atTop K) →
+        (∀ z ∈ Ω, Filter.Tendsto (fun n => u_seq (σ.1 n) z) Filter.atTop (𝓝 (u_lim z))) →
+        ∀ z ∈ Ω, EventuallyHasLocalChartJetBoundsAt I (fun n => u_seq (σ.1 n)) u_lim z) :
+    ArzelaAscoliProperty I M :=
+  fun u_seq Ω hΩ h_jhol h_grad_bdd =>
+    exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_eventually_jet_bounds
+      I u_seq Ω hΩ (fun n => (h_jhol n).1)
+      (h_equi u_seq Ω hΩ h_jhol h_grad_bdd)
+      (h_jets u_seq Ω hΩ h_jhol h_grad_bdd)
+
+/-- Contract A06 (`local_smooth_compactness`) proved from `ArzelaAscoliProperty I M` (`0 sorryAx`). -/
+theorem local_smooth_compactness_of_arzelaAscoliProperty
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_aa_prop : ArzelaAscoliProperty I M)
+    (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (h_open : IsOpen Ω)
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
+    (h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) :
+    ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
+      SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω ∧
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u_lim Ω :=
+  local_smooth_compactness I u_seq Ω h_open h_jhol h_grad_bdd
+    (h_aa_prop u_seq Ω h_open h_jhol h_grad_bdd)
 
 end GromovCompactness.Analysis

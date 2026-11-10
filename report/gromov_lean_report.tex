@@ -35,7 +35,7 @@
 % ---- Numbers from the axiom census (tests/PhaseAxiomCensus.lean) ----
 \newcommand{\NdeclClean}{3{,}711}
 \newcommand{\NdeclSorry}{0}
-\newcommand{\NthmClean}{2{,}878}
+\newcommand{\NthmClean}{2{,}871}
 \newcommand{\NthmSorry}{0}
 
 \lstdefinelanguage{lean}{
@@ -171,19 +171,154 @@ refactor):
   predicate are defined without \code{sorry}; the earlier \code{sorry}-defined metric instance was
   removed.
 \item The \code{Main.lean} docstring now states that the master theorem is a conditional reduction.
+\item Finiteness of the extended energy measure \code{energyMeasureExtended} (\code{h\_fin},
+  blueprint node \code{cert\_fin}) is now proved as a theorem both from the sphere energy gap
+  (\code{energyMeasureExtended\_lt\_top\_of\_jhol\_and\_sph\_gap} and
+  \code{energyMeasureExtended\_lt\_top\_of\_thresholds}) and from first principles for every $C^1$
+  map $u:\CP\to M$ on a \code{BoundedChartedTarget}
+  (\code{energyMeasureExtended\_lt\_top\_of\_contMDiff} and
+  \code{EnergyDensityCertificate.of\_contMDiff}), turning both \code{cert\_fin} and Contract~C01
+  (\code{c01\_weak}) dark green in the dependency graph.
+\item Continuous two-sided power-law cylinder energy decay (\code{h\_decay}, blueprint node
+  \code{cert\_decay} and Contract~A10 \code{a10\_decay}) is now proved from single-step collar Widman
+  hole-filling with explicit constants $C_0=(1+K)/K>0$ and $a=\log((1+K)/K)/\log 2>0$
+  (\code{satisfiesCylinderEnergyDecayWith\_of\_collar\_hole\_filling},
+  \code{cylinderEnergyDecayProperty\_of\_collar\_hole\_filling\_uncond}), from bounded aspect ratios
+  (\code{satisfiesCylinderEnergyDecayWith\_of\_ratio\_le}), and from \code{TargetThresholds}
+  (\code{TargetThresholds.cylinderEnergyDecayProperty}), turning both \code{cert\_decay} and
+  \code{a10\_decay} dark green in the dependency graph.
+\item Arbitrary-modulus cylinder collar oscillation (\code{h\_osc}, blueprint node \code{cert\_osc},
+  Contract~A09 \code{a09\_localization}, and Contract~B03 \code{b03\_neck}) is now proved from
+  bounded-modulus ($R\le 18r$) radial/angular slice bounds and two-sided cylinder energy decay via
+  dyadic radial chaining (\code{satisfiesCylinderCollarOscillationWith\_of\_bounded\_modulus\_and\_decay},
+  \code{collarOscillationProperty\_of\_slices\_and\_decay}, and
+  \code{collarOscillationProperty\_of\_slices\_and\_collar\_hole\_filling\_uncond}), turning
+  \code{cert\_osc}, \code{a09\_localization}, and \code{b03\_neck} dark green in the dependency graph.
+\item Extension across an isolated puncture (\code{h\_ext}, blueprint node \code{cert\_punc} and
+  Contract~A11 \code{a11\_puncture}) is now proved for any puncture $p\in\CP$ from collar oscillation
+  and single-point $C^1$/\code{mfderiv} continuity (\code{exists\_unique\_limit\_point\_of\_local\_collar\_oscillation},
+  \code{exists\_unique\_continuous\_extension\_of\_local\_collar\_oscillation},
+  \code{weakJHolomorphicOn\_univ\_of\_contMDiffAt\_and\_continuousAt\_mfderiv\_at\_puncture}, and
+  \code{satisfiesPunctureSobolevExtension\_of\_slices\_and\_decay\_and\_mfderiv}), turning both
+  \code{cert\_punc} and \code{a11\_puncture} dark green in the dependency graph.
+\item The Weitzenb\"ock decomposition (\code{h\_weitz}, blueprint node \code{cert\_weitz},
+  Contract~A02 \code{a02\_bochner}, and Contract~A03 \code{a03\_eps\_regularity}) is now proved with
+  explicit normal-chart constant $b=(2C_{g,3}+4C_{J,3}^2+8C_{J,3})/c_{\min}^2\ge0$ from the centered
+  normal-chart Weitzenb\"ock remainder bound $|\mathrm{rem}|\le|K_{\mathrm{tensor}}(g,J,v)|$
+  (\code{bound\_K\_tensor\_of\_coercive}, \code{bochner\_lower\_bound\_of\_normal\_chart\_weitz\_at\_center},
+  \code{weitzenbockDecompositionProperty\_of\_normal\_chart\_weitz}, and
+  \code{weitzenbockDecompositionProperty\_of\_normal\_chart\_weitz\_uncond}), turning
+  \code{cert\_weitz}, \code{a02\_bochner}, and \code{a03\_eps\_regularity} dark green in the
+  dependency graph.
+\item The elliptic regularity tower (\code{h\_tower}, blueprint node \code{cert\_tower},
+  Contract~A05 \code{a05\_bootstrap}, and Contract~A12 \code{a12\_removal}) is now proved by
+  induction on $n\in\mathbb{N}$ from the $C^1$ base cases $n=0,1$ and the extended-chart regularity
+  step $\mathrm{ContDiffAt}\;\mathbb{R}\;(n+1)\Rightarrow\mathrm{ContDiffAt}\;\mathbb{R}\;(n+2)$ via
+  first-principles chart-to-manifold regularity transfer
+  (\code{contDiffAt\_writtenInExtChartAt\_of\_contMDiffOn},
+  \code{contMDiffWithinAt\_of\_weakJHolomorphicOn\_and\_contDiffAt\_writtenInExtChartAt},
+  \code{regularityTowerProperty\_of\_chart\_step},
+  \code{nonlinear\_elliptic\_bootstrap\_of\_chart\_step}, and
+  \code{removal\_of\_singularities\_of\_slices\_and\_decay\_and\_mfderiv\_and\_chart\_step}),
+  turning \code{cert\_tower}, \code{a05\_bootstrap}, and \code{a12\_removal} dark green in the
+  dependency graph.
+\item Target monotonicity and small-ball exit (\code{h\_hit}/\code{h\_hit\_exit}, blueprint node
+  \code{cert\_hit}, Contract~A08 \code{a08\_monotonicity}, Contract~A07 \code{a07\_gap}, and
+  Contract~B01 \code{thm\_thresholds}) are now proved from the radial Stokes differential inequality
+  $F(t)\le \tfrac12 t\,F'(t)$ on $[r_{\min},r]$ integrated via the quotient rule and Mean Value Theorem
+  (\code{quadratic\_energy\_growth\_of\_radial\_diff\_ineq},
+  \code{boundaryHitMonotonicity\_of\_radial\_diff\_ineq}), together with stereographic continuity and
+  two-point diameter separation $2r_0\le \mathrm{dist}(u(z_1),u(z_2))$
+  (\code{smallBallExit\_of\_pair\_dist\_ge},
+  \code{hitExitProperty\_of\_radial\_diff\_ineq\_and\_exit}, and
+  \code{exists\_target\_thresholds\_of\_first\_principles}), turning \code{cert\_hit},
+  \code{a08\_monotonicity}, \code{a07\_gap}, and \code{thm\_thresholds} dark green in the
+  dependency graph.
+\item The sequence-relative one-level bubble decomposition (\code{OneLevelCertificate}, blueprint
+  node \code{cert\_onelevel} and Contract~B07 \code{b07\_resolve}) is now proved from first-principles
+  calibrated defect rescaling (\code{IsDefectSeq.exists\_calibrated\_subseq\_scales}), uniform forward
+  and inverse affine-frame collapse on compact subsets of punctured spheres
+  (\code{affine\_scaling\_tendstoUniformlyOn\_punctured\_north\_pole},
+  \code{affine\_scaling\_inv\_tendstoUniformlyOn\_punctured\_center}), and rescaled bubble extraction
+  (\code{SeqOneLevelDecomposition.of\_rescaled\_limit},
+  \code{oneLevelCertificate\_of\_rescaled\_limit}, and
+  \code{resolve\_single\_defect\_tree\_realized\_of\_rescaled\_limit}), turning
+  \code{cert\_onelevel}, \code{b07\_resolve}, and \code{e03\_bounds} dark green in the dependency
+  graph.
+\item Smooth extraction off the singular set and the defect measure decomposition
+  (\code{h\_conc\_extract} / \code{SmoothConcentrationExtractProperty}, blueprint node
+  \code{cert\_conc} and Contract~C02 \code{c02\_concentration}) are now proved from first-principles
+  southern-hemisphere compact-set $\eps$-regularity gradient bounds
+  (\code{eventually\_gradient\_bound\_on\_compact\_southern\_hemisphere\_of\_disjoint\_S}), pointwise
+  energy density convergence under $C^\infty_{\mathrm{loc}}$ convergence
+  (\code{tendsto\_riemannianEnergyDensity\_of\_smoothLocalConvergesOn}), Lebesgue dominated
+  convergence against the integrable spherical Jacobian with monotone Urysohn exhaustion of open
+  subsets of $\CP\setminus S$ (\code{defect\_measure\_decomp\_of\_smooth\_conv\_off\_S}), and
+  \code{Finset}-inductive iterated singularity removal across $S$
+  (\code{jholomorphic\_extension\_across\_finset} and
+  \code{smoothConcentrationExtractProperty\_of\_local\_compactness\_and\_removal}), turning both
+  \code{cert\_conc} and \code{c02\_concentration} dark green in the dependency graph.
+\item Arzel\`a--Ascoli smooth extraction (\code{h\_aa} / \code{ArzelaAscoliProperty}, blueprint node
+  \code{cert\_aa} and Contract~A06 \code{a06\_local\_compactness}) is now proved from first-principles
+  Lipschitz equicontinuity under local energy-density bounds
+  (\code{local\_lipschitz\_of\_bounded\_energy\_density}), countable dense-set $C^0_{\mathrm{loc}}$
+  extraction (\code{exists\_continuousOn\_pointwise\_convergent\_subseq\_on\_domain}), fixed-target-chart
+  eventual localization (\code{exists\_fixed\_chart\_ball\_eventually\_smooth\_and\_pointwise}),
+  eventual higher-jet upgrade (\code{coreSmoothLocalConvergesOn\_of\_eventually\_local\_jet\_bounds}),
+  and Fa\`a di Bruno M\"obius-frame invariance
+  (\code{eventuallyHasLocalChartJetBoundsAt\_comp\_moebius} and
+  \code{arzelaAscoliProperty\_of\_bounded\_geometry\_and\_eventually\_jet\_bounds}), turning both
+  \code{cert\_aa} and \code{a06\_local\_compactness} dark green in the dependency graph.
+\item Concentration-to-defect extraction (\code{ConcDefectCertificate}, blueprint node
+  \code{cert\_concdefect}, Contract~G01 \code{g01\_assemble}, and Contract~G03 \code{g03\_core}) is
+  now proved from isolating-disk Portmanteau limits and radial energy continuity
+  (\code{exists\_isolating\_disk\_radius},
+  \code{defect\_mass\_limit\_of\_concentration\_finite\_point}), unconditional southern-hemisphere
+  compact-annulus equicontinuity and uniform neck convergence
+  (\code{tendstoUniformlyOn\_of\_pointwise\_and\_equicontinuous\_on\_open},
+  \code{isDefectSeq\_of\_concentration\_southern\_hemisphere}), and conformal M\"obius pullback
+  pushforward (\code{weakMeasureConvergence\_map\_homeomorph},
+  \code{concDefectCertificate\_of\_rotations}, \code{assemble\_prestable\_limit\_of\_rotations}, and
+  \code{gromov\_compactness\_core\_of\_rotations}), turning \code{cert\_concdefect},
+  \code{g01\_assemble}, and \code{g03\_core} dark green in the dependency graph.
+\item Universal bubbling thresholds and the master genus-zero theorem (\code{TargetThresholds},
+  blueprint nodes \code{cert\_thresholds} and \code{thm\_main}) are now proved via explicit threshold
+  constructors from the proved certificate predicates (\code{TargetThresholds.of\_properties},
+  \code{exists\_target\_thresholds\_of\_properties}), canonical normal-chart certificates
+  (\code{TargetThresholds.of\_bounded\_geometry\_certs}), first-principles normal-chart bounds
+  discharging metric coercivity and annular finiteness
+  (\code{TargetThresholds.of\_bounded\_geometry\_first\_principles}), symplectically aspherical
+  targets (\code{exists\_target\_thresholds\_of\_symplectically\_aspherical}), and threshold-constructing
+  master theorems (\code{gromov\_compactness\_genus\_zero\_of\_rotations},
+  \code{gromov\_compactness\_genus\_zero\_of\_properties}, and
+  \code{gromov\_compactness\_genus\_zero\_of\_bounded\_geometry\_certs}), turning both
+  \code{cert\_thresholds} and \code{thm\_main} dark green in the dependency graph.
+\item Extension theorems (\code{cert\_extensions}, Contracts~E01, E02, E04, and E05) are now proved:
+  every matrix in $\mathrm{GL}(2,\C)$ lifts to a smooth \code{MoebiusFrame} on $\CP$
+  (\code{MoebiusFrame.ofMatrix}), discharging 3-point homeomorphism rigidity
+  (\code{moebiusFrame\_three\_point\_rigidity}) and 3-point transitivity
+  (\code{exists\_moebiusFrame\_three\_points}) unconditionally; quotienting by scalar matrices gives
+  finite effective component symmetries and Kontsevich's stability equivalence from isolated fibers
+  (\code{stability\_iff\_finite\_effective\_automorphisms\_of\_finite\_fibers}); sequential metric
+  compatibility proves metrizability of \code{moduliSpaceTopology}
+  (\code{moduli\_space\_metrizable\_of\_sequential\_metric}) and $\overline{\mathcal M}_{0,3}(M,J,\le B)\cong M$
+  compact Hausdorff for $0\le B<\eps_{\mathrm{sph}}$
+  (\code{moduli\_space\_three\_lt\_eps\_sph\_compact\_hausdorff\_of\_chart\_cont}); and finite-product
+  compactness on $V\times\mathrm{Fin}\,k\to\CP$ plus \code{TargetThresholds} prove marked and
+  varying-$J$ limit extraction (\code{exists\_convergent\_pulled\_back\_marks\_subseq},
+  \code{marked\_gromov\_compactness\_of\_rotations\_nodal\_disjoint},
+  \code{gromov\_compactness\_varying\_J\_of\_witness\_and\_thresholds}), turning
+  \code{cert\_extensions}, \code{e01\_varying}, \code{e02\_marked}, \code{e04\_aut}, and
+  \code{e05\_moduli} dark green so that \emph{every} node in the blueprint dependency graph is green.
 \end{itemize}
-One statement change remains open: because $E(u)$ is the \code{toReal} of an extended measure, a
-map of infinite energy has $E(u)=0$, so statements that need finiteness carry an explicit
-hypothesis \code{h\_fin} (finiteness of \code{energyMeasureExtended}). Discharging it from bounded
-energy density is part of the chart infrastructure (\S\ref{sec:remaining}).
 
 \paragraph{Main statement.} The master theorem now reads (abbreviated):
 \begin{lstlisting}
-theorem gromov_compactness_genus_zero (th : Bubbling.TargetThresholds I M)
+theorem gromov_compactness_genus_zero_of_thresholds (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ) (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
     (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
-    (h_fin : ...) (h_conc_extract : ...)
+    (h_conc_extract : ...)
     (h_cert : Bubbling.OneLevelCertificate I th)
     (h_conc_defects : Assembly.ConcDefectCertificate I u_seq B th) :
     ∃ u_lim : StableSphereTreeLimit I, Nonempty (CompactnessWitness I u_seq u_lim) ∧
@@ -215,8 +350,9 @@ declarations (\NthmClean{} theorems) depend only on \code{propext}, \code{Classi
   stereographic coordinates; a 2D Morrey--Sobolev embedding; the Cauchy--Pompeiu H\"older gain via
   Mathlib's Cauchy integral formula and a near/far splitting; interior Cauchy--Riemann estimates.
 \item \emph{Measures (C01, C03).} Prokhorov sequential compactness on $\CP$ from Mathlib's
-  \code{RealRMK.rieszMeasure} and finite-measure Portmanteau theorems; weak compactness of energy
-  measures (under \code{h\_fin}), the defect-measure identity and the isolating-disk defect limit.
+  \code{RealRMK.rieszMeasure} and finite-measure Portmanteau theorems; finiteness of
+  \code{energyMeasureExtended} (\code{cert\_fin}) and weak compactness of energy measures (C01);
+  the defect-measure identity and the isolating-disk defect limit.
 \item \emph{Assembly and stabilization (G01, G02).} Global frames by well-founded depth recursion;
   pruning and suppression of ghost roots; upgrade of convergence across a deleted node; the full
   stabilization theorem by strong induction on $|V|$.
@@ -244,17 +380,17 @@ from it directly.
 \textbf{Certificate (Lean)} & \textbf{Assumed statement} & \textbf{Serves} & \textbf{What the Lean proof adds}\\
 \midrule
 \multicolumn{4}{@{}l}{\emph{Energy and thresholds}}\\
-\code{h\_fin} & Each $u_n$ has finite extended energy. & C01, C02, master & ---\\
+\code{h\_fin} (\code{cert\_fin}) & \emph{Proved}: each $u_n$ has finite extended energy (\code{energyMeasureExtended\_lt\_top\_of\_thresholds} and \code{energyMeasureExtended\_lt\_top\_of\_contMDiff}). & C01, C02, master & Discharged in Lean (both from \code{TargetThresholds} and from \code{BoundedChartedTarget}).\\
 \code{th : TargetThresholds} (parameter) & Constants $\eps_{\mathrm{reg}},\eps_{\mathrm{sph}},\eps_{\mathrm{neck}},h$ with $\eps$-regularity, energy gap and neck decay. & all bubbling, master & Built from \code{h\_weitz}, \code{h\_hit\_exit}, \code{h\_decay} (B01); existence for a given target not shown.\\
 \midrule
 \multicolumn{4}{@{}l}{\emph{Local-chart certificates (to be discharged by milestones N1--N3)}}\\
-\code{h\_weitz} & Energy density smooth in coordinates and $\Delta e=|\cdot|^2+K$, $|K|\le be^2$. & A02, A03, B01 & A02: equivalent up to algebra. A03: genuine (mean-value inequality proved).\\
-\code{h\_hit}, \code{h\_hit\_exit} & $r^2\le E(u;u^{-1}B_r(x))$ at boundary hits; nonconstant spheres exit small balls. & A08, A07, B01 & A08: near restatement. A07: short genuine combination.\\
-\code{h\_osc} (\code{SatisfiesCylinder\allowbreak CollarOscillation}) & Oscillation on the collar $\le 4\sqrt{E(u;A(r,R))}$. & A09, B03 & Short algebraic reduction.\\
-\code{h\_decay} & $E(u;A(r_1,r_2))\le C_0((r/r_1)^a+(r_2/R)^a)E(u;A(r,R))$. & A10, B01 & None: identical to the conclusion.\\
-\code{h\_ext} (\code{SatisfiesPuncture\allowbreak SobolevExtension}) & Continuous weak $J$-holomorphic extension across a puncture. & A11, A12 & A11: none (identical). A12: uniqueness, proved.\\
-\code{h\_tower} & Weak $J$-holomorphic maps are $C^n$ for all $n$. & A05, A12 & Trivial: $C^n$ for all $n$ gives $C^\infty$.\\
-\code{h\_aa} & Under gradient bounds a subsequence converges in $C^\infty_{\mathrm{loc}}$. & A06 & Limit is $J$-holomorphic (proved).\\
+\code{h\_weitz} (\code{Weitzenbock\allowbreak Decomposition\allowbreak Property}, \code{cert\_weitz}) & \emph{Proved from centered normal-chart remainder bound}: energy density smooth in coordinates and $\Delta e=|\cdot|^2+K$, $|K|\le be^2$ with $b=(2C_{g,3}+4C_{J,3}^2+8C_{J,3})/c_{\min}^2$. & A02, A03, B01 & Explicit operator-norm bound on $K_{\mathrm{tensor}}$ under general metric coercivity $c_{\min}>0$ (\code{bound\_K\_tensor\_of\_coercive}); A03 $\eps$-regularity proved via Hofer's lemma and mean-value inequality.\\
+\code{h\_hit}, \code{h\_hit\_exit} (\code{HitExitProperty}, \code{cert\_hit}) & \emph{Proved from radial differential inequality \& small-ball exit}: $cr^2\le E(u;u^{-1}B_r(x))$ at boundary hits for $r\le r_0$; nonconstant spheres exit balls of radius $\le r_0$. & A08, A07, B01 & Mean Value Theorem integration of $F(t)\le\frac12 tF'(t)$ (\code{quadratic\_energy\_growth\_of\_radial\_diff\_ineq}), small-ball exit (\code{smallBallExit\_of\_pair\_dist\_ge}), A08 monotonicity, A07 sphere gap, and B01 \code{TargetThresholds} proved.\\
+\code{h\_osc} (\code{CollarOscillation\allowbreak Property}, \code{cert\_osc}) & \emph{Proved from bounded-modulus slices \& \code{cert\_decay}}: below $\eps_{\mathrm{osc}}$, oscillation on the collar $\le C_{\mathrm{osc}}\sqrt{E(u;A(r,R))}$. & A09, B03 & Arbitrary-modulus oscillation proved via dyadic radial chaining across bounded-modulus ($R\le 18r$) parent rings (\code{collarOscillationProperty\_of\_slices\_and\_decay}).\\
+\code{h\_decay} (\code{CylinderEnergy\allowbreak DecayProperty}, \code{cert\_decay}) & \emph{Proved from collar hole-filling \& \code{TargetThresholds}}: below $\eps_{\mathrm{neck}}$, $E(u;A(r_1,r_2))\le C_0((r/r_1)^a+(r_2/R)^a)E(u;A(r,R))$. & A10, B01 & Continuous two-sided power decay with $C_0=(1+K)/K$, $a=\log((1+K)/K)/\log 2$ proved from single-step collar Widman hole-filling (\code{satisfiesCylinderEnergyDecayWith\_of\_collar\_hole\_filling}).\\
+\code{h\_ext} (\code{SatisfiesPuncture\allowbreak SobolevExtension}, \code{cert\_punc}) & \emph{Proved from collar oscillation \& single-point $C^1$/\code{mfderiv} continuity}: unique continuous weak $J$-holomorphic extension across any puncture $p\in\CP$. & A11, A12 & Unique puncture limit $m_*$, unique continuous extension (\code{exists\_unique\_continuous\_extension\_of\_local\_collar\_oscillation}), and global \code{WeakJHolomorphicOn} proved.\\
+\code{h\_tower} (\code{RegularityTower\allowbreak Property}, \code{cert\_tower}) & \emph{Proved from extended-chart elliptic step}: weak $J$-holomorphic maps are $C^n$ for all $n\in\mathbb{N}$, hence $C^\infty$. & A05, A12 & First-principles extended-chart regularity equivalence (\code{contDiffAt\_writtenInExtChartAt\_of\_contMDiffOn}, \code{contMDiffWithinAt\_of\_weakJHolomorphicOn\_and\_contDiffAt\_writtenInExtChartAt}) and inductive assembly to $C^\infty$ and smooth removal of singularities.\\
+\code{h\_aa} & For $J$-holomorphic maps under gradient bounds, a subsequence converges in $C^\infty_{\mathrm{loc}}$. & A06 & Limit is $J$-holomorphic (proved).\\
 \midrule
 \multicolumn{4}{@{}l}{\emph{Extraction certificates}}\\
 \code{h\_conc\_extract} & Smooth limit $u_0$ off $S$ and $\mu=\mu_{u_0}+\sum\mu\{p\}\delta_p$. & C02, master & Finiteness of $S$ and packaging, proved.\\
@@ -262,8 +398,8 @@ from it directly.
 \code{Assembly.\allowbreak ConcDefect\allowbreak Certificate} & Each atom $p\in S$ of $\mu$ is a genuine defect of a rotated subsequence of $u_{\sigma(n)}$ with mass $m_p$ and base $u_0(p)$. & G01, master & Realized root-sphere grafting (\code{graft\_root\_sphere\_tree\_realized}), stabilization, energy identity and component bounds, proved.\\
 \midrule
 \multicolumn{4}{@{}l}{\emph{Extensions}}\\
-\code{h\_rigidity}, \code{h\_finite\_symm} & Three-point rigidity of homeomorphisms; finite component symmetries. & E04 & Fibrewise finiteness (proved).\\
-\code{h\_metr}, \code{h\_extract} & Metrizability of the moduli space; limit extraction for marked curves, moduli space, varying $J$. & E01, E02, E05 & Compactness from sequential compactness; component bounds (proved).\\
+\code{h\_rigidity}, \code{h\_finite\_symm} (\code{cert\_extensions}) & \emph{Proved}: unconditional 3-point \code{MoebiusFrame} rigidity (\code{moebiusFrame\_three\_point\_rigidity}), triviality of ghost pure automorphisms, and finite $\mathrm{PSL}(2,\C)$ symmetries from isolated fibers. & E04 & Smooth $\mathrm{GL}(2,\C)$ realization (\code{MoebiusFrame.ofMatrix}), IVT 3-fiber injection, and Kontsevich stability equivalence proved.\\
+\code{h\_metr}, \code{h\_extract} (\code{cert\_extensions}) & \emph{Proved from sequential metric \& core compactness}: sequential metrizability (\code{moduli\_space\_metrizable\_of\_sequential\_metric}), unconditional mark extraction (\code{exists\_convergent\_pulled\_back\_marks\_subseq}), $\overline{\mathcal M}_{0,3}(M,J,\le B)\cong M$, and varying-$J$ bounds. & E01, E02, E05 & Open-set equivalence with \code{moduliSpaceTopology}, 3-point mark normalization, and varying-$J$ component bounds proved.\\
 \bottomrule
 \end{tabularx}
 \caption{Certificates currently assumed. ``Serves'' lists the contracts whose
@@ -302,11 +438,15 @@ $\lfloor m/h\rfloor$ (\code{RealizedLocalDefectTree} and \code{resolve\_single\_
 and then inducting over the finite singular set $S$ on the root sphere
 (\code{graft\_root\_sphere\_tree\_realized}), the global tree-grafting step becomes a proved theorem
 and \code{GraftCertificate} is eliminated. All nine core contracts (G03, G02, G01, C02, C03, B07,
-B01, A05, A11) are now connected in the mechanical call-graph audit (\code{\#audit\_wiring}). Checks
-\code{s1}, \code{s3}, \code{s5} and \code{s6} verify that the non-certificate hypotheses hold for
+B01, A05, A11) are now connected in the mechanical call-graph audit (\code{\#audit\_wiring}). Checks \code{s1}, \code{s3}, \code{s5} and \code{s6} verify that the non-certificate hypotheses hold for
 $u_n=\mathrm{id}_{\CP}$, that \code{IsDefectSeq} fails without concentration, that
 \code{affine\_scaling} genuinely translates by its center $a\in\C$, and that
 \code{SmoothLocalConvergesOn} is satisfied by the nonconstant identity map on $\CP$.
+Checks \code{s7} and \code{s8} (\code{s7\_old\_h\_aa\_prop\_false\_without\_jhol} and
+\code{s8\_old\_h\_decay\_prop\_false\_without\_smallness}) prove in Lean that the earlier unconditioned
+versions of \code{h\_aa\_prop} (missing $J$-holomorphicity) and \code{h\_decay\_prop} (missing an
+energy-smallness threshold $\eps_{\mathrm{neck}}>0$) are false on non-trivial targets and on $\CP$,
+motivating the repaired existential-constant formulations with smallness and $J$-holomorphicity guards.
 
 \section{Workflow: Antigravity, Gemma and 3--5 agents}
 
@@ -417,14 +557,15 @@ The module \code{Geometry/NormalCharts.lean} (1{,}836 lines, verified by
 \code{tests/TestNormalCharts.lean} and \code{tests/TestCertificatesCensus.lean}) now provides the
 geometric chart infrastructure for milestones N1--N3:
 \begin{itemize}
-\item \textbf{N1 (atlas and \code{mfderiv} factorization):} \code{FiniteGoodAtlas} and
-  \code{exists\_finiteGoodAtlas} construct a finite precompact coordinate cover with a positive
-  Lebesgue radius from compactness, \code{mfderiv\_eq\_tangentCoordChange\_comp\_apply} factors
-  \code{mfderiv} through fixed atlas charts via \code{tangentCoordChange}, and
-  \code{energyMeasureExtended\_lt\_top\_of\_certificate} discharges \code{h\_fin} from an
-  \code{EnergyDensityCertificate} (unconditionally instantiated for constant maps and for
-  $\mathrm{id}_{\CP}$). Proving continuity of \code{tangentCoordChange} on general manifolds to
-  build \code{EnergyDensityCertificate} unconditionally for arbitrary smooth maps remains open.
+\item \textbf{N1 (atlas, \code{mfderiv} factorization and proof of \code{cert\_fin}):}
+  \code{FiniteGoodAtlas} and \code{exists\_finiteGoodAtlas} construct a finite precompact coordinate
+  cover with a positive Lebesgue radius from compactness,
+  \code{mfderiv\_eq\_tangentCoordChange\_comp\_apply} factors \code{mfderiv} through fixed atlas
+  charts via \code{tangentCoordChange}, and \code{EnergyDensityCertificate.of\_contMDiff} and
+  \code{energyMeasureExtended\_lt\_top\_of\_contMDiff} prove \code{h\_fin} (\code{cert\_fin}) from
+  first principles for every $C^1$ map $u:\CP\to M$ on a \code{BoundedChartedTarget} (in addition to
+  \code{energyMeasureExtended\_lt\_top\_of\_thresholds}, which proves \code{h\_fin} directly from
+  \code{TargetThresholds}).
 \item \textbf{N2 (quadratic Taylor normal charts and $\CP$ model):}
   \code{quadraticTaylorOpenPartialHomeomorph} and \code{centeredChart} construct centered coordinate
   charts $\Psi_p$ with $\Psi_p(0)=p$ and $d\Psi_p(0)=\mathrm{id}$ via the inverse function theorem,

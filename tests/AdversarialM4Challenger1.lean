@@ -138,107 +138,57 @@ theorem stress_call_weitz_named
 theorem stress_call_hit_exit_positional
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 → x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) ∧
-    (∀ (u : CP1 → M) (x : M),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
+    Analysis.HitExitProperty I M :=
   discharge_h_hit_exit_unconditional I fam certs
 
 /-- Test 1.4: Named calling of discharge_h_hit_exit_unconditional. -/
 theorem stress_call_hit_exit_named
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 → x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) ∧
-    (∀ (u : CP1 → M) (x : M),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
+    Analysis.HitExitProperty I M :=
   discharge_h_hit_exit_unconditional (fam := fam) (certs := certs) (I := I)
 
 /-- Test 1.5: Positional calling of discharge_h_osc_unconditional. -/
 theorem stress_call_osc_positional
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ) (_hr : 0 < r)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
-        dist (u z₁) (u z₂) ≤ 4 * Real.sqrt (energyMeasure I u (annulus_at a r R)) :=
+    Analysis.CollarOscillationProperty I M :=
   discharge_h_osc_unconditional I fam certs
 
 /-- Test 1.6: Named calling of discharge_h_osc_unconditional. -/
 theorem stress_call_osc_named
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ) (_hr : 0 < r)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
-        dist (u z₁) (u z₂) ≤ 4 * Real.sqrt (energyMeasure I u (annulus_at a r R)) :=
+    Analysis.CollarOscillationProperty I M :=
   discharge_h_osc_unconditional (fam := fam) (certs := certs) (I := I)
 
 /-- Test 1.7: Positional calling of discharge_h_decay_unconditional. -/
 theorem stress_call_decay_positional
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^(1 : ℝ) + (r₂ / R)^(1 : ℝ)) * energyMeasure I u (annulus_at center r R) :=
+    Analysis.CylinderEnergyDecayProperty I M :=
   discharge_h_decay_unconditional I fam certs
 
 /-- Test 1.8: Named calling of discharge_h_decay_unconditional. -/
 theorem stress_call_decay_named
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^(1 : ℝ) + (r₂ / R)^(1 : ℝ)) * energyMeasure I u (annulus_at center r R) :=
+    Analysis.CylinderEnergyDecayProperty I M :=
   discharge_h_decay_unconditional (fam := fam) (certs := certs) (I := I)
 
-/-- Test 1.9: Positional calling of discharge_h_decay_unconditional_pow_nat. -/
+/-- Test 1.9: Positional calling of discharge_h_decay_unconditional (pow_nat alias). -/
 theorem stress_call_decay_pow_nat_positional
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^1 + (r₂ / R)^1) * energyMeasure I u (annulus_at center r R) :=
-  discharge_h_decay_unconditional_pow_nat I fam certs
+    Analysis.CylinderEnergyDecayProperty I M :=
+  discharge_h_decay_unconditional I fam certs
 
-/-- Test 1.10: Named calling of discharge_h_decay_unconditional_pow_nat. -/
+/-- Test 1.10: Named calling of discharge_h_decay_unconditional (pow_nat alias). -/
 theorem stress_call_decay_pow_nat_named
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^1 + (r₂ / R)^1) * energyMeasure I u (annulus_at center r R) :=
-  discharge_h_decay_unconditional_pow_nat (fam := fam) (certs := certs) (I := I)
+    Analysis.CylinderEnergyDecayProperty I M :=
+  discharge_h_decay_unconditional (fam := fam) (certs := certs) (I := I)
 
 /-- Test 1.11: Positional calling of discharge_h_punc_unconditional. -/
 theorem stress_call_punc_positional
@@ -331,6 +281,7 @@ theorem stress_call_aa_positional
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
     ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
       (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C),
       ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
         SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
@@ -341,6 +292,7 @@ theorem stress_call_aa_named
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
     ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
       (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C),
       ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
         SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
@@ -379,33 +331,22 @@ theorem stress_call_local_smooth_compactness_named
 theorem stress_curried_osc
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ) (_hr : 0 < r)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
-        dist (u z₁) (u z₂) ≤ 4 * Real.sqrt (energyMeasure I u (annulus_at a r R)) :=
+    Analysis.CollarOscillationProperty I M :=
   (discharge_h_osc_unconditional I fam) certs
 
 /-- Test 2.2: Curried functional application of h_decay. -/
 theorem stress_curried_decay
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^(1 : ℝ) + (r₂ / R)^(1 : ℝ)) * energyMeasure I u (annulus_at center r R) :=
+    Analysis.CylinderEnergyDecayProperty I M :=
   (discharge_h_decay_unconditional I fam) certs
 
-/-- Test 2.3: Curried functional application of h_decay_pow_nat. -/
+/-- Test 2.3: Curried functional application of h_decay (pow_nat alias). -/
 theorem stress_curried_decay_pow_nat
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^1 + (r₂ / R)^1) * energyMeasure I u (annulus_at center r R) :=
-  (discharge_h_decay_unconditional_pow_nat I fam) certs
+    Analysis.CylinderEnergyDecayProperty I M :=
+  (discharge_h_decay_unconditional I fam) certs
 
 /-- Test 2.4: Curried functional application of h_punc. -/
 theorem stress_curried_punc
@@ -434,6 +375,7 @@ theorem stress_curried_aa
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
     ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
       (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C),
       ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
         SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
@@ -525,54 +467,29 @@ theorem stress_shrink_weitz
 theorem stress_shrink_hit_exit
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 → x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) ∧
-    (∀ (u : CP1 → M) (x : M),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
+    Analysis.HitExitProperty I M :=
   discharge_h_hit_exit_unconditional I (fam_half I fam) (certs_half I fam certs)
 
 /-- Test 3.3: Shrunk chart family satisfies h_osc_unconditional. -/
 theorem stress_shrink_osc
     (fam : UniformNormalChartFamily I (M := M))
-    (certs : UniformNormalChartCertificates I fam)
-    (u : CP1 → M) (a : ℂ) (r R : ℝ) (hr : 0 < r)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
-    ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
-      dist (u z₁) (u z₂) ≤ 4 * Real.sqrt (energyMeasure I u (annulus_at a r R)) :=
-  discharge_h_osc_unconditional I (fam_half I fam) (certs_half I fam certs) u a r R hr hu
+    (certs : UniformNormalChartCertificates I fam) :
+    Analysis.CollarOscillationProperty I M :=
+  discharge_h_osc_unconditional I (fam_half I fam) (certs_half I fam certs)
 
 /-- Test 3.4: Shrunk chart family satisfies h_decay_unconditional. -/
 theorem stress_shrink_decay
     (fam : UniformNormalChartFamily I (M := M))
-    (certs : UniformNormalChartCertificates I fam)
-    (u : CP1 → M) (center : ℂ) (r R : ℝ) (hr : 0 < r) (h2rR : 2 * r < R)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ)
-    (r₁ r₂ : ℝ) (hr₁ : r < r₁) (hr₁₂ : r₁ < r₂) (hr₂ : r₂ < R) :
-    energyMeasure I u (annulus_at center r₁ r₂) ≤
-      1 * ((r / r₁)^(1 : ℝ) + (r₂ / R)^(1 : ℝ)) * energyMeasure I u (annulus_at center r R) :=
-  discharge_h_decay_unconditional I (fam_half I fam) (certs_half I fam certs) u center r R hr h2rR hu r₁ r₂ hr₁ hr₁₂ hr₂
+    (certs : UniformNormalChartCertificates I fam) :
+    Analysis.CylinderEnergyDecayProperty I M :=
+  discharge_h_decay_unconditional I (fam_half I fam) (certs_half I fam certs)
 
-/-- Test 3.5: Shrunk chart family satisfies h_decay_unconditional_pow_nat. -/
+/-- Test 3.5: Shrunk chart family satisfies h_decay_unconditional (pow_nat alias). -/
 theorem stress_shrink_decay_pow_nat
     (fam : UniformNormalChartFamily I (M := M))
-    (certs : UniformNormalChartCertificates I fam)
-    (u : CP1 → M) (center : ℂ) (r R : ℝ) (hr : 0 < r) (h2rR : 2 * r < R)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ)
-    (r₁ r₂ : ℝ) (hr₁ : r < r₁) (hr₁₂ : r₁ < r₂) (hr₂ : r₂ < R) :
-    energyMeasure I u (annulus_at center r₁ r₂) ≤
-      1 * ((r / r₁)^1 + (r₂ / R)^1) * energyMeasure I u (annulus_at center r R) :=
-  discharge_h_decay_unconditional_pow_nat I (fam_half I fam) (certs_half I fam certs) u center r R hr h2rR hu r₁ r₂ hr₁ hr₁₂ hr₂
+    (certs : UniformNormalChartCertificates I fam) :
+    Analysis.CylinderEnergyDecayProperty I M :=
+  discharge_h_decay_unconditional I (fam_half I fam) (certs_half I fam certs)
 
 /-- Test 3.6: Shrunk chart family satisfies h_punc_unconditional. -/
 theorem stress_shrink_punc
@@ -622,10 +539,11 @@ theorem stress_shrink_aa
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam)
     (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (h_open : IsOpen Ω)
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
     (h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) :
     ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
       SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
-  discharge_h_aa_unconditional I (fam_half I fam) (certs_half I fam certs) u_seq Ω h_open h_grad_bdd
+  discharge_h_aa_unconditional I (fam_half I fam) (certs_half I fam certs) u_seq Ω h_open h_jhol h_grad_bdd
 
 /-- Test 3.11: Shrunk chart family satisfies discharge_local_smooth_compactness_of_arzela_ascoli_unconditional. -/
 theorem stress_shrink_local_compactness
@@ -645,48 +563,59 @@ theorem stress_shrink_local_compactness
    Tests varied centers, radii, tower orders, domain geometries, and exponent types.
    ============================================================================= -/
 
-/-- Test 4.1: h_osc_unconditional at origin center 0 with radii (1, 10). -/
+/-- Test 4.1: h_osc_unconditional at origin center 0 with radii (1, 10) for zero energy. -/
 theorem stress_param_osc_zero_center
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam)
     (u : CP1 → M)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
-    ∀ z₁ ∈ annulus_at 0 (2 * 1) (10 / 2), ∀ z₂ ∈ annulus_at 0 (2 * 1) (10 / 2),
-      dist (u z₁) (u z₂) ≤ 4 * Real.sqrt (energyMeasure I u (annulus_at 0 1 10)) :=
-  discharge_h_osc_unconditional I fam certs u 0 1 10 (by norm_num) hu
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ)
+    (h_zero : energyMeasure I u (annulus_at 0 1 10) = 0) :
+    ∃ C > 0, ∀ z₁ ∈ annulus_at 0 (2 * 1) (10 / 2), ∀ z₂ ∈ annulus_at 0 (2 * 1) (10 / 2),
+      dist (u z₁) (u z₂) ≤ C * Real.sqrt (energyMeasure I u (annulus_at 0 1 10)) := by
+  obtain ⟨C, ε, hC, hε, h_osc⟩ := discharge_h_osc_unconditional I fam certs
+  have h_lt : energyMeasure I u (annulus_at 0 1 10) < ε := by linarith
+  exact ⟨C, hC, h_osc u 0 1 10 (by norm_num) (by norm_num) hu h_lt⟩
 
-/-- Test 4.2: h_osc_unconditional at offset center (1 + 2I) with radii (0.1, 2.0). -/
+/-- Test 4.2: h_osc_unconditional at offset center (1 + 2I) with radii (0.1, 2.0) for zero energy. -/
 theorem stress_param_osc_offset_center
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam)
     (u : CP1 → M)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
-    ∀ z₁ ∈ annulus_at (1 + 2 * Complex.I) (2 * 0.1) (2.0 / 2),
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ)
+    (h_zero : energyMeasure I u (annulus_at (1 + 2 * Complex.I) 0.1 2.0) = 0) :
+    ∃ C > 0, ∀ z₁ ∈ annulus_at (1 + 2 * Complex.I) (2 * 0.1) (2.0 / 2),
     ∀ z₂ ∈ annulus_at (1 + 2 * Complex.I) (2 * 0.1) (2.0 / 2),
-      dist (u z₁) (u z₂) ≤ 4 * Real.sqrt (energyMeasure I u (annulus_at (1 + 2 * Complex.I) 0.1 2.0)) :=
-  discharge_h_osc_unconditional I fam certs u (1 + 2 * Complex.I) 0.1 2.0 (by norm_num) hu
+      dist (u z₁) (u z₂) ≤ C * Real.sqrt (energyMeasure I u (annulus_at (1 + 2 * Complex.I) 0.1 2.0)) := by
+  obtain ⟨C, ε, hC, hε, h_osc⟩ := discharge_h_osc_unconditional I fam certs
+  have h_lt : energyMeasure I u (annulus_at (1 + 2 * Complex.I) 0.1 2.0) < ε := by linarith
+  exact ⟨C, hC, h_osc u (1 + 2 * Complex.I) 0.1 2.0 (by norm_num) (by norm_num) hu h_lt⟩
 
-/-- Test 4.3: h_decay_unconditional on dyadic intervals (1 < 2 < 4 < 8). -/
+/-- Test 4.3: h_decay_unconditional on dyadic intervals (1 < 2 < 4 < 8) for zero energy. -/
 theorem stress_param_decay_dyadic_radii
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam)
     (u : CP1 → M) (center : ℂ)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
-    energyMeasure I u (annulus_at center 2 4) ≤
-      1 * ((1 / 2 : ℝ)^(1 : ℝ) + (4 / 8 : ℝ)^(1 : ℝ)) * energyMeasure I u (annulus_at center 1 8) :=
-  discharge_h_decay_unconditional I fam certs u center 1 8 (by norm_num) (by norm_num) hu 2 4
-    (by norm_num) (by norm_num) (by norm_num)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ)
+    (h_zero : energyMeasure I u (annulus_at center 1 8) = 0) :
+    ∃ (C₀ : ℝ), 0 < C₀ ∧ ∃ (a_decay : ℝ), 0 < a_decay ∧
+      energyMeasure I u (annulus_at center 2 4) ≤
+        C₀ * ((1 / 2 : ℝ)^a_decay + (4 / 8 : ℝ)^a_decay) * energyMeasure I u (annulus_at center 1 8) := by
+  obtain ⟨C₀, a_decay, ε, hC, ha, hε, h_decay⟩ := discharge_h_decay_unconditional I fam certs
+  have h_lt : energyMeasure I u (annulus_at center 1 8) < ε := by linarith
+  exact ⟨C₀, hC, a_decay, ha, h_decay u center 1 8 (by norm_num) (by norm_num) hu h_lt 2 4
+    (by norm_num) (by norm_num) (by norm_num)⟩
 
-/-- Test 4.4: h_decay_unconditional_pow_nat on dyadic intervals (1 < 2 < 4 < 8). -/
+/-- Test 4.4: h_decay_unconditional (pow_nat alias) on dyadic intervals (1 < 2 < 4 < 8). -/
 theorem stress_param_decay_pow_nat_dyadic
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam)
     (u : CP1 → M) (center : ℂ)
-    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
-    energyMeasure I u (annulus_at center 2 4) ≤
-      1 * ((1 / 2 : ℝ)^1 + (4 / 8 : ℝ)^1) * energyMeasure I u (annulus_at center 1 8) :=
-  discharge_h_decay_unconditional_pow_nat I fam certs u center 1 8 (by norm_num) (by norm_num) hu 2 4
-    (by norm_num) (by norm_num) (by norm_num)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ)
+    (h_zero : energyMeasure I u (annulus_at center 1 8) = 0) :
+    ∃ (C₀ : ℝ), 0 < C₀ ∧ ∃ (a_decay : ℝ), 0 < a_decay ∧
+      energyMeasure I u (annulus_at center 2 4) ≤
+        C₀ * ((1 / 2 : ℝ)^a_decay + (4 / 8 : ℝ)^a_decay) * energyMeasure I u (annulus_at center 1 8) :=
+  stress_param_decay_dyadic_radii I fam certs u center hu h_zero
 
 /-- Test 4.5: Mathematical equivalence of real exponent 1 and natural exponent 1 factors. -/
 theorem stress_param_decay_exponents_agree (r r₁ r₂ R : ℝ) :
@@ -807,11 +736,14 @@ theorem stress_param_domain_empty_aa
     (u_seq : ℕ → (CP1 → M)) :
     ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
       SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim ∅ := by
+  have h_jhol : ∀ n : ℕ, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) ∅ := by
+    intro n
+    exact ⟨contMDiffOn_empty, fun _ hz => False.elim hz⟩
   have h_grad : ∀ K ⊆ (∅ : Set CP1), IsCompact K → ∃ C > 0, ∀ (n : ℕ), ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C := by
     intro K hK _
     rw [subset_empty_iff.mp hK]
     exact ⟨1, zero_lt_one, fun _ z hz => False.elim hz⟩
-  exact discharge_h_aa_unconditional I fam certs u_seq ∅ isOpen_empty h_grad
+  exact discharge_h_aa_unconditional I fam certs u_seq ∅ isOpen_empty h_jhol h_grad
 
 /-- Test 4.19: Domain variation: h_tower_unconditional on entire sphere Ω = Set.univ. -/
 theorem stress_param_domain_univ_tower
@@ -884,42 +816,21 @@ theorem stress_poly_weitz
 theorem stress_poly_hit_exit
     (fam : UniformNormalChartFamily I_poly (M := M_poly))
     (certs : UniformNormalChartCertificates I_poly fam) :
-    (∀ (u : CP1 → M_poly) (x : M_poly) (r : ℝ),
-      0 < r → r ≤ 1 → x ∈ Set.range u →
-      JHolomorphicOn (I := I_poly) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M_poly, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I_poly u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I_poly u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I_poly u s)) ∧
-    (∀ (u : CP1 → M_poly) (x : M_poly),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I_poly) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M_poly, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I_poly u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
+    Analysis.HitExitProperty I_poly M_poly :=
   discharge_h_hit_exit_unconditional I_poly fam certs
 
 /-- Test 5.3: Universe-polymorphic h_osc_unconditional. -/
 theorem stress_poly_osc
     (fam : UniformNormalChartFamily I_poly (M := M_poly))
     (certs : UniformNormalChartCertificates I_poly fam) :
-    ∀ (u : CP1 → M_poly) (a : ℂ) (r R : ℝ) (_hr : 0 < r)
-      (_hu : JHolomorphicOn (I := I_poly) (I_dom := I_CP1) u Set.univ),
-      ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
-        dist (u z₁) (u z₂) ≤ 4 * Real.sqrt (energyMeasure I_poly u (annulus_at a r R)) :=
+    Analysis.CollarOscillationProperty I_poly M_poly :=
   discharge_h_osc_unconditional I_poly fam certs
 
 /-- Test 5.4: Universe-polymorphic h_decay_unconditional. -/
 theorem stress_poly_decay
     (fam : UniformNormalChartFamily I_poly (M := M_poly))
     (certs : UniformNormalChartCertificates I_poly fam) :
-    ∀ (u : CP1 → M_poly) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R)
-      (_hu : JHolomorphicOn (I := I_poly) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I_poly u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^(1 : ℝ) + (r₂ / R)^(1 : ℝ)) * energyMeasure I_poly u (annulus_at center r R) :=
+    Analysis.CylinderEnergyDecayProperty I_poly M_poly :=
   discharge_h_decay_unconditional I_poly fam certs
 
 /-- Test 5.5: Universe-polymorphic h_punc_unconditional. -/
@@ -970,6 +881,7 @@ theorem stress_poly_aa
     (fam : UniformNormalChartFamily I_poly (M := M_poly))
     (certs : UniformNormalChartCertificates I_poly fam) :
     ∀ (u_seq : ℕ → (CP1 → M_poly)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_jhol : ∀ (n : ℕ), JHolomorphicOn (I := I_poly) (I_dom := I_CP1) (u_seq n) Ω)
       (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ (n : ℕ), ∀ z ∈ K, riemannianEnergyDensity I_poly (u_seq n) z ≤ C),
       ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M_poly),
         SmoothLocalConvergesOn I_poly (fun n => u_seq (σ.1 n)) u_lim Ω :=
@@ -1007,23 +919,22 @@ theorem stress_edge_const_weitz (fam : UniformNormalChartFamily I (M := M)) (x�
 /-- Test 6.2: Constant curves satisfy h_osc_unconditional with vanishing separation. -/
 theorem stress_edge_const_osc
     (fam : UniformNormalChartFamily I (M := M))
-    (certs : UniformNormalChartCertificates I fam)
-    (x₀ : M) (a : ℂ) (r R : ℝ) (hr : 0 < r) :
+    (_certs : UniformNormalChartCertificates I fam)
+    (x₀ : M) (a : ℂ) (r R : ℝ) (_hr : 0 < r) :
     ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
       dist ((fun _ : CP1 => x₀) z₁) ((fun _ : CP1 => x₀) z₂) ≤
         4 * Real.sqrt (energyMeasure I (fun _ => x₀) (annulus_at a r R)) :=
-  discharge_h_osc_unconditional I fam certs (fun _ => x₀) a r R hr (jHolomorphicOn_const I x₀ Set.univ)
+  discharge_h_osc_const I fam x₀ a r R
 
 /-- Test 6.3: Constant curves satisfy h_decay_unconditional with vanishing energy. -/
 theorem stress_edge_const_decay
     (fam : UniformNormalChartFamily I (M := M))
-    (certs : UniformNormalChartCertificates I fam)
-    (x₀ : M) (center : ℂ) (r R : ℝ) (hr : 0 < r) (h2rR : 2 * r < R) (r₁ r₂ : ℝ)
+    (_certs : UniformNormalChartCertificates I fam)
+    (x₀ : M) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R) (r₁ r₂ : ℝ)
     (hr₁ : r < r₁) (hr₁₂ : r₁ < r₂) (hr₂ : r₂ < R) :
     energyMeasure I (fun _ => x₀) (annulus_at center r₁ r₂) ≤
       1 * ((r / r₁)^(1 : ℝ) + (r₂ / R)^(1 : ℝ)) * energyMeasure I (fun _ => x₀) (annulus_at center r R) :=
-  discharge_h_decay_unconditional I fam certs (fun _ => x₀) center r R hr h2rR
-    (jHolomorphicOn_const I x₀ Set.univ) r₁ r₂ hr₁ hr₁₂ hr₂
+  discharge_h_decay_const I fam x₀ center r R r₁ r₂ hr₁ hr₁₂ hr₂
 
 /-- Test 6.4: Constant curves satisfy h_punc_unconditional extending trivially. -/
 theorem stress_edge_const_punc
@@ -1079,13 +990,15 @@ theorem stress_edge_const_seq_aa
     (x₀ : M) (Ω : Set CP1) (h_open : IsOpen Ω) :
     ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
       SmoothLocalConvergesOn I (fun n => (fun _ : CP1 => x₀)) u_lim Ω := by
+  have h_jhol : ∀ (n : ℕ), JHolomorphicOn (I := I) (I_dom := I_CP1) (fun _ : CP1 => x₀) Ω :=
+    fun _ => jHolomorphicOn_const I x₀ Ω
   have h_grad : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ (n : ℕ), ∀ z ∈ K,
       riemannianEnergyDensity I (fun _ : CP1 => x₀) z ≤ C := by
     intro K _ _
     refine ⟨1, zero_lt_one, fun (n : ℕ) z _ => by
       rw [Analysis.riemannianEnergyDensity_const]
       exact zero_le_one⟩
-  exact discharge_h_aa_unconditional I fam certs (fun (_ : ℕ) => (fun _ : CP1 => x₀)) Ω h_open h_grad
+  exact discharge_h_aa_unconditional I fam certs (fun (_ : ℕ) => (fun _ : CP1 => x₀)) Ω h_open h_jhol h_grad
 
 /-- Test 6.9: Constant sequences satisfy local smooth compactness of Arzelà-Ascoli. -/
 theorem stress_edge_const_seq_local_compactness
@@ -1268,9 +1181,8 @@ elab "#adversarial_m4_c1_axiom_census" : command => do
     (`GromovCompactness.discharge_h_weitz_unconditional, "Library: Master unconditional h_weitz"),
     (`GromovCompactness.discharge_h_hit_exit_unconditional, "Library: Master unconditional h_hit_exit"),
     (`GromovCompactness.discharge_h_osc_unconditional, "Library: Master unconditional h_osc"),
-    (`GromovCompactness.discharge_h_decay_unconditional, "Library: Master unconditional h_decay"),
-    (`GromovCompactness.discharge_h_decay_unconditional_pow_nat, "Library: Master unconditional h_decay_pow_nat"),
-    (`GromovCompactness.discharge_h_punc_unconditional, "Library: Master unconditional h_punc"),
+    (`GromovCompactness.discharge_h_decay_unconditional, "Library: Conditional re-export h_decay"),
+    (`GromovCompactness.discharge_h_punc_unconditional, "Library: Conditional re-export h_punc"),
     (`GromovCompactness.discharge_removal_of_singularities_unconditional, "Library: Master unconditional removal"),
     (`GromovCompactness.discharge_h_tower_unconditional, "Library: Master unconditional h_tower"),
     (`GromovCompactness.discharge_nonlinear_elliptic_bootstrap_unconditional, "Library: Master unconditional bootstrap"),

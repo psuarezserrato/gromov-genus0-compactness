@@ -890,4 +890,57 @@ theorem epsilon_regularity
   exact epsilon_regularity_of_global_subset_closedBall_one I hb le_rfl hη hC
     (fun u hu => (h_boch u hu).2) h_smv (fun u hu => (h_boch u hu).1)
 
+/-- First-principles derivation of Contract A03 (`epsilon_regularity`) from the Bochner lower bound
+`-b * e(w) ^ 2 ≤ Δe(w)` (`0 sorryAx`). -/
+theorem epsilon_regularity_of_bochner_lower_bound
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_bochner : ∃ b : ℝ, 0 ≤ b ∧ ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+      ∀ (w : ℂ), -b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 ≤
+        laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w) :
+    ∃ (ε_reg C_reg : ℝ), 0 < ε_reg ∧ 0 < C_reg ∧
+    ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (_hr : 0 < r),
+      Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1 →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (disk_at a r) < ε_reg →
+      ∀ z ∈ disk_at a (r / 2),
+        riemannianEnergyDensity I u z ≤ C_reg * r^(-2 : ℝ) * energyMeasure I u (disk_at a r) :=
+  epsilon_regularity I (weitzenbockDecompositionProperty_of_bochner_lower_bound I M h_bochner)
+
+/-- First-principles derivation of Contract A03 (`epsilon_regularity`) from the centered normal-chart
+Weitzenböck remainder bound `|rem| ≤ |K_tensor g J v|` (`0 sorryAx`). -/
+theorem epsilon_regularity_of_normal_chart_weitz
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {c_min C_metric3 C_J3 : ℝ} (hc_min : 0 < c_min) (hCm : 0 ≤ C_metric3) (hCJ : 0 ≤ C_J3)
+    (h_norm_weitz : ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+      ∀ (w : ℂ), ∃ (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E) (v : ℂ → E),
+        v 0 = 0 ∧
+        (∀ y : E, c_min * ‖y‖ ^ 2 ≤ g 0 y y) ∧
+        (∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => g z y y) 0‖ ≤ C_metric3 * ‖y‖ ^ 2) ∧
+        (∀ y : E, ‖fderiv ℝ (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖) ∧
+        (∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖) ∧
+        localEnergyDensity v g 0 = riemannianEnergyDensity I u (stereo_chart.symm w) ∧
+        ∃ (hessNorm rem : ℝ),
+          laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+            hessNorm ^ 2 + rem ∧
+          |rem| ≤ |K_tensor g J v|) :
+    ∃ (ε_reg C_reg : ℝ), 0 < ε_reg ∧ 0 < C_reg ∧
+    ∀ (u : CP1 → M) (a : ℂ) (r : ℝ) (_hr : 0 < r),
+      Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1 →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (disk_at a r) < ε_reg →
+      ∀ z ∈ disk_at a (r / 2),
+        riemannianEnergyDensity I u z ≤ C_reg * r^(-2 : ℝ) * energyMeasure I u (disk_at a r) :=
+  epsilon_regularity I
+    (weitzenbockDecompositionProperty_of_normal_chart_weitz I M hc_min hCm hCJ h_norm_weitz)
+
 end GromovCompactness.Analysis

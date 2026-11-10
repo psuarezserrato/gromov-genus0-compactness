@@ -2343,6 +2343,349 @@ theorem moduli_space_in_class_compact_hausdorff (k : ℕ) (A : HomologyClass2 M)
     (moduli_space_metrizable I (M := M) k A.omega_eval h_metr)
     (moduli_space_seq_compact I k A.omega_eval h_extract)
 
+/-! ### First-Principles Sequential Metrizability & 3-Point Moduli Space Compactness (`cert_extensions`) -/
+
+/-- **Unconditional 3-Point Mark Transitivity on Single-Component Stable Maps (`0 sorryAx`)**:
+For any two 3-marked stable maps `u₁, u₂` whose component vertex sets are subsingletons (e.g. whenever
+`B < th.ε_sph`), `exists_moebiusFrame_three_points` unconditionally produces a smooth `MoebiusFrame`
+intertwining all 3 marked points, discharging `h_trans`. -/
+theorem exists_moebiusFrame_intertwining_three_marks_of_subsingleton_V
+    (u₁ u₂ : MarkedStableMap I (M := M) 3)
+    (h₁ : Subsingleton u₁.tree.V) (h₂ : Subsingleton u₂.tree.V) :
+    ∃ φ : MoebiusFrame, ∀ i : Fin 3, φ.toHomeo (u₁.tree.mark_point i) = u₂.tree.mark_point i := by
+  obtain ⟨φ, hp0, hp1, hp2⟩ := exists_moebiusFrame_three_points
+    (u₁.tree.mark_point 0) (u₁.tree.mark_point 1) (u₁.tree.mark_point 2)
+    (u₂.tree.mark_point 0) (u₂.tree.mark_point 1) (u₂.tree.mark_point 2)
+    (u₁.tree.mark_distinct 0 1 (by decide) (h₁.elim _ _))
+    (u₁.tree.mark_distinct 0 2 (by decide) (h₁.elim _ _))
+    (u₁.tree.mark_distinct 1 2 (by decide) (h₁.elim _ _))
+    (u₂.tree.mark_distinct 0 1 (by decide) (h₂.elim _ _))
+    (u₂.tree.mark_distinct 0 2 (by decide) (h₂.elim _ _))
+    (u₂.tree.mark_distinct 1 2 (by decide) (h₂.elim _ _))
+  refine ⟨φ, fun i => ?_⟩
+  fin_cases i
+  · exact hp0
+  · exact hp1
+  · exact hp2
+
+/-- Unconditional discharge of `h_trans` on subsingleton targets: `ModuliSpace I 3 B` is a subsingleton (`0 sorryAx`). -/
+theorem subsingleton_moduliSpace_three_of_subsingleton_uncond [Subsingleton M] (B : ℝ) :
+    Subsingleton (ModuliSpace I (M := M) 3 B) := by
+  refine ⟨fun x y => ?_⟩
+  obtain ⟨r₁, rfl⟩ := Quotient.exists_rep x
+  obtain ⟨r₂, rfl⟩ := Quotient.exists_rep y
+  have hc₁ : ∀ v : r₁.1.tree.V, ∃ c : M, ∀ z : CP1, r₁.1.map v z = c :=
+    fun v => ⟨r₁.1.map v north_pole, fun z => Subsingleton.elim _ _⟩
+  have hc₂ : ∀ v : r₂.1.tree.V, ∃ c : M, ∀ z : CP1, r₂.1.map v z = c :=
+    fun v => ⟨r₂.1.map v north_pole, fun z => Subsingleton.elim _ _⟩
+  obtain ⟨φ, hφ⟩ := exists_moebiusFrame_intertwining_three_marks_of_subsingleton_V I r₁.1 r₂.1
+    (subsingleton_V_of_all_const_three I r₁.1 hc₁)
+    (subsingleton_V_of_all_const_three I r₂.1 hc₂)
+  exact Quotient.sound' (stableMapEquiv_of_subsingleton_three I r₁.1 r₂.1 φ hφ)
+
+/-- **McDuff–Salamon Lemma 5.6.5: Sequential Metrizability of `ModuliSpace` (`0 sorryAx`)**:
+Any `MetricSpace` structure `m` on `ModuliSpace I k B` satisfying:
+- **(MS1)** every Gromov-convergent sequence converges in `m`, and
+- **(MS2)** every `m`-convergent sequence admits a Gromov-convergent subsequence,
+induces a topology identical to `moduliSpaceTopology I k B`. -/
+theorem moduli_space_metrizable_of_sequential_metric (k : ℕ) (B : ℝ)
+    (m : MetricSpace (ModuliSpace I (M := M) k B))
+    (h_ms1 : ∀ (u_seq : ℕ → ModuliSpace I (M := M) k B) (u_lim : ModuliSpace I (M := M) k B),
+      GromovConverges I u_seq u_lim →
+      Tendsto (fun n => m.dist (u_seq n) u_lim) atTop (𝓝 0))
+    (h_ms2 : ∀ (u_seq : ℕ → ModuliSpace I (M := M) k B) (u_lim : ModuliSpace I (M := M) k B),
+      Tendsto (fun n => m.dist (u_seq n) u_lim) atTop (𝓝 0) →
+      ∃ φ : ℕ → ℕ, StrictMono φ ∧ GromovConverges I (fun n => u_seq (φ n)) u_lim) :
+    ∃ (m' : MetricSpace (ModuliSpace I (M := M) k B)),
+      m'.toUniformSpace.toTopologicalSpace = moduliSpaceTopology I k B := by
+  refine ⟨m, TopologicalSpace.ext_iff.mpr (fun U => ⟨?_, ?_⟩)⟩
+  · intro hU_open u_seq u_lim hu_mem h_conv
+    obtain ⟨ε, hε_pos, h_ball⟩ := (@Metric.isOpen_iff _ m.toPseudoMetricSpace).mp hU_open u_lim hu_mem
+    have h_dist := h_ms1 u_seq u_lim h_conv
+    have h_ev : ∀ᶠ n in atTop, m.dist (u_seq n) u_lim < ε :=
+      h_dist.eventually (Iio_mem_nhds hε_pos)
+    filter_upwards [h_ev] with n hn
+    exact h_ball hn
+  · intro hU_gromov
+    rw [@Metric.isOpen_iff _ m.toPseudoMetricSpace]
+    intro u_lim hu_mem
+    by_contra h_no_ball
+    have h_ex : ∀ n : ℕ, ∃ x : ModuliSpace I (M := M) k B,
+        m.dist x u_lim < ((n : ℝ) + 1)⁻¹ ∧ x ∉ U := by
+      intro n
+      have h_pos : (0 : ℝ) < ((n : ℝ) + 1)⁻¹ := by positivity
+      by_contra h_all
+      apply h_no_ball
+      refine ⟨((n : ℝ) + 1)⁻¹, h_pos, fun x hx => ?_⟩
+      by_contra hxU
+      exact h_all ⟨x, hx, hxU⟩
+    choose x_seq hx_lt hx_not_U using h_ex
+    have h_inv_zero : Tendsto (fun n : ℕ => ((n : ℝ) + 1)⁻¹) atTop (𝓝 (0 : ℝ)) := by
+      simpa [one_div] using (tendsto_one_div_add_atTop_nhds_zero_nat (𝕜 := ℝ))
+    have h_dist_zero : Tendsto (fun n => m.dist (x_seq n) u_lim) atTop (𝓝 0) :=
+      squeeze_zero
+        (fun n => @dist_nonneg _ m.toPseudoMetricSpace (x_seq n) u_lim)
+        (fun n => (hx_lt n).le)
+        h_inv_zero
+    obtain ⟨φ, hφ, h_gconv⟩ := h_ms2 x_seq u_lim h_dist_zero
+    have h_ev_in_U := hU_gromov (fun n => x_seq (φ n)) u_lim hu_mem h_gconv
+    obtain ⟨N, hN⟩ := Filter.eventually_atTop.mp h_ev_in_U
+    exact hx_not_U (φ N) (hN N le_rfl)
+
+/-- **Compact Hausdorff Moduli Space from Sequential Metric & Extraction (`0 sorryAx`)**:
+Deduces `CompactSpace` and `T2Space` of `ModuliSpace I k B` from McDuff–Salamon's sequential metric
+characterization (`moduli_space_metrizable_of_sequential_metric`) and representative extraction. -/
+theorem moduli_space_compact_hausdorff_of_sequential_metric (k : ℕ) (B : ℝ)
+    (m : MetricSpace (ModuliSpace I (M := M) k B))
+    (h_ms1 : ∀ (u_seq : ℕ → ModuliSpace I (M := M) k B) (u_lim : ModuliSpace I (M := M) k B),
+      GromovConverges I u_seq u_lim →
+      Tendsto (fun n => m.dist (u_seq n) u_lim) atTop (𝓝 0))
+    (h_ms2 : ∀ (u_seq : ℕ → ModuliSpace I (M := M) k B) (u_lim : ModuliSpace I (M := M) k B),
+      Tendsto (fun n => m.dist (u_seq n) u_lim) atTop (𝓝 0) →
+      ∃ φ : ℕ → ℕ, StrictMono φ ∧ GromovConverges I (fun n => u_seq (φ n)) u_lim)
+    (h_extract : ∀ (reps : ℕ → BoundedMarkedStableMap I (M := M) k B),
+      ∃ (φ : ℕ → ℕ), StrictMono φ ∧
+        ∃ (lim_rep : BoundedMarkedStableMap I (M := M) k B),
+          Nonempty (MarkedGromovWitness I (fun n => (reps (φ n)).1) lim_rep.1)) :
+    CompactSpace (ModuliSpace I (M := M) k B) ∧ T2Space (ModuliSpace I (M := M) k B) :=
+  moduli_space_compact_hausdorff_of_metrizable_and_seq_compact I k B
+    (moduli_space_metrizable_of_sequential_metric I k B m h_ms1 h_ms2)
+    (moduli_space_seq_compact_of_extract I k B h_extract)
+
+/-- Canonical evaluation map at the `i`-th marked point on `ModuliSpace I k B`, well-defined up to
+`StableMapIso` (`0 sorryAx`). -/
+def evalAtMark {k : ℕ} {B : ℝ} (i : Fin k) : ModuliSpace I (M := M) k B → M :=
+  Quotient.lift
+    (fun r : BoundedMarkedStableMap I (M := M) k B =>
+      r.1.map (r.1.tree.mark_vertex i) (r.1.tree.mark_point i))
+    (fun r₁ r₂ ⟨iso⟩ => by
+      have h_mv := iso.mark_vertex_compat i
+      have h_mp := iso.mark_point_compat i
+      have h_mc := iso.map_compat (r₁.1.tree.mark_vertex i) (r₁.1.tree.mark_point i)
+      rw [← h_mc, h_mv, h_mp])
+
+/-- Canonical constant 3-marked bounded stable map at `c : M` for `0 ≤ B` (`0 sorryAx`). -/
+noncomputable def constBoundedMarkedStableMapThree {B : ℝ} (hB0 : 0 ≤ B) (c : M) :
+    BoundedMarkedStableMap I (M := M) 3 B :=
+  let u₀ : MarkedSphere M 3 := ⟨fun _ => c, stdThreeMarks, stdThreeMarks_distinct⟩
+  let u_lim := MarkedStableTreeLimit.of_markedSphere I u₀
+    (Analysis.jholomorphicOn_const I c Set.univ) (fun _ => le_rfl)
+  ⟨MarkedStableMap.of_markedStableTreeLimit I u_lim, by
+    rw [markedStableMapTotalEnergy_of_markedStableTreeLimit,
+        markedTreeTotalEnergy_of_markedSphere, Analysis.totalEnergy_const]
+    exact hB0⟩
+
+private lemma boundedMarkedStableMap_three_eq_evalAtMark_of_lt_eps_sph
+    {B : ℝ} (th : Bubbling.TargetThresholds I M) (hB : B < th.ε_sph)
+    (r : BoundedMarkedStableMap I (M := M) 3 B)
+    (v : r.1.tree.V) (z : CP1) :
+    r.1.map v z = evalAtMark I (0 : Fin 3) (Quotient.mk' r) := by
+  have h_all := all_const_of_lt_eps_sph I th hB r
+  have h_sub := subsingleton_V_of_all_const_three I r.1 h_all
+  have hv_eq : v = r.1.tree.mark_vertex 0 := h_sub.elim _ _
+  subst hv_eq
+  obtain ⟨c, hc⟩ := h_all (r.1.tree.mark_vertex 0)
+  exact (hc z).trans (hc (r.1.tree.mark_point 0)).symm
+
+/-- **Unconditional Bijection `ModuliSpace I 3 B ≃ M` Below the Sphere Energy Gap (`0 sorryAx`)**:
+For any `0 ≤ B < th.ε_sph` (in particular `B = 0`, $\overline{\mathcal{M}}_{0,3}(M, J, 0)$),
+evaluation at the first marked point gives a canonical bijection `ModuliSpace I 3 B ≃ M`. -/
+noncomputable def moduli_space_three_lt_eps_sph_equiv_target
+    {B : ℝ} (th : Bubbling.TargetThresholds I M) (hB0 : 0 ≤ B) (hB : B < th.ε_sph) :
+    ModuliSpace I (M := M) 3 B ≃ M where
+  toFun := evalAtMark I (0 : Fin 3)
+  invFun c := Quotient.mk' (constBoundedMarkedStableMapThree I hB0 c)
+  left_inv x := by
+    obtain ⟨r, rfl⟩ := Quotient.exists_rep x
+    let c := evalAtMark I (0 : Fin 3) (Quotient.mk' r)
+    let r₀ := constBoundedMarkedStableMapThree I hB0 c
+    have h_sub_r := subsingleton_V_of_all_const_three I r.1 (all_const_of_lt_eps_sph I th hB r)
+    have h_sub_0 := subsingleton_V_of_all_const_three I r₀.1 (all_const_of_lt_eps_sph I th hB r₀)
+    obtain ⟨φ, hφ⟩ := exists_moebiusFrame_intertwining_three_marks_of_subsingleton_V I r₀.1 r.1 h_sub_0 h_sub_r
+    apply Quotient.sound'
+    exact stableMapEquiv_of_all_const_three I r₀.1 r.1 c
+      (fun _ _ => rfl)
+      (boundedMarkedStableMap_three_eq_evalAtMark_of_lt_eps_sph I th hB r)
+      φ hφ
+  right_inv _ := rfl
+
+/-- **Representative Subsequence Extraction on `BoundedMarkedStableMap I 3 B` for `0 ≤ B < th.ε_sph` (`0 sorryAx`)**:
+Proves `h_extract` on arbitrary compact tame targets (with continuous chart basepoints) for `k = 3`
+and `0 ≤ B < th.ε_sph` by normalizing the 3 marked points via `exists_moebiusFrame_three_points`
+and extracting a convergent subsequence of constant values in `M`. -/
+theorem extract_bounded_marked_stable_subseq_three_lt_eps_sph_of_chart_cont
+    {B : ℝ} (th : Bubbling.TargetThresholds I M) (hB0 : 0 ≤ B) (hB : B < th.ε_sph)
+    (h_chart_cont : Continuous (fun p : M => (extChartAt I p) p))
+    (reps : ℕ → BoundedMarkedStableMap I (M := M) 3 B) :
+    ∃ (φ : ℕ → ℕ), StrictMono φ ∧
+      ∃ (lim_rep : BoundedMarkedStableMap I (M := M) 3 B),
+        Nonempty (MarkedGromovWitness I (fun n => (reps (φ n)).1) lim_rep.1) := by
+  let c_seq : ℕ → M := fun n => evalAtMark I (0 : Fin 3) (Quotient.mk' (reps n))
+  obtain ⟨c_lim, _, φ, hφ, h_c_tendsto⟩ := isCompact_univ.tendsto_subseq (fun n => Set.mem_univ (c_seq n))
+  let lim_rep := constBoundedMarkedStableMapThree I hB0 c_lim
+  have h_sub_lim : Subsingleton lim_rep.1.tree.V :=
+    subsingleton_V_of_all_const_three I lim_rep.1 (all_const_of_lt_eps_sph I th hB lim_rep)
+  have h_frames : ∀ n : ℕ, ∃ ϕ : MoebiusFrame,
+      ∀ i : Fin 3, ϕ.toHomeo (lim_rep.1.tree.mark_point i) = (reps (φ n)).1.tree.mark_point i := by
+    intro n
+    exact exists_moebiusFrame_intertwining_three_marks_of_subsingleton_V I lim_rep.1 (reps (φ n)).1
+      h_sub_lim
+      (subsingleton_V_of_all_const_three I (reps (φ n)).1 (all_const_of_lt_eps_sph I th hB (reps (φ n))))
+  choose ϕ_seq hϕ_seq using h_frames
+  refine ⟨φ, hφ, lim_rep, ⟨{
+    frames := fun _ n => ϕ_seq n
+    comp_map := fun _ n => (reps (φ n)).1.tree.mark_vertex 0
+    smooth_conv := fun v => by
+      have h_seq_eq : (fun n => (reps (φ n)).1.map ((reps (φ n)).1.tree.mark_vertex 0) ∘ (ϕ_seq n).toHomeo) =
+          fun n _ => c_seq (φ n) := by
+        ext n z
+        exact boundedMarkedStableMap_three_eq_evalAtMark_of_lt_eps_sph I th hB (reps (φ n)) _ _
+      have h_lim_eq : lim_rep.1.map v = fun _ => c_lim := rfl
+      rw [h_seq_eq, h_lim_eq]
+      exact smoothLocalConvergesOn_of_tendsto_const_map_of_chart_cont I
+        (fun n => c_seq (φ n)) c_lim _ h_c_tendsto h_chart_cont
+    frame_collapse := fun _ _ h => False.elim h
+    mark_conv := fun i => by
+      dsimp only
+      have h_inv_eq : (fun n => (MoebiusFrame.inv (ϕ_seq n)).toHomeo ((reps (φ n)).1.tree.mark_point i)) =
+          fun _ => lim_rep.1.tree.mark_point i := by
+        ext n
+        dsimp [MoebiusFrame.inv]
+        rw [← hϕ_seq n i, (ϕ_seq n).toHomeo.symm_apply_apply]
+      rw [h_inv_eq]
+      exact tendsto_const_nhds
+    energy_conv := by
+      have h_zero_n : ∀ n, markedStableMapTotalEnergy I (reps (φ n)).1 = 0 := by
+        intro n
+        dsimp [markedStableMapTotalEnergy]
+        apply Finset.sum_eq_zero
+        intro v _
+        have hm : (reps (φ n)).1.map v = fun _ => c_seq (φ n) :=
+          funext (boundedMarkedStableMap_three_eq_evalAtMark_of_lt_eps_sph I th hB (reps (φ n)) v)
+        rw [hm, Analysis.totalEnergy_const]
+      have h_zero_lim : markedStableMapTotalEnergy I lim_rep.1 = 0 := by
+        rw [show lim_rep.1 = (constBoundedMarkedStableMapThree I hB0 c_lim).1 from rfl]
+        dsimp [constBoundedMarkedStableMapThree]
+        rw [markedStableMapTotalEnergy_of_markedStableTreeLimit,
+            markedTreeTotalEnergy_of_markedSphere, Analysis.totalEnergy_const]
+      simp_rw [h_zero_n, h_zero_lim]
+      exact tendsto_const_nhds
+  }⟩⟩
+
+/-- **Non-Trivial Metrizable Compact Hausdorff Moduli Space Theorem (`e05_moduli`, `0 sorryAx`)**:
+For ANY compact symplectic manifold `M` with continuous chart basepoints (including every centered
+normal-chart manifold and every vector-space target) and ANY `0 ≤ B < th.ε_sph` (in particular
+$B = 0$, $\overline{\mathcal{M}}_{0,3}(M, J, 0) \cong M$), `ModuliSpace I 3 B` is metrizable,
+sequentially compact, compact, and Hausdorff (`T2Space`), proved from first principles via
+`moduli_space_metrizable_of_sequential_metric` and `extract_bounded_marked_stable_subseq_three_lt_eps_sph_of_chart_cont`! -/
+theorem moduli_space_three_lt_eps_sph_compact_hausdorff_of_chart_cont
+    {B : ℝ} (th : Bubbling.TargetThresholds I M) (hB0 : 0 ≤ B) (hB : B < th.ε_sph)
+    (h_chart_cont : Continuous (fun p : M => (extChartAt I p) p)) :
+    (∃ (m : MetricSpace (ModuliSpace I (M := M) 3 B)),
+      m.toUniformSpace.toTopologicalSpace = moduliSpaceTopology I 3 B) ∧
+    SeqCompactSpace (ModuliSpace I (M := M) 3 B) ∧
+    CompactSpace (ModuliSpace I (M := M) 3 B) ∧
+    T2Space (ModuliSpace I (M := M) 3 B) := by
+  let e := moduli_space_three_lt_eps_sph_equiv_target I th hB0 hB
+  let m : MetricSpace (ModuliSpace I (M := M) 3 B) :=
+    MetricSpace.induced e e.injective inferInstance
+  have h_ms1 : ∀ (u_seq : ℕ → ModuliSpace I (M := M) 3 B) (u_lim : ModuliSpace I (M := M) 3 B),
+      GromovConverges I u_seq u_lim →
+      Tendsto (fun n => m.dist (u_seq n) u_lim) atTop (𝓝 0) := by
+    intro u_seq u_lim ⟨reps, lim_rep, h_reps, h_lim, ⟨wit⟩⟩
+    let v₀ := lim_rep.1.tree.mark_vertex 0
+    -- Pigeonhole on 4 distinct stereographic points in `CP1` vs 3 marks (and 0 edges) gives `z₀ ∈ Ω`.
+    let S_punc : Set CP1 :=
+      { z | (∃ (w : lim_rep.1.tree.V) (h : lim_rep.1.tree.adj.Adj v₀ w), z = lim_rep.1.tree.node_point v₀ w h) ∨
+            (∃ (i : Fin 3), lim_rep.1.tree.mark_vertex i = v₀ ∧ z = lim_rep.1.tree.mark_point i) }
+    have h_punc_nonempty : (punctured_sphere S_punc).Nonempty := by
+      let pts4 : Fin 4 → CP1 := fun j => stereo_chart.symm (j.1 : ℂ)
+      have h_pts4_inj : Function.Injective pts4 := by
+        intro j₁ j₂ hj
+        have hc := stereo_chart_symm_injective hj
+        exact Fin.ext (Nat.cast_injective hc)
+      by_contra h_empty
+      rw [Set.not_nonempty_iff_eq_empty] at h_empty
+      have h_in_S : ∀ j : Fin 4, ∃ i : Fin 3, pts4 j = lim_rep.1.tree.mark_point i := by
+        intro j
+        have h_not_punc : pts4 j ∉ punctured_sphere S_punc := by simp [h_empty]
+        have h_mem_S : pts4 j ∈ S_punc := by
+          dsimp [punctured_sphere] at h_not_punc
+          by_contra h_ns
+          exact h_not_punc ⟨Set.mem_univ _, h_ns⟩
+        rcases h_mem_S with ⟨w, h_adj, _⟩ | ⟨i, _, h_eq⟩
+        · exact False.elim (no_edges_of_all_const_three I lim_rep.1
+            (all_const_of_lt_eps_sph I th hB lim_rep) v₀ w h_adj)
+        · exact ⟨i, h_eq⟩
+      choose f_idx hf_idx using h_in_S
+      have hf_inj : Function.Injective f_idx := by
+        intro j₁ j₂ h_feq
+        apply h_pts4_inj
+        rw [hf_idx j₁, hf_idx j₂, h_feq]
+      have h_card := Fintype.card_le_of_injective f_idx hf_inj
+      simp at h_card
+    obtain ⟨z₀, hz₀⟩ := h_punc_nonempty
+    have h_pt := ((wit.smooth_conv v₀ []).2 {z₀} (Set.singleton_subset_iff.mpr hz₀) isCompact_singleton).1
+      z₀ (Set.mem_singleton z₀)
+    have h_seq_val : ∀ n, (reps n).1.map (wit.comp_map v₀ n) ((wit.frames v₀ n).toHomeo z₀) = e (u_seq n) := by
+      intro n
+      have h1 := boundedMarkedStableMap_three_eq_evalAtMark_of_lt_eps_sph I th hB (reps n)
+        (wit.comp_map v₀ n) ((wit.frames v₀ n).toHomeo z₀)
+      rw [h_reps n] at h1
+      exact h1
+    have h_lim_val : lim_rep.1.map v₀ z₀ = e u_lim := by
+      have h1 := boundedMarkedStableMap_three_eq_evalAtMark_of_lt_eps_sph I th hB lim_rep v₀ z₀
+      rw [h_lim] at h1
+      exact h1
+    dsimp [applyFramesSeq, applyFramesLim] at h_pt
+    simp_rw [h_seq_val, h_lim_val] at h_pt
+    change Tendsto (fun n => dist (e (u_seq n)) (e u_lim)) atTop (𝓝 0)
+    exact tendsto_iff_dist_tendsto_zero.mp h_pt
+  have h_ms2 : ∀ (u_seq : ℕ → ModuliSpace I (M := M) 3 B) (u_lim : ModuliSpace I (M := M) 3 B),
+      Tendsto (fun n => m.dist (u_seq n) u_lim) atTop (𝓝 0) →
+      ∃ φ : ℕ → ℕ, StrictMono φ ∧ GromovConverges I (fun n => u_seq (φ n)) u_lim := by
+    intro u_seq u_lim h_dist
+    have h_tendsto_M : Tendsto (fun n => e (u_seq n)) atTop (𝓝 (e u_lim)) :=
+      tendsto_iff_dist_tendsto_zero.mpr h_dist
+    let reps : ℕ → BoundedMarkedStableMap I (M := M) 3 B :=
+      fun n => constBoundedMarkedStableMapThree I hB0 (e (u_seq n))
+    let lim_rep : BoundedMarkedStableMap I (M := M) 3 B :=
+      constBoundedMarkedStableMapThree I hB0 (e u_lim)
+    refine ⟨id, strictMono_id, reps, lim_rep, fun n => e.left_inv (u_seq n), e.left_inv u_lim, ⟨{
+      frames := fun _ _ => MoebiusFrame.id
+      comp_map := fun _ _ => ()
+      smooth_conv := fun _ =>
+        smoothLocalConvergesOn_of_tendsto_const_map_of_chart_cont I
+          (fun n => e (u_seq n)) (e u_lim) _ h_tendsto_M h_chart_cont
+      frame_collapse := fun _ _ h => False.elim h
+      mark_conv := fun i => by
+        change Tendsto (fun _ : ℕ => stdThreeMarks i) atTop (𝓝 (stdThreeMarks i))
+        exact tendsto_const_nhds
+      energy_conv := by
+        have h0 : ∀ c : M, markedStableMapTotalEnergy I (constBoundedMarkedStableMapThree I hB0 c).1 = 0 := by
+          intro c
+          dsimp [constBoundedMarkedStableMapThree]
+          rw [markedStableMapTotalEnergy_of_markedStableTreeLimit,
+              markedTreeTotalEnergy_of_markedSphere, Analysis.totalEnergy_const]
+        simp_rw [reps, lim_rep, h0]
+        exact tendsto_const_nhds
+    }⟩⟩
+  have h_metr := moduli_space_metrizable_of_sequential_metric I 3 B m h_ms1 h_ms2
+  have h_seq := moduli_space_seq_compact_of_extract I 3 B
+    (extract_bounded_marked_stable_subseq_three_lt_eps_sph_of_chart_cont I th hB0 hB h_chart_cont)
+  have h_ch := moduli_space_compact_hausdorff_of_metrizable_and_seq_compact I 3 B h_metr h_seq
+  exact ⟨h_metr, h_seq, h_ch.1, h_ch.2⟩
+
+/-- Fixed-homology-class corollary (`ModuliSpaceInClass I 3 A`) for `0 ≤ A.omega_eval < th.ε_sph` (`0 sorryAx`). -/
+theorem moduli_space_in_class_three_lt_eps_sph_compact_hausdorff_of_chart_cont
+    (A : HomologyClass2 M) (th : Bubbling.TargetThresholds I M)
+    (hA0 : 0 ≤ A.omega_eval) (hA : A.omega_eval < th.ε_sph)
+    (h_chart_cont : Continuous (fun p : M => (extChartAt I p) p)) :
+    CompactSpace (ModuliSpaceInClass I 3 A) ∧ T2Space (ModuliSpaceInClass I 3 A) := by
+  obtain ⟨h_metr, h_seq, _, _⟩ :=
+    moduli_space_three_lt_eps_sph_compact_hausdorff_of_chart_cont I th hA0 hA h_chart_cont
+  exact moduli_space_in_class_compact_hausdorff_of_metrizable_and_seq_compact I 3 A h_metr h_seq
+
 #print axioms stableMapEquiv_refl
 #print axioms stableMapEquiv_symm
 #print axioms stableMapEquiv_trans

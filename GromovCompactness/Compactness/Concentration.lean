@@ -1619,14 +1619,34 @@ theorem ConcentrationData.u0_eq_const_north_pole_of_all_jhol_eq_north_pole
     cdata.u₀ = fun _ => cdata.u₀ north_pole :=
   h_all_np cdata.u₀ cdata.u₀_jhol
 
-/-- Extraction of Concentration Data from bounded-energy J-spheres (Contract C02).
-Proved with zero direct sorry. -/
-theorem exists_concentration_data
+/-- Every `J`-holomorphic sphere `u : CP1 → M` has finite extended energy measure
+(`energyMeasureExtended I u Set.univ < ⊤`) given `thresh : TargetThresholds I M` (`0 sorryAx`). -/
+theorem energyMeasureExtended_lt_top_of_thresholds
+    (thresh : TargetThresholds I M) (u : CP1 → M)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
+    energyMeasureExtended I u Set.univ < ⊤ :=
+  energyMeasureExtended_lt_top_of_jhol_and_sph_gap I thresh.ε_sph thresh.ε_sph_pos thresh.h_sph u hu
+
+/-- Weak compactness of energy measures for any bounded-energy sequence of `J`-holomorphic
+spheres given `thresh : TargetThresholds I M`, without requiring `h_fin` (`0 sorryAx`). -/
+theorem weak_energy_measure_compactness_of_thresholds
+    (thresh : TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ) (hB : 0 < B)
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
+    (h_bdd : ∀ n, totalEnergy I (u_seq n) ≤ B) :
+    ∃ (σ : SubseqMap) (μ_lim : Measure CP1),
+      IsFiniteMeasure μ_lim ∧
+      WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ_lim :=
+  weak_energy_measure_compactness_of_jhol_and_sph_gap I thresh.ε_sph thresh.ε_sph_pos thresh.h_sph
+    u_seq B hB h_jhol h_bdd
+
+/-- Extraction of Concentration Data from bounded-energy `J`-spheres given `thresh : TargetThresholds I M`,
+without requiring `h_fin` (`0 sorryAx`). -/
+theorem exists_concentration_data_of_thresholds
     (u_seq : ℕ → (CP1 → M))
     (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
     (B : ℝ) (hB : 0 ≤ B)
     (h_en : ∀ n, totalEnergy I (u_seq n) ≤ B)
-    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (thresh : TargetThresholds I M)
     (h_extract : ∀ (σ : SubseqMap) (μ : Measure CP1) (S : Finset CP1), IsFiniteMeasure μ →
       WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ →
@@ -1635,13 +1655,33 @@ theorem exists_concentration_data
         SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
         μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p)) :
     Nonempty (ConcentrationData I u_seq B thresh) := by
+  have h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤ :=
+    fun n => energyMeasureExtended_lt_top_of_thresholds I thresh (u_seq n) (h_jhol n)
   by_cases h_ev : ∃ (σ : SubseqMap) (N₀ : ℕ) (c : M), ∀ n ≥ N₀, u_seq (σ.1 n) = fun _ => c
   · rcases h_ev with ⟨σ, N₀, c, hc⟩
     exact exists_concentration_data_of_eventually_const_subseq I u_seq B hB h_en thresh σ N₀ c hc
   · exact exists_concentration_data_of_smooth_limit I u_seq h_jhol B hB h_en thresh
-      (fun B' hB' h_en' => weak_energy_measure_compactness I u_seq B' hB' h_en' h_fin)
+      (fun B' hB' h_en' => weak_energy_measure_compactness_of_thresholds I thresh u_seq B' hB' h_jhol h_en')
       h_fin
       h_extract
+
+/-- Extraction of Concentration Data from bounded-energy J-spheres (Contract C02).
+Proved with zero direct sorry (`_h_fin` is discharged unconditionally from `thresh` and `h_jhol`). -/
+theorem exists_concentration_data
+    (u_seq : ℕ → (CP1 → M))
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
+    (B : ℝ) (hB : 0 ≤ B)
+    (h_en : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (_h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
+    (thresh : TargetThresholds I M)
+    (h_extract : ∀ (σ : SubseqMap) (μ : Measure CP1) (S : Finset CP1), IsFiniteMeasure μ →
+      WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ →
+      (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p}) →
+      ∃ (τ : SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
+        SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
+        μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p)) :
+    Nonempty (ConcentrationData I u_seq B thresh) :=
+  exists_concentration_data_of_thresholds I u_seq h_jhol B hB h_en thresh h_extract
 
 /-- No-Atom Regularity Upgrade: if the defect measure has no atom at p, convergence is smooth at p (Contract C02, Zero-sorry). -/
 theorem smooth_convergence_upgrade_of_zero_mass
@@ -1657,6 +1697,677 @@ theorem smooth_convergence_upgrade_of_zero_mass
     exact h_ofReal_pos.not_ge h_le
   rw [Finset.erase_eq_of_notMem hp_not_mem]
   exact cdata.smooth_conv
+
+/-! ### First-principles proof of `cert_conc` (`SmoothConcentrationExtractProperty`) (`0 sorryAx`) -/
+
+/-- Every singleton `{p}` in `CP1` has extended energy measure zero (`0 sorryAx`). -/
+private theorem energyMeasureExtended_singleton_eq_zero' (u : CP1 → M) (p : CP1) :
+    energyMeasureExtended I u {p} = 0 := by
+  dsimp [energyMeasureExtended, chartPush]
+  rw [Measure.map_apply stereo_chart_symm_measurable (measurableSet_singleton p)]
+  by_cases hp : p = north_pole
+  · subst hp
+    rw [stereo_chart_symm_preimage_north_pole]
+    simp
+  · rw [stereo_chart_symm_preimage_pt p hp]
+    exact withDensity_absolutelyContinuous volume _ (measure_singleton (stereo_chart p))
+
+/-- Every finite subset `S : Finset CP1` has extended energy measure zero (`0 sorryAx`). -/
+theorem energyMeasureExtended_finset_eq_zero (u : CP1 → M) (S : Finset CP1) :
+    energyMeasureExtended I u (S : Set CP1) = 0 := by
+  rw [← Set.biUnion_of_singleton (S : Set CP1)]
+  exact (measure_biUnion_null_iff S.finite_toSet.countable).mpr
+    (fun p _ => energyMeasureExtended_singleton_eq_zero' I u p)
+
+/-- Two maps agreeing on an open set `Ω ⊆ CP1` have identical `riemannianEnergyDensity` on `Ω` (`0 sorryAx`). -/
+theorem riemannianEnergyDensity_eqOn_open
+    {u₁ u₂ : CP1 → M} {Ω : Set CP1} (hΩ : IsOpen Ω) (heq : Set.EqOn u₁ u₂ Ω) :
+    Set.EqOn (riemannianEnergyDensity I u₁) (riemannianEnergyDensity I u₂) Ω := by
+  intro z hz
+  have hev : u₁ =ᶠ[𝓝 z] u₂ := Filter.eventuallyEq_of_mem (hΩ.mem_nhds hz) heq
+  have hdf : mfderiv I_CP1 I u₁ z = mfderiv I_CP1 I u₂ z := hev.mfderiv_eq
+  dsimp [riemannianEnergyDensity]
+  rw [heq hz, hdf]
+
+/-- Two maps agreeing on an open set `Ω ⊆ CP1` have identical `energyMeasureExtended` on `Ω` (`0 sorryAx`). -/
+theorem energyMeasureExtended_eqOn_open
+    {u₁ u₂ : CP1 → M} {Ω : Set CP1} (hΩ : IsOpen Ω) (heq : Set.EqOn u₁ u₂ Ω) :
+    energyMeasureExtended I u₁ Ω = energyMeasureExtended I u₂ Ω := by
+  have h_dens := riemannianEnergyDensity_eqOn_open I hΩ heq
+  dsimp [energyMeasureExtended, chartPush]
+  rw [Measure.map_apply stereo_chart_symm_measurable hΩ.measurableSet,
+      Measure.map_apply stereo_chart_symm_measurable hΩ.measurableSet]
+  have h_pre_meas : MeasurableSet (stereo_chart.symm ⁻¹' Ω) :=
+    hΩ.measurableSet.preimage stereo_chart_symm_measurable
+  rw [withDensity_apply _ h_pre_meas, withDensity_apply _ h_pre_meas]
+  refine setLIntegral_congr_fun h_pre_meas (fun w hw => ?_)
+  change ENNReal.ofReal (riemannianEnergyDensity I u₁ (stereo_chart.symm w) * sphericalJacobian w) =
+    ENNReal.ofReal (riemannianEnergyDensity I u₂ (stereo_chart.symm w) * sphericalJacobian w)
+  rw [h_dens hw]
+
+/-- Two maps agreeing outside a finite set `S : Finset CP1` have identical `energyMeasureExtended`
+as Borel measures on all of `CP1` (`0 sorryAx`). -/
+theorem energyMeasureExtended_congr_off_finset
+    {u₁ u₂ : CP1 → M} (S : Finset CP1) (heq : Set.EqOn u₁ u₂ (Set.univ \ S)) :
+    energyMeasureExtended I u₁ = energyMeasureExtended I u₂ := by
+  have h_dens := riemannianEnergyDensity_eqOn_open I (isOpen_compl_finset S) heq
+  dsimp [energyMeasureExtended, chartPush]
+  congr 1
+  apply withDensity_congr_ae
+  have h_fin_pre : (stereo_chart.symm ⁻¹' (S : Set CP1)).Finite :=
+    S.finite_toSet.preimage stereo_chart_symm_injective.injOn
+  have h_null : (volume : Measure ℂ) (stereo_chart.symm ⁻¹' (S : Set CP1)) = 0 :=
+    h_fin_pre.measure_zero volume
+  rw [Filter.EventuallyEq, ae_iff]
+  refine measure_mono_null (fun w hw => ?_) h_null
+  by_contra hw_not_S
+  have hw_in : stereo_chart.symm w ∈ Set.univ \ (S : Set CP1) := ⟨Set.mem_univ _, hw_not_S⟩
+  apply hw
+  change ENNReal.ofReal (riemannianEnergyDensity I u₁ (stereo_chart.symm w) * sphericalJacobian w) =
+    ENNReal.ofReal (riemannianEnergyDensity I u₂ (stereo_chart.symm w) * sphericalJacobian w)
+  rw [h_dens hw_in]
+
+/-- Unconditional compact-subset eventual uniform gradient bound on the open southern hemisphere
+`stereo_chart.symm '' Metric.ball 0 1` off the concentration set `S` (`0 sorryAx`). -/
+theorem eventually_gradient_bound_on_compact_southern_hemisphere_of_disjoint_S
+    (u_seq : ℕ → (CP1 → M))
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
+    (thresh : TargetThresholds I M)
+    (σ : SubseqMap) (μ : Measure CP1) [IsFiniteMeasure μ] (S : Finset CP1)
+    (h_weak : WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ)
+    (hS_def : ∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p})
+    {K : Set CP1} (hK_cpt : IsCompact K)
+    (hK_sub : K ⊆ (Set.univ \ S) ∩ (stereo_chart.symm '' Metric.ball (0 : ℂ) 1)) :
+    ∃ C ≥ 0, ∀ᶠ n in Filter.atTop, ∀ z ∈ K,
+      riemannianEnergyDensity I (u_seq (σ.1 n)) z ≤ C := by
+  have h_local : ∀ p ∈ K, ∃ (U : Set CP1) (C_p : ℝ),
+      IsOpen U ∧ p ∈ U ∧ 0 ≤ C_p ∧
+      ∀ᶠ n in Filter.atTop, ∀ z ∈ U, riemannianEnergyDensity I (u_seq (σ.1 n)) z ≤ C_p := by
+    intro p hp
+    have hp_not_S : p ∉ S := (hK_sub hp).1.2
+    rcases (hK_sub hp).2 with ⟨a, ha_ball, rfl⟩
+    rw [Metric.mem_ball, dist_zero_right] at ha_ball
+    obtain ⟨ρ, hρ_pos, ε₁, hε₁_lt, hε₁_pos, h_ev_ball⟩ :=
+      exists_closedBall_eventually_energy_lt_eps_reg_of_notMem_S I u_seq thresh σ μ S h_weak hS_def
+        (stereo_chart.symm a) hp_not_S
+    obtain ⟨δ, hδ_pos, hδ_cont⟩ :=
+      Metric.continuousAt_iff.mp stereo_chart_symm_continuous.continuousAt ρ hρ_pos
+    let r : ℝ := min ((1 - ‖a‖) / 2) δ
+    have hr_pos : 0 < r := lt_min (by linarith) hδ_pos
+    have h_sub_hemi : Metric.ball a r ⊆ Metric.closedBall (0 : ℂ) 1 := by
+      intro w hw
+      rw [Metric.mem_ball, dist_eq_norm] at hw
+      rw [Metric.mem_closedBall, dist_zero_right]
+      have hr_le : r ≤ (1 - ‖a‖) / 2 := min_le_left _ _
+      have h_tri : ‖w‖ ≤ ‖a‖ + ‖w - a‖ := by
+        calc ‖w‖ = ‖a + (w - a)‖ := congr_arg norm (by ring)
+          _ ≤ ‖a‖ + ‖w - a‖ := norm_add_le a (w - a)
+      linarith
+    have h_disk_sub : disk_at a r ⊆ closedBall (stereo_chart.symm a) ρ := by
+      rintro z ⟨w, hw_ball, rfl⟩
+      rw [Metric.mem_closedBall]
+      apply le_of_lt
+      apply hδ_cont
+      exact lt_of_lt_of_le hw_ball (min_le_right _ _)
+    have h_ev_grad :=
+      eventually_gradient_bound_on_disk_of_notMem_S I u_seq h_jhol thresh σ μ S h_weak hS_def
+        hp_not_S hr_pos h_sub_hemi h_disk_sub hε₁_lt hε₁_pos h_ev_ball
+    refine ⟨disk_at a (r / 2), thresh.C_reg * r ^ (-2 : ℝ) * thresh.ε_reg,
+      is_open_disk_at a (r / 2), center_mem_disk_at a (half_pos hr_pos),
+      mul_nonneg (mul_nonneg thresh.C_reg_pos.le (Real.rpow_nonneg hr_pos.le _)) thresh.ε_reg_pos.le,
+      h_ev_grad⟩
+  choose U C_p hU_open hp_mem hCp_nonneg h_ev_U using fun (p : K) => h_local p.1 p.2
+  obtain ⟨t, ht_cover⟩ := hK_cpt.elim_finite_subcover U (fun p => hU_open p) (fun z hz =>
+    Set.mem_iUnion.mpr ⟨⟨z, hz⟩, hp_mem ⟨z, hz⟩⟩)
+  let C_max : ℝ := ∑ p ∈ t, C_p p
+  have hC_nonneg : 0 ≤ C_max := Finset.sum_nonneg (fun p _ => hCp_nonneg p)
+  have h_ev_all : ∀ᶠ n in Filter.atTop, ∀ p ∈ t, ∀ z ∈ U p,
+      riemannianEnergyDensity I (u_seq (σ.1 n)) z ≤ C_p p :=
+    (Filter.eventually_all_finset t).mpr (fun p _ => h_ev_U p)
+  refine ⟨C_max, hC_nonneg, ?_⟩
+  filter_upwards [h_ev_all] with n hn z hz
+  have hz_cov := ht_cover hz
+  simp only [Set.mem_iUnion] at hz_cov
+  rcases hz_cov with ⟨p, hp_in_t, hz_in_Up⟩
+  exact (hn p hp_in_t z hz_in_Up).trans
+    (Finset.single_le_sum (fun q _ => hCp_nonneg q) hp_in_t)
+
+set_option backward.isDefEq.respectTransparency false in
+private lemma continuous_omega_on_M :
+    Continuous (fun x : M => id (α := E →L[ℝ] E →L[ℝ] ℝ) (ClosedTameTarget.«ω» (I := I) (M := M) x)) := by
+  rw [continuous_iff_continuousAt]
+  intro x₀
+  have h_cont_chart : ContinuousOn (ω_chart I (ClosedTameTarget.«ω» (I := I) (M := M)) x₀) (extChartAt I x₀).target :=
+    (ClosedTameTarget.ω_smooth (I := I) (M := M) x₀).continuousOn
+  have h_comp : ContinuousOn
+      (fun x => ω_chart I (ClosedTameTarget.«ω» (I := I) (M := M)) x₀ (extChartAt I x₀ x))
+      (extChartAt I x₀).source :=
+    h_cont_chart.comp (continuousOn_extChartAt x₀) (extChartAt I x₀).mapsTo
+  have h_congr : ContinuousOn
+      (fun x : M => id (α := E →L[ℝ] E →L[ℝ] ℝ) (ClosedTameTarget.«ω» (I := I) (M := M) x))
+      (extChartAt I x₀).source :=
+    h_comp.congr (fun x hx => by
+      have h_inv : (extChartAt I x₀).symm (extChartAt I x₀ x) = x := (extChartAt I x₀).left_inv hx
+      change (ClosedTameTarget.«ω» (I := I) (M := M) x : E →L[ℝ] E →L[ℝ] ℝ) =
+        (ClosedTameTarget.«ω» (I := I) (M := M) ((extChartAt I x₀).symm (extChartAt I x₀ x)) : E →L[ℝ] E →L[ℝ] ℝ)
+      rw [h_inv])
+  exact h_congr.continuousAt ((isOpen_extChartAt_source x₀).mem_nhds (mem_extChartAt_source x₀))
+
+set_option backward.isDefEq.respectTransparency false in
+private lemma continuous_J_on_M :
+    Continuous (fun x : M => id (α := E →L[ℝ] E) (ClosedTameTarget.J (I := I) (M := M) x)) := by
+  rw [continuous_iff_continuousAt]
+  intro x₀
+  have h_cont_chart : ContinuousOn (J_chart I (ClosedTameTarget.J (I := I) (M := M)) x₀) (extChartAt I x₀).target :=
+    (ClosedTameTarget.J_smooth (I := I) (M := M) x₀).continuousOn
+  have h_comp : ContinuousOn
+      (fun x => J_chart I (ClosedTameTarget.J (I := I) (M := M)) x₀ (extChartAt I x₀ x))
+      (extChartAt I x₀).source :=
+    h_cont_chart.comp (continuousOn_extChartAt x₀) (extChartAt I x₀).mapsTo
+  have h_congr : ContinuousOn
+      (fun x : M => id (α := E →L[ℝ] E) (ClosedTameTarget.J (I := I) (M := M) x))
+      (extChartAt I x₀).source :=
+    h_comp.congr (fun x hx => by
+      have h_inv : (extChartAt I x₀).symm (extChartAt I x₀ x) = x := (extChartAt I x₀).left_inv hx
+      change (ClosedTameTarget.J (I := I) (M := M) x : E →L[ℝ] E) =
+        (ClosedTameTarget.J (I := I) (M := M) ((extChartAt I x₀).symm (extChartAt I x₀ x)) : E →L[ℝ] E)
+      rw [h_inv])
+  exact h_congr.continuousAt ((isOpen_extChartAt_source x₀).mem_nhds (mem_extChartAt_source x₀))
+
+set_option backward.isDefEq.respectTransparency false in
+/-- Pointwise convergence of `riemannianEnergyDensity` at every point `z ∈ Ω` under
+`SmoothLocalConvergesOn I v_seq u₀ Ω` (`0 sorryAx`). -/
+theorem tendsto_riemannianEnergyDensity_of_smoothLocalConvergesOn
+    {v_seq : ℕ → (CP1 → M)} {u₀ : CP1 → M} {Ω : Set CP1}
+    (h_conv : SmoothLocalConvergesOn I v_seq u₀ Ω) {z : CP1} (hz : z ∈ Ω) :
+    Tendsto (fun n => riemannianEnergyDensity I (v_seq n) z) atTop
+      (𝓝 (riemannianEnergyDensity I u₀ z)) := by
+  have h_core := (h_conv []).2 {z} (Set.singleton_subset_iff.mpr hz) isCompact_singleton
+  have h_pt : Tendsto (fun n => v_seq n z) atTop (𝓝 (u₀ z)) := h_core.1 z (Set.mem_singleton z)
+  have h_d1 : Tendsto (fun n => (mfderiv I_CP1 I (v_seq n) z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E))
+      atTop (𝓝 (mfderiv I_CP1 I u₀ z)) := h_core.2.1 z (Set.mem_singleton z)
+  have h_term : ∀ b : EuclideanSpace ℝ (Fin 2),
+      Tendsto (fun n => ClosedTameTarget.metric I (v_seq n z)
+        (mfderiv I_CP1 I (v_seq n) z b) (mfderiv I_CP1 I (v_seq n) z b))
+      atTop (𝓝 (ClosedTameTarget.metric I (u₀ z) (mfderiv I_CP1 I u₀ z b) (mfderiv I_CP1 I u₀ z b))) := by
+    intro b
+    have hb : Tendsto (fun n => (mfderiv I_CP1 I (v_seq n) z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) b)
+        atTop (𝓝 ((mfderiv I_CP1 I u₀ z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) b)) :=
+      ((ContinuousLinearMap.apply ℝ E b).continuous.tendsto _).comp h_d1
+    have hω : Tendsto (fun n => id (α := E →L[ℝ] E →L[ℝ] ℝ) (ClosedTameTarget.«ω» (I := I) (M := M) (v_seq n z)))
+        atTop (𝓝 (id (α := E →L[ℝ] E →L[ℝ] ℝ) (ClosedTameTarget.«ω» (I := I) (M := M) (u₀ z)))) :=
+      ((continuous_omega_on_M I).tendsto _).comp h_pt
+    have hJ : Tendsto (fun n => id (α := E →L[ℝ] E) (ClosedTameTarget.J (I := I) (M := M) (v_seq n z)))
+        atTop (𝓝 (id (α := E →L[ℝ] E) (ClosedTameTarget.J (I := I) (M := M) (u₀ z)))) :=
+      ((continuous_J_on_M I).tendsto _).comp h_pt
+    have hJb : Tendsto (fun n => (id (α := E →L[ℝ] E) (ClosedTameTarget.J (I := I) (M := M) (v_seq n z)))
+          ((mfderiv I_CP1 I (v_seq n) z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) b))
+        atTop (𝓝 ((id (α := E →L[ℝ] E) (ClosedTameTarget.J (I := I) (M := M) (u₀ z)))
+          ((mfderiv I_CP1 I u₀ z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) b))) :=
+      (isBoundedBilinearMap_apply.continuous.tendsto _).comp (hJ.prodMk_nhds hb)
+    have hωb : Tendsto (fun n => (id (α := E →L[ℝ] E →L[ℝ] ℝ) (ClosedTameTarget.«ω» (I := I) (M := M) (v_seq n z)))
+          ((mfderiv I_CP1 I (v_seq n) z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) b))
+        atTop (𝓝 ((id (α := E →L[ℝ] E →L[ℝ] ℝ) (ClosedTameTarget.«ω» (I := I) (M := M) (u₀ z)))
+          ((mfderiv I_CP1 I u₀ z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) b))) :=
+      (isBoundedBilinearMap_apply.continuous.tendsto _).comp (hω.prodMk_nhds hb)
+    have hωJb : Tendsto (fun n => (id (α := E →L[ℝ] E →L[ℝ] ℝ) (ClosedTameTarget.«ω» (I := I) (M := M) (v_seq n z)))
+          ((mfderiv I_CP1 I (v_seq n) z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) b)
+          ((id (α := E →L[ℝ] E) (ClosedTameTarget.J (I := I) (M := M) (v_seq n z)))
+            ((mfderiv I_CP1 I (v_seq n) z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) b)))
+        atTop (𝓝 ((id (α := E →L[ℝ] E →L[ℝ] ℝ) (ClosedTameTarget.«ω» (I := I) (M := M) (u₀ z)))
+          ((mfderiv I_CP1 I u₀ z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) b)
+          ((id (α := E →L[ℝ] E) (ClosedTameTarget.J (I := I) (M := M) (u₀ z)))
+            ((mfderiv I_CP1 I u₀ z : EuclideanSpace ℝ (Fin 2) →L[ℝ] E) b)))) :=
+      (isBoundedBilinearMap_apply.continuous.tendsto _).comp (hωb.prodMk_nhds hJb)
+    dsimp [ClosedTameTarget.metric]
+    exact tendsto_const_nhds.mul (hωJb.add hωJb)
+  dsimp [riemannianEnergyDensity]
+  exact tendsto_const_nhds.mul ((h_term e1).add (h_term e2))
+
+/-- First-principles Defect Measure Decomposition Theorem (`0 sorryAx`):
+whenever `energyMeasureExtended I (v_seq n)` converges weakly to a finite Borel measure `μ` on `CP1`,
+`v_seq` converges in `SmoothLocalConvergesOn` off a finite set `S : Finset CP1` to `u₀`,
+each stereographic energy density `w ↦ riemannianEnergyDensity I (v_seq n) (stereo_chart.symm w)` is
+measurable, and `riemannianEnergyDensity I (v_seq n)` is eventually uniformly bounded on every compact
+subset `K ⊆ Set.univ \ S`, we have:
+1. `energyMeasureExtended I u₀ Set.univ ≤ μ Set.univ` (energy lower semicontinuity / finiteness), and
+2. `μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p)`. -/
+theorem defect_measure_decomp_of_smooth_conv_off_S
+    (v_seq : ℕ → (CP1 → M))
+    (μ : Measure CP1) [IsFiniteMeasure μ]
+    (S : Finset CP1)
+    (u₀ : CP1 → M)
+    (h_weak : WeakMeasureConvergence (fun n => energyMeasureExtended I (v_seq n)) μ)
+    (h_conv : SmoothLocalConvergesOn I v_seq u₀ (Set.univ \ S))
+    (h_meas_dens : ∀ n, Measurable (fun w : ℂ => riemannianEnergyDensity I (v_seq n) (stereo_chart.symm w)))
+    (h_grad_bdd : ∀ K ⊆ Set.univ \ (S : Set CP1), IsCompact K →
+      ∃ C ≥ 0, ∀ᶠ n in Filter.atTop, ∀ z ∈ K, riemannianEnergyDensity I (v_seq n) z ≤ C) :
+    energyMeasureExtended I u₀ Set.univ ≤ μ Set.univ ∧
+      μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p) := by
+  let d_seq : ℕ → ℂ → ENNReal := fun n w =>
+    ENNReal.ofReal (riemannianEnergyDensity I (v_seq n) (stereo_chart.symm w) * sphericalJacobian w)
+  let d₀ : ℂ → ENNReal := fun w =>
+    ENNReal.ofReal (riemannianEnergyDensity I u₀ (stereo_chart.symm w) * sphericalJacobian w)
+  have hd_meas : ∀ n, Measurable (d_seq n) := fun n =>
+    ENNReal.measurable_ofReal.comp ((h_meas_dens n).mul continuous_sphericalJacobian.measurable)
+  -- Almost-everywhere convergence `d_seq n w → d₀ w` (since `stereo_chart.symm ⁻¹' S` is finite, hence null).
+  have h_fin_pre : (stereo_chart.symm ⁻¹' (S : Set CP1)).Finite :=
+    S.finite_toSet.preimage stereo_chart_symm_injective.injOn
+  have h_ae_lim : ∀ᵐ w ∂(volume : Measure ℂ), Tendsto (fun n => d_seq n w) atTop (𝓝 (d₀ w)) := by
+    rw [eventually_iff, mem_ae_iff]
+    refine measure_mono_null (fun w hw => ?_) (h_fin_pre.measure_zero volume)
+    by_contra hw_not_S
+    have hw_in : stereo_chart.symm w ∈ Set.univ \ (S : Set CP1) := ⟨Set.mem_univ _, hw_not_S⟩
+    have h_e := tendsto_riemannianEnergyDensity_of_smoothLocalConvergesOn I h_conv hw_in
+    exact hw (ENNReal.continuous_ofReal.tendsto _ |>.comp (h_e.mul_const (sphericalJacobian w)))
+  have hd₀_aemeas : AEMeasurable d₀ volume :=
+    aemeasurable_of_tendsto_metrizable_ae atTop (fun n => (hd_meas n).aemeasurable) h_ae_lim
+  -- Eventually `energyMeasureExtended I (v_seq n) Set.univ < ⊤` since it converges to `μ Set.univ < ⊤`.
+  have h_ev_fin : ∀ᶠ n in atTop, energyMeasureExtended I (v_seq n) Set.univ < ⊤ :=
+    (tendsto_order.mp h_weak.tendsto_univ).2 ⊤ (measure_lt_top μ Set.univ)
+  -- Step 1: For every continuous `φ : CP1 → ℝ` with `0 ≤ φ ≤ 1` and `tsupport φ ⊆ Set.univ \ S`,
+  -- `∫⁻ z, ofReal (φ z) ∂μ = ∫⁻ z, ofReal (φ z) ∂(energyMeasureExtended I u₀)`.
+  have h_test : ∀ φ : CP1 → ℝ, Continuous φ → (∀ z, 0 ≤ φ z) → (∀ z, φ z ≤ 1) →
+      tsupport φ ⊆ Set.univ \ (S : Set CP1) →
+      (∫⁻ z, ENNReal.ofReal (φ z) ∂μ) = ∫⁻ z, ENNReal.ofReal (φ z) ∂(energyMeasureExtended I u₀) := by
+    intro φ hφ_cont hφ_nonneg hφ_le_one hφ_supp
+    let K : Set CP1 := tsupport φ
+    have hK_cpt : IsCompact K := isCompact_univ.of_isClosed_subset (isClosed_tsupport φ) (Set.subset_univ _)
+    obtain ⟨C, hC_nonneg, h_ev_C⟩ := h_grad_bdd K hφ_supp hK_cpt
+    -- Weak convergence gives `ofReal (∫ φ ∂μ_n) → ofReal (∫ φ ∂μ) = ∫⁻ ofReal φ ∂μ`.
+    have h_int_lim : Tendsto (fun n => ENNReal.ofReal (∫ z, φ z ∂(energyMeasureExtended I (v_seq n))))
+        atTop (𝓝 (ENNReal.ofReal (∫ z, φ z ∂μ))) :=
+      (ENNReal.continuous_ofReal.tendsto _).comp (h_weak.tendsto_integral φ hφ_cont)
+    have h_mu_eq : ENNReal.ofReal (∫ z, φ z ∂μ) = ∫⁻ z, ENNReal.ofReal (φ z) ∂μ := by
+      rw [integral_eq_lintegral_of_nonneg_ae (Filter.Eventually.of_forall hφ_nonneg) hφ_cont.aestronglyMeasurable]
+      have h_le_univ : (∫⁻ z, ENNReal.ofReal (φ z) ∂μ) ≤ μ Set.univ := by
+        calc (∫⁻ z, ENNReal.ofReal (φ z) ∂μ)
+            ≤ ∫⁻ _z, (1 : ENNReal) ∂μ :=
+              lintegral_mono (fun z => by simpa using ENNReal.ofReal_le_ofReal (hφ_le_one z))
+          _ = μ Set.univ := by simp
+      exact ENNReal.ofReal_toReal (ne_top_of_le_ne_top (measure_ne_top μ Set.univ) h_le_univ)
+    rw [h_mu_eq] at h_int_lim
+    have h_ev_lint_eq : (fun n => ENNReal.ofReal (∫ z, φ z ∂(energyMeasureExtended I (v_seq n)))) =ᶠ[atTop]
+        (fun n => ∫⁻ z, ENNReal.ofReal (φ z) ∂(energyMeasureExtended I (v_seq n))) := by
+      filter_upwards [h_ev_fin] with n hn_fin
+      haveI : IsFiniteMeasure (energyMeasureExtended I (v_seq n)) := ⟨hn_fin⟩
+      rw [integral_eq_lintegral_of_nonneg_ae (Filter.Eventually.of_forall hφ_nonneg) hφ_cont.aestronglyMeasurable]
+      have h_le_univ : (∫⁻ z, ENNReal.ofReal (φ z) ∂(energyMeasureExtended I (v_seq n))) ≤
+          energyMeasureExtended I (v_seq n) Set.univ := by
+        calc (∫⁻ z, ENNReal.ofReal (φ z) ∂(energyMeasureExtended I (v_seq n)))
+            ≤ ∫⁻ _z, (1 : ENNReal) ∂(energyMeasureExtended I (v_seq n)) :=
+              lintegral_mono (fun z => by simpa using ENNReal.ofReal_le_ofReal (hφ_le_one z))
+          _ = energyMeasureExtended I (v_seq n) Set.univ := by simp
+      exact ENNReal.ofReal_toReal (ne_top_of_le_ne_top hn_fin.ne h_le_univ)
+    have h_lhs_lim : Tendsto (fun n => ∫⁻ z, ENNReal.ofReal (φ z) ∂(energyMeasureExtended I (v_seq n)))
+        atTop (𝓝 (∫⁻ z, ENNReal.ofReal (φ z) ∂μ)) :=
+      h_int_lim.congr' h_ev_lint_eq
+    -- Rewrite `lintegral` on `energyMeasureExtended` as `lintegral` on `ℂ` and apply Dominated Convergence.
+    have hφ_ofReal_meas : Measurable (fun z => ENNReal.ofReal (φ z)) :=
+      ENNReal.measurable_ofReal.comp hφ_cont.measurable
+    have h_pull_n : ∀ n, (∫⁻ z, ENNReal.ofReal (φ z) ∂(energyMeasureExtended I (v_seq n))) =
+        ∫⁻ w : ℂ, d_seq n w * ENNReal.ofReal (φ (stereo_chart.symm w)) := by
+      intro n
+      dsimp [energyMeasureExtended, chartPush]
+      rw [lintegral_map hφ_ofReal_meas stereo_chart_symm_measurable]
+      exact lintegral_withDensity_eq_lintegral_mul₀ (hd_meas n).aemeasurable
+        (hφ_ofReal_meas.comp stereo_chart_symm_measurable).aemeasurable
+    have h_pull_0 : (∫⁻ z, ENNReal.ofReal (φ z) ∂(energyMeasureExtended I u₀)) =
+        ∫⁻ w : ℂ, d₀ w * ENNReal.ofReal (φ (stereo_chart.symm w)) := by
+      dsimp [energyMeasureExtended, chartPush]
+      rw [lintegral_map hφ_ofReal_meas stereo_chart_symm_measurable]
+      exact lintegral_withDensity_eq_lintegral_mul₀ hd₀_aemeas
+        (hφ_ofReal_meas.comp stereo_chart_symm_measurable).aemeasurable
+    let bound : ℂ → ENNReal := fun w => ENNReal.ofReal (C * sphericalJacobian w)
+    have h_bound_fin : (∫⁻ w : ℂ, bound w) ≠ ⊤ := by
+      have h_fac : ∀ w : ℂ, bound w = ENNReal.ofReal C * ENNReal.ofReal (sphericalJacobian w) :=
+        fun w => ENNReal.ofReal_mul hC_nonneg
+      simp_rw [h_fac]
+      have h_sph_meas : Measurable (fun w : ℂ => ENNReal.ofReal (sphericalJacobian w)) :=
+        ENNReal.measurable_ofReal.comp continuous_sphericalJacobian.measurable
+      rw [lintegral_const_mul (ENNReal.ofReal C) h_sph_meas]
+      exact (ENNReal.mul_lt_top ENNReal.ofReal_lt_top sphericalJacobian_lintegral_lt_top).ne
+    have hF_meas : ∀ᶠ n in atTop, Measurable (fun w : ℂ => d_seq n w * ENNReal.ofReal (φ (stereo_chart.symm w))) :=
+      Filter.Eventually.of_forall (fun n => (hd_meas n).mul (hφ_ofReal_meas.comp stereo_chart_symm_measurable))
+    have hF_bound : ∀ᶠ n in atTop, ∀ᵐ w ∂(volume : Measure ℂ),
+        d_seq n w * ENNReal.ofReal (φ (stereo_chart.symm w)) ≤ bound w := by
+      filter_upwards [h_ev_C] with n hnC
+      refine Filter.Eventually.of_forall (fun w => ?_)
+      by_cases hwK : stereo_chart.symm w ∈ K
+      · have he_le : riemannianEnergyDensity I (v_seq n) (stereo_chart.symm w) ≤ C := hnC _ hwK
+        have hφ_le : ENNReal.ofReal (φ (stereo_chart.symm w)) ≤ 1 := by
+          simpa using ENNReal.ofReal_le_ofReal (hφ_le_one (stereo_chart.symm w))
+        calc d_seq n w * ENNReal.ofReal (φ (stereo_chart.symm w))
+            ≤ d_seq n w * 1 := mul_le_mul_of_nonneg_left hφ_le zero_le'
+          _ = d_seq n w := mul_one _
+          _ ≤ bound w := ENNReal.ofReal_le_ofReal
+              (mul_le_mul_of_nonneg_right he_le (sphericalJacobian_nonneg w))
+      · have hφ0 : φ (stereo_chart.symm w) = 0 := image_eq_zero_of_notMem_tsupport hwK
+        simp [hφ0]
+    have hF_lim : ∀ᵐ w ∂(volume : Measure ℂ),
+        Tendsto (fun n => d_seq n w * ENNReal.ofReal (φ (stereo_chart.symm w))) atTop
+          (𝓝 (d₀ w * ENNReal.ofReal (φ (stereo_chart.symm w)))) := by
+      refine Filter.Eventually.of_forall (fun w => ?_)
+      by_cases hwK : stereo_chart.symm w ∈ K
+      · have hw_in : stereo_chart.symm w ∈ Set.univ \ (S : Set CP1) := hφ_supp hwK
+        have h_e := tendsto_riemannianEnergyDensity_of_smoothLocalConvergesOn I h_conv hw_in
+        have hd_w : Tendsto (fun n => d_seq n w) atTop (𝓝 (d₀ w)) :=
+          (ENNReal.continuous_ofReal.tendsto _).comp (h_e.mul_const (sphericalJacobian w))
+        exact ENNReal.Tendsto.mul_const hd_w (Or.inr ENNReal.ofReal_ne_top)
+      · have hφ0 : φ (stereo_chart.symm w) = 0 := image_eq_zero_of_notMem_tsupport hwK
+        simp [hφ0]
+    have h_rhs_lim :=
+      tendsto_lintegral_filter_of_dominated_convergence bound hF_meas hF_bound h_bound_fin hF_lim
+    simp_rw [← h_pull_n] at h_rhs_lim
+    rw [← h_pull_0] at h_rhs_lim
+    exact tendsto_nhds_unique h_lhs_lim h_rhs_lim
+  -- Step 2: Monotone Urysohn exhaustion of every open subset `U ⊆ Set.univ \ S`.
+  have h_open_eq : ∀ U : Set CP1, IsOpen U → U ⊆ Set.univ \ (S : Set CP1) →
+      μ U = energyMeasureExtended I u₀ U := by
+    intro U hU hU_sub
+    by_cases hUc : Uᶜ.Nonempty
+    · let h : ℕ → CP1 → ℝ := fun k z =>
+        min 1 (max 0 (((k : ℝ) + 1) * Metric.infDist z Uᶜ - 1))
+      have hh_cont : ∀ k, Continuous (h k) := fun k =>
+        continuous_const.min (continuous_const.max
+          ((continuous_const.mul (Metric.continuous_infDist_pt Uᶜ)).sub continuous_const))
+      have hh_nonneg : ∀ k z, 0 ≤ h k z := fun k z =>
+        le_min zero_le_one (le_max_left 0 _)
+      have hh_le_one : ∀ k z, h k z ≤ 1 := fun k z => min_le_left 1 _
+      have hh_supp : ∀ k, tsupport (h k) ⊆ Set.univ \ (S : Set CP1) := by
+        intro k
+        let F_k : Set CP1 := {z : CP1 | 1 / ((k : ℝ) + 1) ≤ Metric.infDist z Uᶜ}
+        have hFk_closed : IsClosed F_k :=
+          isClosed_le continuous_const (Metric.continuous_infDist_pt Uᶜ)
+        have h_supp_sub : Function.support (h k) ⊆ F_k := by
+          intro z hz
+          rw [Function.mem_support] at hz
+          have h_pos_max : 0 < ((k : ℝ) + 1) * Metric.infDist z Uᶜ - 1 := by
+            by_contra h_le
+            push_neg at h_le
+            have h0 : h k z = 0 := by
+              dsimp [h]
+              rw [max_eq_left h_le, min_eq_right zero_le_one]
+            exact hz h0
+          change 1 / ((k : ℝ) + 1) ≤ Metric.infDist z Uᶜ
+          rw [div_le_iff₀' (by positivity)]
+          linarith
+        have h_tsupp_Fk : tsupport (h k) ⊆ F_k := closure_minimal h_supp_sub hFk_closed
+        refine h_tsupp_Fk.trans (fun z hz => hU_sub ?_)
+        have hd_pos : 0 < Metric.infDist z Uᶜ :=
+          lt_of_lt_of_le (by positivity : 0 < 1 / ((k : ℝ) + 1)) hz
+        have hz_not_cl : z ∉ closure Uᶜ := (Metric.infDist_pos_iff_notMem_closure hUc).mpr hd_pos
+        rw [hU.isClosed_compl.closure_eq, Set.mem_compl_iff, not_not] at hz_not_cl
+        exact hz_not_cl
+      have hf_meas : ∀ k, Measurable (fun z => ENNReal.ofReal (h k z)) :=
+        fun k => ENNReal.measurable_ofReal.comp (hh_cont k).measurable
+      have hf_mono : Monotone (fun k z => ENNReal.ofReal (h k z)) := by
+        intro i j hij z
+        apply ENNReal.ofReal_le_ofReal
+        dsimp [h]
+        apply min_le_min_left
+        apply max_le_max_left
+        have hd_nn : 0 ≤ Metric.infDist z Uᶜ := Metric.infDist_nonneg
+        have hij_real : (i : ℝ) + 1 ≤ (j : ℝ) + 1 := by exact_mod_cast Nat.add_le_add_right hij 1
+        exact sub_le_sub_right (mul_le_mul_of_nonneg_right hij_real hd_nn) 1
+      have h_sup_ind : (fun z => ⨆ k, ENNReal.ofReal (h k z)) = U.indicator 1 := by
+        ext z
+        by_cases hzU : z ∈ U
+        · rw [Set.indicator_of_mem hzU, Pi.one_apply]
+          apply le_antisymm
+          · exact iSup_le (fun k => by simpa using ENNReal.ofReal_le_ofReal (hh_le_one k z))
+          · have hz_not_cl : z ∉ closure Uᶜ := by
+              rw [hU.isClosed_compl.closure_eq, Set.mem_compl_iff, not_not]
+              exact hzU
+            have hd_pos : 0 < Metric.infDist z Uᶜ :=
+              (Metric.infDist_pos_iff_notMem_closure hUc).mp hz_not_cl
+            obtain ⟨K, hK⟩ := exists_nat_gt (2 / Metric.infDist z Uᶜ)
+            have hK_ge : 2 ≤ ((K : ℝ) + 1) * Metric.infDist z Uᶜ := by
+              have h1 : 2 / Metric.infDist z Uᶜ < (K : ℝ) + 1 := by linarith
+              exact le_of_lt ((div_lt_iff₀ hd_pos).mp h1)
+            have hhK : h K z = 1 := by
+              dsimp [h]
+              have h_ge1 : 1 ≤ ((K : ℝ) + 1) * Metric.infDist z Uᶜ - 1 := by linarith
+              rw [max_eq_right (by linarith), min_eq_left h_ge1]
+            exact le_iSup_of_le K (by simp [hhK])
+        · rw [Set.indicator_of_notMem hzU]
+          have hzUc : z ∈ Uᶜ := hzU
+          have hd0 : Metric.infDist z Uᶜ = 0 := Metric.infDist_zero_of_mem hzUc
+          have hh0 : ∀ k, h k z = 0 := by
+            intro k
+            dsimp [h]
+            rw [hd0, mul_zero, zero_sub, max_eq_left (by norm_num), min_eq_right zero_le_one]
+          simp [hh0]
+      calc μ U
+          = ∫⁻ z, U.indicator 1 z ∂μ := (lintegral_indicator_one hU.measurableSet).symm
+        _ = ∫⁻ z, (⨆ k, ENNReal.ofReal (h k z)) ∂μ := by rw [← h_sup_ind]
+        _ = ⨆ k, ∫⁻ z, ENNReal.ofReal (h k z) ∂μ := lintegral_iSup hf_meas hf_mono
+        _ = ⨆ k, ∫⁻ z, ENNReal.ofReal (h k z) ∂(energyMeasureExtended I u₀) :=
+            iSup_congr (fun k => h_test (h k) (hh_cont k) (hh_nonneg k) (hh_le_one k) (hh_supp k))
+        _ = ∫⁻ z, (⨆ k, ENNReal.ofReal (h k z)) ∂(energyMeasureExtended I u₀) :=
+            (lintegral_iSup hf_meas hf_mono).symm
+        _ = ∫⁻ z, U.indicator 1 z ∂(energyMeasureExtended I u₀) := by rw [h_sup_ind]
+        _ = energyMeasureExtended I u₀ U := lintegral_indicator_one hU.measurableSet
+    · rw [Set.not_nonempty_iff_eq_empty, compl_empty_iff] at hUc
+      subst hUc
+      have h1 := h_test (fun _ => 1) continuous_const (fun _ => zero_le_one) (fun _ => le_rfl)
+        ((Set.subset_univ _).trans hU_sub)
+      simpa using h1
+  -- Step 3: Deduce `energyMeasureExtended I u₀ Set.univ ≤ μ Set.univ < ⊤`, outer-regular equality on `Set.univ \ S`,
+  -- and the full defect measure decomposition across `S`.
+  let Ω : Set CP1 := Set.univ \ (S : Set CP1)
+  have hΩ_open : IsOpen Ω := isOpen_compl_finset S
+  have h_u0_Ω : energyMeasureExtended I u₀ Ω = μ Ω :=
+    (h_open_eq Ω hΩ_open Subset.rfl).symm
+  have h_u0_univ : energyMeasureExtended I u₀ Set.univ = μ Ω := by
+    have h_split : (Set.univ : Set CP1) = Ω ∪ (S : Set CP1) :=
+      (Set.sdiff_union_of_subset (Set.subset_univ (S : Set CP1))).symm
+    have h_disj : Disjoint Ω (S : Set CP1) := Set.disjoint_sdiff_left
+    rw [h_split, measure_union h_disj S.finite_toSet.isClosed.measurableSet,
+      energyMeasureExtended_finset_eq_zero I u₀ S, add_zero, h_u0_Ω]
+  have h_u0_le_mu : energyMeasureExtended I u₀ Set.univ ≤ μ Set.univ := by
+    rw [h_u0_univ]
+    exact measure_mono (Set.subset_univ Ω)
+  have : IsFiniteMeasure (energyMeasureExtended I u₀) :=
+    ⟨lt_of_le_of_lt h_u0_le_mu (measure_lt_top μ Set.univ)⟩
+  have h_restrict_eq : μ.restrict Ω = (energyMeasureExtended I u₀).restrict Ω := by
+    apply Measure.OuterRegular.ext_isOpen
+    intro V hV
+    rw [Measure.restrict_apply hV.measurableSet, Measure.restrict_apply hV.measurableSet]
+    exact h_open_eq (V ∩ Ω) (hV.inter hΩ_open) Set.inter_subset_right
+  refine ⟨h_u0_le_mu, ?_⟩
+  ext A hA
+  have h_A_split : A = (A ∩ Ω) ∪ (A ∩ (S : Set CP1)) := by
+    ext x
+    simp only [Ω, Set.mem_union, Set.mem_inter_iff, Set.mem_sdiff, Set.mem_univ, true_and]
+    tauto
+  have h_disj_A : Disjoint (A ∩ Ω) (A ∩ (S : Set CP1)) :=
+    Disjoint.mono Set.inter_subset_right Set.inter_subset_right Set.disjoint_sdiff_left
+  have h_meas_AS : MeasurableSet (A ∩ (S : Set CP1)) :=
+    hA.inter S.finite_toSet.isClosed.measurableSet
+  -- Evaluate `μ A`
+  have h_mu_A : μ A = (μ.restrict Ω) A + μ (A ∩ (S : Set CP1)) := by
+    conv_lhs => rw [h_A_split]
+    rw [measure_union h_disj_A h_meas_AS, Measure.restrict_apply hA]
+  -- Evaluate `μ (A ∩ S) = (∑ p ∈ S, μ {p} • dirac p) A`
+  have h_mu_AS : μ (A ∩ (S : Set CP1)) = (∑ p ∈ S, (μ {p} • Measure.dirac p)) A := by
+    rw [Measure.finsetSum_apply]
+    let S_A : Finset CP1 := S.filter (fun p => p ∈ A)
+    have h_inter_eq : A ∩ (S : Set CP1) = ⋃ p ∈ S_A, ({p} : Set CP1) := by
+      ext p
+      constructor
+      · rintro ⟨hpA, hpS⟩
+        exact Set.mem_iUnion₂.mpr ⟨p, Finset.mem_filter.mpr ⟨Finset.mem_coe.mp hpS, hpA⟩, rfl⟩
+      · intro hp
+        rcases Set.mem_iUnion₂.mp hp with ⟨q, hq, hqp⟩
+        rw [Set.mem_singleton_iff] at hqp
+        subst hqp
+        exact ⟨(Finset.mem_filter.mp hq).2, Finset.mem_coe.mpr (Finset.mem_filter.mp hq).1⟩
+    rw [h_inter_eq, measure_biUnion_finset
+      (fun x _ y _ hne => disjoint_singleton.mpr hne) (fun x _ => measurableSet_singleton x)]
+    rw [← Finset.sum_filter_add_sum_filter_not S (fun p => p ∈ A)]
+    have h_on : ∑ p ∈ S_A, (μ {p} • Measure.dirac p) A = ∑ p ∈ S_A, μ {p} := by
+      refine Finset.sum_congr rfl (fun p hp => ?_)
+      have hpA : p ∈ A := (Finset.mem_filter.mp hp).2
+      rw [Measure.smul_apply, Measure.dirac_apply_of_mem hpA, smul_eq_mul, mul_one]
+    have h_off : ∑ p ∈ S.filter (fun p => p ∉ A), (μ {p} • Measure.dirac p) A = 0 := by
+      refine Finset.sum_eq_zero (fun p hp => ?_)
+      have hp_notA : p ∉ A := (Finset.mem_filter.mp hp).2
+      rw [Measure.smul_apply, Measure.dirac_apply' p hA, Set.indicator_of_notMem hp_notA,
+        smul_eq_mul, mul_zero]
+    change ∑ p ∈ S_A, μ {p} =
+      ∑ p ∈ S_A, (μ {p} • Measure.dirac p) A + ∑ p ∈ S.filter (fun p => p ∉ A), (μ {p} • Measure.dirac p) A
+    rw [h_on, h_off, add_zero]
+  -- Evaluate `(energyMeasureExtended I u₀) A = ((energyMeasureExtended I u₀).restrict Ω) A`
+  have h_u0_A : energyMeasureExtended I u₀ A = ((energyMeasureExtended I u₀).restrict Ω) A := by
+    have h_u0_AS : energyMeasureExtended I u₀ (A ∩ (S : Set CP1)) = 0 :=
+      measure_mono_null Set.inter_subset_right (energyMeasureExtended_finset_eq_zero I u₀ S)
+    conv_lhs => rw [h_A_split]
+    rw [measure_union h_disj_A h_meas_AS, h_u0_AS, add_zero, Measure.restrict_apply hA]
+  rw [Measure.add_apply, h_mu_A, h_restrict_eq, ← h_u0_A, h_mu_AS]
+
+/-- Iterated singularity removal across an arbitrary finite set `S : Finset CP1` (`0 sorryAx`):
+if local single-puncture removal holds, then every map `u₁ : CP1 → M` that is `J`-holomorphic on
+`Set.univ \ S` with finite energy `energyMeasureExtended I u₁ (Set.univ \ S) ≠ ⊤` extends to a
+globally `J`-holomorphic sphere `u₀ : CP1 → M` agreeing with `u₁` on `Set.univ \ S`. -/
+theorem jholomorphic_extension_across_finset
+    (h_local_rem : ∀ (u : CP1 → M) (Ω : Set CP1) (p : CP1),
+      IsOpen Ω → IsOpen (insert p Ω) → p ∉ Ω →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Ω →
+      energyMeasureExtended I u Ω ≠ ⊤ →
+      ∃ u_ext : CP1 → M, Set.EqOn u_ext u Ω ∧ JHolomorphicOn (I := I) (I_dom := I_CP1) u_ext (insert p Ω))
+    (S : Finset CP1) (u₁ : CP1 → M)
+    (hu₁_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u₁ (Set.univ \ S))
+    (hu₁_fin : energyMeasureExtended I u₁ (Set.univ \ S) ≠ ⊤) :
+    ∃ u₀ : CP1 → M,
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
+      Set.EqOn u₀ u₁ (Set.univ \ S) := by
+  induction S using Finset.induction_on generalizing u₁ with
+  | empty =>
+    have h_univ : (Set.univ \ ((∅ : Finset CP1) : Set CP1)) = Set.univ := by simp
+    rw [h_univ] at hu₁_jhol
+    exact ⟨u₁, hu₁_jhol, fun _ _ => rfl⟩
+  | @insert p S' hp_not_mem ih =>
+    let Ω : Set CP1 := Set.univ \ ((insert p S' : Finset CP1) : Set CP1)
+    have hΩ_open : IsOpen Ω := isOpen_compl_finset (insert p S')
+    have h_ins_eq : insert p Ω = Set.univ \ (S' : Set CP1) := by
+      ext z
+      simp only [Ω, Finset.coe_insert, Set.mem_insert_iff, Set.mem_diff, Set.mem_univ, true_and]
+      by_cases hzp : z = p
+      · subst hzp; simp [hp_not_mem]
+      · simp [hzp]
+    have h_ins_open : IsOpen (insert p Ω) := by
+      rw [h_ins_eq]
+      exact isOpen_compl_finset S'
+    have hp_not_Ω : p ∉ Ω := by simp [Ω]
+    obtain ⟨u_mid, hu_mid_eq, hu_mid_jhol⟩ :=
+      h_local_rem u₁ Ω p hΩ_open h_ins_open hp_not_Ω hu₁_jhol hu₁_fin
+    rw [h_ins_eq] at hu_mid_jhol
+    have hu_mid_fin : energyMeasureExtended I u_mid (Set.univ \ (S' : Set CP1)) ≠ ⊤ := by
+      rw [← h_ins_eq]
+      have h_le : energyMeasureExtended I u_mid (insert p Ω) ≤
+          energyMeasureExtended I u_mid {p} + energyMeasureExtended I u_mid Ω := by
+        rw [← Set.singleton_union]
+        exact measure_union_le {p} Ω
+      rw [energyMeasureExtended_singleton_eq_zero' I u_mid p, zero_add,
+          energyMeasureExtended_eqOn_open I hΩ_open hu_mid_eq] at h_le
+      exact ne_top_of_le_ne_top hu₁_fin h_le
+    obtain ⟨u₀, hu₀_jhol, hu₀_eq_mid⟩ := ih u_mid hu_mid_jhol hu_mid_fin
+    refine ⟨u₀, hu₀_jhol, fun z hz => ?_⟩
+    have hz_S' : z ∈ Set.univ \ (S' : Set CP1) := by
+      rw [← h_ins_eq]
+      exact Set.mem_insert_of_mem p hz
+    exact (hu₀_eq_mid hz_S').trans (hu_mid_eq hz)
+
+/-- Smooth Concentration Extraction Property (`cert_conc` / `h_conc_extract`):
+along a further subsequence `τ`, `u_seq ∘ (σ.comp τ)` converges in `C^∞_loc` off the concentration
+set `S` to a globally `J`-holomorphic sphere `u₀`, with exact defect measure decomposition
+`μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p)`. -/
+def SmoothConcentrationExtractProperty
+    (u_seq : ℕ → (CP1 → M)) (thresh : TargetThresholds I M) : Prop :=
+  ∀ (σ : SubseqMap) (μ : Measure CP1) (S : Finset CP1), IsFiniteMeasure μ →
+    WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ →
+    (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p}) →
+    ∃ (τ : SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
+      SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
+      μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • Measure.dirac p)
+
+/-- Proves `SmoothConcentrationExtractProperty` (`cert_conc`) from smooth local extraction off `S`,
+local single-puncture singularity removal, and the first-principles theorems
+`smooth_local_jhol_closure`, `defect_measure_decomp_of_smooth_conv_off_S`,
+`jholomorphic_extension_across_finset`, `smooth_local_congr_lim_of_eqOn_open`, and
+`energyMeasureExtended_congr_off_finset` (`0 sorryAx`). -/
+theorem smoothConcentrationExtractProperty_of_local_compactness_and_removal
+    (u_seq : ℕ → (CP1 → M))
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
+    (thresh : TargetThresholds I M)
+    (h_meas_dens : ∀ n, Measurable (fun w : ℂ => riemannianEnergyDensity I (u_seq n) (stereo_chart.symm w)))
+    (h_local_extract : ∀ (σ : SubseqMap) (μ : Measure CP1) (S : Finset CP1), IsFiniteMeasure μ →
+      WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ →
+      (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p}) →
+      (∀ K ⊆ Set.univ \ (S : Set CP1), IsCompact K →
+        ∃ C ≥ 0, ∀ᶠ n in Filter.atTop, ∀ z ∈ K, riemannianEnergyDensity I (u_seq (σ.1 n)) z ≤ C) ∧
+      ∃ (τ : SubseqMap) (u₁ : CP1 → M),
+        SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₁ (Set.univ \ S))
+    (h_local_rem : ∀ (u : CP1 → M) (Ω : Set CP1) (p : CP1),
+      IsOpen Ω → IsOpen (insert p Ω) → p ∉ Ω →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Ω →
+      energyMeasureExtended I u Ω ≠ ⊤ →
+      ∃ u_ext : CP1 → M, Set.EqOn u_ext u Ω ∧ JHolomorphicOn (I := I) (I_dom := I_CP1) u_ext (insert p Ω)) :
+    SmoothConcentrationExtractProperty I u_seq thresh := by
+  intro σ μ S hμ_fin h_weak hS_def
+  obtain ⟨h_grad_σ, τ, u₁, h_conv₁⟩ := h_local_extract σ μ S hμ_fin h_weak hS_def
+  have h_weak_τ : WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq ((σ.comp τ).1 n))) μ :=
+    h_weak.comp_subseq τ
+  have h_grad_τ : ∀ K ⊆ Set.univ \ (S : Set CP1), IsCompact K →
+      ∃ C ≥ 0, ∀ᶠ n in Filter.atTop, ∀ z ∈ K,
+        riemannianEnergyDensity I (u_seq ((σ.comp τ).1 n)) z ≤ C := by
+    intro K hK_sub hK_cpt
+    obtain ⟨C, hC_nn, h_ev⟩ := h_grad_σ K hK_sub hK_cpt
+    exact ⟨C, hC_nn, τ.2.tendsto_atTop.eventually h_ev⟩
+  obtain ⟨hu₁_le_mu, h_decomp₁⟩ :=
+    defect_measure_decomp_of_smooth_conv_off_S I (fun n => u_seq ((σ.comp τ).1 n)) μ S u₁
+      h_weak_τ h_conv₁ (fun n => h_meas_dens ((σ.comp τ).1 n)) h_grad_τ
+  have hu₁_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u₁ (Set.univ \ S) :=
+    smooth_local_jhol_closure I (fun n => u_seq ((σ.comp τ).1 n)) u₁ (Set.univ \ S) h_conv₁
+      (fun n => ⟨(h_jhol ((σ.comp τ).1 n)).1.mono (Set.subset_univ _),
+        fun z _hz => (h_jhol ((σ.comp τ).1 n)).2 z (Set.mem_univ z)⟩)
+  have hu₁_fin : energyMeasureExtended I u₁ (Set.univ \ S) ≠ ⊤ :=
+    ne_top_of_le_ne_top (measure_ne_top μ Set.univ)
+      ((measure_mono (Set.subset_univ _)).trans hu₁_le_mu)
+  obtain ⟨u₀, hu₀_jhol, hu₀_eq⟩ :=
+    jholomorphic_extension_across_finset I h_local_rem S u₁ hu₁_jhol hu₁_fin
+  have h_conv₀ : SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) :=
+    smooth_local_congr_lim_of_eqOn_open I (isOpen_compl_finset S) hu₀_eq.symm h_conv₁
+  have h_meas_eq : energyMeasureExtended I u₀ = energyMeasureExtended I u₁ :=
+    energyMeasureExtended_congr_off_finset I S hu₀_eq
+  rw [← h_meas_eq] at h_decomp₁
+  exact ⟨τ, u₀, hu₀_jhol, h_conv₀, h_decomp₁⟩
+
+/-- Contract C02 (`exists_concentration_data`) proved from `smoothConcentrationExtractProperty_of_local_compactness_and_removal` (`0 sorryAx`). -/
+theorem exists_concentration_data_of_local_compactness_and_removal
+    (u_seq : ℕ → (CP1 → M))
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Set.univ)
+    (B : ℝ) (hB : 0 ≤ B)
+    (h_en : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (thresh : TargetThresholds I M)
+    (h_meas_dens : ∀ n, Measurable (fun w : ℂ => riemannianEnergyDensity I (u_seq n) (stereo_chart.symm w)))
+    (h_local_extract : ∀ (σ : SubseqMap) (μ : Measure CP1) (S : Finset CP1), IsFiniteMeasure μ →
+      WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ →
+      (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal thresh.ε_reg ≤ μ {p}) →
+      (∀ K ⊆ Set.univ \ (S : Set CP1), IsCompact K →
+        ∃ C ≥ 0, ∀ᶠ n in Filter.atTop, ∀ z ∈ K, riemannianEnergyDensity I (u_seq (σ.1 n)) z ≤ C) ∧
+      ∃ (τ : SubseqMap) (u₁ : CP1 → M),
+        SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₁ (Set.univ \ S))
+    (h_local_rem : ∀ (u : CP1 → M) (Ω : Set CP1) (p : CP1),
+      IsOpen Ω → IsOpen (insert p Ω) → p ∉ Ω →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Ω →
+      energyMeasureExtended I u Ω ≠ ⊤ →
+      ∃ u_ext : CP1 → M, Set.EqOn u_ext u Ω ∧ JHolomorphicOn (I := I) (I_dom := I_CP1) u_ext (insert p Ω)) :
+    Nonempty (ConcentrationData I u_seq B thresh) :=
+  exists_concentration_data_of_thresholds I u_seq h_jhol B hB h_en thresh
+    (smoothConcentrationExtractProperty_of_local_compactness_and_removal I u_seq h_jhol thresh
+      h_meas_dens h_local_extract h_local_rem)
 
 #print axioms exists_concentration_data
 

@@ -211,10 +211,7 @@ private lemma neck_annular_energy_and_diam_eventually_small_aux
     (h_isol_neck : ∀ R > (1 : ℝ), ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
       ∃ N₀ : ℕ, ∀ n ≥ N₀,
         energyMeasure I (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ) < thresh.ε_neck)
-    (h_osc : ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
-      0 < r → r < R →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      SatisfiesCylinderCollarOscillation I u a r R)
+    (h_osc : CollarOscillationProperty I M)
     (η : ℝ) (hη : 0 < η) :
     ∃ R₀ > (1 : ℝ), ∀ R ≥ R₀,
       ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
@@ -619,10 +616,7 @@ theorem neck_vanishing_quantified
     (h_isol_neck : ∀ R > (1 : ℝ), ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
       ∃ N₀ : ℕ, ∀ n ≥ N₀,
         energyMeasure I (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ) < thresh.ε_neck)
-    (h_osc : ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
-      0 < r → r < R →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      SatisfiesCylinderCollarOscillation I u a r R)
+    (h_osc : CollarOscillationProperty I M)
     (η : ℝ) (hη : 0 < η) :
     ∃ R₀ > (1 : ℝ), ∀ R ≥ R₀,
       ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
@@ -643,6 +637,38 @@ theorem neck_vanishing_quantified
   · exact neck_vanishing_quantified_of_cases I u_seq thresh m_defect res η hη h_cases
   · exact neck_vanishing_quantified_of_eventually_small I u_seq thresh m_defect res η hη
       (neck_annular_energy_and_diam_eventually_small_aux I u_seq h_jhol B h_energy h_fin thresh m_defect res h_isol_neck h_osc η hη)
+
+/-- Vanishing Neck Energy and Target Diameter (Contract B03) derived from bounded-modulus (`R ≤ 18 * r`)
+radial/angular slice bounds and `TargetThresholds I M` (`0 sorryAx`). -/
+theorem neck_vanishing_quantified_of_slices
+    (u_seq : ℕ → (CP1 → M))
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (B : ℝ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
+    (thresh : TargetThresholds I M) (m_defect : ℝ)
+    (res : CalibratedRescaling I u_seq thresh m_defect)
+    (h_isol_neck : ∀ R > (1 : ℝ), ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
+      ∃ N₀ : ℕ, ∀ n ≥ N₀,
+        energyMeasure I (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ) < thresh.ε_neck)
+    (h_slices : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        energyMeasure I u (annulus_at a r R) < ε_ring →
+        ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+          ∃ z_mid : CP1,
+            dist (u z₁) (u z_mid) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)) ∧
+            dist (u z_mid) (u z₂) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)))
+    (η : ℝ) (hη : 0 < η) :
+    ∃ R₀ > (1 : ℝ), ∀ R ≥ R₀,
+      ∃ δ₀ > (0 : ℝ), ∀ δ ∈ Set.Ioo 0 δ₀,
+        ∃ N : ℕ, ∀ n ≥ N,
+          R * res.«λ» n < δ ∧
+          energyMeasure I (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ) < η ∧
+          Metric.diam (Set.image (u_seq n) (annulus_at (res.a n) (R * res.«λ» n) δ)) < η :=
+  neck_vanishing_quantified I u_seq h_jhol B h_energy h_fin thresh m_defect res h_isol_neck
+    (TargetThresholds.collarOscillationProperty_of_slices I thresh h_slices) η hη
 
 /-- Pointwise distance oscillation bound from diameter bound on an annulus (Zero-sorry Foundation). -/
 lemma neck_pointwise_oscillation_of_diam_bound

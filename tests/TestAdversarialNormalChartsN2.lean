@@ -45,7 +45,7 @@ theorem test_dmetric_zero_rejects_nonzero_derivative (L : E →L[ℝ] ℝ) (hL :
 Verifies that fderiv = 0 entails directional derivative vanishing along any probe vector u. -/
 theorem test_dmetric_zero_directional_vanishing
     {r : ℝ} (p : M) (C : CenteredNormalChart I p r) (v w u : E) :
-    (fderiv ℝ (fun z => ClosedTameTarget.metric I (C.chart.symm z) v w) 0) u = 0 := by
+    (fderiv ℝ (fun z => pulledBackMetricAt I p C.chart z v w) 0) u = 0 := by
   rw [C.dmetric_zero v w]
   rfl
 

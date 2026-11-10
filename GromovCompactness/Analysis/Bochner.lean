@@ -234,11 +234,8 @@ lemma bochner_decomposition_of_inequality
     rw [abs_of_neg h_lap]
     linarith
 
-/-- Bochner–Weitzenböck decomposition and uniform target curvature bound:
-On any compact tame symplectic manifold `(M, ω, J)`, there exist target-dependent constants
-`b, c ≥ 0` such that for every $J$-holomorphic map `u : CP1 → M` and `w ∈ ℂ`, the Laplacian of
-the chart energy density decomposes into a non-negative covariant Hessian norm squared `hessNorm^2`
-plus a curvature/torsion contraction `curvTerm` satisfying `|curvTerm| ≤ b * e(w)^2 + c * e(w)`. -/
+/-- Bochner–Weitzenböck decomposition and uniform target curvature bound (conditional pass-through of `h_aux`):
+Given the target curvature/torsion bound `h_aux`, returns `h_aux`. -/
 theorem bochner_curvature_term_bound
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
@@ -993,8 +990,16 @@ This section implements the coordinate-level calculus for Certificate 1 (`h_weit
 4. `metricHessianContraction`, `almostComplexTorsionContraction`, and `K_tensor`: explicit
    second-order `iteratedFDeriv` contractions of the metric and almost-complex structure against
    the first derivatives of `v`.
-5. `hessian_energy_density_expansion` and `bound_K_tensor`: the 2D Laplacian expansion and
-   pointwise operator-norm bound `|K_tensor g J v| ≤ b * (localEnergyDensity v g 0) ^ 2`.
+5. `bound_K_tensor`: the pointwise operator-norm bound
+   `|K_tensor g J v| ≤ b * (localEnergyDensity v g 0) ^ 2` for the explicit contraction `K_tensor`.
+
+Warning: `K_tensor` is a bespoke contraction. It is **not** known to be the remainder in the
+Weitzenböck identity for `localEnergyDensity`, and the identity
+`Δ(localEnergyDensity v g)(0) = ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 + K_tensor g J v` is false in general
+(for `v z = z ^ 2` with a flat metric and constant `J` the left side is `16` and the right side `4`).
+Theorems that assumed that identity have been removed. The honest reduction of Certificate 1 is
+`bochner_curvature_decomposition_of_lower_bound` below: the decomposition is equivalent to the
+Bochner inequality `Δe ≥ -b e ^ 2`, which remains to be proved.
 -/
 
 /-- Local energy density of a chart representation `v : ℂ → E` with respect to a local metric
@@ -1327,18 +1332,6 @@ theorem bound_K_tensor
   have h_final := mul_le_mul_of_nonneg_left h_sq_le h_coeff_nonneg
   linarith
 
-/-- Second-order Hessian expansion of `localEnergyDensity v g` at the origin of a centered normal
-chart (`0 sorryAx`). -/
-theorem hessian_energy_density_expansion
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E)
-    (_hv0 : v 0 = 0) (_hg0 : ∀ u w : E, fderiv ℝ (fun z => g z u w) 0 = 0)
-    (h_exp : laplacian2D (localEnergyDensity v g) 0 =
-      ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 + K_tensor g J v) :
-    laplacian2D (localEnergyDensity v g) 0 =
-      ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 + K_tensor g J v :=
-  h_exp
-
 /-- Unconditional Hessian expansion of `localEnergyDensity` for any constant chart map `fun _ => 0` (`0 sorryAx`). -/
 theorem hessian_energy_density_expansion_const_zero
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -1362,93 +1355,224 @@ theorem hessian_energy_density_expansion_const_zero
   rw [h_loc, laplacian2D_const, h_ifd, h_K]
   simp
 
-/-- Pointwise Bochner inequality at the origin of a centered normal chart combining
-`hessian_energy_density_expansion` and `bound_K_tensor` (`0 sorryAx`). -/
-theorem local_bochner_inequality_at_center
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E)
-    {C_metric3 C_J3 : ℝ} (hCm : 0 ≤ C_metric3) (hCJ : 0 ≤ C_J3)
-    (hv0 : v 0 = 0)
-    (hg0 : ∀ u w : E, fderiv ℝ (fun z => g z u w) 0 = 0)
-    (hg_eucl : ∀ u : E, ‖u‖ ^ 2 ≤ g 0 u u)
-    (hg2 : ∀ u : E, ‖iteratedFDeriv ℝ 2 (fun z => g z u u) 0‖ ≤ C_metric3 * ‖u‖ ^ 2)
-    (hJ1 : ∀ u : E, ‖fderiv ℝ (fun z => J z u) 0‖ ≤ C_J3 * ‖u‖)
-    (hJ2 : ∀ u : E, ‖iteratedFDeriv ℝ 2 (fun z => J z u) 0‖ ≤ C_J3 * ‖u‖)
-    (h_exp : laplacian2D (localEnergyDensity v g) 0 =
-      ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 + K_tensor g J v) :
-    -(2 * C_metric3 + 4 * C_J3 ^ 2 + 8 * C_J3) * (localEnergyDensity v g 0) ^ 2 ≤
-      laplacian2D (localEnergyDensity v g) 0 := by
-  have h_hess := hessian_energy_density_expansion v g J hv0 hg0 h_exp
-  have h_K := bound_K_tensor g J v hCm hCJ hv0 hg_eucl hg2 hJ1 hJ2
-  have h_sq : 0 ≤ ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 := sq_nonneg _
-  have h_neg := neg_le_of_abs_le h_K
-  linarith
+/-- The Weitzenböck decomposition shape used by Certificate 1 is equivalent to a Bochner lower bound:
+if `0 ≤ b` and `-b * e ^ 2 ≤ lap`, then `lap = hessNorm ^ 2 + curvTerm` with
+`|curvTerm| ≤ b * e ^ 2 + 0 * e` (take `curvTerm = 0` when `lap ≥ 0`, else `hessNorm = 0`) (`0 sorryAx`). -/
+theorem decomposition_of_bochner_lower_bound {e lap b : ℝ} (hb : 0 ≤ b)
+    (h_lb : -b * e ^ 2 ≤ lap) :
+    ∃ (hessNorm : ℝ) (curvTerm : ℝ), lap = hessNorm ^ 2 + curvTerm ∧ |curvTerm| ≤ b * e ^ 2 + 0 * e := by
+  have h_be : 0 ≤ b * e ^ 2 := mul_nonneg hb (sq_nonneg e)
+  by_cases h_lap : 0 ≤ lap
+  · refine ⟨Real.sqrt lap, 0, ?_, ?_⟩
+    · rw [Real.sq_sqrt h_lap, add_zero]
+    · rw [abs_zero]
+      linarith
+  · push_neg at h_lap
+    refine ⟨0, lap, by ring, ?_⟩
+    rw [abs_of_neg h_lap]
+    linarith
 
-/-- Phase 2 Manifold-to-Chart Bridge for Certificate 1 (`h_weitz`):
-At any stereographic point `w : ℂ`, a centered normal-chart representation `(v, g, J)` with `v 0 = 0`,
-Euclidean metric domination at `0`, and bounded metric Hessian / almost-complex torsion jets produces
-the explicit Weitzenböck witnesses `hessNorm = ‖iteratedFDeriv ℝ 2 v 0‖` and `curvTerm = K_tensor g J v`
-satisfying `Δe(w) = hessNorm² + curvTerm` and `|curvTerm| ≤ b * e(w)² + 0 * e(w)` (`0 sorryAx`). -/
-theorem bochner_curvature_decomposition_of_centered_normal_chart
+/-- Honest reduction of Certificate 1 (`h_weitz`) at a stereographic point `w`: the Weitzenböck
+decomposition of `Δe(w)` with `|curvTerm| ≤ b * e(w) ^ 2` follows from (and is equivalent to) the
+Bochner inequality `-b * e(w) ^ 2 ≤ Δe(w)` for the stereographic energy density (`0 sorryAx`).
+The Bochner inequality itself is the open analytic input (audit item P1). -/
+theorem bochner_curvature_decomposition_of_lower_bound
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
     {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
-    (u : CP1 → M) (w : ℂ)
-    (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E)
-    {C_metric3 C_J3 b : ℝ} (hCm : 0 ≤ C_metric3) (hCJ : 0 ≤ C_J3)
-    (hb : 2 * C_metric3 + 4 * C_J3 ^ 2 + 8 * C_J3 ≤ b)
-    (hv0 : v 0 = 0)
-    (hg_eucl : ∀ y : E, ‖y‖ ^ 2 ≤ g 0 y y)
-    (hg2 : ∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => g z y y) 0‖ ≤ C_metric3 * ‖y‖ ^ 2)
-    (hJ1 : ∀ y : E, ‖fderiv ℝ (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖)
-    (hJ2 : ∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖)
-    (h_ed_eq : localEnergyDensity v g 0 = riemannianEnergyDensity I u (stereo_chart.symm w))
-    (h_lap_eq : laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
-      laplacian2D (localEnergyDensity v g) 0)
-    (h_exp : laplacian2D (localEnergyDensity v g) 0 =
-      ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 + K_tensor g J v) :
+    (u : CP1 → M) (w : ℂ) {b : ℝ} (hb : 0 ≤ b)
+    (h_lb : -b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 ≤
+      laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w) :
     ∃ (hessNorm : ℝ) (curvTerm : ℝ),
       laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
         hessNorm ^ 2 + curvTerm ∧
       |curvTerm| ≤
         b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
-        0 * (riemannianEnergyDensity I u (stereo_chart.symm w)) := by
-  refine ⟨‖iteratedFDeriv ℝ 2 v 0‖, K_tensor g J v, ?_, ?_⟩
-  · rw [h_lap_eq, h_exp]
-  · have h_K := bound_K_tensor g J v hCm hCJ hv0 hg_eucl hg2 hJ1 hJ2
-    rw [h_ed_eq] at h_K
-    have h_sq_nonneg : 0 ≤ (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 := sq_nonneg _
-    have h_mono := mul_le_mul_of_nonneg_right hb h_sq_nonneg
-    linarith
+        0 * (riemannianEnergyDensity I u (stereo_chart.symm w)) :=
+  decomposition_of_bochner_lower_bound hb h_lb
 
-/-- Global stereographic Bochner differential inequality `-b * e(w)² ≤ Δe(w)` synthesized from
-`bochner_curvature_decomposition_of_centered_normal_chart` (`0 sorryAx`). -/
-theorem bochner_differential_inequality_of_centered_normal_chart
+/-- Target-level Bochner–Weitzenböck decomposition property (`cert_weitz`):
+there exist constants `b ≥ 0` and `c = 0` such that for every `J`-holomorphic sphere `u : CP1 → M`,
+its stereographic energy density `w ↦ riemannianEnergyDensity I u (stereo_chart.symm w)` is smooth
+and decomposes as `Δe(w) = hessNorm ^ 2 + curvTerm` with `|curvTerm| ≤ b * e(w) ^ 2 + c * e(w)`. -/
+def WeitzenbockDecompositionProperty
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    (M : Type*) [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] : Prop :=
+  ∃ (b c : ℝ), 0 ≤ b ∧ c = 0 ∧
+    ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+      ∀ (w : ℂ),
+        ∃ (hessNorm : ℝ) (curvTerm : ℝ),
+          laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+            hessNorm ^ 2 + curvTerm ∧
+          |curvTerm| ≤
+            b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 +
+            c * (riemannianEnergyDensity I u (stereo_chart.symm w))
+
+/-- At a normal chart center (`v 0 = 0`) with metric coercivity `c_min * ‖u‖ ^ 2 ≤ g 0 u u`
+(`c_min > 0`), the sum of squared norms of the partial derivatives of `v` is bounded by
+`(2 / c_min) * localEnergyDensity v g 0` (`0 sorryAx`). -/
+theorem sum_norm_fderiv_sq_le_of_coercive_localEnergyDensity
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ)
+    {c_min : ℝ} (hc_min : 0 < c_min)
+    (hv0 : v 0 = 0) (hg_coerc : ∀ u : E, c_min * ‖u‖ ^ 2 ≤ g 0 u u) :
+    ‖fderiv ℝ v 0 1‖ ^ 2 + ‖fderiv ℝ v 0 Complex.I‖ ^ 2 ≤
+      (2 / c_min) * localEnergyDensity v g 0 := by
+  have h1 := hg_coerc (fderiv ℝ v 0 1)
+  have hI := hg_coerc (fderiv ℝ v 0 Complex.I)
+  have h_mul : c_min * (‖fderiv ℝ v 0 1‖ ^ 2 + ‖fderiv ℝ v 0 Complex.I‖ ^ 2) ≤
+      2 * localEnergyDensity v g 0 := by
+    dsimp [localEnergyDensity]
+    rw [hv0]
+    linarith
+  rw [div_mul_eq_mul_div, le_div_iff₀ hc_min]
+  linarith
+
+/-- Pointwise operator-norm bound on `K_tensor g J v` at the center of a centered normal chart
+under general metric coercivity `c_min * ‖u‖ ^ 2 ≤ g 0 u u` (`c_min > 0`, `0 sorryAx`). -/
+theorem bound_K_tensor_of_coercive
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E) (v : ℂ → E)
+    {c_min C_metric3 C_J3 : ℝ} (hc_min : 0 < c_min) (hCm : 0 ≤ C_metric3) (hCJ : 0 ≤ C_J3)
+    (hv0 : v 0 = 0)
+    (hg_coerc : ∀ u : E, c_min * ‖u‖ ^ 2 ≤ g 0 u u)
+    (hg2 : ∀ u : E, ‖iteratedFDeriv ℝ 2 (fun z => g z u u) 0‖ ≤ C_metric3 * ‖u‖ ^ 2)
+    (hJ1 : ∀ u : E, ‖fderiv ℝ (fun z => J z u) 0‖ ≤ C_J3 * ‖u‖)
+    (hJ2 : ∀ u : E, ‖iteratedFDeriv ℝ 2 (fun z => J z u) 0‖ ≤ C_J3 * ‖u‖) :
+    |K_tensor g J v| ≤
+      ((2 * C_metric3 + 4 * C_J3 ^ 2 + 8 * C_J3) / c_min ^ 2) * (localEnergyDensity v g 0) ^ 2 := by
+  have h_tri : |K_tensor g J v| ≤ |metricHessianContraction g v| + |almostComplexTorsionContraction J v| :=
+    abs_add_le _ _
+  have hm := abs_metricHessianContraction_le g v hCm hg2
+  have hj := abs_almostComplexTorsionContraction_le J v hCJ hJ1 hJ2
+  have h_sum := sum_norm_fderiv_sq_le_of_coercive_localEnergyDensity v g hc_min hv0 hg_coerc
+  have h_sum_nonneg : 0 ≤ ‖fderiv ℝ v 0 1‖ ^ 2 + ‖fderiv ℝ v 0 Complex.I‖ ^ 2 := by positivity
+  have h_rhs_nonneg : 0 ≤ (2 / c_min) * localEnergyDensity v g 0 := le_trans h_sum_nonneg h_sum
+  have h_sq_le : (‖fderiv ℝ v 0 1‖ ^ 2 + ‖fderiv ℝ v 0 Complex.I‖ ^ 2) ^ 2 ≤
+      (4 / c_min ^ 2) * (localEnergyDensity v g 0) ^ 2 := by
+    calc (‖fderiv ℝ v 0 1‖ ^ 2 + ‖fderiv ℝ v 0 Complex.I‖ ^ 2) ^ 2
+        ≤ ((2 / c_min) * localEnergyDensity v g 0) ^ 2 := by
+          nlinarith [mul_le_mul h_sum h_sum h_sum_nonneg h_rhs_nonneg]
+      _ = (4 / c_min ^ 2) * (localEnergyDensity v g 0) ^ 2 := by ring
+  have h_coeff_nonneg : 0 ≤ (1 / 2 : ℝ) * C_metric3 + (C_J3 ^ 2 + 2 * C_J3) := by positivity
+  have h_comb : |K_tensor g J v| ≤
+      ((1 / 2 : ℝ) * C_metric3 + (C_J3 ^ 2 + 2 * C_J3)) *
+        (‖fderiv ℝ v 0 1‖ ^ 2 + ‖fderiv ℝ v 0 Complex.I‖ ^ 2) ^ 2 := by
+    linarith
+  have h_final := mul_le_mul_of_nonneg_left h_sq_le h_coeff_nonneg
+  have h_alg : ((1 / 2 : ℝ) * C_metric3 + (C_J3 ^ 2 + 2 * C_J3)) *
+      ((4 / c_min ^ 2) * (localEnergyDensity v g 0) ^ 2) =
+      ((2 * C_metric3 + 4 * C_J3 ^ 2 + 8 * C_J3) / c_min ^ 2) * (localEnergyDensity v g 0) ^ 2 := by
+    ring
+  linarith
+
+/-- Pointwise Bochner lower bound `-b * e(w) ^ 2 ≤ Δe(w)` with explicit normal-chart constant
+`b = (2 * C_metric3 + 4 * C_J3 ^ 2 + 8 * C_J3) / c_min ^ 2` derived from the centered normal-chart
+Weitzenböck remainder bound `|rem| ≤ |K_tensor g J v|` (`0 sorryAx`). -/
+theorem bochner_lower_bound_of_normal_chart_weitz_at_center
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
     {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
     (u : CP1 → M) (w : ℂ)
-    (v : ℂ → E) (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E)
-    {C_metric3 C_J3 b : ℝ} (hCm : 0 ≤ C_metric3) (hCJ : 0 ≤ C_J3)
-    (hb : 2 * C_metric3 + 4 * C_J3 ^ 2 + 8 * C_J3 ≤ b)
+    (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E) (v : ℂ → E)
+    {c_min C_metric3 C_J3 : ℝ} (hc_min : 0 < c_min) (hCm : 0 ≤ C_metric3) (hCJ : 0 ≤ C_J3)
     (hv0 : v 0 = 0)
-    (hg_eucl : ∀ y : E, ‖y‖ ^ 2 ≤ g 0 y y)
+    (hg_coerc : ∀ y : E, c_min * ‖y‖ ^ 2 ≤ g 0 y y)
     (hg2 : ∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => g z y y) 0‖ ≤ C_metric3 * ‖y‖ ^ 2)
     (hJ1 : ∀ y : E, ‖fderiv ℝ (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖)
     (hJ2 : ∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖)
-    (h_ed_eq : localEnergyDensity v g 0 = riemannianEnergyDensity I u (stereo_chart.symm w))
-    (h_lap_eq : laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
-      laplacian2D (localEnergyDensity v g) 0)
-    (h_exp : laplacian2D (localEnergyDensity v g) 0 =
-      ‖iteratedFDeriv ℝ 2 v 0‖ ^ 2 + K_tensor g J v) :
-    -b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 ≤
+    (h_ed : localEnergyDensity v g 0 = riemannianEnergyDensity I u (stereo_chart.symm w))
+    (h_weitz_rem : ∃ (hessNorm rem : ℝ),
+      laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+        hessNorm ^ 2 + rem ∧
+      |rem| ≤ |K_tensor g J v|) :
+    -((2 * C_metric3 + 4 * C_J3 ^ 2 + 8 * C_J3) / c_min ^ 2) *
+        (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 ≤
       laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w := by
-  obtain ⟨hessNorm, curvTerm, h_weitz, h_curv⟩ :=
-    bochner_curvature_decomposition_of_centered_normal_chart I u w v g J
-      hCm hCJ hb hv0 hg_eucl hg2 hJ1 hJ2 h_ed_eq h_lap_eq h_exp
-  have h_pt := bochner_inequality_pointwise_of_decomposition h_weitz h_curv
+  obtain ⟨hessNorm, rem, h_lap, h_rem⟩ := h_weitz_rem
+  have hK := bound_K_tensor_of_coercive g J v hc_min hCm hCJ hv0 hg_coerc hg2 hJ1 hJ2
+  rw [h_ed] at hK
+  have h_hess : 0 ≤ hessNorm ^ 2 := sq_nonneg hessNorm
+  have h_neg_abs : -|rem| ≤ rem := neg_abs_le rem
   linarith
+
+/-- Proof of `WeitzenbockDecompositionProperty I M` (`cert_weitz`) from the Bochner lower bound
+`-b * e(w) ^ 2 ≤ Δe(w)` (`0 sorryAx`). -/
+theorem weitzenbockDecompositionProperty_of_bochner_lower_bound
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    (M : Type*) [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_bochner : ∃ b : ℝ, 0 ≤ b ∧ ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+      ∀ (w : ℂ), -b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 ≤
+        laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w) :
+    WeitzenbockDecompositionProperty I M := by
+  obtain ⟨b, hb, h⟩ := h_bochner
+  refine ⟨b, 0, hb, rfl, fun u hu => ⟨(h u hu).1, fun w =>
+    bochner_curvature_decomposition_of_lower_bound I u w hb ((h u hu).2 w)⟩⟩
+
+/-- Proof of `WeitzenbockDecompositionProperty I M` (`cert_weitz`) with the explicit normal-chart
+constant `b = (2 * C_metric3 + 4 * C_J3 ^ 2 + 8 * C_J3) / c_min ^ 2 ≥ 0` from the centered
+normal-chart Weitzenböck remainder bound `|rem| ≤ |K_tensor g J v|` (`0 sorryAx`). -/
+theorem weitzenbockDecompositionProperty_of_normal_chart_weitz
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    (M : Type*) [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {c_min C_metric3 C_J3 : ℝ} (hc_min : 0 < c_min) (hCm : 0 ≤ C_metric3) (hCJ : 0 ≤ C_J3)
+    (h_norm_weitz : ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+      ∀ (w : ℂ), ∃ (g : E → E →L[ℝ] E →L[ℝ] ℝ) (J : E → E →L[ℝ] E) (v : ℂ → E),
+        v 0 = 0 ∧
+        (∀ y : E, c_min * ‖y‖ ^ 2 ≤ g 0 y y) ∧
+        (∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => g z y y) 0‖ ≤ C_metric3 * ‖y‖ ^ 2) ∧
+        (∀ y : E, ‖fderiv ℝ (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖) ∧
+        (∀ y : E, ‖iteratedFDeriv ℝ 2 (fun z => J z y) 0‖ ≤ C_J3 * ‖y‖) ∧
+        localEnergyDensity v g 0 = riemannianEnergyDensity I u (stereo_chart.symm w) ∧
+        ∃ (hessNorm rem : ℝ),
+          laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w =
+            hessNorm ^ 2 + rem ∧
+          |rem| ≤ |K_tensor g J v|) :
+    WeitzenbockDecompositionProperty I M := by
+  let b : ℝ := (2 * C_metric3 + 4 * C_J3 ^ 2 + 8 * C_J3) / c_min ^ 2
+  have hb : 0 ≤ b := by dsimp [b]; positivity
+  refine weitzenbockDecompositionProperty_of_bochner_lower_bound I M ⟨b, hb, fun u hu => ?_⟩
+  obtain ⟨h_smooth, h_pt⟩ := h_norm_weitz u hu
+  refine ⟨h_smooth, fun w => ?_⟩
+  obtain ⟨g, J, v, hv0, hg_coerc, hg2, hJ1, hJ2, h_ed, h_rem⟩ := h_pt w
+  have h_lb := bochner_lower_bound_of_normal_chart_weitz_at_center I u w g J v
+    hc_min hCm hCJ hv0 hg_coerc hg2 hJ1 hJ2 h_ed h_rem
+  simpa [b] using h_lb
+
+/-- Contract A02 (`bochner_differential_inequality`) proved from `WeitzenbockDecompositionProperty`
+or the Bochner lower bound (`0 sorryAx`). -/
+theorem bochner_differential_inequality_of_bochner_lower_bound
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_bochner : ∃ b : ℝ, 0 ≤ b ∧ ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)) ∧
+      ∀ (w : ℂ), -b * (riemannianEnergyDensity I u (stereo_chart.symm w)) ^ 2 ≤
+        laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w) :
+    ∃ (b c : ℝ), 0 ≤ b ∧ 0 ≤ c ∧
+    ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ∀ (w : ℂ),
+        -b * (riemannianEnergyDensity I u (stereo_chart.symm w))^2 -
+          c * (riemannianEnergyDensity I u (stereo_chart.symm w)) ≤
+        laplacian2D (fun z => riemannianEnergyDensity I u (stereo_chart.symm z)) w :=
+  bochner_differential_inequality I
+    (weitzenbockDecompositionProperty_of_bochner_lower_bound I M h_bochner)
 
 end GromovCompactness.Analysis

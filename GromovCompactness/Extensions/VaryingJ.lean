@@ -1649,4 +1649,93 @@ theorem gromov_compactness_varying_J
 #print axioms exists_uniform_target_thresholds
 #print axioms jholomorphic_limit_of_varying_J
 
+/-- Full Gromov convergence witness for a varying-$J$ sequence $u_n$ ($J_n \to J_\infty$, Contract E01):
+packages the subsequence $\sigma$, per-component Möbius frames $\phi_{v,n}$, $C^\infty_{\mathrm{loc}}$
+convergence off incident nodes, transition frame collapse, and convergence of total pullback
+symplectic energy $\int_{\mathbb{CP}^1} u_{\sigma(n)}^*\omega \to \sum_v E(u_v)$. -/
+structure VaryingJCompactnessWitness
+    (_varying_J : VaryingAlmostComplexStructures I (M := M))
+    (u_seq : ℕ → (CP1 → M))
+    (u_lim : StableSphereTreeLimit I (M := M)) where
+  σ : Bookkeeping.SubseqMap
+  frames : (v : u_lim.tree.V) → ℕ → MoebiusFrame
+  smooth_conv : ∀ (v : u_lim.tree.V),
+    SmoothLocalConvergesOn I
+      (fun n => u_seq (σ.1 n) ∘ (frames v n).toHomeo)
+      (u_lim.map v)
+      (punctured_sphere { z | ∃ (w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
+        z = u_lim.tree.node_point v w h })
+  frame_collapse : ∀ (v w : u_lim.tree.V) (h : u_lim.tree.adj.Adj v w),
+    ∀ K ⊆ punctured_sphere {u_lim.tree.node_point w v (u_lim.tree.adj.adj_symm h)}, IsCompact K →
+      TendstoUniformlyOn
+        (fun n => (MoebiusFrame.comp (MoebiusFrame.inv (frames v n)) (frames w n)).toHomeo)
+        (fun _ => u_lim.tree.node_point v w h) atTop K
+  energy_conv :
+    Tendsto (fun n => pullbackOmegaMeasure I (u_seq (σ.1 n)) Set.univ) atTop
+      (𝓝 (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v)))
+
+/-- Rescaled varying-$J$ equation closure (`0 sorryAx`): along any subsequence $\sigma$ and frame
+sequence $\phi_n$, if $u_{\sigma(n)} \circ \phi_n$ is $J_{\sigma(n)}$-holomorphic on an open set
+$U \subseteq \mathbb{CP}^1$ and converges in `SmoothLocalConvergesOn` to $u_v$, then $u_v$ is
+$J_\infty$-holomorphic on $U$. -/
+theorem varying_J_limit_jhol_on_open
+    (varying_J : VaryingAlmostComplexStructures I (M := M))
+    (u_seq : ℕ → (CP1 → M))
+    (σ : Bookkeeping.SubseqMap)
+    (frames_v : ℕ → MoebiusFrame)
+    (u_v : CP1 → M) (U : Set CP1) (hU : IsOpen U)
+    (h_rescaled_jhol : ∀ n, JHolomorphicWithJ I (varying_J.J_seq (σ.1 n))
+      (u_seq (σ.1 n) ∘ (frames_v n).toHomeo) U)
+    (h_conv : SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n) ∘ (frames_v n).toHomeo) u_v U) :
+    JHolomorphicOn I I_CP1 u_v U :=
+  jholomorphic_limit_of_varying_J I (varying_J.subseq I σ)
+    (fun n => u_seq (σ.1 n) ∘ (frames_v n).toHomeo) u_v U hU h_rescaled_jhol h_conv
+
+/-- **Varying-$J$ Gromov Compactness from Witness and Target Thresholds (`e01_varying`, `0 sorryAx`)**:
+Given `th : TargetThresholds I M` (`cert_thresholds`) for the limit structure $J_\infty$ and a
+`VaryingJCompactnessWitness` for $u_n$, automatically establishes $\sum_v E(u_v) \le B$, the
+effective bubbling quantum $h_{\mathrm{eff}} := \min(\mathrm{uth}.h, \mathrm{th}.h) > 0$, and all
+universal principal, ghost, and vertex bounds without assuming `h_fin` or `h_prin_gap`. -/
+theorem gromov_compactness_varying_J_of_witness_and_thresholds
+    (varying_J : VaryingAlmostComplexStructures I (M := M))
+    (uth : UniformTargetThresholds I (M := M) varying_J)
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_energy : ∀ n, pullbackOmegaMeasure I (u_seq n) Set.univ ≤ B)
+    (u_lim : StableSphereTreeLimit I (M := M))
+    (wit : VaryingJCompactnessWitness I varying_J u_seq u_lim) :
+    let h_eff := min uth.h th.h
+    0 < h_eff ∧
+    (∀ v : u_lim.tree.V, JHolomorphicOn I I_CP1 (u_lim.map v) Set.univ) ∧
+    (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v)) ≤ B ∧
+    let P := Fintype.card { v : u_lim.tree.V // is_principal_component I u_lim v }
+    let G := Fintype.card { v : u_lim.tree.V // is_ghost_component I u_lim v }
+    (P * h_eff ≤ B) ∧
+    (1 < Fintype.card u_lim.tree.V → G + 2 ≤ P ∧ Fintype.card u_lim.tree.V + 2 ≤ 2 * P) ∧
+    ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / h_eff⌋ - 2)) := by
+  intro h_eff
+  have hh_eff_pos : 0 < h_eff := lt_min uth.h_pos th.h_pos
+  have h_lim_energy : (∑ v : u_lim.tree.V, totalEnergy I (u_lim.map v)) ≤ B :=
+    le_of_tendsto wit.energy_conv (Eventually.of_forall (fun n => h_energy (wit.σ.1 n)))
+  let uth' : UniformTargetThresholds I (M := M) varying_J :=
+    { h := h_eff
+      h_pos := hh_eff_pos
+      ε_reg := uth.ε_reg
+      ε_reg_pos := uth.ε_reg_pos
+      C_reg := uth.C_reg
+      C_reg_pos := uth.C_reg_pos
+      h_reg := uth.h_reg
+      hbar := uth.hbar
+      hbar_pos := uth.hbar_pos
+      h_sph := uth.h_sph
+      h_le_reg := (min_le_left _ _).trans uth.h_le_reg
+      h_le_sph := (min_le_left _ _).trans uth.h_le_sph }
+  have h_prin_gap : ∀ v : u_lim.tree.V, is_principal_component I u_lim v →
+      uth'.h ≤ totalEnergy I (u_lim.map v) := by
+    intro v hv
+    exact (min_le_right uth.h th.h).trans
+      (th.h_le_sph.trans (th.h_sph (u_lim.map v) (u_lim.is_jhol v) hv))
+  exact ⟨hh_eff_pos, u_lim.is_jhol, h_lim_energy,
+    varying_J_component_count_bounds I varying_J uth' u_lim B h_lim_energy h_prin_gap⟩
+
 end GromovCompactness.Extensions

@@ -678,6 +678,48 @@ def SatisfiesCylinderCollarOscillation
   ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
     dist (u z₁) (u z₂) ≤ 4 * Real.sqrt (energyMeasure I u (annulus_at a r R))
 
+/-- Collar oscillation predicate with a general constant `C`:
+`dist (u z₁) (u z₂) ≤ C * √E(u; A(r, R))` on the collar `A(2r, R/2)`. -/
+def SatisfiesCylinderCollarOscillationWith
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (C : ℝ) (u : CP1 → M) (a : ℂ) (r R : ℝ) : Prop :=
+  ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+    dist (u z₁) (u z₂) ≤ C * Real.sqrt (energyMeasure I u (annulus_at a r R))
+
+/-- Certificate `h_osc` (corrected form, Contract A09): there are target constants `C > 0` and
+`ε > 0` such that every `J`-holomorphic sphere whose annulus `A(a; r, R)` carries energy `< ε`
+satisfies the collar bound `osc ≤ C * √E(u; A(r, R))`.
+
+The universal form with `C = 4` and no smallness hypothesis is false: on a round sphere with a
+long thin neck of circumference `ℓ` and length `L ≫ ℓ`, a uniformizing map has collar oscillation
+`≈ L` but annular energy `≈ ℓ L`, and `L > 4 √(ℓ L)` once `L > 16 ℓ`. -/
+def CollarOscillationProperty
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    (M : Type*) [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] : Prop :=
+  ∃ (C ε : ℝ), 0 < C ∧ 0 < ε ∧
+    ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+      0 < r → r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at a r R) < ε →
+      SatisfiesCylinderCollarOscillationWith I C u a r R
+
+/-- Constant maps satisfy the collar oscillation predicate for every `C ≥ 0` (`0 sorryAx`). -/
+theorem satisfiesCylinderCollarOscillationWith_const
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {C : ℝ} (hC : 0 ≤ C) (c : M) (a : ℂ) (r R : ℝ) :
+    SatisfiesCylinderCollarOscillationWith I C (fun _ : CP1 => c) a r R := by
+  intro z₁ _ z₂ _
+  rw [dist_self]
+  exact mul_nonneg hC (Real.sqrt_nonneg _)
+
 /-- Constant maps unconditionally satisfy `SatisfiesCylinderCollarOscillation` with zero `sorry`. -/
 theorem satisfiesCylinderCollarOscillation_const
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -1013,16 +1055,14 @@ theorem satisfiesCylinderCollarOscillation_of_continuous_of_discrete
 
 /-- Cylinder Localization into a Target Chart (Contract A09).
 For every target diameter bound `d₀ > 0`, there exists `η > 0` such that any `J`-holomorphic
-curve on an annular neck with energy `< η` has its central collar image contained in a ball of radius `d₀`. -/
+curve on an annular neck with energy `< η` has its central collar image contained in a ball of radius `d₀`.
+The hypothesis is the corrected collar oscillation certificate `CollarOscillationProperty I M`. -/
 theorem cylinder_localization
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
     {M : Type*} [MetricSpace M] [ChartedSpace H M]
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
-    (h_osc : ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
-      0 < r → r < R →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      SatisfiesCylinderCollarOscillation I u a r R)
+    (h_osc : CollarOscillationProperty I M)
     (d₀ : ℝ) (hd₀ : 0 < d₀) :
     ∃ (η : ℝ), 0 < η ∧
     ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
@@ -1030,14 +1070,26 @@ theorem cylinder_localization
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
       energyMeasure I u (annulus_at a r R) < η →
       ∃ (x₀ : M), ∀ z ∈ annulus_at a (2 * r) (R / 2), dist (u z) x₀ < d₀ := by
-  obtain ⟨η, hη_pos, h_loc⟩ := cylinder_localization_of_oscillation (M := M) I d₀ hd₀
-  refine ⟨η, hη_pos, ?_⟩
+  obtain ⟨C, ε, hC, hε, h_bound⟩ := h_osc
+  set δ : ℝ := d₀ / (2 * C) with hδ_def
+  have hδ_pos : 0 < δ := div_pos hd₀ (by positivity)
+  refine ⟨min ε (δ ^ 2), lt_min hε (by positivity), ?_⟩
   intro u a r R hr hrR hu h_en
-  by_cases h_ball : ∃ (x₀ : M), ∀ z ∈ annulus_at a (2 * r) (R / 2), dist (u z) x₀ < d₀
-  · exact h_ball
-  · by_cases h_diam_img : Metric.diam (u '' annulus_at a (2 * r) (R / 2)) < d₀
-    · exact exists_collar_ball_of_diam_image_lt u a r R d₀ h_diam_img
-    · exact h_loc u a r R hr hrR hu (h_osc u a r R hr hrR hu) h_en
+  have : Nonempty M := ⟨u north_pole⟩
+  have h_en_ε : energyMeasure I u (annulus_at a r R) < ε := lt_of_lt_of_le h_en (min_le_left _ _)
+  have h_en_δ : energyMeasure I u (annulus_at a r R) < δ ^ 2 := lt_of_lt_of_le h_en (min_le_right _ _)
+  have h_sqrt : Real.sqrt (energyMeasure I u (annulus_at a r R)) < δ := by
+    rw [← Real.sqrt_sq hδ_pos.le]
+    exact Real.sqrt_lt_sqrt (energy_nonneg I u _) h_en_δ
+  have h_Cδ : C * δ = d₀ / 2 := by
+    rw [hδ_def]
+    field_simp
+  apply localization_of_diam_bound u (annulus_at a (2 * r) (R / 2)) d₀
+  intro z₁ hz₁ z₂ hz₂
+  have h_le := h_bound u a r R hr hrR hu h_en_ε z₁ hz₁ z₂ hz₂
+  have h_lt : C * Real.sqrt (energyMeasure I u (annulus_at a r R)) < C * δ :=
+    mul_lt_mul_of_pos_left h_sqrt hC
+  linarith
 
 /-!
 ### 8b. Geometric Decay, Small-Drop Pigeonhole, and Widman Hole-Filling (ported from `qinz1yang/differential-geometry`, `0 sorryAx`)
@@ -1353,6 +1405,38 @@ def SatisfiesCylinderEnergyDecay
     energyMeasure I u (annulus_at center r₁ r₂) ≤
       1 * ((r / r₁)^(1 : ℝ) + (r₂ / R)^(1 : ℝ)) * energyMeasure I u (annulus_at center r R)
 
+/-- Cylinder energy decay predicate with general constants `C₀` and exponent `a_decay`:
+`E(u; A(r₁, r₂)) ≤ C₀ * ((r / r₁)^a + (r₂ / R)^a) * E(u; A(r, R))` for `r < r₁ < r₂ < R`. -/
+def SatisfiesCylinderEnergyDecayWith
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (C₀ a_decay : ℝ) (u : CP1 → M) (center : ℂ) (r R : ℝ) : Prop :=
+  ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
+    energyMeasure I u (annulus_at center r₁ r₂) ≤
+      C₀ * ((r / r₁) ^ a_decay + (r₂ / R) ^ a_decay) * energyMeasure I u (annulus_at center r R)
+
+/-- Certificate `h_decay` (corrected form, Contract A10): there are target constants `C₀, a, ε > 0`
+such that every `J`-holomorphic sphere whose annulus `A(center; r, R)` carries energy `< ε`
+satisfies two-sided power decay on sub-annuli. This is exactly the hypothesis consumed by
+`cylinder_exponential_decay` and `exists_target_thresholds`.
+
+The universal form `SatisfiesCylinderEnergyDecay` (constants `1, 1`, no smallness hypothesis) is
+false: for `id : CP1 → CP1`, `center = 0`, `r = ε`, `R = 1/ε`, `r₁ = 1/2`, `r₂ = 2`, the left side
+`E(id; A(1/2, 2))` is a fixed positive area while the right side is `≤ 4ε · E(id) → 0`. -/
+def CylinderEnergyDecayProperty
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    (M : Type*) [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] : Prop :=
+  ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+      0 < r → 2 * r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r R) < ε_neck →
+      SatisfiesCylinderEnergyDecayWith I C₀ a_decay u center r R
+
 /-- Constant maps unconditionally satisfy `SatisfiesCylinderEnergyDecay` with zero `sorry`. -/
 theorem satisfiesCylinderEnergyDecay_const
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -1619,10 +1703,7 @@ theorem cylinder_exponential_decay_of_cases
   intro u center r R hr h2rR hu h_en h_cases r₁ r₂ hr₁ hr₁₂ hr₂
   exact satisfiesCylinderEnergyDecay_of_jhol I u center r R hr h2rR hu h_en h_cases r₁ r₂ hr₁ hr₁₂ hr₂
 
-/-- Cylinder Energy and Diameter Exponential Decay (Contract A10).
-On a conformal cylinder, if the total neck energy is below `ε_neck`, energy decays exponentially
-away from both boundary collars:
-$E(u; A(r_1, r_2)) \le C_0 ((r/r_1)^{a_{\text{decay}}} + (r_2/R)^{a_{\text{decay}}}) E(u; A(r, R))$. -/
+/-- Cylinder Energy and Diameter Exponential Decay (Contract A10, conditional pass-through of `h_decay`). -/
 theorem cylinder_exponential_decay
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
@@ -2862,30 +2943,17 @@ theorem removal_of_singularities
 (`h_osc`, `h_decay`, `h_punc`)
 
 This section implements the coordinate-level derivations for Certificates 3, 4, and 5:
-1. `poincare_circle` and `poincare_circle_const`: 1D Poincaré / Wirtinger inequality on `[0, 2π]`.
+1. `poincare_circle_const`: 1D Poincaré / Wirtinger inequality on `[0, 2π]` for constant loops.
 2. `hole_filling_step` and `hole_filling_contraction_lt_one`: Widman's hole-filling step
    `E(u; A(2r, R/2)) ≤ (K / (1 + K)) * E(u; A(r, R))` with contraction factor `θ = K / (1 + K) < 1`.
-3. `energy_exponential_decay`: iterated dyadic / power-law cylinder energy decay.
-4. `diam_image_collar_le_four_sqrt_energy`: diameter bound `diam (u '' A(2r, R/2)) ≤ 4 √E(u; A(r, R))`
+3. `diam_image_collar_le_four_sqrt_energy`: diameter bound `diam (u '' A(2r, R/2)) ≤ 4 √E(u; A(r, R))`
    from `SatisfiesCylinderCollarOscillation`.
-5. `energy_annulus_tendsto_zero` and `oscillation_tendsto_zero`: vanishing dyadic neck energy and
+4. `energy_annulus_tendsto_zero` and `oscillation_tendsto_zero`: vanishing dyadic neck energy and
    vanishing collar diameter as `r → 0⁺` around an isolated finite-energy puncture.
-6. `exists_limit_point_of_puncture` and `satisfiesPunctureSobolevExtension_of_finite_energy_aux`:
+5. `exists_limit_point_of_puncture` and `satisfiesPunctureSobolevExtension_of_finite_energy_aux`:
    Cauchy filter completeness on `[CompactSpace M]` yielding `∃ m_star, Tendsto u (𝓝[≠] p) (𝓝 m_star)`
    and continuous `WeakJHolomorphicOn` extension via `Function.update u p m_star`.
 -/
-
-/-- 1D Poincaré (Wirtinger) inequality on `[0, 2π]` for a periodic loop `v : ℝ → E` (`0 sorryAx`). -/
-theorem poincare_circle
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    (v : ℝ → E) {C_poincare : ℝ}
-    (_hv : ContDiff ℝ 1 v) (_hper : Function.Periodic v (2 * Real.pi))
-    (v_avg : E)
-    (h_wirtinger : ∫ θ in (0 : ℝ)..(2 * Real.pi), ‖v θ - v_avg‖ ^ 2 ≤
-      C_poincare * ∫ θ in (0 : ℝ)..(2 * Real.pi), ‖deriv v θ‖ ^ 2) :
-    ∫ θ in (0 : ℝ)..(2 * Real.pi), ‖v θ - v_avg‖ ^ 2 ≤
-      C_poincare * ∫ θ in (0 : ℝ)..(2 * Real.pi), ‖deriv v θ‖ ^ 2 :=
-  h_wirtinger
 
 /-- Unconditional 1D Poincaré inequality on `[0, 2π]` for any constant loop `fun _ => y₀` (`0 sorryAx`). -/
 theorem poincare_circle_const
@@ -2917,20 +2985,6 @@ theorem hole_filling_step
     energyMeasure I u (annulus_at center (2 * r) (R / 2)) ≤
       (K / (1 + K)) * energyMeasure I u (annulus_at center r R) :=
   energyMeasure_annulus_le_of_hole_filling I u center r (2 * r) (R / 2) R K hK h_hole
-
-/-- Two-sided cylinder energy decay on sub-annuli `A(r₁, r₂) ⊂ A(r, R)` (`0 sorryAx`). -/
-theorem energy_exponential_decay
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
-    {M : Type*} [MetricSpace M] [ChartedSpace H M]
-    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
-    (u : CP1 → M) (center : ℂ) (r R : ℝ)
-    (h_decay : SatisfiesCylinderEnergyDecay I u center r R) :
-    ∀ r₁ r₂ : ℝ, r < r₁ → r₁ < r₂ → r₂ < R →
-      energyMeasure I u (annulus_at center r₁ r₂) ≤
-        1 * ((r / r₁) ^ (1 : ℝ) + (r₂ / R) ^ (1 : ℝ)) *
-          energyMeasure I u (annulus_at center r R) :=
-  h_decay
 
 /-- If `SatisfiesCylinderCollarOscillation I u a r R` holds, then the diameter of the collar image
 `u '' annulus_at a (2 * r) (R / 2)` is bounded by `4 * √E(u; A(r, R))` (`0 sorryAx`). -/
@@ -3059,11 +3113,12 @@ theorem satisfiesPunctureSobolevExtension_of_finite_energy_aux
     (h_weak_of_lim m_star hm_star)
 
 /-- Unconditional derivation of vanishing punctured-neighborhood oscillation from finite punctured-sphere
-energy and collar oscillation `SatisfiesCylinderCollarOscillation` (`0 sorryAx`).
+energy and small-energy collar oscillation with a constant `C` (`SatisfiesCylinderCollarOscillationWith`,
+`0 sorryAx`).
 For any two points `z₁, z₂` in `disk_at a (R₀ / 2) \ {stereo_chart.symm a}`, both have strictly
 positive stereographic distance from `a`, so choosing `r = (1 / 4) * min (dist w₁ a) (dist w₂ a) > 0`
 places both `z₁` and `z₂` inside a single collar `annulus_at a (2 * r) (R₀ / 2)` whose parent annulus
-`annulus_at a r R₀` has energy `< (ε / 5) ^ 2` by `exists_punctured_disk_energy_lt`. -/
+`annulus_at a r R₀` has energy `< min ε_osc (ε / (2C)) ^ 2` by `exists_punctured_disk_energy_lt`. -/
 theorem punctured_disk_oscillation_of_collar_oscillation
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
@@ -3071,13 +3126,16 @@ theorem punctured_disk_oscillation_of_collar_oscillation
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
     (u : CP1 → M) (a : ℂ)
     (h_energy : energyMeasureExtended I u (punctured_sphere {stereo_chart.symm a}) ≠ ⊤)
-    (h_osc : ∀ r R : ℝ, 0 < r → 2 * r < R / 2 → SatisfiesCylinderCollarOscillation I u a r R) :
+    (h_osc : ∃ (C ε_osc : ℝ), 0 < C ∧ 0 < ε_osc ∧ ∀ r R : ℝ, 0 < r → 2 * r < R / 2 →
+      energyMeasure I u (annulus_at a r R) < ε_osc → SatisfiesCylinderCollarOscillationWith I C u a r R) :
     ∀ ε > 0, ∃ U ∈ 𝓝 (stereo_chart.symm a),
       ∀ z₁ ∈ U \ {stereo_chart.symm a}, ∀ z₂ ∈ U \ {stereo_chart.symm a},
         dist (u z₁) (u z₂) < ε := by
   intro ε hε
-  have hε5_sq : 0 < (ε / 5) ^ 2 := by positivity
-  obtain ⟨R₀, hR₀_pos, hR₀_energy⟩ := exists_punctured_disk_energy_lt I u a hε5_sq h_energy
+  obtain ⟨C, ε_osc, hC, hε_osc, h_bnd⟩ := h_osc
+  set δ : ℝ := min ε_osc ((ε / (2 * C)) ^ 2) with hδ_def
+  have hδ_pos : 0 < δ := lt_min hε_osc (by positivity)
+  obtain ⟨R₀, hR₀_pos, hR₀_energy⟩ := exists_punctured_disk_energy_lt I u a hδ_pos h_energy
   have hR₀_half : 0 < R₀ / 2 := by linarith
   refine ⟨disk_at a (R₀ / 2), (is_open_disk_at a (R₀ / 2)).mem_nhds (center_mem_disk_at a hR₀_half), ?_⟩
   rintro z₁ ⟨⟨w₁, hw₁_ball, rfl⟩, hz₁_ne⟩ z₂ ⟨⟨w₂, hw₂_ball, rfl⟩, hz₂_ne⟩
@@ -3104,13 +3162,255 @@ theorem punctured_disk_oscillation_of_collar_oscillation
     ⟨w₁, ⟨h2r_lt_d1, hd₁_lt⟩, rfl⟩
   have hz₂_ann : stereo_chart.symm w₂ ∈ annulus_at a (2 * r) (R₀ / 2) :=
     ⟨w₂, ⟨h2r_lt_d2, hd₂_lt⟩, rfl⟩
-  have h_dist_le := h_osc r R₀ hr_pos h2r_lt_half (stereo_chart.symm w₁) hz₁_ann (stereo_chart.symm w₂) hz₂_ann
-  have h_en_lt : energyMeasure I u (annulus_at a r R₀) < (ε / 5) ^ 2 :=
+  have h_en_lt : energyMeasure I u (annulus_at a r R₀) < δ :=
     hR₀_energy r R₀ hr_pos.le le_rfl
-  have h_sqrt_le : Real.sqrt (energyMeasure I u (annulus_at a r R₀)) ≤ ε / 5 := by
-    rw [← Real.sqrt_sq (by positivity : 0 ≤ ε / 5)]
-    exact Real.sqrt_le_sqrt h_en_lt.le
+  have h_dist_le := h_bnd r R₀ hr_pos h2r_lt_half (lt_of_lt_of_le h_en_lt (min_le_left _ _))
+    (stereo_chart.symm w₁) hz₁_ann (stereo_chart.symm w₂) hz₂_ann
+  have h_sqrt_lt : Real.sqrt (energyMeasure I u (annulus_at a r R₀)) < ε / (2 * C) := by
+    rw [← Real.sqrt_sq (by positivity : 0 ≤ ε / (2 * C))]
+    exact Real.sqrt_lt_sqrt (energy_nonneg I u _) (lt_of_lt_of_le h_en_lt (min_le_right _ _))
+  have h_C_eq : C * (ε / (2 * C)) = ε / 2 := by
+    field_simp
+  have h_mul_lt : C * Real.sqrt (energyMeasure I u (annulus_at a r R₀)) < C * (ε / (2 * C)) :=
+    mul_lt_mul_of_pos_left h_sqrt_lt hC
   linarith
+
+/-- Exterior stereographic region `{w : ℂ | r < ‖w‖}` mapped to `CP1 \ {north_pole}`. -/
+noncomputable def exterior_at (r : ℝ) : Set CP1 :=
+  stereo_chart.symm '' {w : ℂ | r < ‖w‖}
+
+/-- Every `exterior_at r` is an open subset of `CP1` (`0 sorryAx`). -/
+theorem isOpen_exterior_at (r : ℝ) : IsOpen (exterior_at r) := by
+  dsimp [exterior_at]
+  have h_open : IsOpen {w : ℂ | r < ‖w‖} := isOpen_Ioi.preimage continuous_norm
+  apply stereo_chart.isOpen_image_symm_of_subset_target h_open
+  rw [stereo_chart_target]
+  exact Set.subset_univ _
+
+/-- Every `exterior_at r` is Borel measurable in `CP1` (`0 sorryAx`). -/
+theorem measurableSet_exterior_at (r : ℝ) : MeasurableSet (exterior_at r) :=
+  (isOpen_exterior_at r).measurableSet
+
+/-- Monotonicity of `exterior_at r`: larger radii give smaller exterior regions (`0 sorryAx`). -/
+theorem exterior_at_anti {r₁ r₂ : ℝ} (h : r₁ ≤ r₂) : exterior_at r₂ ⊆ exterior_at r₁ := by
+  dsimp [exterior_at]
+  apply Set.image_mono
+  intro w hw
+  exact lt_of_le_of_lt h hw
+
+/-- Every `exterior_at r` is contained in `punctured_sphere {north_pole}` (`0 sorryAx`). -/
+theorem exterior_at_subset_punctured_north_pole (r : ℝ) :
+    exterior_at r ⊆ punctured_sphere {north_pole} := by
+  rw [punctured_sphere_singleton_eq_compl]
+  rintro p ⟨w, _, rfl⟩ hp_eq
+  rw [Set.mem_singleton_iff] at hp_eq
+  have h_source := stereo_chart.map_target (show w ∈ stereo_chart.target by simp [stereo_chart_target])
+  rw [hp_eq, stereo_chart_source] at h_source
+  exact h_source rfl
+
+/-- Every annulus centered at `0` with inner radius `r ≥ r₀` is contained in `exterior_at r₀` (`0 sorryAx`). -/
+theorem annulus_at_zero_subset_exterior_at {r₀ r : ℝ} (hr : r₀ ≤ r) (R : ℝ) :
+    annulus_at 0 r R ⊆ exterior_at r₀ := by
+  rintro p ⟨w, ⟨hw_gt, _⟩, rfl⟩
+  rw [dist_zero_right] at hw_gt
+  exact ⟨w, lt_of_le_of_lt hr hw_gt, rfl⟩
+
+/-- The countable intersection of `exterior_at (n + 1)` is empty (`0 sorryAx`). -/
+theorem iInter_exterior_at_nat : (⋂ n : ℕ, exterior_at ((n : ℝ) + 1)) = ∅ := by
+  ext p
+  simp only [Set.mem_iInter, Set.mem_empty_iff_false, iff_false, not_forall]
+  by_cases h0 : p ∈ exterior_at ((0 : ℕ) + 1 : ℝ)
+  · rcases h0 with ⟨z, _, rfl⟩
+    obtain ⟨n, hn⟩ := exists_nat_gt ‖z‖
+    refine ⟨n, ?_⟩
+    rintro ⟨w, hw_gt, hw_eq⟩
+    have hzw : w = z := stereo_chart_symm_injective hw_eq
+    subst hzw
+    change (n : ℝ) + 1 < ‖w‖ at hw_gt
+    linarith
+  · exact ⟨0, h0⟩
+
+/-- Vanishing of the extended energy measure on `exterior_at (n + 1)` as `n → ∞` (`0 sorryAx`). -/
+theorem tendsto_energyMeasureExtended_exterior_at_nat
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M)
+    (h_energy : energyMeasureExtended I u (punctured_sphere {north_pole}) ≠ ⊤) :
+    Filter.Tendsto
+      (fun n : ℕ => energyMeasureExtended I u (exterior_at ((n : ℝ) + 1)))
+      Filter.atTop (𝓝 0) := by
+  have h_meas : ∀ n : ℕ,
+      MeasureTheory.NullMeasurableSet (exterior_at ((n : ℝ) + 1)) (energyMeasureExtended I u) :=
+    fun n => (measurableSet_exterior_at ((n : ℝ) + 1)).nullMeasurableSet
+  have h_anti : Antitone (fun n : ℕ => exterior_at ((n : ℝ) + 1)) := by
+    intro i j hij
+    apply exterior_at_anti
+    exact_mod_cast Nat.add_le_add_right hij 1
+  have h_fin : ∃ i : ℕ, energyMeasureExtended I u (exterior_at ((i : ℝ) + 1)) ≠ ⊤ :=
+    ⟨0, ne_top_of_le_ne_top h_energy
+      (MeasureTheory.measure_mono (exterior_at_subset_punctured_north_pole _))⟩
+  have h_tendsto := MeasureTheory.tendsto_measure_iInter_atTop h_meas h_anti h_fin
+  rwa [iInter_exterior_at_nat, MeasureTheory.measure_empty] at h_tendsto
+
+/-- Existence of a large inner radius `r₀ > 0` such that all outer annuli `annulus_at 0 r R` (`r₀ ≤ r`)
+have energy `< ε` for any finite-energy curve on `punctured_sphere {north_pole}` (`0 sorryAx`). -/
+theorem exists_exterior_annulus_energy_lt
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) {ε : ℝ} (hε : 0 < ε)
+    (h_energy : energyMeasureExtended I u (punctured_sphere {north_pole}) ≠ ⊤) :
+    ∃ r₀ : ℝ, 0 < r₀ ∧ ∀ r R : ℝ, r₀ ≤ r →
+      energyMeasure I u (annulus_at 0 r R) < ε := by
+  have h_tendsto := tendsto_energyMeasureExtended_exterior_at_nat I u h_energy
+  have h_mem : Set.Iio (ENNReal.ofReal ε) ∈ 𝓝 (0 : ENNReal) :=
+    Iio_mem_nhds (ENNReal.ofReal_pos.mpr hε)
+  obtain ⟨n, hn⟩ := (h_tendsto.eventually h_mem).exists
+  refine ⟨(n : ℝ) + 1, by positivity, ?_⟩
+  intro r R hr
+  have h_mono : energyMeasureExtended I u (annulus_at 0 r R) ≤
+      energyMeasureExtended I u (exterior_at ((n : ℝ) + 1)) :=
+    MeasureTheory.measure_mono (annulus_at_zero_subset_exterior_at hr R)
+  exact ENNReal.toReal_lt_of_lt_ofReal (lt_of_le_of_lt h_mono hn)
+
+/-- `{north_pole} ∪ exterior_at r` is an open neighborhood of `north_pole` in `CP1` (`0 sorryAx`). -/
+theorem north_pole_exterior_mem_nhds (r : ℝ) :
+    ({north_pole} ∪ exterior_at r) ∈ 𝓝 north_pole := by
+  have h_compl_eq : ({north_pole} ∪ exterior_at r)ᶜ = stereo_chart.symm '' Metric.closedBall (0 : ℂ) r := by
+    ext z
+    simp only [Set.mem_compl_iff, Set.mem_union, Set.mem_singleton_iff, not_or]
+    constructor
+    · rintro ⟨hz_ne, hz_not_ext⟩
+      have hz_src : z ∈ stereo_chart.source := by
+        rw [stereo_chart_source]
+        exact hz_ne
+      refine ⟨stereo_chart z, ?_, stereo_chart.left_inv hz_src⟩
+      rw [Metric.mem_closedBall, dist_zero_right]
+      by_contra h_gt
+      exact hz_not_ext ⟨stereo_chart z, lt_of_not_ge h_gt, stereo_chart.left_inv hz_src⟩
+    · rintro ⟨w, hw_ball, rfl⟩
+      rw [Metric.mem_closedBall, dist_zero_right] at hw_ball
+      refine ⟨?_, ?_⟩
+      · intro h_np
+        have h_src := stereo_chart.map_target (show w ∈ stereo_chart.target by simp [stereo_chart_target])
+        rw [h_np, stereo_chart_source] at h_src
+        exact h_src rfl
+      · rintro ⟨w', hw'_gt, hw'_eq⟩
+        have hww' : w' = w := stereo_chart_symm_injective hw'_eq
+        subst hww'
+        change r < ‖w'‖ at hw'_gt
+        linarith
+  have h_compact : IsCompact (stereo_chart.symm '' Metric.closedBall (0 : ℂ) r) :=
+    (isCompact_closedBall (0 : ℂ) r).image stereo_chart_symm_continuous
+  have h_open : IsOpen ({north_pole} ∪ exterior_at r) := by
+    rw [← isClosed_compl_iff, h_compl_eq]
+    exact h_compact.isClosed
+  exact h_open.mem_nhds (Set.mem_union_left _ rfl)
+
+/-- Vanishing punctured-neighborhood oscillation at `north_pole` from finite punctured-sphere energy
+and small-energy collar oscillation (`0 sorryAx`). -/
+theorem punctured_north_pole_oscillation_of_collar_oscillation
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M)
+    (h_energy : energyMeasureExtended I u (punctured_sphere {north_pole}) ≠ ⊤)
+    (h_osc : ∃ (C ε_osc : ℝ), 0 < C ∧ 0 < ε_osc ∧ ∀ r R : ℝ, 0 < r → 2 * r < R / 2 →
+      energyMeasure I u (annulus_at 0 r R) < ε_osc → SatisfiesCylinderCollarOscillationWith I C u 0 r R) :
+    ∀ ε > 0, ∃ U ∈ 𝓝 north_pole,
+      ∀ z₁ ∈ U \ {north_pole}, ∀ z₂ ∈ U \ {north_pole},
+        dist (u z₁) (u z₂) < ε := by
+  intro ε hε
+  obtain ⟨C, ε_osc, hC, hε_osc, h_bnd⟩ := h_osc
+  set δ : ℝ := min ε_osc ((ε / (2 * C)) ^ 2)
+  have hδ_pos : 0 < δ := lt_min hε_osc (by positivity)
+  obtain ⟨r₀, hr₀_pos, hr₀_energy⟩ := exists_exterior_annulus_energy_lt I u hδ_pos h_energy
+  refine ⟨{north_pole} ∪ exterior_at (2 * r₀), north_pole_exterior_mem_nhds (2 * r₀), ?_⟩
+  rintro z₁ ⟨hz₁_un, hz₁_ne⟩ z₂ ⟨hz₂_un, hz₂_ne⟩
+  have hz₁_ext : z₁ ∈ exterior_at (2 * r₀) := hz₁_un.resolve_left hz₁_ne
+  have hz₂_ext : z₂ ∈ exterior_at (2 * r₀) := hz₂_un.resolve_left hz₂_ne
+  rcases hz₁_ext with ⟨w₁, hw₁_gt, rfl⟩
+  rcases hz₂_ext with ⟨w₂, hw₂_gt, rfl⟩
+  change 2 * r₀ < ‖w₁‖ at hw₁_gt
+  change 2 * r₀ < ‖w₂‖ at hw₂_gt
+  let R : ℝ := 4 * max ‖w₁‖ ‖w₂‖ + 1
+  have h_w1_le : ‖w₁‖ ≤ max ‖w₁‖ ‖w₂‖ := le_max_left _ _
+  have h_w2_le : ‖w₂‖ ≤ max ‖w₁‖ ‖w₂‖ := le_max_right _ _
+  have hw₁_lt_half : ‖w₁‖ < R / 2 := by dsimp [R]; linarith
+  have hw₂_lt_half : ‖w₂‖ < R / 2 := by dsimp [R]; linarith
+  have h2r₀_lt_half : 2 * r₀ < R / 2 := lt_trans hw₁_gt hw₁_lt_half
+  have hz₁_ann : stereo_chart.symm w₁ ∈ annulus_at 0 (2 * r₀) (R / 2) := by
+    refine ⟨w₁, ?_, rfl⟩
+    simp only [Set.mem_setOf, dist_zero_right]
+    exact ⟨hw₁_gt, hw₁_lt_half⟩
+  have hz₂_ann : stereo_chart.symm w₂ ∈ annulus_at 0 (2 * r₀) (R / 2) := by
+    refine ⟨w₂, ?_, rfl⟩
+    simp only [Set.mem_setOf, dist_zero_right]
+    exact ⟨hw₂_gt, hw₂_lt_half⟩
+  have h_en_lt : energyMeasure I u (annulus_at 0 r₀ R) < δ :=
+    hr₀_energy r₀ R le_rfl
+  have h_dist_le := h_bnd r₀ R hr₀_pos h2r₀_lt_half (lt_of_lt_of_le h_en_lt (min_le_left _ _))
+    (stereo_chart.symm w₁) hz₁_ann (stereo_chart.symm w₂) hz₂_ann
+  have h_sqrt_lt : Real.sqrt (energyMeasure I u (annulus_at 0 r₀ R)) < ε / (2 * C) := by
+    rw [← Real.sqrt_sq (by positivity : 0 ≤ ε / (2 * C))]
+    exact Real.sqrt_lt_sqrt (energy_nonneg I u _) (lt_of_lt_of_le h_en_lt (min_le_right _ _))
+  have h_C_eq : C * (ε / (2 * C)) = ε / 2 := by
+    field_simp
+  have h_mul_lt : C * Real.sqrt (energyMeasure I u (annulus_at 0 r₀ R)) < C * (ε / (2 * C)) :=
+    mul_lt_mul_of_pos_left h_sqrt_lt hC
+  linarith
+
+/-- Every stereographic annulus `annulus_at a r R` with `0 < r` avoids `stereo_chart.symm a` (`0 sorryAx`). -/
+theorem annulus_at_pos_subset_punctured_sphere (a : ℂ) {r : ℝ} (hr : 0 < r) (R : ℝ) :
+    annulus_at a r R ⊆ punctured_sphere {stereo_chart.symm a} := by
+  intro z hz
+  exact annulus_at_zero_subset_punctured_sphere a R (annulus_at_mono a hr.le le_rfl hz)
+
+/-- Vanishing punctured-neighborhood oscillation at **any** puncture `p : CP1` (both finite points
+`p ≠ north_pole` and `p = north_pole`) from finite punctured-sphere energy and local small-energy
+collar oscillation (`0 sorryAx`). -/
+theorem punctured_oscillation_of_local_collar_oscillation
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_osc_local : ∃ (C ε_osc : ℝ), 0 < C ∧ 0 < ε_osc ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at a r R) →
+        energyMeasure I u (annulus_at a r R) < ε_osc →
+        SatisfiesCylinderCollarOscillationWith I C u a r R)
+    (u : CP1 → M) (p : CP1)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (he : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤) :
+    ∀ ε > 0, ∃ U ∈ 𝓝 p, ∀ z₁ ∈ U \ {p}, ∀ z₂ ∈ U \ {p}, dist (u z₁) (u z₂) < ε := by
+  obtain ⟨C, ε_osc, hC, hε_osc, h_bnd⟩ := h_osc_local
+  by_cases hp : p = north_pole
+  · subst hp
+    apply punctured_north_pole_oscillation_of_collar_oscillation I u he
+    refine ⟨C, ε_osc, hC, hε_osc, fun r R hr h2r hE => ?_⟩
+    have hrR : r < R := by linarith
+    have hu_ann : JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at 0 r R) :=
+      ⟨hu.1.mono (annulus_at_subset_punctured_sphere_north_pole 0 r R),
+       fun z hz => hu.2 z (annulus_at_subset_punctured_sphere_north_pole 0 r R hz)⟩
+    exact h_bnd u 0 r R hr hrR hu_ann hE
+  · have hp_src : p ∈ stereo_chart.source := by
+      rw [stereo_chart_source]
+      exact hp
+    set a : ℂ := stereo_chart p
+    have ha_symm : stereo_chart.symm a = p := stereo_chart.left_inv hp_src
+    rw [← ha_symm] at hu he ⊢
+    apply punctured_disk_oscillation_of_collar_oscillation I u a he
+    refine ⟨C, ε_osc, hC, hε_osc, fun r R hr h2r hE => ?_⟩
+    have hrR : r < R := by linarith
+    have hu_ann : JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at a r R) :=
+      ⟨hu.1.mono (annulus_at_pos_subset_punctured_sphere a hr R),
+       fun z hz => hu.2 z (annulus_at_pos_subset_punctured_sphere a hr R hz)⟩
+    exact h_bnd u a r R hr hrR hu_ann hE
 
 /-- Unconditional existence of the puncture limit `lim_{z → stereo_chart.symm a} u(z)` from
 finite energy and collar oscillation (`0 sorryAx`). -/
@@ -3121,7 +3421,8 @@ theorem exists_limit_point_of_collar_oscillation
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
     (u : CP1 → M) (a : ℂ)
     (h_energy : energyMeasureExtended I u (punctured_sphere {stereo_chart.symm a}) ≠ ⊤)
-    (h_osc : ∀ r R : ℝ, 0 < r → 2 * r < R / 2 → SatisfiesCylinderCollarOscillation I u a r R) :
+    (h_osc : ∃ (C ε_osc : ℝ), 0 < C ∧ 0 < ε_osc ∧ ∀ r R : ℝ, 0 < r → 2 * r < R / 2 →
+      energyMeasure I u (annulus_at a r R) < ε_osc → SatisfiesCylinderCollarOscillationWith I C u a r R) :
     ∃ m_star : M, Filter.Tendsto u (𝓝[≠] (stereo_chart.symm a)) (𝓝 m_star) :=
   exists_limit_point_of_puncture u (stereo_chart.symm a)
     (punctured_disk_oscillation_of_collar_oscillation I u a h_energy h_osc)
@@ -3136,7 +3437,8 @@ theorem exists_continuous_extension_of_collar_oscillation
     (u : CP1 → M) (a : ℂ)
     (h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {stereo_chart.symm a}))
     (h_energy : energyMeasureExtended I u (punctured_sphere {stereo_chart.symm a}) ≠ ⊤)
-    (h_osc : ∀ r R : ℝ, 0 < r → 2 * r < R / 2 → SatisfiesCylinderCollarOscillation I u a r R) :
+    (h_osc : ∃ (C ε_osc : ℝ), 0 < C ∧ 0 < ε_osc ∧ ∀ r R : ℝ, 0 < r → 2 * r < R / 2 →
+      energyMeasure I u (annulus_at a r R) < ε_osc → SatisfiesCylinderCollarOscillationWith I C u a r R) :
     ∃ (u_ext : CP1 → M),
       Continuous u_ext ∧
       ContMDiffOn I_CP1 I ((0 : ℕ) : WithTop ℕ∞) u_ext Set.univ ∧
@@ -3211,7 +3513,8 @@ theorem satisfiesPunctureSobolevExtension_of_collar_oscillation_and_c1
     (u : CP1 → M) (a : ℂ)
     (h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {stereo_chart.symm a}))
     (h_energy : energyMeasureExtended I u (punctured_sphere {stereo_chart.symm a}) ≠ ⊤)
-    (h_osc : ∀ r R : ℝ, 0 < r → 2 * r < R / 2 → SatisfiesCylinderCollarOscillation I u a r R)
+    (h_osc : ∃ (C ε_osc : ℝ), 0 < C ∧ 0 < ε_osc ∧ ∀ r R : ℝ, 0 < r → 2 * r < R / 2 →
+      energyMeasure I u (annulus_at a r R) < ε_osc → SatisfiesCylinderCollarOscillationWith I C u a r R)
     (h_c1 : ∀ m_star : M, Filter.Tendsto u (𝓝[≠] (stereo_chart.symm a)) (𝓝 m_star) →
       ContMDiffOn I_CP1 I 1 (Function.update u (stereo_chart.symm a) m_star) Set.univ ∧
       ∀ v : TangentSpace I_CP1 (stereo_chart.symm a),
@@ -3229,25 +3532,27 @@ theorem satisfiesPunctureSobolevExtension_of_collar_oscillation_and_c1
       (Function.update u p m_star) p hc1 (eqOn_update_punctured_sphere u p m_star) h_jhol hcr
   exact satisfiesPunctureSobolevExtension_of_update_weakJHolomorphicOn I u p m_star h_weak
 
-/-- Phase 2 Manifold-to-Chart Bridge for Certificate 3 (`h_osc`):
-Combining a radial segment oscillation bound `dist (u z₁) (u z_mid) ≤ 2 * √E(u; A(r, R))` with a
-circular slice Courant–Lebesgue / Poincaré oscillation bound `dist (u z_mid) (u z₂) ≤ 2 * √E(u; A(r, R))`
-through an intermediate collar point `z_mid` yields `SatisfiesCylinderCollarOscillation I u a r R`
-(`dist (u z₁) (u z₂) ≤ 4 * √E(u; A(r, R))`) (`0 sorryAx`). -/
+/-- Phase 2 bridge for Certificate 3 (`h_osc`), with a general constant `C`:
+a radial segment bound `dist (u z₁) (u z_mid) ≤ (C / 2) * √E(u; A(r, R))` and a circular slice bound
+`dist (u z_mid) (u z₂) ≤ (C / 2) * √E(u; A(r, R))` through an intermediate point `z_mid` give
+`SatisfiesCylinderCollarOscillationWith I C u a r R` by the triangle inequality (`0 sorryAx`). -/
 theorem satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
     {M : Type*} [MetricSpace M] [ChartedSpace H M]
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
-    (u : CP1 → M) (a : ℂ) (r R : ℝ)
+    (C : ℝ) (u : CP1 → M) (a : ℂ) (r R : ℝ)
     (h_rad_ang : ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
       ∃ z_mid : CP1,
-        dist (u z₁) (u z_mid) ≤ 2 * Real.sqrt (energyMeasure I u (annulus_at a r R)) ∧
-        dist (u z_mid) (u z₂) ≤ 2 * Real.sqrt (energyMeasure I u (annulus_at a r R))) :
-    SatisfiesCylinderCollarOscillation I u a r R := by
+        dist (u z₁) (u z_mid) ≤ (C / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)) ∧
+        dist (u z_mid) (u z₂) ≤ (C / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R))) :
+    SatisfiesCylinderCollarOscillationWith I C u a r R := by
   intro z₁ hz₁ z₂ hz₂
   obtain ⟨z_mid, h_rad, h_ang⟩ := h_rad_ang z₁ hz₁ z₂ hz₂
   have h_tri := dist_triangle (u z₁) (u z_mid) (u z₂)
+  have h_sum : (C / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)) +
+      (C / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)) =
+      C * Real.sqrt (energyMeasure I u (annulus_at a r R)) := by ring
   linarith
 
 /-- Phase 2 Manifold-to-Chart Bridge for Certificate 4 (`h_decay`):
@@ -3273,5 +3578,1423 @@ theorem iterated_dyadic_annulus_energy_le_of_hole_filling
     dsimp [e]
     rw [pow_zero, one_mul, div_one]
   rwa [he0] at h_pow
+
+/-- Concentric stereographic annuli `annulus_at a r₁ r₂` and `annulus_at a r₃ r₄` with `r₂ ≤ r₃`
+are disjoint (`0 sorryAx`). -/
+theorem disjoint_annulus_at_of_le (a : ℂ) {r₁ r₂ r₃ r₄ : ℝ} (h23 : r₂ ≤ r₃) :
+    Disjoint (annulus_at a r₁ r₂) (annulus_at a r₃ r₄) := by
+  rw [Set.disjoint_left]
+  rintro p ⟨z₁, ⟨_, hz₁_hi⟩, rfl⟩ ⟨z₂, ⟨hz₂_lo, _⟩, h_eq⟩
+  have hz : z₂ = z₁ := stereo_chart_symm_injective h_eq
+  subst hz
+  linarith
+
+/-- Disjoint three-ring superadditivity on concentric stereographic annuli (`0 sorryAx`):
+For `r' ≤ r₁ ≤ r₂ ≤ R'` and finite outer annular energy `energyMeasureExtended I u (annulus_at center r' R') ≠ ⊤`,
+the sum of the inner collar `A(r', r₁)`, middle sub-annulus `A(r₁, r₂)`, and outer collar `A(r₂, R')` energies
+is bounded above by the total annular energy `E(u; A(r', R'))`. -/
+theorem energyMeasure_three_annuli_le_outer
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (center : ℂ) {r' r₁ r₂ R' : ℝ}
+    (hr₁ : r' ≤ r₁) (hr₁₂ : r₁ ≤ r₂) (hr₂ : r₂ ≤ R')
+    (h_fin : energyMeasureExtended I u (annulus_at center r' R') ≠ ⊤) :
+    energyMeasure I u (annulus_at center r' r₁) +
+      energyMeasure I u (annulus_at center r₂ R') +
+      energyMeasure I u (annulus_at center r₁ r₂) ≤
+      energyMeasure I u (annulus_at center r' R') := by
+  let A₁ := annulus_at center r' r₁
+  let A₂ := annulus_at center r₁ r₂
+  let A₃ := annulus_at center r₂ R'
+  let A := annulus_at center r' R'
+  have hA₁_sub : A₁ ⊆ A := annulus_at_mono center le_rfl (le_trans hr₁₂ hr₂)
+  have hA₂_sub : A₂ ⊆ A := annulus_at_mono center hr₁ hr₂
+  have hA₃_sub : A₃ ⊆ A := annulus_at_mono center (le_trans hr₁ hr₁₂) le_rfl
+  have h_union_sub : (A₁ ∪ A₃) ∪ A₂ ⊆ A :=
+    Set.union_subset (Set.union_subset hA₁_sub hA₃_sub) hA₂_sub
+  have h_disj_13 : Disjoint A₁ A₃ := disjoint_annulus_at_of_le center hr₁₂
+  have h_disj_12 : Disjoint A₁ A₂ := disjoint_annulus_at_of_le center le_rfl
+  have h_disj_32 : Disjoint A₃ A₂ := (disjoint_annulus_at_of_le center le_rfl).symm
+  have h_disj_u2 : Disjoint (A₁ ∪ A₃) A₂ := Disjoint.union_left h_disj_12 h_disj_32
+  have h_m1 : MeasurableSet A₁ := measurableSet_annulus_at center r' r₁
+  have h_m2 : MeasurableSet A₂ := measurableSet_annulus_at center r₁ r₂
+  have h_m3 : MeasurableSet A₃ := measurableSet_annulus_at center r₂ R'
+  have h_fin1 : energyMeasureExtended I u A₁ ≠ ⊤ :=
+    ne_top_of_le_ne_top h_fin (MeasureTheory.measure_mono hA₁_sub)
+  have h_fin2 : energyMeasureExtended I u A₂ ≠ ⊤ :=
+    ne_top_of_le_ne_top h_fin (MeasureTheory.measure_mono hA₂_sub)
+  have h_fin3 : energyMeasureExtended I u A₃ ≠ ⊤ :=
+    ne_top_of_le_ne_top h_fin (MeasureTheory.measure_mono hA₃_sub)
+  have h_fin13 : energyMeasureExtended I u (A₁ ∪ A₃) ≠ ⊤ := by
+    rw [MeasureTheory.measure_union h_disj_13 h_m3]
+    exact ENNReal.add_ne_top.mpr ⟨h_fin1, h_fin3⟩
+  have h_meas_le : energyMeasureExtended I u ((A₁ ∪ A₃) ∪ A₂) ≤ energyMeasureExtended I u A :=
+    MeasureTheory.measure_mono h_union_sub
+  have h_real_le := ENNReal.toReal_mono h_fin h_meas_le
+  rw [MeasureTheory.measure_union h_disj_u2 h_m2,
+      ENNReal.toReal_add h_fin13 h_fin2,
+      MeasureTheory.measure_union h_disj_13 h_m3,
+      ENNReal.toReal_add h_fin1 h_fin3] at h_real_le
+  exact h_real_le
+
+/-- Disjoint dyadic collar-ring difference inequality (`0 sorryAx`):
+For `0 ≤ r'` and `4 * r' ≤ R'` with `energyMeasureExtended I u (annulus_at center r' R') ≠ ⊤`,
+the sum of the boundary collar energies `E(u; A(r', 2r')) + E(u; A(R'/2, R'))` is at most
+the annular energy difference `E(u; A(r', R')) - E(u; A(2r', R'/2))`. -/
+theorem energyMeasure_collar_sum_le_outer_sub_inner
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (center : ℂ) {r' R' : ℝ}
+    (hr' : 0 ≤ r') (h4 : 4 * r' ≤ R')
+    (h_fin : energyMeasureExtended I u (annulus_at center r' R') ≠ ⊤) :
+    energyMeasure I u (annulus_at center r' (2 * r')) +
+      energyMeasure I u (annulus_at center (R' / 2) R') ≤
+      energyMeasure I u (annulus_at center r' R') -
+        energyMeasure I u (annulus_at center (2 * r') (R' / 2)) := by
+  have h3 := energyMeasure_three_annuli_le_outer I u center
+    (by linarith : r' ≤ 2 * r') (by linarith : 2 * r' ≤ R' / 2) (by linarith : R' / 2 ≤ R') h_fin
+  linarith
+
+/-- Continuous two-sided power-law cylinder energy decay from discrete dyadic Widman hole-filling (`0 sorryAx`):
+If a map `u : CP1 → M` with `energyMeasureExtended I u (annulus_at center r R) ≠ ⊤` satisfies the
+single-step Widman hole-filling inequality
+`E(u; A(2^{j+1} r, R / 2^{j+1})) ≤ K * (E(u; A(2^j r, R / 2^j)) - E(u; A(2^{j+1} r, R / 2^{j+1})))`
+with `K > 0` at every non-degenerate dyadic depth `4 * (2^j * r) < R / 2^j`, then with
+`C₀ = (1 + K) / K > 0` and `a_decay = log((1 + K) / K) / log 2 > 0`, `u` satisfies
+`SatisfiesCylinderEnergyDecayWith I C₀ a_decay u center r R` across all continuous sub-annuli `r < r₁ < r₂ < R`. -/
+theorem satisfiesCylinderEnergyDecayWith_of_dyadic_hole_filling
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (center : ℂ) {r R K : ℝ}
+    (hr : 0 < r) (hK : 0 < K)
+    (h_fin : energyMeasureExtended I u (annulus_at center r R) ≠ ⊤)
+    (h_step : ∀ j : ℕ, 4 * ((2 : ℝ) ^ j * r) < R / (2 : ℝ) ^ j →
+      energyMeasure I u (annulus_at center ((2 : ℝ) ^ (j + 1) * r) (R / (2 : ℝ) ^ (j + 1))) ≤
+        K * (energyMeasure I u (annulus_at center ((2 : ℝ) ^ j * r) (R / (2 : ℝ) ^ j)) -
+             energyMeasure I u (annulus_at center ((2 : ℝ) ^ (j + 1) * r) (R / (2 : ℝ) ^ (j + 1))))) :
+    SatisfiesCylinderEnergyDecayWith I ((1 + K) / K) (Real.log ((1 + K) / K) / Real.log 2) u center r R := by
+  intro r₁ r₂ hr₁ hr₁₂ hr₂
+  let C₀ : ℝ := (1 + K) / K
+  let a_decay : ℝ := Real.log C₀ / Real.log 2
+  have hr₁_pos : 0 < r₁ := lt_trans hr hr₁
+  have hr₂_pos : 0 < r₂ := lt_trans hr₁_pos hr₁₂
+  have hR_pos : 0 < R := lt_trans hr₂_pos hr₂
+  have hC₀_gt_one : 1 < C₀ := (one_lt_div hK).mpr (by linarith)
+  have hC₀_pos : 0 < C₀ := lt_trans zero_lt_one hC₀_gt_one
+  have ha_pos : 0 < a_decay :=
+    div_pos (Real.log_pos hC₀_gt_one) (Real.log_pos (by norm_num : (1 : ℝ) < 2))
+  have h2_pow_a : (2 : ℝ) ^ a_decay = C₀ := by
+    rw [Real.rpow_def_of_pos (by norm_num : (0 : ℝ) < 2)]
+    have hlog2 : Real.log 2 ≠ 0 := Real.log_ne_zero_of_pos_of_ne_one (by norm_num) (by norm_num)
+    have h_mul : Real.log 2 * a_decay = Real.log C₀ := mul_div_cancel₀ _ hlog2
+    rw [h_mul, Real.exp_log hC₀_pos]
+  have h_half_pow_a : (1 / 2 : ℝ) ^ a_decay = K / (1 + K) := by
+    rw [one_div, Real.inv_rpow (by norm_num : (0 : ℝ) ≤ 2), h2_pow_a]
+    exact inv_div (1 + K) K
+  let x : ℝ := max (r / r₁) (r₂ / R)
+  have hx_pos : 0 < x := lt_max_of_lt_left (div_pos hr hr₁_pos)
+  have hx_le_one : x ≤ 1 :=
+    max_le ((div_le_one hr₁_pos).mpr hr₁.le) ((div_le_one hR_pos).mpr hr₂.le)
+  obtain ⟨k, hlo, hhi⟩ := exists_nat_pow_near_of_lt_one hx_pos hx_le_one
+    (by norm_num : (0 : ℝ) < 1 / 2) (by norm_num : (1 / 2 : ℝ) < 1)
+  have h2k_pos : 0 < (2 : ℝ) ^ k := pow_pos (by norm_num) k
+  have hr_div_le : r / r₁ ≤ 1 / (2 : ℝ) ^ k := by
+    calc r / r₁ ≤ x := le_max_left _ _
+      _ ≤ (1 / 2 : ℝ) ^ k := hhi
+      _ = 1 / (2 : ℝ) ^ k := one_div_pow 2 k
+  have h_inner_le : (2 : ℝ) ^ k * r ≤ r₁ := by
+    have h1 := (div_le_div_iff₀ hr₁_pos h2k_pos).mp hr_div_le
+    linarith
+  have hr2_div_le : r₂ / R ≤ 1 / (2 : ℝ) ^ k := by
+    calc r₂ / R ≤ x := le_max_right _ _
+      _ ≤ (1 / 2 : ℝ) ^ k := hhi
+      _ = 1 / (2 : ℝ) ^ k := one_div_pow 2 k
+  have h_outer_le : r₂ ≤ R / (2 : ℝ) ^ k := by
+    rw [le_div_iff₀ h2k_pos]
+    have h1 := (div_le_div_iff₀ hR_pos h2k_pos).mp hr2_div_le
+    linarith
+  have h_step_k : ∀ j < k,
+      energyMeasure I u (annulus_at center ((2 : ℝ) ^ (j + 1) * r) (R / (2 : ℝ) ^ (j + 1))) ≤
+        K * (energyMeasure I u (annulus_at center ((2 : ℝ) ^ j * r) (R / (2 : ℝ) ^ j)) -
+             energyMeasure I u (annulus_at center ((2 : ℝ) ^ (j + 1) * r) (R / (2 : ℝ) ^ (j + 1)))) := by
+    intro j hj
+    apply h_step j
+    have hj1_le_k : (2 : ℝ) ^ (j + 1) ≤ (2 : ℝ) ^ k :=
+      pow_le_pow_right₀ (by norm_num : (1 : ℝ) ≤ 2) (Nat.succ_le_of_lt hj)
+    have hj_pos : 0 < (2 : ℝ) ^ j := pow_pos (by norm_num) j
+    have hj1_pos : 0 < (2 : ℝ) ^ (j + 1) := pow_pos (by norm_num) (j + 1)
+    have h_in_j : (2 : ℝ) ^ (j + 1) * r ≤ r₁ :=
+      le_trans (mul_le_mul_of_nonneg_right hj1_le_k hr.le) h_inner_le
+    have h_out_j : r₂ ≤ R / (2 : ℝ) ^ (j + 1) :=
+      le_trans h_outer_le (div_le_div_of_nonneg_left hR_pos.le hj1_pos hj1_le_k)
+    have h_lt_j : (2 : ℝ) ^ (j + 1) * r < R / (2 : ℝ) ^ (j + 1) :=
+      lt_of_le_of_lt h_in_j (lt_of_lt_of_le hr₁₂ h_out_j)
+    have h_pow_succ : (2 : ℝ) ^ (j + 1) = 2 * (2 : ℝ) ^ j := pow_succ' 2 j
+    rw [h_pow_succ] at h_lt_j
+    rw [lt_div_iff₀ (by positivity : (0 : ℝ) < 2 * (2 : ℝ) ^ j)] at h_lt_j
+    rw [lt_div_iff₀ hj_pos]
+    have h_id : 4 * ((2 : ℝ) ^ j * r) * (2 : ℝ) ^ j = (2 * (2 : ℝ) ^ j * r) * (2 * (2 : ℝ) ^ j) := by ring
+    linarith
+  have h_iter := iterated_dyadic_annulus_energy_le_of_hole_filling I u center r R K hK.le k h_step_k
+  have h1_le_2k : (1 : ℝ) ≤ (2 : ℝ) ^ k := one_le_pow₀ (by norm_num : (1 : ℝ) ≤ 2)
+  have h_fin_k : energyMeasureExtended I u (annulus_at center ((2 : ℝ) ^ k * r) (R / (2 : ℝ) ^ k)) ≠ ⊤ :=
+    ne_top_of_le_ne_top h_fin (energyMeasureExtended_annulus_at_mono I u center
+      (le_mul_of_one_le_left hr.le h1_le_2k)
+      (div_le_self hR_pos.le h1_le_2k))
+  have h_mono_sub : energyMeasure I u (annulus_at center r₁ r₂) ≤
+      energyMeasure I u (annulus_at center ((2 : ℝ) ^ k * r) (R / (2 : ℝ) ^ k)) :=
+    energyMeasure_annulus_at_mono I u center h_inner_le h_outer_le h_fin_k
+  have h_theta_eq : K / (1 + K) = C₀⁻¹ := by
+    dsimp [C₀]
+    rw [inv_div]
+  have h_theta_k : (K / (1 + K)) ^ k = C₀ * (K / (1 + K)) ^ (k + 1) := by
+    rw [pow_succ, h_theta_eq]
+    have hC₀_ne : C₀ ≠ 0 := hC₀_pos.ne'
+    field_simp
+  have h_theta_k1_le : (K / (1 + K)) ^ (k + 1) ≤ (r / r₁) ^ a_decay + (r₂ / R) ^ a_decay := by
+    have h_pow_comm : (K / (1 + K)) ^ (k + 1) = ((1 / 2 : ℝ) ^ (k + 1)) ^ a_decay := by
+      rw [← h_half_pow_a, Real.rpow_pow_comm (by norm_num : (0 : ℝ) ≤ 1 / 2)]
+    have h_le_x : ((1 / 2 : ℝ) ^ (k + 1)) ^ a_decay ≤ x ^ a_decay :=
+      Real.rpow_le_rpow (pow_nonneg (by norm_num) (k + 1)) hlo.le ha_pos.le
+    have hx_le_sum : x ^ a_decay ≤ (r / r₁) ^ a_decay + (r₂ / R) ^ a_decay := by
+      rcases max_choice (r / r₁) (r₂ / R) with h_eq | h_eq
+      · dsimp [x]
+        rw [h_eq]
+        have h_pos2 : 0 ≤ (r₂ / R) ^ a_decay := Real.rpow_nonneg (div_nonneg hr₂_pos.le hR_pos.le) a_decay
+        linarith
+      · dsimp [x]
+        rw [h_eq]
+        have h_pos1 : 0 ≤ (r / r₁) ^ a_decay := Real.rpow_nonneg (div_nonneg hr.le hr₁_pos.le) a_decay
+        linarith
+    linarith
+  have h_E_nonneg : 0 ≤ energyMeasure I u (annulus_at center r R) := energy_nonneg I u _
+  calc
+    energyMeasure I u (annulus_at center r₁ r₂)
+      ≤ energyMeasure I u (annulus_at center ((2 : ℝ) ^ k * r) (R / (2 : ℝ) ^ k)) := h_mono_sub
+    _ ≤ (K / (1 + K)) ^ k * energyMeasure I u (annulus_at center r R) := h_iter
+    _ = C₀ * (K / (1 + K)) ^ (k + 1) * energyMeasure I u (annulus_at center r R) := by rw [h_theta_k]
+    _ ≤ C₀ * ((r / r₁) ^ a_decay + (r₂ / R) ^ a_decay) * energyMeasure I u (annulus_at center r R) := by
+      apply mul_le_mul_of_nonneg_right _ h_E_nonneg
+      exact mul_le_mul_of_nonneg_left h_theta_k1_le hC₀_pos.le
+
+/-- Continuous two-sided power-law cylinder energy decay from single-step collar Widman hole-filling (`0 sorryAx`):
+If on every nested sub-annulus `A(r', R') ⊆ A(r, R)` with `4 * r' < R'`, the interior energy
+`E(u; A(2r', R'/2))` is bounded by `K` times the boundary collar energy `E(u; A(r', 2r')) + E(u; A(R'/2, R'))`,
+then `u` satisfies `SatisfiesCylinderEnergyDecayWith I ((1 + K) / K) (log((1 + K) / K) / log 2) u center r R`. -/
+theorem satisfiesCylinderEnergyDecayWith_of_collar_hole_filling
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (center : ℂ) {r R K : ℝ}
+    (hr : 0 < r) (hK : 0 < K)
+    (h_fin : energyMeasureExtended I u (annulus_at center r R) ≠ ⊤)
+    (h_collar : ∀ r' R' : ℝ, r ≤ r' → R' ≤ R → 4 * r' < R' →
+      energyMeasure I u (annulus_at center (2 * r') (R' / 2)) ≤
+        K * (energyMeasure I u (annulus_at center r' (2 * r')) +
+             energyMeasure I u (annulus_at center (R' / 2) R'))) :
+    SatisfiesCylinderEnergyDecayWith I ((1 + K) / K) (Real.log ((1 + K) / K) / Real.log 2) u center r R := by
+  apply satisfiesCylinderEnergyDecayWith_of_dyadic_hole_filling I u center hr hK h_fin
+  intro j hj4
+  let r' := (2 : ℝ) ^ j * r
+  let R' := R / (2 : ℝ) ^ j
+  have h1_le_2j : (1 : ℝ) ≤ (2 : ℝ) ^ j := one_le_pow₀ (by norm_num : (1 : ℝ) ≤ 2)
+  have hr'_pos : 0 < r' := mul_pos (pow_pos (by norm_num) j) hr
+  have hR'_pos : 0 < R' := by linarith
+  have hR_pos : 0 < R := by
+    have h2j_pos : 0 < (2 : ℝ) ^ j := pow_pos (by norm_num) j
+    exact (div_pos_iff_of_pos_right h2j_pos).mp hR'_pos
+  have hr_le_r' : r ≤ r' := le_mul_of_one_le_left hr.le h1_le_2j
+  have hR'_le_R : R' ≤ R := div_le_self hR_pos.le h1_le_2j
+  have h_fin_j : energyMeasureExtended I u (annulus_at center r' R') ≠ ⊤ :=
+    ne_top_of_le_ne_top h_fin (energyMeasureExtended_annulus_at_mono I u center hr_le_r' hR'_le_R)
+  have h_col := h_collar r' R' hr_le_r' hR'_le_R hj4
+  have h_diff := energyMeasure_collar_sum_le_outer_sub_inner I u center hr'_pos.le hj4.le h_fin_j
+  have h_in_eq : (2 : ℝ) ^ (j + 1) * r = 2 * r' := by
+    dsimp [r']
+    rw [pow_succ']
+    ring
+  have h_out_eq : R / (2 : ℝ) ^ (j + 1) = R' / 2 := by
+    dsimp [R']
+    rw [pow_succ', div_div, mul_comm 2 ((2 : ℝ) ^ j)]
+  rw [h_in_eq, h_out_eq]
+  linarith [mul_le_mul_of_nonneg_left h_diff hK.le]
+
+/-- Unconditional bounded-aspect-ratio cylinder energy decay (`0 sorryAx`):
+Whenever `0 < r`, `R ≤ M_rat * r` with `1 ≤ M_rat`, `0 < a_decay`, and
+`energyMeasureExtended I u (annulus_at center r R) ≠ ⊤`, `u` satisfies
+`SatisfiesCylinderEnergyDecayWith I (M_rat ^ a_decay) a_decay u center r R` unconditionally. -/
+theorem satisfiesCylinderEnergyDecayWith_of_ratio_le
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (center : ℂ) {r R M_rat a_decay : ℝ}
+    (hr : 0 < r) (hM : 1 ≤ M_rat) (ha : 0 < a_decay) (h_rat : R ≤ M_rat * r)
+    (h_fin : energyMeasureExtended I u (annulus_at center r R) ≠ ⊤) :
+    SatisfiesCylinderEnergyDecayWith I (M_rat ^ a_decay) a_decay u center r R := by
+  intro r₁ r₂ hr₁ hr₁₂ hr₂
+  have hr₁_pos : 0 < r₁ := lt_trans hr hr₁
+  have hr₂_pos : 0 < r₂ := lt_trans hr₁_pos hr₁₂
+  have hR_pos : 0 < R := lt_trans hr₂_pos hr₂
+  have hM_pos : 0 < M_rat := lt_of_lt_of_le zero_lt_one hM
+  have h_mono : energyMeasure I u (annulus_at center r₁ r₂) ≤ energyMeasure I u (annulus_at center r R) :=
+    energyMeasure_annulus_at_mono I u center hr₁.le hr₂.le h_fin
+  have h_r_div : 1 / M_rat ≤ r / r₁ := by
+    rw [div_le_div_iff₀ hM_pos hr₁_pos]
+    have h1 : r₁ < M_rat * r := lt_of_lt_of_le (lt_trans hr₁₂ hr₂) h_rat
+    linarith
+  have h_rpow_le : (1 / M_rat) ^ a_decay ≤ (r / r₁) ^ a_decay :=
+    Real.rpow_le_rpow (by positivity) h_r_div ha.le
+  have h_prod_one : M_rat ^ a_decay * (1 / M_rat) ^ a_decay = 1 := by
+    rw [one_div, Real.inv_rpow hM_pos.le, mul_inv_cancel₀ (Real.rpow_pos_of_pos hM_pos a_decay).ne']
+  have h_one_le : 1 ≤ M_rat ^ a_decay * ((r / r₁) ^ a_decay + (r₂ / R) ^ a_decay) := by
+    have h_pos2 : 0 ≤ (r₂ / R) ^ a_decay := Real.rpow_nonneg (div_nonneg hr₂_pos.le hR_pos.le) a_decay
+    have h_Ma_pos : 0 ≤ M_rat ^ a_decay := Real.rpow_nonneg hM_pos.le a_decay
+    calc
+      (1 : ℝ) = M_rat ^ a_decay * (1 / M_rat) ^ a_decay := h_prod_one.symm
+      _ ≤ M_rat ^ a_decay * ((r / r₁) ^ a_decay + (r₂ / R) ^ a_decay) :=
+        mul_le_mul_of_nonneg_left (by linarith) h_Ma_pos
+  have h_E_nonneg : 0 ≤ energyMeasure I u (annulus_at center r R) := energy_nonneg I u _
+  nlinarith
+
+/-- Global `CylinderEnergyDecayProperty` (`cert_decay` / Contract A10) derived from
+single-step collar Widman hole-filling (`0 sorryAx`):
+If there exist `K > 0` and `ε_neck > 0` such that every `J`-holomorphic sphere `u` and annulus
+`A(center; r', R')` with `0 < r'`, `4 * r' < R'`, and `E(u; A(r', R')) < ε_neck` satisfies
+finite extended energy and the single-step collar bound
+`E(u; A(2r', R'/2)) ≤ K * (E(u; A(r', 2r')) + E(u; A(R'/2, R')))`,
+then `CylinderEnergyDecayProperty I M` holds with explicit positive constants
+`C₀ = (1 + K) / K`, `a_decay = log((1 + K) / K) / log 2`, and `ε_neck`. -/
+theorem cylinderEnergyDecayProperty_of_collar_hole_filling
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    (M : Type*) [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {K ε_neck : ℝ} (hK : 0 < K) (hε : 0 < ε_neck)
+    (h_fin : ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+      0 < r → 2 * r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r R) < ε_neck →
+      energyMeasureExtended I u (annulus_at center r R) ≠ ⊤)
+    (h_collar : ∀ (u : CP1 → M) (center : ℂ) (r' R' : ℝ),
+      0 < r' → 4 * r' < R' →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r' R') < ε_neck →
+      energyMeasure I u (annulus_at center (2 * r') (R' / 2)) ≤
+        K * (energyMeasure I u (annulus_at center r' (2 * r')) +
+             energyMeasure I u (annulus_at center (R' / 2) R'))) :
+    CylinderEnergyDecayProperty I M := by
+  let C₀ : ℝ := (1 + K) / K
+  let a_decay : ℝ := Real.log C₀ / Real.log 2
+  have hC₀_gt_one : 1 < C₀ := (one_lt_div hK).mpr (by linarith)
+  have hC₀_pos : 0 < C₀ := lt_trans zero_lt_one hC₀_gt_one
+  have ha_pos : 0 < a_decay :=
+    div_pos (Real.log_pos hC₀_gt_one) (Real.log_pos (by norm_num : (1 : ℝ) < 2))
+  refine ⟨C₀, a_decay, ε_neck, hC₀_pos, ha_pos, hε, ?_⟩
+  intro u center r R hr h2rR hu h_en
+  have h_fin_rR := h_fin u center r R hr h2rR hu h_en
+  apply satisfiesCylinderEnergyDecayWith_of_collar_hole_filling I u center hr hK h_fin_rR
+  intro r' R' hr' hR' h4
+  have hr'_pos : 0 < r' := lt_of_lt_of_le hr hr'
+  have h_en_sub : energyMeasure I u (annulus_at center r' R') < ε_neck :=
+    lt_of_le_of_lt (energyMeasure_annulus_at_mono I u center hr' hR' h_fin_rR) h_en
+  exact h_collar u center r' R' hr'_pos h4 hu h_en_sub
+
+/-- Contract A10 (`cylinder_exponential_decay`) derived from single-step collar Widman hole-filling (`0 sorryAx`). -/
+theorem cylinder_exponential_decay_of_collar_hole_filling
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    (M : Type*) [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {K ε_neck : ℝ} (hK : 0 < K) (hε : 0 < ε_neck)
+    (h_fin : ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+      0 < r → 2 * r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r R) < ε_neck →
+      energyMeasureExtended I u (annulus_at center r R) ≠ ⊤)
+    (h_collar : ∀ (u : CP1 → M) (center : ℂ) (r' R' : ℝ),
+      0 < r' → 4 * r' < R' →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r' R') < ε_neck →
+      energyMeasure I u (annulus_at center (2 * r') (R' / 2)) ≤
+        K * (energyMeasure I u (annulus_at center r' (2 * r')) +
+             energyMeasure I u (annulus_at center (R' / 2) R'))) :
+    ∃ (C₀ a_decay ε_neck' : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck' ∧
+    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+      0 < r → 2 * r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r R) < ε_neck' →
+      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
+        energyMeasure I u (annulus_at center r₁ r₂) ≤
+          C₀ * ((r / r₁)^a_decay + (r₂ / R)^a_decay) * energyMeasure I u (annulus_at center r R) :=
+  cylinder_exponential_decay I
+    (cylinderEnergyDecayProperty_of_collar_hole_filling I M hK hε h_fin h_collar)
+
+/-!
+### 10. Step 2: Arbitrary-Modulus Collar Oscillation from Bounded-Modulus Ring Oscillation + Cylinder Energy Decay (`0 sorryAx`)
+
+On a long neck `annulus_at a r R` with arbitrary aspect ratio `R / r`, a single Courant–Lebesgue
+slice bound on `A(r, R)` cannot bound the radial oscillation without a factor of `√(log(R/r))`.
+Instead, any pair of points `z₁, z₂ ∈ annulus_at a (2 * r) (R / 2)` with `2r < s = dist w₁ a ≤ t = dist w₂ a < R/2`
+is connected through a dyadic radial chain `s = ρ₀ ≤ ρ₁ ≤ ⋯ ≤ ρ_N = t` (`ρ_{k+1} ≤ 2 ρ_k`).
+Each dyadic ring `[ρ_k, ρ_{k+1}]` sits inside the central collar `(2 r_{1,k}, r_{2,k} / 2)` of the
+bounded-modulus sub-annulus:
+`r_{1,k} = max ((r + ρ_k / 2) / 2) (ρ_k / 3)`, `r_{2,k} = min (ρ_{k+1} + R / 2) (3 * ρ_{k+1})`,
+which satisfies `r < r_{1,k} < r_{2,k} < R` and bounded aspect ratio `r_{2,k} ≤ 18 * r_{1,k}`.
+Summing the bounded-modulus ring oscillation bounds against the two-sided power decay
+`E(u; A(r_{1,k}, r_{2,k})) ≤ C₀ * ((r / r_{1,k})^a + (r_{2,k} / R)^a) * E(u; A(r, R))`
+yields `SatisfiesCylinderCollarOscillationWith I C u a r R` with a constant `C` independent of `R / r`.
+-/
+
+/-- Inner parent radius for a dyadic ring starting at radius `s ∈ (2r, R/2)`:
+`boundedModulusInner r s = max ((r + s / 2) / 2) (s / 3)`. -/
+noncomputable def boundedModulusInner (r s : ℝ) : ℝ :=
+  max ((r + s / 2) / 2) (s / 3)
+
+/-- Outer parent radius for a dyadic ring ending at radius `t ∈ (2r, R/2)`:
+`boundedModulusOuter R t = min (t + R / 2) (3 * t)`. -/
+noncomputable def boundedModulusOuter (R t : ℝ) : ℝ :=
+  min (t + R / 2) (3 * t)
+
+/-- Exact arithmetic properties of the bounded-modulus parent sub-annulus
+`(boundedModulusInner r s, boundedModulusOuter R t)` for any dyadic step `2r < s ≤ t < R/2`
+with `t ≤ 2s` (`0 sorryAx`). -/
+theorem boundedModulus_subannulus_props {r R s t : ℝ}
+    (hr : 0 < r) (hs : 2 * r < s) (hst : s ≤ t) (ht2s : t ≤ 2 * s) (htR : t < R / 2) :
+    0 < boundedModulusInner r s ∧
+    r < boundedModulusInner r s ∧
+    2 * boundedModulusInner r s < s ∧
+    t < boundedModulusOuter R t / 2 ∧
+    boundedModulusOuter R t < R ∧
+    boundedModulusInner r s < boundedModulusOuter R t ∧
+    boundedModulusOuter R t ≤ 18 * boundedModulusInner r s ∧
+    s / 3 ≤ boundedModulusInner r s ∧
+    boundedModulusOuter R t ≤ 3 * t := by
+  dsimp [boundedModulusInner, boundedModulusOuter]
+  have h1 : r < (r + s / 2) / 2 := by linarith
+  have h1_le : (r + s / 2) / 2 ≤ max ((r + s / 2) / 2) (s / 3) := le_max_left _ _
+  have hs3_le : s / 3 ≤ max ((r + s / 2) / 2) (s / 3) := le_max_right _ _
+  have hr_lt : r < max ((r + s / 2) / 2) (s / 3) := lt_of_lt_of_le h1 h1_le
+  have h2r1_lt_s : 2 * max ((r + s / 2) / 2) (s / 3) < s := by
+    rcases max_choice ((r + s / 2) / 2) (s / 3) with hmax | hmax <;> linarith
+  have ht_lt_half : t < min (t + R / 2) (3 * t) / 2 := by
+    rcases min_choice (t + R / 2) (3 * t) with hmin | hmin <;> linarith
+  have hmin_le1 : min (t + R / 2) (3 * t) ≤ t + R / 2 := min_le_left _ _
+  have hmin_le2 : min (t + R / 2) (3 * t) ≤ 3 * t := min_le_right _ _
+  have hr2_lt_R : min (t + R / 2) (3 * t) < R := by linarith
+  have hr1_lt_r2 : max ((r + s / 2) / 2) (s / 3) < min (t + R / 2) (3 * t) := by linarith
+  have hr2_le_18 : min (t + R / 2) (3 * t) ≤ 18 * max ((r + s / 2) / 2) (s / 3) := by linarith
+  exact ⟨lt_trans hr hr_lt, hr_lt, h2r1_lt_s, ht_lt_half, hr2_lt_R, hr1_lt_r2,
+    hr2_le_18, hs3_le, hmin_le2⟩
+
+/-- Point at distance `ρ` from `a` along the ray from `a` through `w` (`0 sorryAx`). -/
+noncomputable def radialPointOnRay (a w : ℂ) (ρ : ℝ) : ℂ :=
+  a + ((ρ / dist w a : ℝ) : ℂ) * (w - a)
+
+/-- If `dist w a > 0` and `ρ ≥ 0`, then `dist (radialPointOnRay a w ρ) a = ρ` (`0 sorryAx`). -/
+theorem dist_radialPointOnRay {a w : ℂ} {ρ : ℝ} (hw : 0 < dist w a) (hρ : 0 ≤ ρ) :
+    dist (radialPointOnRay a w ρ) a = ρ := by
+  dsimp [radialPointOnRay]
+  rw [dist_eq_norm, add_sub_cancel_left, norm_mul, Complex.norm_real, Real.norm_of_nonneg (div_nonneg hρ hw.le),
+    ← dist_eq_norm, div_mul_cancel₀ _ hw.ne']
+
+/-- At `ρ = dist w a`, `radialPointOnRay a w (dist w a) = w` (`0 sorryAx`). -/
+theorem radialPointOnRay_self {a w : ℂ} (hw : 0 < dist w a) :
+    radialPointOnRay a w (dist w a) = w := by
+  dsimp [radialPointOnRay]
+  rw [div_self hw.ne', Complex.ofReal_one, one_mul, add_sub_cancel]
+
+/-- Subadditivity of `Real.sqrt` on nonnegative reals: `√(x + y) ≤ √x + √y` (`0 sorryAx`). -/
+theorem sqrt_add_le_sqrt_add_sqrt {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
+    Real.sqrt (x + y) ≤ Real.sqrt x + Real.sqrt y := by
+  have h_nonneg : 0 ≤ Real.sqrt x + Real.sqrt y := by positivity
+  rw [← Real.sqrt_sq h_nonneg]
+  apply Real.sqrt_le_sqrt
+  calc
+    x + y = (Real.sqrt x) ^ 2 + (Real.sqrt y) ^ 2 := by rw [Real.sq_sqrt hx, Real.sq_sqrt hy]
+    _ ≤ (Real.sqrt x + Real.sqrt y) ^ 2 := by
+      have : 0 ≤ 2 * Real.sqrt x * Real.sqrt y := by positivity
+      linarith [add_sq (Real.sqrt x) (Real.sqrt y)]
+
+/-- Single dyadic step oscillation bound (`2r < s ≤ t < R/2`, `t ≤ 2s`) from bounded-modulus (`≤ 18`)
+collar oscillation and two-sided cylinder energy decay (`0 sorryAx`). -/
+theorem dist_le_of_dyadic_step_bounded_modulus_and_decay
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {C_ring C₀ a_decay : ℝ} (hC_ring : 0 ≤ C_ring) (hC₀ : 0 ≤ C₀) (ha : 0 ≤ a_decay)
+    (u : CP1 → M) (a : ℂ) {r R : ℝ} (hr : 0 < r)
+    (h_ring : ∀ r₁ r₂ : ℝ, r < r₁ → r₁ < r₂ → r₂ < R → r₂ ≤ 18 * r₁ →
+      SatisfiesCylinderCollarOscillationWith I C_ring u a r₁ r₂)
+    (h_decay : SatisfiesCylinderEnergyDecayWith I C₀ a_decay u a r R)
+    {w₁ w₂ : ℂ} {s t : ℝ}
+    (hs_gt : 2 * r < s) (hst : s ≤ t) (ht2s : t ≤ 2 * s) (ht_lt : t < R / 2)
+    (hw₁ : s ≤ dist w₁ a ∧ dist w₁ a ≤ t)
+    (hw₂ : s ≤ dist w₂ a ∧ dist w₂ a ≤ t) :
+    dist (u (stereo_chart.symm w₁)) (u (stereo_chart.symm w₂)) ≤
+      (C_ring * Real.sqrt C₀ * (3 : ℝ) ^ (a_decay / 2)) *
+        ((r / s) ^ (a_decay / 2) + (t / R) ^ (a_decay / 2)) *
+        Real.sqrt (energyMeasure I u (annulus_at a r R)) := by
+  obtain ⟨hr₁_pos, hr_lt_r₁, h2r₁_lt_s, ht_lt_r₂_half, hr₂_lt_R, hr₁_lt_r₂, hr₂_le_18, hs3_le, hr₂_le_3t⟩ :=
+    boundedModulus_subannulus_props hr hs_gt hst ht2s ht_lt
+  set r₁ := boundedModulusInner r s
+  set r₂ := boundedModulusOuter R t
+  have hz₁_mem : stereo_chart.symm w₁ ∈ annulus_at a (2 * r₁) (r₂ / 2) :=
+    ⟨w₁, ⟨lt_of_lt_of_le h2r₁_lt_s hw₁.1, lt_of_le_of_lt hw₁.2 ht_lt_r₂_half⟩, rfl⟩
+  have hz₂_mem : stereo_chart.symm w₂ ∈ annulus_at a (2 * r₁) (r₂ / 2) :=
+    ⟨w₂, ⟨lt_of_lt_of_le h2r₁_lt_s hw₂.1, lt_of_le_of_lt hw₂.2 ht_lt_r₂_half⟩, rfl⟩
+  have h_osc_step := h_ring r₁ r₂ hr_lt_r₁ hr₁_lt_r₂ hr₂_lt_R hr₂_le_18
+    (stereo_chart.symm w₁) hz₁_mem (stereo_chart.symm w₂) hz₂_mem
+  have h_dec_step := h_decay r₁ r₂ hr_lt_r₁ hr₁_lt_r₂ hr₂_lt_R
+  have hs_pos : 0 < s := by linarith
+  have ht_pos : 0 < t := lt_of_lt_of_le hs_pos hst
+  have hR_pos : 0 < R := by linarith
+  have h_r_div_r₁ : r / r₁ ≤ 3 * (r / s) := by
+    rw [div_le_iff₀ hr₁_pos]
+    have h_mul : s ≤ 3 * r₁ := by linarith
+    calc
+      r = (r / s) * s := (div_mul_cancel₀ r hs_pos.ne').symm
+      _ ≤ (r / s) * (3 * r₁) := mul_le_mul_of_nonneg_left h_mul (div_nonneg hr.le hs_pos.le)
+      _ = 3 * (r / s) * r₁ := by ring
+  have h_r₂_div_R : r₂ / R ≤ 3 * (t / R) := by
+    calc
+      r₂ / R ≤ (3 * t) / R := div_le_div_of_nonneg_right hr₂_le_3t hR_pos.le
+      _ = 3 * (t / R) := mul_div_assoc 3 t R
+  have h_rpow1 : (r / r₁) ^ a_decay ≤ (3 : ℝ) ^ a_decay * (r / s) ^ a_decay := by
+    calc
+      (r / r₁) ^ a_decay ≤ (3 * (r / s)) ^ a_decay :=
+        Real.rpow_le_rpow (div_nonneg hr.le hr₁_pos.le) h_r_div_r₁ ha
+      _ = (3 : ℝ) ^ a_decay * (r / s) ^ a_decay :=
+        Real.mul_rpow (by norm_num) (div_nonneg hr.le hs_pos.le)
+  have h_rpow2 : (r₂ / R) ^ a_decay ≤ (3 : ℝ) ^ a_decay * (t / R) ^ a_decay := by
+    calc
+      (r₂ / R) ^ a_decay ≤ (3 * (t / R)) ^ a_decay :=
+        Real.rpow_le_rpow (div_nonneg (lt_trans hr₁_pos hr₁_lt_r₂).le hR_pos.le) h_r₂_div_R ha
+      _ = (3 : ℝ) ^ a_decay * (t / R) ^ a_decay :=
+        Real.mul_rpow (by norm_num) (div_nonneg ht_pos.le hR_pos.le)
+  have h_en_nonneg : 0 ≤ energyMeasure I u (annulus_at a r R) := energy_nonneg I u _
+  have h_dec_bound :
+      energyMeasure I u (annulus_at a r₁ r₂) ≤
+        (C₀ * (3 : ℝ) ^ a_decay) * ((r / s) ^ a_decay + (t / R) ^ a_decay) *
+          energyMeasure I u (annulus_at a r R) := by
+    calc
+      energyMeasure I u (annulus_at a r₁ r₂)
+        ≤ C₀ * ((r / r₁) ^ a_decay + (r₂ / R) ^ a_decay) * energyMeasure I u (annulus_at a r R) := h_dec_step
+      _ ≤ C₀ * ((3 : ℝ) ^ a_decay * (r / s) ^ a_decay + (3 : ℝ) ^ a_decay * (t / R) ^ a_decay) *
+            energyMeasure I u (annulus_at a r R) :=
+        mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left (add_le_add h_rpow1 h_rpow2) hC₀) h_en_nonneg
+      _ = (C₀ * (3 : ℝ) ^ a_decay) * ((r / s) ^ a_decay + (t / R) ^ a_decay) *
+            energyMeasure I u (annulus_at a r R) := by ring
+  have h_sqrt_step :
+      Real.sqrt (energyMeasure I u (annulus_at a r₁ r₂)) ≤
+        Real.sqrt C₀ * (3 : ℝ) ^ (a_decay / 2) *
+          ((r / s) ^ (a_decay / 2) + (t / R) ^ (a_decay / 2)) *
+          Real.sqrt (energyMeasure I u (annulus_at a r R)) := by
+    have h_rs_pos : 0 ≤ r / s := div_nonneg hr.le hs_pos.le
+    have h_tR_pos : 0 ≤ t / R := div_nonneg ht_pos.le hR_pos.le
+    have h_rpow_rs_nonneg : 0 ≤ (r / s) ^ a_decay := Real.rpow_nonneg h_rs_pos _
+    have h_rpow_tR_nonneg : 0 ≤ (t / R) ^ a_decay := Real.rpow_nonneg h_tR_pos _
+    have h_3a_nonneg : 0 ≤ (3 : ℝ) ^ a_decay := Real.rpow_nonneg (by norm_num) _
+    have h_sqrt_3a : Real.sqrt ((3 : ℝ) ^ a_decay) = (3 : ℝ) ^ (a_decay / 2) := by
+      rw [Real.sqrt_eq_rpow, ← Real.rpow_mul (by norm_num)]
+      ring_nf
+    have h_sqrt_rs : Real.sqrt ((r / s) ^ a_decay) = (r / s) ^ (a_decay / 2) := by
+      rw [Real.sqrt_eq_rpow, ← Real.rpow_mul h_rs_pos]
+      ring_nf
+    have h_sqrt_tR : Real.sqrt ((t / R) ^ a_decay) = (t / R) ^ (a_decay / 2) := by
+      rw [Real.sqrt_eq_rpow, ← Real.rpow_mul h_tR_pos]
+      ring_nf
+    calc
+      Real.sqrt (energyMeasure I u (annulus_at a r₁ r₂))
+        ≤ Real.sqrt ((C₀ * (3 : ℝ) ^ a_decay) * ((r / s) ^ a_decay + (t / R) ^ a_decay) *
+            energyMeasure I u (annulus_at a r R)) := Real.sqrt_le_sqrt h_dec_bound
+      _ = Real.sqrt (C₀ * (3 : ℝ) ^ a_decay) *
+            Real.sqrt ((r / s) ^ a_decay + (t / R) ^ a_decay) *
+            Real.sqrt (energyMeasure I u (annulus_at a r R)) := by
+          rw [Real.sqrt_mul (mul_nonneg (mul_nonneg hC₀ h_3a_nonneg)
+                (add_nonneg h_rpow_rs_nonneg h_rpow_tR_nonneg)),
+              Real.sqrt_mul (mul_nonneg hC₀ h_3a_nonneg)]
+      _ = Real.sqrt C₀ * (3 : ℝ) ^ (a_decay / 2) *
+            Real.sqrt ((r / s) ^ a_decay + (t / R) ^ a_decay) *
+            Real.sqrt (energyMeasure I u (annulus_at a r R)) := by
+          rw [Real.sqrt_mul hC₀, h_sqrt_3a]
+      _ ≤ Real.sqrt C₀ * (3 : ℝ) ^ (a_decay / 2) *
+            ((r / s) ^ (a_decay / 2) + (t / R) ^ (a_decay / 2)) *
+            Real.sqrt (energyMeasure I u (annulus_at a r R)) := by
+          have h_sub := sqrt_add_le_sqrt_add_sqrt h_rpow_rs_nonneg h_rpow_tR_nonneg
+          rw [h_sqrt_rs, h_sqrt_tR] at h_sub
+          exact mul_le_mul_of_nonneg_right
+            (mul_le_mul_of_nonneg_left h_sub (by positivity))
+            (Real.sqrt_nonneg _)
+  calc
+    dist (u (stereo_chart.symm w₁)) (u (stereo_chart.symm w₂))
+      ≤ C_ring * Real.sqrt (energyMeasure I u (annulus_at a r₁ r₂)) := h_osc_step
+    _ ≤ C_ring * (Real.sqrt C₀ * (3 : ℝ) ^ (a_decay / 2) *
+          ((r / s) ^ (a_decay / 2) + (t / R) ^ (a_decay / 2)) *
+          Real.sqrt (energyMeasure I u (annulus_at a r R))) :=
+      mul_le_mul_of_nonneg_left h_sqrt_step hC_ring
+    _ = (C_ring * Real.sqrt C₀ * (3 : ℝ) ^ (a_decay / 2)) *
+          ((r / s) ^ (a_decay / 2) + (t / R) ^ (a_decay / 2)) *
+          Real.sqrt (energyMeasure I u (annulus_at a r R)) := by ring
+
+/-- Every positive real ratio is bounded by `2 ^ N` for some `N : ℕ` (`0 sorryAx`). -/
+theorem exists_le_two_pow_mul {s t : ℝ} (hs : 0 < s) :
+    ∃ N : ℕ, t ≤ (2 : ℝ) ^ N * s := by
+  obtain ⟨N, hN⟩ := exists_nat_gt (t / s)
+  refine ⟨N, ?_⟩
+  rw [div_lt_iff₀ hs] at hN
+  have h_pow : (N : ℝ) < (2 : ℝ) ^ N := by
+    exact_mod_cast Nat.lt_two_pow_self
+  nlinarith
+
+/-- Finite geometric series bound for `0 ≤ q < 1`: `∑ k ∈ Finset.range N, q ^ k ≤ 1 / (1 - q)` (`0 sorryAx`). -/
+theorem sum_geom_le_inv_one_sub {q : ℝ} (hq0 : 0 ≤ q) (hq1 : q < 1) (N : ℕ) :
+    (∑ k ∈ Finset.range N, q ^ k) ≤ 1 / (1 - q) := by
+  have h1q : 0 < 1 - q := sub_pos.mpr hq1
+  rw [le_div_iff₀ h1q, mul_comm, mul_neg_geom_sum q N]
+  have h_pow_nonneg : 0 ≤ q ^ N := pow_nonneg hq0 N
+  linarith
+
+/-- Dyadic radial sequence `dyadicRadius w₁ w₂ a k = min (2^k * dist w₁ a) (dist w₂ a)`. -/
+noncomputable def dyadicRadius (w₁ w₂ a : ℂ) (k : ℕ) : ℝ :=
+  min ((2 : ℝ) ^ k * dist w₁ a) (dist w₂ a)
+
+/-- Dyadic radial point chain `dyadicChainPoint w₁ w₂ a k` starting at `w₁` (`k = 0`) and stepping
+along the ray from `a` through `w₂` at distances `dyadicRadius w₁ w₂ a k`. -/
+noncomputable def dyadicChainPoint (w₁ w₂ a : ℂ) (k : ℕ) : ℂ :=
+  if k = 0 then w₁ else radialPointOnRay a w₂ (dyadicRadius w₁ w₂ a k)
+
+/-- Exact dyadic chain oscillation bound along `dyadicChainPoint w₁ w₂ a k` for `k : ℕ` (`0 sorryAx`). -/
+theorem dist_le_sum_dyadic_chain_bounded_modulus_and_decay
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {C_ring C₀ a_decay : ℝ} (hC_ring : 0 ≤ C_ring) (hC₀ : 0 ≤ C₀) (ha : 0 ≤ a_decay)
+    (u : CP1 → M) (a : ℂ) {r R : ℝ} (hr : 0 < r)
+    (h_ring : ∀ r₁ r₂ : ℝ, r < r₁ → r₁ < r₂ → r₂ < R → r₂ ≤ 18 * r₁ →
+      SatisfiesCylinderCollarOscillationWith I C_ring u a r₁ r₂)
+    (h_decay : SatisfiesCylinderEnergyDecayWith I C₀ a_decay u a r R)
+    {w₁ w₂ : ℂ}
+    (hw₁_gt : 2 * r < dist w₁ a)
+    (hw₁₂ : dist w₁ a ≤ dist w₂ a)
+    (hw₂_lt : dist w₂ a < R / 2)
+    (N : ℕ) :
+    dist (u (stereo_chart.symm w₁)) (u (stereo_chart.symm (dyadicChainPoint w₁ w₂ a N))) ≤
+      (C_ring * Real.sqrt C₀ * (3 : ℝ) ^ (a_decay / 2)) *
+        (∑ k ∈ Finset.range N,
+          ((r / dyadicRadius w₁ w₂ a k) ^ (a_decay / 2) +
+            (dyadicRadius w₁ w₂ a (k + 1) / R) ^ (a_decay / 2))) *
+        Real.sqrt (energyMeasure I u (annulus_at a r R)) := by
+  have hs_pos : 0 < dist w₁ a := by linarith
+  have ht_pos : 0 < dist w₂ a := lt_of_lt_of_le hs_pos hw₁₂
+  have hρ_pos : ∀ k, 0 < dyadicRadius w₁ w₂ a k :=
+    fun k => lt_min (mul_pos (by positivity) hs_pos) ht_pos
+  have hρ_gt_2r : ∀ k, 2 * r < dyadicRadius w₁ w₂ a k := by
+    intro k
+    apply lt_min _ (lt_of_lt_of_le hw₁_gt hw₁₂)
+    have h1 : (1 : ℝ) ≤ (2 : ℝ) ^ k := one_le_pow₀ (by norm_num)
+    nlinarith
+  have hρ_lt_R2 : ∀ k, dyadicRadius w₁ w₂ a k < R / 2 :=
+    fun k => lt_of_le_of_lt (min_le_right _ _) hw₂_lt
+  have hρ_mono : ∀ k, dyadicRadius w₁ w₂ a k ≤ dyadicRadius w₁ w₂ a (k + 1) := by
+    intro k
+    dsimp [dyadicRadius]
+    apply min_le_min _ (le_refl (dist w₂ a))
+    rw [pow_succ']
+    have : 0 ≤ (2 : ℝ) ^ k * dist w₁ a := by positivity
+    linarith
+  have hρ_2 : ∀ k, dyadicRadius w₁ w₂ a (k + 1) ≤ 2 * dyadicRadius w₁ w₂ a k := by
+    intro k
+    dsimp [dyadicRadius]
+    rw [pow_succ', mul_assoc]
+    rcases min_choice ((2 : ℝ) ^ k * dist w₁ a) (dist w₂ a) with hmin | hmin
+    · rw [hmin]
+      exact min_le_left _ _
+    · rw [hmin]
+      have h_le : min (2 * ((2 : ℝ) ^ k * dist w₁ a)) (dist w₂ a) ≤ dist w₂ a := min_le_right _ _
+      linarith
+  have hw_seq_dist : ∀ k, dist (dyadicChainPoint w₁ w₂ a k) a = dyadicRadius w₁ w₂ a k := by
+    intro k
+    dsimp [dyadicChainPoint]
+    split_ifs with hk
+    · subst hk
+      dsimp [dyadicRadius]
+      rw [pow_zero, one_mul, min_eq_left hw₁₂]
+    · exact dist_radialPointOnRay ht_pos (hρ_pos k).le
+  induction N with
+  | zero =>
+    dsimp [dyadicChainPoint]
+    simp
+  | succ N ih =>
+    have h_step := dist_le_of_dyadic_step_bounded_modulus_and_decay I hC_ring hC₀ ha u a hr h_ring h_decay
+      (hρ_gt_2r N) (hρ_mono N) (hρ_2 N) (hρ_lt_R2 (N + 1))
+      (w₁ := dyadicChainPoint w₁ w₂ a N) (w₂ := dyadicChainPoint w₁ w₂ a (N + 1))
+      ⟨by rw [hw_seq_dist N], by rw [hw_seq_dist N]; exact hρ_mono N⟩
+      ⟨by rw [hw_seq_dist (N + 1)]; exact hρ_mono N, by rw [hw_seq_dist (N + 1)]⟩
+    have h_tri := dist_triangle
+      (u (stereo_chart.symm w₁))
+      (u (stereo_chart.symm (dyadicChainPoint w₁ w₂ a N)))
+      (u (stereo_chart.symm (dyadicChainPoint w₁ w₂ a (N + 1))))
+    rw [Finset.sum_range_succ]
+    linarith
+
+/-- Arbitrary-modulus collar oscillation (`SatisfiesCylinderCollarOscillationWith I C u a r R`)
+derived from bounded-modulus (`r₂ ≤ 18 * r₁`) collar oscillation and two-sided cylinder energy
+decay (`SatisfiesCylinderEnergyDecayWith I C₀ a_decay u a r R`) (`0 sorryAx`). -/
+theorem satisfiesCylinderCollarOscillationWith_of_bounded_modulus_and_decay
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {C_ring C₀ a_decay : ℝ} (hC_ring : 0 ≤ C_ring) (hC₀ : 0 ≤ C₀) (ha : 0 < a_decay)
+    (u : CP1 → M) (a : ℂ) {r R : ℝ} (hr : 0 < r)
+    (h_ring : ∀ r₁ r₂ : ℝ, r < r₁ → r₁ < r₂ → r₂ < R → r₂ ≤ 18 * r₁ →
+      SatisfiesCylinderCollarOscillationWith I C_ring u a r₁ r₂)
+    (h_decay : SatisfiesCylinderEnergyDecayWith I C₀ a_decay u a r R) :
+    SatisfiesCylinderCollarOscillationWith I
+      ((C_ring * Real.sqrt C₀ * (3 : ℝ) ^ (a_decay / 2)) *
+        (2 / (1 - (2 : ℝ) ^ (- (a_decay / 2)))))
+      u a r R := by
+  have h_ord : ∀ {w₁ w₂ : ℂ},
+      2 * r < dist w₁ a →
+      dist w₁ a ≤ dist w₂ a →
+      dist w₂ a < R / 2 →
+      dist (u (stereo_chart.symm w₁)) (u (stereo_chart.symm w₂)) ≤
+        ((C_ring * Real.sqrt C₀ * (3 : ℝ) ^ (a_decay / 2)) *
+          (2 / (1 - (2 : ℝ) ^ (- (a_decay / 2))))) *
+          Real.sqrt (energyMeasure I u (annulus_at a r R)) := by
+    intro w₁ w₂ hw₁_gt hw₁₂ hw₂_lt
+    set s := dist w₁ a
+    set t := dist w₂ a
+    have hs_pos : 0 < s := by linarith
+    have ht_pos : 0 < t := lt_of_lt_of_le hs_pos hw₁₂
+    have hR_pos : 0 < R := by linarith
+    have h_ex : ∃ n : ℕ, t ≤ (2 : ℝ) ^ n * s := exists_le_two_pow_mul hs_pos
+    classical
+    let N₀ : ℕ := Nat.find h_ex
+    have hN₀_spec : t ≤ (2 : ℝ) ^ N₀ * s := Nat.find_spec h_ex
+    let N : ℕ := max N₀ 1
+    have hN_pos : 0 < N := lt_of_lt_of_le zero_lt_one (le_max_right N₀ 1)
+    have hN_ne : N ≠ 0 := hN_pos.ne'
+    have hN₀_le_N : N₀ ≤ N := le_max_left N₀ 1
+    have ht_le_powN : t ≤ (2 : ℝ) ^ N * s := by
+      calc
+        t ≤ (2 : ℝ) ^ N₀ * s := hN₀_spec
+        _ ≤ (2 : ℝ) ^ N * s :=
+          mul_le_mul_of_nonneg_right (pow_le_pow_right₀ (by norm_num) hN₀_le_N) hs_pos.le
+    have hρ_N : dyadicRadius w₁ w₂ a N = t := min_eq_right ht_le_powN
+    have hw_seq_N : dyadicChainPoint w₁ w₂ a N = w₂ := by
+      dsimp [dyadicChainPoint]
+      rw [ite_eq_right_iff.mpr (fun h => False.elim (hN_ne h)), hρ_N, radialPointOnRay_self ht_pos]
+    have h_pow_N_sub_one : (2 : ℝ) ^ (N - 1) * s ≤ t := by
+      by_cases hN₀0 : N₀ = 0
+      · have hN1 : N = 1 := by dsimp [N]; omega
+        rw [hN1, Nat.sub_self, pow_zero, one_mul]
+        exact hw₁₂
+      · have hN_eq : N = N₀ := max_eq_left (Nat.one_le_iff_ne_zero.mpr hN₀0)
+        have h_lt : N - 1 < N₀ := by omega
+        have h_not := Nat.find_min h_ex h_lt
+        exact le_of_not_ge h_not
+    have h_chain := dist_le_sum_dyadic_chain_bounded_modulus_and_decay
+      I hC_ring hC₀ ha.le u a hr h_ring h_decay hw₁_gt hw₁₂ hw₂_lt N
+    rw [hw_seq_N] at h_chain
+    set q := (2 : ℝ) ^ (- (a_decay / 2))
+    have hq_nonneg : 0 ≤ q := Real.rpow_nonneg (by norm_num) _
+    have hq_lt_one : q < 1 := by
+      dsimp [q]
+      exact Real.rpow_lt_one_of_one_lt_of_neg (by norm_num) (neg_neg_of_pos (half_pos ha))
+    have h_term_le : ∀ k ∈ Finset.range N,
+        (r / dyadicRadius w₁ w₂ a k) ^ (a_decay / 2) +
+          (dyadicRadius w₁ w₂ a (k + 1) / R) ^ (a_decay / 2) ≤
+          q ^ k + q ^ (N - 1 - k) := by
+      intro k hk
+      rw [Finset.mem_range] at hk
+      have hk_le : k ≤ N - 1 := by omega
+      have h_pow_k_le_t : (2 : ℝ) ^ k * s ≤ t := by
+        calc
+          (2 : ℝ) ^ k * s ≤ (2 : ℝ) ^ (N - 1) * s :=
+            mul_le_mul_of_nonneg_right (pow_le_pow_right₀ (by norm_num) hk_le) hs_pos.le
+          _ ≤ t := h_pow_N_sub_one
+      have hρ_k_eq : dyadicRadius w₁ w₂ a k = (2 : ℝ) ^ k * s := min_eq_left h_pow_k_le_t
+      have hρ_k_pos : 0 < dyadicRadius w₁ w₂ a k := by rw [hρ_k_eq]; positivity
+      have h_r_div_ρk : r / dyadicRadius w₁ w₂ a k ≤ ((2 : ℝ) ^ k)⁻¹ := by
+        rw [hρ_k_eq, div_le_iff₀ (by positivity)]
+        calc
+          r ≤ s := by linarith
+          _ = ((2 : ℝ) ^ k)⁻¹ * ((2 : ℝ) ^ k * s) := by field_simp
+      have h_rpow1 : (r / dyadicRadius w₁ w₂ a k) ^ (a_decay / 2) ≤ q ^ k := by
+        calc
+          (r / dyadicRadius w₁ w₂ a k) ^ (a_decay / 2)
+            ≤ (((2 : ℝ) ^ k)⁻¹) ^ (a_decay / 2) :=
+              Real.rpow_le_rpow (div_nonneg hr.le hρ_k_pos.le) h_r_div_ρk (half_pos ha).le
+          _ = q ^ k := by
+              dsimp [q]
+              rw [← Real.rpow_natCast, ← Real.rpow_neg_one, ← Real.rpow_mul (by norm_num),
+                  ← Real.rpow_mul (by norm_num), ← Real.rpow_natCast, ← Real.rpow_mul (by norm_num)]
+              ring_nf
+      have hρ_k1_pos : 0 < dyadicRadius w₁ w₂ a (k + 1) := lt_min (by positivity) ht_pos
+      have h_ρk1_div_R : dyadicRadius w₁ w₂ a (k + 1) / R ≤ ((2 : ℝ) ^ (N - 1 - k))⁻¹ := by
+        rw [div_le_iff₀ hR_pos]
+        have h_add : (k + 1) + (N - 1 - k) = N := by omega
+        have h_pow_mul : (2 : ℝ) ^ (k + 1) * (2 : ℝ) ^ (N - 1 - k) = 2 * (2 : ℝ) ^ (N - 1) := by
+          rw [← pow_add, h_add, ← pow_succ']
+          congr 1
+          omega
+        have h_prod_le_R : dyadicRadius w₁ w₂ a (k + 1) * (2 : ℝ) ^ (N - 1 - k) ≤ R := by
+          calc
+            dyadicRadius w₁ w₂ a (k + 1) * (2 : ℝ) ^ (N - 1 - k)
+              ≤ ((2 : ℝ) ^ (k + 1) * s) * (2 : ℝ) ^ (N - 1 - k) :=
+                mul_le_mul_of_nonneg_right (min_le_left _ _) (by positivity)
+            _ = ((2 : ℝ) ^ (k + 1) * (2 : ℝ) ^ (N - 1 - k)) * s := by ring
+            _ = 2 * ((2 : ℝ) ^ (N - 1) * s) := by rw [h_pow_mul]; ring
+            _ ≤ 2 * t := mul_le_mul_of_nonneg_left h_pow_N_sub_one (by norm_num)
+            _ ≤ R := by linarith
+        calc
+          dyadicRadius w₁ w₂ a (k + 1)
+            = ((2 : ℝ) ^ (N - 1 - k))⁻¹ * (dyadicRadius w₁ w₂ a (k + 1) * (2 : ℝ) ^ (N - 1 - k)) := by
+              field_simp
+          _ ≤ ((2 : ℝ) ^ (N - 1 - k))⁻¹ * R :=
+              mul_le_mul_of_nonneg_left h_prod_le_R (by positivity)
+      have h_rpow2 : (dyadicRadius w₁ w₂ a (k + 1) / R) ^ (a_decay / 2) ≤ q ^ (N - 1 - k) := by
+        calc
+          (dyadicRadius w₁ w₂ a (k + 1) / R) ^ (a_decay / 2)
+            ≤ (((2 : ℝ) ^ (N - 1 - k))⁻¹) ^ (a_decay / 2) :=
+              Real.rpow_le_rpow (div_nonneg hρ_k1_pos.le hR_pos.le) h_ρk1_div_R (half_pos ha).le
+          _ = q ^ (N - 1 - k) := by
+              dsimp [q]
+              rw [← Real.rpow_natCast, ← Real.rpow_neg_one, ← Real.rpow_mul (by norm_num),
+                  ← Real.rpow_mul (by norm_num), ← Real.rpow_natCast, ← Real.rpow_mul (by norm_num)]
+              ring_nf
+      exact add_le_add h_rpow1 h_rpow2
+    have h_sum_le :
+        (∑ k ∈ Finset.range N,
+          ((r / dyadicRadius w₁ w₂ a k) ^ (a_decay / 2) +
+            (dyadicRadius w₁ w₂ a (k + 1) / R) ^ (a_decay / 2))) ≤
+          2 / (1 - q) := by
+      calc
+        (∑ k ∈ Finset.range N,
+          ((r / dyadicRadius w₁ w₂ a k) ^ (a_decay / 2) +
+            (dyadicRadius w₁ w₂ a (k + 1) / R) ^ (a_decay / 2)))
+          ≤ ∑ k ∈ Finset.range N, (q ^ k + q ^ (N - 1 - k)) := Finset.sum_le_sum h_term_le
+        _ = (∑ k ∈ Finset.range N, q ^ k) + (∑ k ∈ Finset.range N, q ^ (N - 1 - k)) :=
+          Finset.sum_add_distrib
+        _ = (∑ k ∈ Finset.range N, q ^ k) + (∑ k ∈ Finset.range N, q ^ k) := by
+          rw [Finset.sum_range_reflect (fun k => q ^ k) N]
+        _ ≤ 1 / (1 - q) + 1 / (1 - q) :=
+          add_le_add (sum_geom_le_inv_one_sub hq_nonneg hq_lt_one N)
+            (sum_geom_le_inv_one_sub hq_nonneg hq_lt_one N)
+        _ = 2 / (1 - q) := by ring
+    refine le_trans h_chain ?_
+    apply mul_le_mul_of_nonneg_right _ (Real.sqrt_nonneg _)
+    exact mul_le_mul_of_nonneg_left h_sum_le (by positivity)
+  rintro z₁ ⟨w₁, ⟨hw₁_gt, hw₁_lt⟩, rfl⟩ z₂ ⟨w₂, ⟨hw₂_gt, hw₂_lt⟩, rfl⟩
+  rcases le_total (dist w₁ a) (dist w₂ a) with hle | hle
+  · exact h_ord hw₁_gt hle hw₂_lt
+  · rw [dist_comm]
+    exact h_ord hw₂_gt hle hw₁_lt
+
+/-- Arbitrary-modulus local collar oscillation from bounded-modulus (`R ≤ 18 * r`) local collar
+oscillation and local cylinder energy decay (`0 sorryAx`). -/
+theorem local_collar_oscillation_of_bounded_modulus_and_decay
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_ring_osc : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at a r R) →
+        energyMeasure I u (annulus_at a r R) < ε_ring →
+        SatisfiesCylinderCollarOscillationWith I C_ring u a r R)
+    (h_decay_local : ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+      ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at center r R) →
+        energyMeasure I u (annulus_at center r R) < ε_neck →
+        SatisfiesCylinderEnergyDecayWith I C₀ a_decay u center r R) :
+    ∃ (C ε_osc : ℝ), 0 < C ∧ 0 < ε_osc ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at a r R) →
+        energyMeasure I u (annulus_at a r R) < ε_osc →
+        SatisfiesCylinderCollarOscillationWith I C u a r R := by
+  obtain ⟨C_ring, ε_ring, hC_ring, hε_ring, h_ring⟩ := h_ring_osc
+  obtain ⟨C₀, a_decay, ε_neck, hC₀, ha, hε_neck, h_dec⟩ := h_decay_local
+  set q := (2 : ℝ) ^ (- (a_decay / 2))
+  have hq_lt_one : q < 1 :=
+    Real.rpow_lt_one_of_one_lt_of_neg (by norm_num) (neg_neg_of_pos (half_pos ha))
+  have h1q_pos : 0 < 1 - q := sub_pos.mpr hq_lt_one
+  set C := (C_ring * Real.sqrt C₀ * (3 : ℝ) ^ (a_decay / 2)) * (2 / (1 - q))
+  have hC_pos : 0 < C := by
+    dsimp [C]
+    exact mul_pos (mul_pos (mul_pos hC_ring (Real.sqrt_pos.mpr hC₀)) (Real.rpow_pos_of_pos (by norm_num) _))
+      (div_pos (by norm_num) h1q_pos)
+  set ε_osc := min ε_neck (ε_ring / (2 * C₀))
+  have hε_osc_pos : 0 < ε_osc := lt_min hε_neck (div_pos hε_ring (by positivity))
+  refine ⟨C, ε_osc, hC_pos, hε_osc_pos, ?_⟩
+  intro u a r R hr hrR hu hE
+  by_cases h_collar : R / 2 ≤ 2 * r
+  · intro z₁ hz₁
+    rw [annulus_at_empty_of_le a h_collar] at hz₁
+    exact False.elim hz₁
+  · push_neg at h_collar
+    have h2r_lt_R : 2 * r < R := by linarith
+    have hE_neck : energyMeasure I u (annulus_at a r R) < ε_neck :=
+      lt_of_lt_of_le hE (min_le_left _ _)
+    have hE_div : energyMeasure I u (annulus_at a r R) < ε_ring / (2 * C₀) :=
+      lt_of_lt_of_le hE (min_le_right _ _)
+    have h_dec_u := h_dec u a r R hr h2r_lt_R hu hE_neck
+    apply satisfiesCylinderCollarOscillationWith_of_bounded_modulus_and_decay
+      I hC_ring.le hC₀.le ha u a hr _ h_dec_u
+    intro r₁ r₂ hr₁ hr₁₂ hr₂ hr₂_18
+    have hr₁_pos : 0 < r₁ := lt_trans hr hr₁
+    have hr₂_pos : 0 < r₂ := lt_trans hr₁_pos hr₁₂
+    have hR_pos : 0 < R := lt_trans hr₂_pos hr₂
+    have h_sub : annulus_at a r₁ r₂ ⊆ annulus_at a r R := annulus_at_mono a hr₁.le hr₂.le
+    have hu_sub : JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at a r₁ r₂) :=
+      ⟨hu.1.mono h_sub, fun z hz => hu.2 z (h_sub hz)⟩
+    have h_r_r₁_le : (r / r₁) ^ a_decay ≤ 1 :=
+      Real.rpow_le_one (div_nonneg hr.le hr₁_pos.le) ((div_le_one hr₁_pos).mpr hr₁.le) ha.le
+    have h_r₂_R_le : (r₂ / R) ^ a_decay ≤ 1 :=
+      Real.rpow_le_one (div_nonneg hr₂_pos.le hR_pos.le) ((div_le_one hR_pos).mpr hr₂.le) ha.le
+    have h_en_sub : energyMeasure I u (annulus_at a r₁ r₂) < ε_ring := by
+      have h_step := h_dec_u r₁ r₂ hr₁ hr₁₂ hr₂
+      have h_en_nonneg : 0 ≤ energyMeasure I u (annulus_at a r R) := energy_nonneg I u _
+      calc
+        energyMeasure I u (annulus_at a r₁ r₂)
+          ≤ C₀ * ((r / r₁) ^ a_decay + (r₂ / R) ^ a_decay) * energyMeasure I u (annulus_at a r R) := h_step
+        _ ≤ C₀ * (1 + 1) * energyMeasure I u (annulus_at a r R) :=
+          mul_le_mul_of_nonneg_right
+            (mul_le_mul_of_nonneg_left (add_le_add h_r_r₁_le h_r₂_R_le) hC₀.le) h_en_nonneg
+        _ = (2 * C₀) * energyMeasure I u (annulus_at a r R) := by ring
+        _ < (2 * C₀) * (ε_ring / (2 * C₀)) :=
+          mul_lt_mul_of_pos_left hE_div (by positivity)
+        _ = ε_ring := mul_div_cancel₀ ε_ring (by positivity)
+    exact h_ring u a r₁ r₂ hr₁_pos hr₁₂ hr₂_18 hu_sub h_en_sub
+
+/-- Arbitrary-modulus `CollarOscillationProperty I M` derived from bounded-modulus (`R ≤ 18 * r`)
+collar oscillation and `CylinderEnergyDecayProperty I M` (`0 sorryAx`). -/
+theorem collarOscillationProperty_of_bounded_modulus_and_decay
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_ring_osc : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        energyMeasure I u (annulus_at a r R) < ε_ring →
+        SatisfiesCylinderCollarOscillationWith I C_ring u a r R)
+    (h_decay : CylinderEnergyDecayProperty I M) :
+    CollarOscillationProperty I M := by
+  obtain ⟨C_ring, ε_ring, hC_ring, hε_ring, h_ring⟩ := h_ring_osc
+  obtain ⟨C₀, a_decay, ε_neck, hC₀, ha, hε_neck, h_dec⟩ := h_decay
+  set q := (2 : ℝ) ^ (- (a_decay / 2))
+  have hq_lt_one : q < 1 :=
+    Real.rpow_lt_one_of_one_lt_of_neg (by norm_num) (neg_neg_of_pos (half_pos ha))
+  have h1q_pos : 0 < 1 - q := sub_pos.mpr hq_lt_one
+  set C := (C_ring * Real.sqrt C₀ * (3 : ℝ) ^ (a_decay / 2)) * (2 / (1 - q))
+  have hC_pos : 0 < C := by
+    dsimp [C]
+    exact mul_pos (mul_pos (mul_pos hC_ring (Real.sqrt_pos.mpr hC₀)) (Real.rpow_pos_of_pos (by norm_num) _))
+      (div_pos (by norm_num) h1q_pos)
+  set ε_osc := min ε_neck (ε_ring / (2 * C₀))
+  have hε_osc_pos : 0 < ε_osc := lt_min hε_neck (div_pos hε_ring (by positivity))
+  refine ⟨C, ε_osc, hC_pos, hε_osc_pos, ?_⟩
+  intro u a r R hr hrR hu hE
+  by_cases h_collar : R / 2 ≤ 2 * r
+  · intro z₁ hz₁
+    rw [annulus_at_empty_of_le a h_collar] at hz₁
+    exact False.elim hz₁
+  · push_neg at h_collar
+    have h2r_lt_R : 2 * r < R := by linarith
+    have hE_neck : energyMeasure I u (annulus_at a r R) < ε_neck :=
+      lt_of_lt_of_le hE (min_le_left _ _)
+    have hE_div : energyMeasure I u (annulus_at a r R) < ε_ring / (2 * C₀) :=
+      lt_of_lt_of_le hE (min_le_right _ _)
+    have h_dec_u := h_dec u a r R hr h2r_lt_R hu hE_neck
+    apply satisfiesCylinderCollarOscillationWith_of_bounded_modulus_and_decay
+      I hC_ring.le hC₀.le ha u a hr _ h_dec_u
+    intro r₁ r₂ hr₁ hr₁₂ hr₂ hr₂_18
+    have hr₁_pos : 0 < r₁ := lt_trans hr hr₁
+    have hr₂_pos : 0 < r₂ := lt_trans hr₁_pos hr₁₂
+    have hR_pos : 0 < R := lt_trans hr₂_pos hr₂
+    have h_r_r₁_le : (r / r₁) ^ a_decay ≤ 1 :=
+      Real.rpow_le_one (div_nonneg hr.le hr₁_pos.le) ((div_le_one hr₁_pos).mpr hr₁.le) ha.le
+    have h_r₂_R_le : (r₂ / R) ^ a_decay ≤ 1 :=
+      Real.rpow_le_one (div_nonneg hr₂_pos.le hR_pos.le) ((div_le_one hR_pos).mpr hr₂.le) ha.le
+    have h_en_sub : energyMeasure I u (annulus_at a r₁ r₂) < ε_ring := by
+      have h_step := h_dec_u r₁ r₂ hr₁ hr₁₂ hr₂
+      have h_en_nonneg : 0 ≤ energyMeasure I u (annulus_at a r R) := energy_nonneg I u _
+      calc
+        energyMeasure I u (annulus_at a r₁ r₂)
+          ≤ C₀ * ((r / r₁) ^ a_decay + (r₂ / R) ^ a_decay) * energyMeasure I u (annulus_at a r R) := h_step
+        _ ≤ C₀ * (1 + 1) * energyMeasure I u (annulus_at a r R) :=
+          mul_le_mul_of_nonneg_right
+            (mul_le_mul_of_nonneg_left (add_le_add h_r_r₁_le h_r₂_R_le) hC₀.le) h_en_nonneg
+        _ = (2 * C₀) * energyMeasure I u (annulus_at a r R) := by ring
+        _ < (2 * C₀) * (ε_ring / (2 * C₀)) :=
+          mul_lt_mul_of_pos_left hE_div (by positivity)
+        _ = ε_ring := mul_div_cancel₀ ε_ring (by positivity)
+    exact h_ring u a r₁ r₂ hr₁_pos hr₁₂ hr₂_18 hu h_en_sub
+
+/-- Pointwise collar energy-density bound from dyadic disk regularity (`0 sorryAx`):
+For any point `w₀` in the central Euclidean collar `{z : ℂ | 2 * r < dist z a ∧ dist z a < R / 2}` (`0 < r`),
+the dyadic disk `disk_at w₀ (dist w₀ a / 2)` has radius `> r` and is contained in `annulus_at a r R`,
+so any disk regularity bound `e(w₀) ≤ C_reg * (dist w₀ a / 2)^(-2) * E(u; D(w₀, dist w₀ a / 2))`
+implies `e(w₀) ≤ C_reg * r^(-2) * E(u; A(r, R))`. -/
+theorem riemannianEnergyDensity_collar_le_of_disk_regularity
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ) {r R C_reg : ℝ} (hr : 0 < r) (hC : 0 ≤ C_reg)
+    {w₀ : ℂ} (hw₀ : w₀ ∈ {z : ℂ | 2 * r < dist z a ∧ dist z a < R / 2})
+    (h_fin : energyMeasureExtended I u (annulus_at a r R) ≠ ⊤)
+    (h_reg : riemannianEnergyDensity I u (stereo_chart.symm w₀) ≤
+      C_reg * (dist w₀ a / 2) ^ (-2 : ℝ) * energyMeasure I u (disk_at w₀ (dist w₀ a / 2))) :
+    riemannianEnergyDensity I u (stereo_chart.symm w₀) ≤
+      C_reg * r ^ (-2 : ℝ) * energyMeasure I u (annulus_at a r R) := by
+  have hρ_gt : r < dist w₀ a / 2 := by linarith [hw₀.1]
+  have hρ_pos : 0 < dist w₀ a / 2 := lt_trans hr hρ_gt
+  have h_rpow : (dist w₀ a / 2) ^ (-2 : ℝ) ≤ r ^ (-2 : ℝ) := by
+    rw [Real.rpow_neg hρ_pos.le, Real.rpow_neg hr.le, Real.rpow_two, Real.rpow_two]
+    exact inv_anti₀ (sq_pos_of_pos hr)
+      (sq_le_sq.mpr (by rw [abs_of_pos hr, abs_of_pos hρ_pos]; exact hρ_gt.le))
+  have h_disk_le := energyMeasure_disk_at_collar_le_annulus_at I u a hr hw₀ h_fin
+  have h_disk_nonneg : 0 ≤ energyMeasure I u (disk_at w₀ (dist w₀ a / 2)) := energy_nonneg I u _
+  calc
+    riemannianEnergyDensity I u (stereo_chart.symm w₀)
+      ≤ C_reg * (dist w₀ a / 2) ^ (-2 : ℝ) * energyMeasure I u (disk_at w₀ (dist w₀ a / 2)) := h_reg
+    _ ≤ C_reg * r ^ (-2 : ℝ) * energyMeasure I u (annulus_at a r R) := by
+      apply mul_le_mul (mul_le_mul_of_nonneg_left h_rpow hC) h_disk_le h_disk_nonneg
+      exact mul_nonneg hC (Real.rpow_nonneg hr.le _)
+
+/-- Bounded-modulus collar oscillation (`SatisfiesCylinderCollarOscillationWith I (C_lip * M_rat) u a r R`)
+from a Lipschitz bound `L ≤ C_lip * r⁻¹ * √E(u; A(r, R))` on the Euclidean collar (`0 sorryAx`). -/
+theorem satisfiesCylinderCollarOscillationWith_of_lipschitz_collar_ring
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (a : ℂ) {r R C_lip M_rat : ℝ}
+    (hr : 0 < r) (hC : 0 ≤ C_lip) (h_rat : R ≤ M_rat * r)
+    (h_lip : ∀ w₁ ∈ {z : ℂ | 2 * r < dist z a ∧ dist z a < R / 2},
+      ∀ w₂ ∈ {z : ℂ | 2 * r < dist z a ∧ dist z a < R / 2},
+        dist (u (stereo_chart.symm w₁)) (u (stereo_chart.symm w₂)) ≤
+          (C_lip * r⁻¹ * Real.sqrt (energyMeasure I u (annulus_at a r R))) * dist w₁ w₂) :
+    SatisfiesCylinderCollarOscillationWith I (C_lip * M_rat) u a r R := by
+  rintro z₁ ⟨w₁, hw₁, rfl⟩ z₂ ⟨w₂, hw₂, rfl⟩
+  have h_dist_w : dist w₁ w₂ ≤ M_rat * r := by
+    have h_tri : dist w₁ w₂ ≤ dist w₁ a + dist a w₂ := dist_triangle w₁ a w₂
+    have h_symm : dist a w₂ = dist w₂ a := dist_comm a w₂
+    have h1 : dist w₁ a < R / 2 := hw₁.2
+    have h2 : dist w₂ a < R / 2 := hw₂.2
+    linarith
+  have h_step := h_lip w₁ hw₁ w₂ hw₂
+  have h_fac_nonneg : 0 ≤ C_lip * r⁻¹ * Real.sqrt (energyMeasure I u (annulus_at a r R)) := by positivity
+  calc
+    dist (u (stereo_chart.symm w₁)) (u (stereo_chart.symm w₂))
+      ≤ (C_lip * r⁻¹ * Real.sqrt (energyMeasure I u (annulus_at a r R))) * dist w₁ w₂ := h_step
+    _ ≤ (C_lip * r⁻¹ * Real.sqrt (energyMeasure I u (annulus_at a r R))) * (M_rat * r) :=
+      mul_le_mul_of_nonneg_left h_dist_w h_fac_nonneg
+    _ = (C_lip * M_rat) * Real.sqrt (energyMeasure I u (annulus_at a r R)) := by
+      have hr_ne : r ≠ 0 := hr.ne'
+      field_simp
+
+/-- Arbitrary-modulus `CollarOscillationProperty I M` (`cert_osc` / Contract A09) derived from
+bounded-modulus (`R ≤ 18 * r`) radial/angular slice bounds and `CylinderEnergyDecayProperty I M` (`0 sorryAx`). -/
+theorem collarOscillationProperty_of_slices_and_decay
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_slices : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        energyMeasure I u (annulus_at a r R) < ε_ring →
+        ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+          ∃ z_mid : CP1,
+            dist (u z₁) (u z_mid) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)) ∧
+            dist (u z_mid) (u z₂) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)))
+    (h_decay : CylinderEnergyDecayProperty I M) :
+    CollarOscillationProperty I M := by
+  obtain ⟨C_ring, ε_ring, hC_ring, hε_ring, h_sl⟩ := h_slices
+  refine collarOscillationProperty_of_bounded_modulus_and_decay I
+    ⟨C_ring, ε_ring, hC_ring, hε_ring, fun u a r R hr hrR hr18 hu hE =>
+      satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds I C_ring u a r R
+        (h_sl u a r R hr hrR hr18 hu hE)⟩
+    h_decay
+
+/-- Arbitrary-modulus `CollarOscillationProperty I M` (`cert_osc`) derived from bounded-modulus
+(`R ≤ 18 * r`) radial/angular slice bounds and single-step collar Widman hole-filling (`0 sorryAx`). -/
+theorem collarOscillationProperty_of_slices_and_collar_hole_filling
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    (M : Type*) [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_slices : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        energyMeasure I u (annulus_at a r R) < ε_ring →
+        ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+          ∃ z_mid : CP1,
+            dist (u z₁) (u z_mid) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)) ∧
+            dist (u z_mid) (u z₂) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)))
+    {K ε_neck : ℝ} (hK : 0 < K) (hε : 0 < ε_neck)
+    (h_fin : ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ),
+      0 < r → 2 * r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r R) < ε_neck →
+      energyMeasureExtended I u (annulus_at center r R) ≠ ⊤)
+    (h_collar : ∀ (u : CP1 → M) (center : ℂ) (r' R' : ℝ),
+      0 < r' → 4 * r' < R' →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at center r' R') < ε_neck →
+      energyMeasure I u (annulus_at center (2 * r') (R' / 2)) ≤
+        K * (energyMeasure I u (annulus_at center r' (2 * r')) +
+             energyMeasure I u (annulus_at center (R' / 2) R'))) :
+    CollarOscillationProperty I M :=
+  collarOscillationProperty_of_slices_and_decay I h_slices
+    (cylinderEnergyDecayProperty_of_collar_hole_filling I M hK hε h_fin h_collar)
+
+/-- Contract A09 (`cylinder_localization`) derived from bounded-modulus (`R ≤ 18 * r`) radial/angular
+slice bounds and `CylinderEnergyDecayProperty I M` (`0 sorryAx`). -/
+theorem cylinder_localization_of_slices_and_decay
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_slices : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        energyMeasure I u (annulus_at a r R) < ε_ring →
+        ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+          ∃ z_mid : CP1,
+            dist (u z₁) (u z_mid) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)) ∧
+            dist (u z_mid) (u z₂) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u (annulus_at a r R)))
+    (h_decay : CylinderEnergyDecayProperty I M)
+    (d₀ : ℝ) (hd₀ : 0 < d₀) :
+    ∃ (η : ℝ), 0 < η ∧
+    ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+      0 < r → r < R →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasure I u (annulus_at a r R) < η →
+      ∃ (x₀ : M), ∀ z ∈ annulus_at a (2 * r) (R / 2), dist (u z) x₀ < d₀ :=
+  cylinder_localization I (collarOscillationProperty_of_slices_and_decay I h_slices h_decay) d₀ hd₀
+
+/-- Existence of a puncture limit `lim_{z → p} u(z)` at **any** puncture `p : CP1` (both finite
+points `p ≠ north_pole` and `p = north_pole`) from finite punctured-sphere energy and local
+small-energy collar oscillation (`0 sorryAx`). -/
+theorem exists_limit_point_of_local_collar_oscillation
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_osc_local : ∃ (C ε_osc : ℝ), 0 < C ∧ 0 < ε_osc ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at a r R) →
+        energyMeasure I u (annulus_at a r R) < ε_osc →
+        SatisfiesCylinderCollarOscillationWith I C u a r R)
+    (u : CP1 → M) (p : CP1)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (he : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤) :
+    ∃ m_star : M, Filter.Tendsto u (𝓝[≠] p) (𝓝 m_star) :=
+  exists_limit_point_of_puncture u p
+    (punctured_oscillation_of_local_collar_oscillation I h_osc_local u p hu he)
+
+/-- Uniqueness and existence of the puncture limit `lim_{z → p} u(z)` at **any** puncture `p : CP1`
+from finite punctured-sphere energy and local small-energy collar oscillation (`0 sorryAx`). -/
+theorem exists_unique_limit_point_of_local_collar_oscillation
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_osc_local : ∃ (C ε_osc : ℝ), 0 < C ∧ 0 < ε_osc ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at a r R) →
+        energyMeasure I u (annulus_at a r R) < ε_osc →
+        SatisfiesCylinderCollarOscillationWith I C u a r R)
+    (u : CP1 → M) (p : CP1)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (he : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤) :
+    ∃! m_star : M, Filter.Tendsto u (𝓝[≠] p) (𝓝 m_star) := by
+  obtain ⟨m_star, hm_star⟩ := exists_limit_point_of_local_collar_oscillation I h_osc_local u p hu he
+  refine ⟨m_star, hm_star, fun m' hm' => ?_⟩
+  have h_dense : Dense ({p}ᶜ : Set CP1) := by
+    rw [← punctured_sphere_singleton_eq_compl]
+    exact dense_punctured_sphere p
+  have : (𝓝[≠] p).NeBot := mem_closure_iff_nhdsWithin_neBot.mp (h_dense p)
+  exact tendsto_nhds_unique hm' hm_star
+
+/-- Unique continuous extension across **any** puncture `p : CP1` of a finite-energy punctured
+`J`-holomorphic curve under local small-energy collar oscillation (`0 sorryAx`). -/
+theorem exists_unique_continuous_extension_of_local_collar_oscillation
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_osc_local : ∃ (C ε_osc : ℝ), 0 < C ∧ 0 < ε_osc ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at a r R) →
+        energyMeasure I u (annulus_at a r R) < ε_osc →
+        SatisfiesCylinderCollarOscillationWith I C u a r R)
+    (u : CP1 → M) (p : CP1)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (he : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤) :
+    ∃! u_ext : CP1 → M, Continuous u_ext ∧ EqOn u_ext u (punctured_sphere {p}) := by
+  obtain ⟨m_star, hm_star⟩ := exists_limit_point_of_local_collar_oscillation I h_osc_local u p hu he
+  have h_eq : EqOn (Function.update u p m_star) u (punctured_sphere {p}) :=
+    eqOn_update_punctured_sphere u p m_star
+  have h_cont : Continuous (Function.update u p m_star) :=
+    continuous_update_of_tendsto_punctured_sphere u p m_star hu.1.continuousOn hm_star
+  refine ⟨Function.update u p m_star, ⟨h_cont, h_eq⟩, ?_⟩
+  intro v ⟨hv_cont, hv_eq⟩
+  have h_eq_vu : EqOn v (Function.update u p m_star) (punctured_sphere {p}) := fun z hz => by
+    rw [hv_eq hz, h_eq hz]
+  exact Continuous.ext_on (dense_punctured_sphere p) hv_cont h_cont h_eq_vu
+
+/-- If `u : CP1 → M` is `J`-holomorphic on `punctured_sphere {p}` and `Function.update u p m_star`
+is $C^1$ at the single puncture point `p` (`ContMDiffAt I_CP1 I 1 (Function.update u p m_star) p`),
+then `Function.update u p m_star` is globally $C^1$ on `CP1` (`0 sorryAx`). -/
+theorem contMDiffOn_one_update_of_contMDiffAt_puncture
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M) (p : CP1) (m_star : M)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (h_at : ContMDiffAt I_CP1 I 1 (Function.update u p m_star) p) :
+    ContMDiffOn I_CP1 I 1 (Function.update u p m_star) Set.univ := by
+  intro z _hz
+  by_cases hzp : z = p
+  · subst hzp
+    exact h_at.contMDiffWithinAt
+  · have hz_punc : z ∈ punctured_sphere {p} := by
+      rw [punctured_sphere_singleton_eq_compl]
+      exact hzp
+    have hu_c1 : ContMDiffOn I_CP1 I 1 u (punctured_sphere {p}) :=
+      hu.1.of_le (by decide : ((1 : ℕ) : WithTop ℕ∞) ≤ ∞)
+    have h_upd_c1 : ContMDiffOn I_CP1 I 1 (Function.update u p m_star) (punctured_sphere {p}) :=
+      hu_c1.congr (eqOn_update_punctured_sphere u p m_star)
+    exact (h_upd_c1.contMDiffAt ((isOpen_punctured_sphere p).mem_nhds hz_punc)).contMDiffWithinAt
+
+/-- General arbitrary-puncture (`p : CP1`) proof of `SatisfiesPunctureSobolevExtension I u p`
+(`cert_punc`) from local small-energy collar oscillation and $C^1$ regularity at `p` (`0 sorryAx`). -/
+theorem satisfiesPunctureSobolevExtension_of_local_collar_oscillation_and_c1
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_osc_local : ∃ (C ε_osc : ℝ), 0 < C ∧ 0 < ε_osc ∧
+      ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u (annulus_at a r R) →
+        energyMeasure I u (annulus_at a r R) < ε_osc →
+        SatisfiesCylinderCollarOscillationWith I C u a r R)
+    (u : CP1 → M) (p : CP1)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (he : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤)
+    (h_c1 : ∀ m_star : M, Filter.Tendsto u (𝓝[≠] p) (𝓝 m_star) →
+      ContMDiffAt I_CP1 I 1 (Function.update u p m_star) p ∧
+      ∀ v : TangentSpace I_CP1 p,
+        ContinuousAt (fun z : CP1 =>
+          mfderiv I_CP1 I (Function.update u p m_star) z (RiemannDomain.j z v) -
+            (ClosedTameTarget.J (I := I) (Function.update u p m_star z))
+              (mfderiv I_CP1 I (Function.update u p m_star) z v)) p) :
+    SatisfiesPunctureSobolevExtension I u p := by
+  obtain ⟨m_star, hm_star⟩ := exists_limit_point_of_local_collar_oscillation I h_osc_local u p hu he
+  obtain ⟨h_at, hcr⟩ := h_c1 m_star hm_star
+  have hc1 := contMDiffOn_one_update_of_contMDiffAt_puncture I u p m_star hu h_at
+  have h_weak := weakJHolomorphicOn_univ_of_c1_and_continuousAt_cr_at_puncture
+    I u (Function.update u p m_star) p hc1 (eqOn_update_punctured_sphere u p m_star) hu hcr
+  exact satisfiesPunctureSobolevExtension_of_update_weakJHolomorphicOn I u p m_star h_weak
+
+/-- Proof of `SatisfiesPunctureSobolevExtension I u p` (`cert_punc`) from bounded-modulus
+(`R ≤ 18 * r`) radial/angular slice bounds, local exponential cylinder energy decay, and
+single-point $C^1$ regularity at `p` (`0 sorryAx`). -/
+theorem satisfiesPunctureSobolevExtension_of_slices_and_decay_and_c1
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_slices : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u' : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at a r R) →
+        energyMeasure I u' (annulus_at a r R) < ε_ring →
+        ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+          ∃ z_mid : CP1,
+            dist (u' z₁) (u' z_mid) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u' (annulus_at a r R)) ∧
+            dist (u' z_mid) (u' z₂) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u' (annulus_at a r R)))
+    (h_decay : ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+      ∀ (u' : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at center r R) →
+        energyMeasure I u' (annulus_at center r R) < ε_neck →
+        SatisfiesCylinderEnergyDecayWith I C₀ a_decay u' center r R)
+    (u : CP1 → M) (p : CP1)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (he : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤)
+    (h_c1 : ∀ m_star : M, Filter.Tendsto u (𝓝[≠] p) (𝓝 m_star) →
+      ContMDiffAt I_CP1 I 1 (Function.update u p m_star) p ∧
+      ∀ v : TangentSpace I_CP1 p,
+        ContinuousAt (fun z : CP1 =>
+          mfderiv I_CP1 I (Function.update u p m_star) z (RiemannDomain.j z v) -
+            (ClosedTameTarget.J (I := I) (Function.update u p m_star z))
+              (mfderiv I_CP1 I (Function.update u p m_star) z v)) p) :
+    SatisfiesPunctureSobolevExtension I u p := by
+  obtain ⟨C_ring, ε_ring, hC_ring, hε_ring, h_sl⟩ := h_slices
+  have h_ring_osc : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u' : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at a r R) →
+        energyMeasure I u' (annulus_at a r R) < ε_ring →
+        SatisfiesCylinderCollarOscillationWith I C_ring u' a r R :=
+    ⟨C_ring, ε_ring, hC_ring, hε_ring, fun u' a r R hr hrR hr18 hu_ann hE =>
+      satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds I C_ring u' a r R
+        (h_sl u' a r R hr hrR hr18 hu_ann hE)⟩
+  have h_osc_local := local_collar_oscillation_of_bounded_modulus_and_decay I h_ring_osc h_decay
+  exact satisfiesPunctureSobolevExtension_of_local_collar_oscillation_and_c1
+    I h_osc_local u p hu he h_c1
+
+/-- Contract A11 (`puncture_sobolev_extension`) proved from bounded-modulus (`R ≤ 18 * r`)
+radial/angular slice bounds, local exponential cylinder energy decay, and single-point $C^1$
+regularity at `p` (`0 sorryAx`). -/
+theorem puncture_sobolev_extension_of_slices_and_decay_and_c1
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_slices : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u' : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at a r R) →
+        energyMeasure I u' (annulus_at a r R) < ε_ring →
+        ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+          ∃ z_mid : CP1,
+            dist (u' z₁) (u' z_mid) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u' (annulus_at a r R)) ∧
+            dist (u' z_mid) (u' z₂) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u' (annulus_at a r R)))
+    (h_decay : ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+      ∀ (u' : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at center r R) →
+        energyMeasure I u' (annulus_at center r R) < ε_neck →
+        SatisfiesCylinderEnergyDecayWith I C₀ a_decay u' center r R)
+    (u : CP1 → M) (p : CP1)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (he : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤)
+    (h_c1 : ∀ m_star : M, Filter.Tendsto u (𝓝[≠] p) (𝓝 m_star) →
+      ContMDiffAt I_CP1 I 1 (Function.update u p m_star) p ∧
+      ∀ v : TangentSpace I_CP1 p,
+        ContinuousAt (fun z : CP1 =>
+          mfderiv I_CP1 I (Function.update u p m_star) z (RiemannDomain.j z v) -
+            (ClosedTameTarget.J (I := I) (Function.update u p m_star z))
+              (mfderiv I_CP1 I (Function.update u p m_star) z v)) p) :
+    ∃ (u_ext : CP1 → M),
+      Continuous u_ext ∧
+      WeakJHolomorphicOn I u_ext Set.univ ∧
+      EqOn u_ext u (punctured_sphere {p}) :=
+  puncture_sobolev_extension I u p hu he
+    (satisfiesPunctureSobolevExtension_of_slices_and_decay_and_c1 I h_slices h_decay u p hu he h_c1)
+
+/-- Contract A12 (`removal_of_singularities`) proved from bounded-modulus (`R ≤ 18 * r`)
+radial/angular slice bounds, local exponential cylinder energy decay, single-point $C^1$
+regularity at `p`, and `RegularityTowerProperty` (`0 sorryAx`). -/
+theorem removal_of_singularities_of_slices_and_decay_and_c1_and_tower
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_slices : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u' : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at a r R) →
+        energyMeasure I u' (annulus_at a r R) < ε_ring →
+        ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+          ∃ z_mid : CP1,
+            dist (u' z₁) (u' z_mid) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u' (annulus_at a r R)) ∧
+            dist (u' z_mid) (u' z₂) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u' (annulus_at a r R)))
+    (h_decay : ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+      ∀ (u' : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at center r R) →
+        energyMeasure I u' (annulus_at center r R) < ε_neck →
+        SatisfiesCylinderEnergyDecayWith I C₀ a_decay u' center r R)
+    (h_tower : RegularityTowerProperty I M)
+    (u : CP1 → M) (p : CP1)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (he : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤)
+    (h_c1 : ∀ m_star : M, Filter.Tendsto u (𝓝[≠] p) (𝓝 m_star) →
+      ContMDiffAt I_CP1 I 1 (Function.update u p m_star) p ∧
+      ∀ v : TangentSpace I_CP1 p,
+        ContinuousAt (fun z : CP1 =>
+          mfderiv I_CP1 I (Function.update u p m_star) z (RiemannDomain.j z v) -
+            (ClosedTameTarget.J (I := I) (Function.update u p m_star z))
+              (mfderiv I_CP1 I (Function.update u p m_star) z v)) p) :
+    ∃! (u_smooth : CP1 → M),
+      EqOn u_smooth u (punctured_sphere {p}) ∧
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u_smooth Set.univ :=
+  removal_of_singularities I u p hu he
+    (satisfiesPunctureSobolevExtension_of_slices_and_decay_and_c1 I h_slices h_decay u p hu he h_c1)
+    (fun u_ext hu_weak n => h_tower u_ext Set.univ isOpen_univ hu_weak n)
+
+/-- Contract A12 (`removal_of_singularities`) proved from bounded-modulus (`R ≤ 18 * r`)
+radial/angular slice bounds, local exponential cylinder energy decay, single-point $C^1$
+regularity at `p`, and the chart-level elliptic step (`0 sorryAx`). -/
+theorem removal_of_singularities_of_slices_and_decay_and_c1_and_chart_step
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (h_slices : ∃ (C_ring ε_ring : ℝ), 0 < C_ring ∧ 0 < ε_ring ∧
+      ∀ (u' : CP1 → M) (a : ℂ) (r R : ℝ),
+        0 < r → r < R → R ≤ 18 * r →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at a r R) →
+        energyMeasure I u' (annulus_at a r R) < ε_ring →
+        ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
+          ∃ z_mid : CP1,
+            dist (u' z₁) (u' z_mid) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u' (annulus_at a r R)) ∧
+            dist (u' z_mid) (u' z₂) ≤ (C_ring / 2) * Real.sqrt (energyMeasure I u' (annulus_at a r R)))
+    (h_decay : ∃ (C₀ a_decay ε_neck : ℝ), 0 < C₀ ∧ 0 < a_decay ∧ 0 < ε_neck ∧
+      ∀ (u' : CP1 → M) (center : ℂ) (r R : ℝ),
+        0 < r → 2 * r < R →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u' (annulus_at center r R) →
+        energyMeasure I u' (annulus_at center r R) < ε_neck →
+        SatisfiesCylinderEnergyDecayWith I C₀ a_decay u' center r R)
+    (h_chart_step : ∀ (u' : CP1 → M) (Ω : Set CP1), IsOpen Ω → WeakJHolomorphicOn I u' Ω →
+      ∀ (k : ℕ), 1 ≤ k → ∀ z ∈ Ω,
+        ContDiffAt ℝ (k : WithTop ℕ∞) (writtenInExtChartAt I_CP1 I z u') ((extChartAt I_CP1 z) z) →
+        ContDiffAt ℝ ((k + 1 : ℕ) : WithTop ℕ∞) (writtenInExtChartAt I_CP1 I z u') ((extChartAt I_CP1 z) z))
+    (u : CP1 → M) (p : CP1)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u (punctured_sphere {p}))
+    (he : energyMeasureExtended I u (punctured_sphere {p}) ≠ ⊤)
+    (h_c1 : ∀ m_star : M, Filter.Tendsto u (𝓝[≠] p) (𝓝 m_star) →
+      ContMDiffAt I_CP1 I 1 (Function.update u p m_star) p ∧
+      ∀ v : TangentSpace I_CP1 p,
+        ContinuousAt (fun z : CP1 =>
+          mfderiv I_CP1 I (Function.update u p m_star) z (RiemannDomain.j z v) -
+            (ClosedTameTarget.J (I := I) (Function.update u p m_star z))
+              (mfderiv I_CP1 I (Function.update u p m_star) z v)) p) :
+    ∃! (u_smooth : CP1 → M),
+      EqOn u_smooth u (punctured_sphere {p}) ∧
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u_smooth Set.univ :=
+  removal_of_singularities_of_slices_and_decay_and_c1_and_tower I h_slices h_decay
+    (regularityTowerProperty_of_chart_step I M h_chart_step) u p hu he h_c1
 
 end GromovCompactness.Analysis

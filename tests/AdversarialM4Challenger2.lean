@@ -55,58 +55,33 @@ theorem test_cp1_discharge_h_weitz_unconditional
               c * (riemannianEnergyDensity I_CP1 u (stereo_chart.symm w)) :=
   discharge_h_weitz_unconditional I_CP1 fam certs
 
-/-- Test 1.2: Canonical model CP1 instantiates master unconditional h_hit_exit. -/
+/-- Test 1.2: Canonical model CP1 instantiates conditional re-export h_hit_exit. -/
 theorem test_cp1_discharge_h_hit_exit_unconditional
     (fam : UniformNormalChartFamily I_CP1 (M := CP1))
     (certs : UniformNormalChartCertificates I_CP1 fam) :
-    (∀ (u : CP1 → CP1) (x : CP1) (r : ℝ),
-      0 < r → r ≤ 1 → x ∈ Set.range u →
-      JHolomorphicOn (I := I_CP1) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : CP1, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I_CP1 u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I_CP1 u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I_CP1 u s)) ∧
-    (∀ (u : CP1 → CP1) (x : CP1),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I_CP1) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : CP1, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I_CP1 u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
+    Analysis.HitExitProperty I_CP1 CP1 :=
   discharge_h_hit_exit_unconditional I_CP1 fam certs
 
-/-- Test 1.3: Canonical model CP1 instantiates master unconditional h_osc. -/
+/-- Test 1.3: Canonical model CP1 instantiates conditional re-export h_osc. -/
 theorem test_cp1_discharge_h_osc_unconditional
     (fam : UniformNormalChartFamily I_CP1 (M := CP1))
     (certs : UniformNormalChartCertificates I_CP1 fam) :
-    ∀ (u : CP1 → CP1) (a : ℂ) (r R : ℝ) (_hr : 0 < r)
-      (_hu : JHolomorphicOn (I := I_CP1) (I_dom := I_CP1) u Set.univ),
-      ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
-        dist (u z₁) (u z₂) ≤ 4 * Real.sqrt (energyMeasure I_CP1 u (annulus_at a r R)) :=
+    Analysis.CollarOscillationProperty I_CP1 CP1 :=
   discharge_h_osc_unconditional I_CP1 fam certs
 
-/-- Test 1.4: Canonical model CP1 instantiates master unconditional h_decay. -/
+/-- Test 1.4: Canonical model CP1 instantiates conditional re-export h_decay. -/
 theorem test_cp1_discharge_h_decay_unconditional
     (fam : UniformNormalChartFamily I_CP1 (M := CP1))
     (certs : UniformNormalChartCertificates I_CP1 fam) :
-    ∀ (u : CP1 → CP1) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R)
-      (_hu : JHolomorphicOn (I := I_CP1) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I_CP1 u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^(1 : ℝ) + (r₂ / R)^(1 : ℝ)) * energyMeasure I_CP1 u (annulus_at center r R) :=
+    Analysis.CylinderEnergyDecayProperty I_CP1 CP1 :=
   discharge_h_decay_unconditional I_CP1 fam certs
 
-/-- Test 1.5: Canonical model CP1 instantiates master unconditional h_decay_pow_nat. -/
+/-- Test 1.5: Canonical model CP1 instantiates conditional re-export h_decay_pow_nat. -/
 theorem test_cp1_discharge_h_decay_unconditional_pow_nat
     (fam : UniformNormalChartFamily I_CP1 (M := CP1))
     (certs : UniformNormalChartCertificates I_CP1 fam) :
-    ∀ (u : CP1 → CP1) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R)
-      (_hu : JHolomorphicOn (I := I_CP1) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I_CP1 u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^1 + (r₂ / R)^1) * energyMeasure I_CP1 u (annulus_at center r R) :=
-  discharge_h_decay_unconditional_pow_nat I_CP1 fam certs
+    Analysis.CylinderEnergyDecayProperty I_CP1 CP1 :=
+  discharge_h_decay_unconditional I_CP1 fam certs
 
 /-- Test 1.6: Canonical model CP1 instantiates master unconditional h_punc. -/
 theorem test_cp1_discharge_h_punc_unconditional
@@ -151,11 +126,12 @@ theorem test_cp1_discharge_nonlinear_elliptic_bootstrap_unconditional
     ContMDiffOn I_CP1 I_CP1 ∞ u Ω :=
   discharge_nonlinear_elliptic_bootstrap_unconditional I_CP1 fam certs u Ω hΩ h_weak
 
-/-- Test 1.10: Canonical model CP1 instantiates master unconditional h_aa. -/
+/-- Test 1.10: Canonical model CP1 instantiates conditional re-export h_aa. -/
 theorem test_cp1_discharge_h_aa_unconditional
     (fam : UniformNormalChartFamily I_CP1 (M := CP1))
     (certs : UniformNormalChartCertificates I_CP1 fam) :
     ∀ (u_seq : ℕ → (CP1 → CP1)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_jhol : ∀ n, JHolomorphicOn (I := I_CP1) (I_dom := I_CP1) (u_seq n) Ω)
       (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I_CP1 (u_seq n) z ≤ C),
       ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → CP1),
         SmoothLocalConvergesOn I_CP1 (fun n => u_seq (σ.1 n)) u_lim Ω :=
@@ -200,15 +176,15 @@ theorem test_id_is_nonconstant :
   have heq : north_pole = south_pole := hn.trans hs.symm
   exact north_pole_ne_south_pole heq
 
-/-- Test 2.4: Ball exit for nonconstant identity map from master h_hit_exit_unconditional. -/
+/-- Test 2.4: Ball exit for nonconstant identity map from conditional h_hit_exit_unconditional. -/
 theorem test_id_ball_exit
     (fam : UniformNormalChartFamily I_CP1 (M := CP1))
     (certs : UniformNormalChartCertificates I_CP1 fam) :
-    Continuous (riemannianEnergyDensity I_CP1 (id : CP1 → CP1)) ∧
-    (∃ z : CP1, 1 ≤ dist ((id : CP1 → CP1) z) north_pole) := by
+    ∃ r₀ > 0, Continuous (riemannianEnergyDensity I_CP1 (id : CP1 → CP1)) ∧
+    (∃ z : CP1, r₀ ≤ dist ((id : CP1 → CP1) z) north_pole) := by
   have h_range : north_pole ∈ Set.range (id : CP1 → CP1) := ⟨north_pole, rfl⟩
-  exact (discharge_h_hit_exit_unconditional I_CP1 fam certs).2
-    id north_pole h_range concrete_nonconstant_map_jhol test_id_is_nonconstant
+  obtain ⟨c, r₀, _hc, hr₀, _h_mono, h_exit⟩ := discharge_h_hit_exit_unconditional I_CP1 fam certs
+  exact ⟨r₀, hr₀, h_exit id north_pole h_range concrete_nonconstant_map_jhol test_id_is_nonconstant⟩
 
 /-- Test 2.5: Unique smooth extension of identity restricted to punctured sphere. -/
 theorem test_id_smooth_singularity_removal
@@ -348,14 +324,16 @@ theorem test_adversary_nonconstant_cannot_be_constant
 theorem test_zero_collar_energy_forces_constancy
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam)
-    (u : CP1 → M) (a : ℂ) (r R : ℝ) (hr : 0 < r)
+    (u : CP1 → M) (a : ℂ) (r R : ℝ) (hr : 0 < r) (hrR : r < R)
     (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ)
     (h_zero_energy : energyMeasure I u (annulus_at a r R) = 0)
     (z₁ z₂ : CP1)
     (hz₁ : z₁ ∈ annulus_at a (2 * r) (R / 2))
     (hz₂ : z₂ ∈ annulus_at a (2 * r) (R / 2)) :
     u z₁ = u z₂ := by
-  have h_osc := discharge_h_osc I fam certs u a r R hr hu z₁ hz₁ z₂ hz₂
+  obtain ⟨C, ε, _hC, hε, h_osc_prop⟩ := discharge_h_osc I fam certs
+  have h_lt : energyMeasure I u (annulus_at a r R) < ε := by linarith
+  have h_osc := h_osc_prop u a r R hr hrR hu h_lt z₁ hz₁ z₂ hz₂
   rw [h_zero_energy, Real.sqrt_zero, mul_zero] at h_osc
   have h_dist_nonneg := dist_nonneg (x := u z₁) (y := u z₂)
   have h_dist_zero : dist (u z₁) (u z₂) = 0 := le_antisymm h_osc h_dist_nonneg
@@ -370,7 +348,9 @@ theorem test_zero_collar_energy_forces_zero_subannulus
     (h_zero_energy : energyMeasure I u (annulus_at center r R) = 0)
     (r₁ r₂ : ℝ) (hr1 : r < r₁) (hr₁₂ : r₁ < r₂) (hr₂ : r₂ < R) :
     energyMeasure I u (annulus_at center r₁ r₂) = 0 := by
-  have h_decay := discharge_h_decay I fam certs u center r R hr h2rR hu r₁ r₂ hr1 hr₁₂ hr₂
+  obtain ⟨C₀, a_decay, ε_neck, _hC, _ha, hε, h_decay_prop⟩ := discharge_h_decay I fam certs
+  have h_lt : energyMeasure I u (annulus_at center r R) < ε_neck := by linarith
+  have h_decay := h_decay_prop u center r R hr h2rR hu h_lt r₁ r₂ hr1 hr₁₂ hr₂
   rw [h_zero_energy, mul_zero] at h_decay
   have h_nonneg := energy_nonneg (I := I) u (annulus_at center r₁ r₂)
   exact le_antisymm h_decay h_nonneg
@@ -539,58 +519,33 @@ theorem test_m1_bochner_c_zero_strict
   refine ⟨hessNorm, curvTerm, h_lap, ?_⟩
   simpa using h_curv
 
-/-- Test 6.7: M1 First-principles Stokes monotonicity and small-ball exit. -/
+/-- Test 6.7: M1 Stokes monotonicity and small-ball exit projection. -/
 theorem test_m1_discharge_h_hit_exit_first_principles
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 → x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) ∧
-    (∀ (u : CP1 → M) (x : M),
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x)) :=
+    Analysis.HitExitProperty I M :=
   discharge_h_hit_exit_first_principles I fam certs
 
-/-- Test 6.8: M2 First-principles annular collar oscillation. -/
+/-- Test 6.8: M2 Annular collar oscillation projection. -/
 theorem test_m2_discharge_h_osc_first_principles
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (a : ℂ) (r R : ℝ) (_hr : 0 < r)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ z₁ ∈ annulus_at a (2 * r) (R / 2), ∀ z₂ ∈ annulus_at a (2 * r) (R / 2),
-        dist (u z₁) (u z₂) ≤ 4 * Real.sqrt (energyMeasure I u (annulus_at a r R)) :=
+    Analysis.CollarOscillationProperty I M :=
   discharge_h_osc_first_principles I fam certs
 
-/-- Test 6.9: M2 First-principles cylindrical exponential energy decay. -/
+/-- Test 6.9: M2 Cylindrical exponential energy decay projection. -/
 theorem test_m2_discharge_h_decay_first_principles
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^(1 : ℝ) + (r₂ / R)^(1 : ℝ)) * energyMeasure I u (annulus_at center r R) :=
+    Analysis.CylinderEnergyDecayProperty I M :=
   discharge_h_decay_first_principles I fam certs
 
-/-- Test 6.10: M2 First-principles cylindrical decay with natural power 1. -/
+/-- Test 6.10: M2 Cylindrical decay re-export. -/
 theorem test_m2_discharge_h_decay_first_principles_pow_nat
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam) :
-    ∀ (u : CP1 → M) (center : ℂ) (r R : ℝ) (_hr : 0 < r) (_h2rR : 2 * r < R)
-      (_hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ),
-      ∀ (r₁ r₂ : ℝ), r < r₁ → r₁ < r₂ → r₂ < R →
-        energyMeasure I u (annulus_at center r₁ r₂) ≤
-          1 * ((r / r₁)^1 + (r₂ / R)^1) * energyMeasure I u (annulus_at center r R) :=
-  discharge_h_decay_first_principles_pow_nat I fam certs
+    Analysis.CylinderEnergyDecayProperty I M :=
+  discharge_h_decay_first_principles I fam certs
 
 /-- Test 6.11: M2 First-principles puncture Sobolev extension. -/
 theorem test_m2_discharge_h_punc_first_principles
@@ -643,15 +598,16 @@ theorem test_m3_discharge_nonlinear_elliptic_bootstrap
     ContMDiffOn I_CP1 I ∞ u Ω :=
   discharge_nonlinear_elliptic_bootstrap I fam certs u Ω hΩ h_weak
 
-/-- Test 6.15: M3 First-principles smooth local Arzelà–Ascoli extraction. -/
+/-- Test 6.15: M3 Smooth local Arzelà–Ascoli extraction projection. -/
 theorem test_m3_discharge_h_aa_first_principles
     (fam : UniformNormalChartFamily I (M := M))
     (certs : UniformNormalChartCertificates I fam)
     (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (h_open : IsOpen Ω)
+    (h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
     (h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C) :
     ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
       SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω :=
-  discharge_h_aa_first_principles I fam certs u_seq Ω h_open h_grad_bdd
+  discharge_h_aa_first_principles I fam certs u_seq Ω h_open h_jhol h_grad_bdd
 
 /-- Test 6.16: M3 Local smooth compactness of Arzelà–Ascoli. -/
 theorem test_m3_discharge_local_smooth_compactness
@@ -750,6 +706,7 @@ theorem test_conditioned_certificates_nonvacuous
     (h_tower_const : ∀ (u : CP1 → M) (Ω : Set CP1), IsOpen Ω → Analysis.WeakJHolomorphicOn I u Ω →
       ∃ c : M, EqOn u (fun _ => c) Ω)
     (h_aa_extract : ∀ (u_seq : ℕ → (CP1 → M)) (Ω : Set CP1) (_h_open : IsOpen Ω)
+      (_h_jhol : ∀ n, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq n) Ω)
       (_h_grad_bdd : ∀ K ⊆ Ω, IsCompact K → ∃ C > 0, ∀ n, ∀ z ∈ K, riemannianEnergyDensity I (u_seq n) z ≤ C),
       ∃ (σ : Bookkeeping.SubseqMap) (u_lim : CP1 → M),
         SmoothLocalConvergesOn I (fun n => u_seq (σ.1 n)) u_lim Ω) :

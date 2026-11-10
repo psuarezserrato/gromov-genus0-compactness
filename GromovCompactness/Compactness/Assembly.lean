@@ -12,6 +12,7 @@ import GromovCompactness.Topology.Subsequence
 import GromovCompactness.Topology.SphereTree
 import GromovCompactness.Compactness.Defect
 import GromovCompactness.Bubbling.LocalTree
+import GromovCompactness.Geometry.NormalCharts
 import Mathlib.Data.Fintype.Card
 
 open scoped Manifold ContDiff Topology Classical
@@ -2387,15 +2388,13 @@ theorem prestable_limit_of_grafted_tree
   }
   exact ⟨pdata, prestable_limit_energy_bound I u_seq B pdata h_energy_bdd⟩
 
-/-- Assembles the base map u₀ and all defect trees from Contract B07 into a global prestable limit (Contract G01).
-Proved with zero direct sorry from `resolve_single_defect_tree`, `graft_root_sphere_tree`, and
-`prestable_limit_of_grafted_tree`. -/
-theorem assemble_prestable_limit
+/-- Assembles the base map `u₀` and all defect trees from Contract B07 into a global prestable limit
+without requiring `h_fin` (`0 sorryAx`, discharging `h_fin` from `th` and `h_jhol`). -/
+theorem assemble_prestable_limit_of_thresholds
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
     (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
-    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (h_conc_extract : ∀ (σ : Bookkeeping.SubseqMap) (μ : MeasureTheory.Measure CP1) (S : Finset CP1),
       MeasureTheory.IsFiniteMeasure μ →
       Compactness.WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ →
@@ -2407,6 +2406,8 @@ theorem assemble_prestable_limit
     (h_conc_defects : ConcDefectCertificate I u_seq B th) :
     ∃ (pdata : PrestableLimitData I u_seq),
       (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B := by
+  have h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤ :=
+    fun n => Compactness.energyMeasureExtended_lt_top_of_thresholds I th (u_seq n) (h_jhol n)
   by_cases h_pdata : ∃ (σ : Bookkeeping.SubseqMap),
       Nonempty (PrestableLimitData I (fun n => u_seq (σ.1 n)))
   · rcases h_pdata with ⟨σ, ⟨pdata⟩⟩
@@ -2416,9 +2417,9 @@ theorem assemble_prestable_limit
     · rcases h_ev with ⟨σ, N₀, c, hc⟩
       exact assemble_prestable_limit_of_eventually_const_subseq I u_seq B h_jhol h_energy σ N₀ c hc
     · have hB : 0 ≤ B := (energy_nonneg I (u_seq 0) Set.univ).trans (h_energy 0)
-      obtain ⟨cdata⟩ := Compactness.exists_concentration_data I u_seq h_jhol B hB h_energy h_fin th h_conc_extract
+      obtain ⟨cdata⟩ := Compactness.exists_concentration_data_of_thresholds I u_seq h_jhol B hB h_energy th h_conc_extract
       obtain ⟨m_defect, hm_sph, _hm_zero, h_decomp, h_tendsto_energy⟩ :=
-        Compactness.defect_measure_identity I u_seq B h_jhol h_energy h_fin th cdata
+        Compactness.defect_measure_identity_of_thresholds I u_seq B h_jhol h_energy th cdata
       have defect_trees : (p : CP1) → (hp : p ∈ cdata.S) →
           ∃ (rot : MoebiusFrame) (a : ℂ),
             rot.toHomeo (stereo_chart.symm a) = p ∧
@@ -2470,6 +2471,568 @@ theorem assemble_prestable_limit
           exact h_tendsto
       }
       exact ⟨pdata, prestable_limit_energy_bound I u_seq B pdata h_energy⟩
+
+/-- Assembles the base map u₀ and all defect trees from Contract B07 into a global prestable limit (Contract G01).
+Proved with zero direct sorry from `assemble_prestable_limit_of_thresholds` (`_h_fin` is discharged
+unconditionally from `th` and `h_jhol`). -/
+theorem assemble_prestable_limit
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (_h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
+    (h_conc_extract : ∀ (σ : Bookkeeping.SubseqMap) (μ : MeasureTheory.Measure CP1) (S : Finset CP1),
+      MeasureTheory.IsFiniteMeasure μ →
+      Compactness.WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ →
+      (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal th.ε_reg ≤ μ {p}) →
+      ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
+        SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
+        μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_conc_defects : ConcDefectCertificate I u_seq B th) :
+    ∃ (pdata : PrestableLimitData I u_seq),
+      (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B :=
+  assemble_prestable_limit_of_thresholds I th u_seq B h_jhol h_energy
+    h_conc_extract h_cert h_conc_defects
+
+/-! ### First-principles proof of `ConcDefectCertificate` (`cert_concdefect`) (`0 sorryAx`) -/
+
+/-- Pointwise convergence on an open set `V ⊆ CP1` combined with eventual equicontinuity on `V`
+upgrades to uniform convergence `TendstoUniformlyOn` on every compact subset `K ⊆ V` without
+passing to a further subsequence (`0 sorryAx`). -/
+theorem tendstoUniformlyOn_of_pointwise_and_equicontinuous_on_open
+    {f_seq : ℕ → (CP1 → M)} {f_lim : CP1 → M} {V K : Set CP1}
+    (hV_open : IsOpen V) (hKV : K ⊆ V) (hK_cpt : IsCompact K)
+    (hf_lim_cont : ContinuousOn f_lim V)
+    (h_pt : ∀ z ∈ V, Tendsto (fun n => f_seq n z) atTop (𝓝 (f_lim z)))
+    {N₀ : ℕ} (h_equi : Equicontinuous (fun k (x : V) => f_seq (k + N₀) (x : CP1))) :
+    TendstoUniformlyOn f_seq f_lim atTop K := by
+  rw [Metric.tendstoUniformlyOn_iff]
+  intro ε hε
+  have hε3 : 0 < ε / 3 := by linarith
+  have h_loc : ∀ x ∈ K, ∃ δ > 0, Metric.ball x δ ⊆ V ∧
+      (∀ y ∈ Metric.ball x δ, ∀ k : ℕ, dist (f_seq (k + N₀) y) (f_seq (k + N₀) x) < ε / 3) ∧
+      (∀ y ∈ Metric.ball x δ, dist (f_lim y) (f_lim x) < ε / 3) := by
+    intro x hxK
+    have hxV : x ∈ V := hKV hxK
+    let x_V : V := ⟨x, hxV⟩
+    obtain ⟨δ₁, hδ₁_pos, hδ₁⟩ := Metric.equicontinuousAt_iff.mp (h_equi x_V) (ε / 3) hε3
+    have h_cont_at : ContinuousAt f_lim x := (hf_lim_cont x hxV).continuousAt (hV_open.mem_nhds hxV)
+    obtain ⟨δ₂, hδ₂_pos, hδ₂⟩ := Metric.continuousAt_iff.mp h_cont_at (ε / 3) hε3
+    obtain ⟨δ₃, hδ₃_pos, hδ₃⟩ := Metric.isOpen_iff.mp hV_open x hxV
+    let δ : ℝ := min (min δ₁ δ₂) δ₃
+    have hδ_pos : 0 < δ := lt_min (lt_min hδ₁_pos hδ₂_pos) hδ₃_pos
+    have h_ball_V : Metric.ball x δ ⊆ V :=
+      (Metric.ball_subset_ball (min_le_right _ _)).trans hδ₃
+    refine ⟨δ, hδ_pos, h_ball_V, ?_, ?_⟩
+    · intro y hy k
+      let y_V : V := ⟨y, h_ball_V hy⟩
+      have hy_dist : dist y_V x_V < δ₁ :=
+        lt_of_lt_of_le hy ((min_le_left _ _).trans (min_le_left _ _))
+      have h_eq := hδ₁ y_V hy_dist k
+      rwa [dist_comm] at h_eq
+    · intro y hy
+      exact hδ₂ (lt_of_lt_of_le hy ((min_le_left _ _).trans (min_le_right _ _)))
+  choose δ hδ_pos _hδ_V hδ_seq hδ_lim using fun (x : K) => h_loc x.1 x.2
+  obtain ⟨t, ht_cover⟩ := hK_cpt.elim_finite_subcover
+    (fun x : K => Metric.ball x.1 (δ x))
+    (fun x => Metric.isOpen_ball)
+    (fun z hz => Set.mem_iUnion.mpr ⟨⟨z, hz⟩, Metric.mem_ball_self (hδ_pos ⟨z, hz⟩)⟩)
+  have h_ev_pts : ∀ᶠ n in atTop, ∀ x ∈ t, dist (f_seq n x.1) (f_lim x.1) < ε / 3 :=
+    (Filter.eventually_all_finset t).mpr (fun x _ =>
+      Metric.tendsto_nhds.mp (h_pt x.1 (hKV x.2)) (ε / 3) hε3)
+  filter_upwards [h_ev_pts, Filter.eventually_ge_atTop N₀] with n hn_pts hn_ge z hzK
+  have hz_cov := ht_cover hzK
+  simp only [Set.mem_iUnion] at hz_cov
+  rcases hz_cov with ⟨x, hx_t, hz_ball⟩
+  have hn_eq : (n - N₀) + N₀ = n := Nat.sub_add_cancel hn_ge
+  have d1 : dist (f_lim z) (f_lim x.1) < ε / 3 := hδ_lim x z hz_ball
+  have d2 : dist (f_lim x.1) (f_seq n x.1) < ε / 3 := by
+    rw [dist_comm]; exact hn_pts x hx_t
+  have d3 : dist (f_seq n x.1) (f_seq n z) < ε / 3 := by
+    rw [dist_comm, ← hn_eq]; exact hδ_seq x z hz_ball (n - N₀)
+  calc dist (f_lim z) (f_seq n z)
+      ≤ dist (f_lim z) (f_lim x.1) + dist (f_lim x.1) (f_seq n z) := dist_triangle _ _ _
+    _ ≤ dist (f_lim z) (f_lim x.1) + (dist (f_lim x.1) (f_seq n x.1) + dist (f_seq n x.1) (f_seq n z)) :=
+        by linarith [dist_triangle (f_lim x.1) (f_seq n x.1) (f_seq n z)]
+    _ < ε / 3 + (ε / 3 + ε / 3) := add_lt_add d1 (add_lt_add d2 d3)
+    _ = ε := by ring
+
+/-- Existence of an isolating-disk radius `r_isol > 0` around any finite atom `p = stereo_chart.symm a ∈ S`
+such that `closure (disk_at a r) ∩ S = {p}` for all `0 < r ≤ r_isol` (`0 sorryAx`). -/
+theorem exists_isolating_disk_radius
+    (S : Finset CP1) {p : CP1} (hp : p ∈ S) (a : ℂ) (ha : stereo_chart.symm a = p) :
+    ∃ r_isol > 0, ∀ r : ℝ, 0 < r → r ≤ r_isol →
+      closure (disk_at a r) ∩ (S : Set CP1) = {p} := by
+  let S' : Finset CP1 := S.erase p
+  let F : Set ℂ := stereo_chart.symm ⁻¹' (S' : Set CP1)
+  have hF_closed : IsClosed F := S'.finite_toSet.isClosed.preimage stereo_chart_symm_continuous
+  have ha_not_F : a ∉ F := by
+    intro haF
+    have hp_in_S' : p ∈ (S' : Set CP1) := by rwa [← ha]
+    exact (Finset.notMem_erase p S) (Finset.mem_coe.mp hp_in_S')
+  obtain ⟨R₀, hR₀_pos, hR₀_ball⟩ := Metric.isOpen_iff.mp hF_closed.isOpen_compl a ha_not_F
+  refine ⟨R₀ / 2, half_pos hR₀_pos, fun r hr hrr => ?_⟩
+  have h_closed_cb : IsClosed (stereo_chart.symm '' Metric.closedBall a r) :=
+    ((isCompact_closedBall a r).image stereo_chart_symm_continuous).isClosed
+  have h_clos_sub : closure (disk_at a r) ⊆ stereo_chart.symm '' Metric.closedBall a r :=
+    closure_minimal (Set.image_mono Metric.ball_subset_closedBall) h_closed_cb
+  apply Set.Subset.antisymm
+  · rintro q ⟨hq_cl, hq_S⟩
+    obtain ⟨w, hw_cb, rfl⟩ := h_clos_sub hq_cl
+    have hw_ball : w ∈ Metric.ball a R₀ := by
+      rw [Metric.mem_ball]
+      exact lt_of_le_of_lt (Metric.mem_closedBall.mp hw_cb) (lt_of_le_of_lt hrr (half_lt_self hR₀_pos))
+    have hw_not_F : w ∉ F := hR₀_ball hw_ball
+    by_contra hqp
+    have hq_erase : stereo_chart.symm w ∈ S' :=
+      Finset.mem_erase.mpr ⟨hqp, Finset.mem_coe.mp hq_S⟩
+    exact hw_not_F (Finset.mem_coe.mpr hq_erase)
+  · rw [Set.singleton_subset_iff]
+    exact ⟨subset_closure ⟨a, Metric.mem_ball_self hr, ha⟩, Finset.mem_coe.mpr hp⟩
+
+/-- Unconditional proof of shrinking-disk defect mass convergence (`hmass`) and single-atom ghost-root
+total energy convergence at EVERY finite atom `p = stereo_chart.symm a ∈ cdata.S` (`0 sorryAx`). -/
+theorem defect_mass_limit_of_concentration_finite_point
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (cdata : Compactness.ConcentrationData I u_seq B th)
+    (m : CP1 → ℝ)
+    (h_decomp : cdata.μ = energyMeasureExtended I cdata.u₀ +
+      ∑ q ∈ cdata.S, (ENNReal.ofReal (m q) • MeasureTheory.Measure.dirac q))
+    {p : CP1} (hp : p ∈ cdata.S) (a : ℂ) (ha : stereo_chart.symm a = p) :
+    (∀ ε : ℝ, 0 < ε → ∃ r₀ : ℝ, 0 < r₀ ∧ ∀ r : ℝ, 0 < r → r ≤ r₀ →
+      ∀ᶠ n in atTop, |energyMeasure I (u_seq (cdata.σ.1 n)) (disk_at a r) - m p| < ε) ∧
+    ((cdata.S = {p} ∧ ∃ c : M, ∀ z : CP1, cdata.u₀ z = c) →
+      Tendsto (fun n => totalEnergy I (u_seq (cdata.σ.1 n))) atTop (𝓝 (m p))) := by
+  haveI := cdata.μ_fin
+  -- Deduce `0 ≤ m q` for every `q ∈ cdata.S` by evaluating `h_decomp` at `{q}`.
+  have hm_nonneg : ∀ q ∈ cdata.S, 0 ≤ m q := by
+    intro q hq
+    have h_ge_reg : ENNReal.ofReal th.ε_reg ≤ cdata.μ {q} := (cdata.S_def q).mp hq
+    have h_eval : cdata.μ {q} = ENNReal.ofReal (m q) := by
+      rw [h_decomp, MeasureTheory.Measure.add_apply,
+        Compactness.energyMeasureExtended_singleton_eq_zero I cdata.u₀ q, zero_add,
+        Compactness.dirac_sum_singleton_mem cdata.S m q hq]
+    rw [h_eval] at h_ge_reg
+    have h_pos_reg : 0 < ENNReal.ofReal th.ε_reg := ENNReal.ofReal_pos.mpr th.ε_reg_pos
+    have h_pos_mq : 0 < ENNReal.ofReal (m q) := lt_of_lt_of_le h_pos_reg h_ge_reg
+    exact le_of_lt (ENNReal.ofReal_pos.mp h_pos_mq)
+  refine ⟨?_, ?_⟩
+  · intro ε hε
+    obtain ⟨r_isol, hr_isol_pos, hr_isol⟩ := exists_isolating_disk_radius cdata.S hp a ha
+    have hu₀_lt_top : energyMeasureExtended I cdata.u₀ Set.univ < ⊤ :=
+      Compactness.energyMeasureExtended_lt_top_of_thresholds I th cdata.u₀ cdata.u₀_jhol
+    have hu₀_disk_ne_top : energyMeasureExtended I cdata.u₀ (disk_at a r_isol) ≠ ⊤ :=
+      ne_top_of_le_ne_top hu₀_lt_top.ne (MeasureTheory.measure_mono (Set.subset_univ _))
+    have h_cont_rad : ContinuousOn (fun r => energyMeasure I cdata.u₀ (disk_at a r)) (Set.Icc 0 r_isol) :=
+      Analysis.continuousOn_energyMeasure_disk_at_Icc_of_ne_top I cdata.u₀ a r_isol hu₀_disk_ne_top
+    have h_zero_rad : energyMeasure I cdata.u₀ (disk_at a 0) = 0 :=
+      Analysis.energyMeasure_disk_at_zero I cdata.u₀ a
+    obtain ⟨δ_rad, hδ_rad_pos, hδ_rad⟩ :=
+      Metric.continuousWithinAt_iff.mp (h_cont_rad 0 (Set.left_mem_Icc.mpr hr_isol_pos.le))
+        (ε / 2) (half_pos hε)
+    let r₀ : ℝ := min r_isol (δ_rad / 2)
+    have hr₀_pos : 0 < r₀ := lt_min hr_isol_pos (half_pos hδ_rad_pos)
+    refine ⟨r₀, hr₀_pos, fun r hr hrr => ?_⟩
+    have hr_le_isol : r ≤ r_isol := hrr.trans (min_le_left _ _)
+    have hr_lt_δ : dist r 0 < δ_rad := by
+      rw [Real.dist_eq, sub_zero, abs_of_pos hr]
+      exact lt_of_le_of_lt (hrr.trans (min_le_right _ _)) (half_lt_self hδ_rad_pos)
+    have hu₀_r_lt : energyMeasure I cdata.u₀ (disk_at a r) < ε / 2 := by
+      have h_d := hδ_rad ⟨hr.le, hr_le_isol⟩ hr_lt_δ
+      rw [h_zero_rad, Real.dist_eq, sub_zero, abs_of_nonneg (energy_nonneg I cdata.u₀ _)] at h_d
+      exact h_d
+    have hu₀_r_nn : 0 ≤ energyMeasure I cdata.u₀ (disk_at a r) := energy_nonneg I cdata.u₀ _
+    have h_isol_cl := hr_isol r hr hr_le_isol
+    have h_isol_open : disk_at a r ∩ (cdata.S : Set CP1) = {p} := by
+      apply Set.Subset.antisymm
+      · rw [← h_isol_cl]; exact Set.inter_subset_inter_left _ subset_closure
+      · rw [Set.singleton_subset_iff]
+        exact ⟨⟨a, Metric.mem_ball_self hr, ha⟩, Finset.mem_coe.mpr hp⟩
+    have h_front_null :=
+      Compactness.frontier_disk_at_null_of_isolating I u_seq B th cdata m h_decomp p a ha r hr h_isol_cl
+    have h_lim :=
+      Compactness.isolating_disk_defect_limit_of_decomp I u_seq B th cdata m h_decomp p hp
+        (hm_nonneg p hp) a r h_isol_open h_front_null
+    filter_upwards [Metric.tendsto_nhds.mp h_lim (ε / 2) (half_pos hε)] with n hn
+    rw [Real.dist_eq] at hn
+    rw [abs_lt] at hn ⊢
+    constructor <;> linarith
+  · rintro ⟨hS_single, c, hc⟩
+    have h_tot := Compactness.tendsto_totalEnergy_of_defect_decomp I u_seq B th cdata m hm_nonneg h_decomp
+    have hu₀_eq : cdata.u₀ = fun _ => c := funext hc
+    have hu₀_en : totalEnergy I cdata.u₀ = 0 := by
+      rw [hu₀_eq]; exact Analysis.totalEnergy_const I c
+    rw [hu₀_en, hS_single, Finset.sum_singleton, zero_add] at h_tot
+    exact h_tot
+
+/-- Unconditional Southern-Hemisphere Concentration-to-Defect Theorem (`0 sorryAx`):
+on any `[I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]`, every concentration
+atom `p = stereo_chart.symm a ∈ cdata.S` in the open southern hemisphere (`‖a‖ < 1`) is
+unconditionally a genuine defect `Bubbling.IsDefectSeq` of `fun n => u_seq (cdata.σ.1 n)` at `a`
+with mass `m p` and base value `cdata.u₀ p`, and satisfies the single-atom ghost-root energy limit. -/
+theorem isDefectSeq_of_concentration_southern_hemisphere
+    [I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (cdata : Compactness.ConcentrationData I u_seq B th)
+    (m : CP1 → ℝ)
+    (h_decomp : cdata.μ = energyMeasureExtended I cdata.u₀ +
+      ∑ q ∈ cdata.S, (ENNReal.ofReal (m q) • MeasureTheory.Measure.dirac q))
+    {p : CP1} (hp : p ∈ cdata.S) (a : ℂ) (ha_norm : ‖a‖ < 1) (ha : stereo_chart.symm a = p) :
+    Bubbling.IsDefectSeq I (fun n => u_seq (cdata.σ.1 n)) a (m p) (cdata.u₀ p) ∧
+    ((cdata.S = {p} ∧ ∃ c : M, ∀ z : CP1, cdata.u₀ z = c) →
+      Tendsto (fun n => totalEnergy I (u_seq (cdata.σ.1 n))) atTop (𝓝 (m p))) := by
+  haveI := cdata.μ_fin
+  obtain ⟨hmass, h_tot_lim⟩ :=
+    defect_mass_limit_of_concentration_finite_point I th u_seq B cdata m h_decomp hp a ha
+  refine ⟨⟨fun n => h_jhol (cdata.σ.1 n), ⟨B, fun n => h_energy (cdata.σ.1 n)⟩,
+    fun n => Compactness.energyMeasureExtended_lt_top_of_thresholds I th _ (h_jhol (cdata.σ.1 n)),
+    hmass, ?_⟩, h_tot_lim⟩
+  -- Prove `hann` on `annulus_at a (r / 2) r` via southern-hemisphere gradient bounds + equicontinuity.
+  intro ε hε
+  obtain ⟨r_isol, hr_isol_pos, hr_isol⟩ := exists_isolating_disk_radius cdata.S hp a ha
+  have hu₀_cont : Continuous cdata.u₀ := continuousOn_univ.mp cdata.u₀_jhol.1.continuousOn
+  have h_comp_cont : ContinuousAt (fun w : ℂ => cdata.u₀ (stereo_chart.symm w)) a :=
+    (hu₀_cont.comp stereo_chart_symm_continuous).continuousAt
+  obtain ⟨δ₀, hδ₀_pos, hδ₀⟩ := Metric.continuousAt_iff.mp h_comp_cont (ε / 2) (half_pos hε)
+  let r₀ : ℝ := min (min (δ₀ / 2) (r_isol / 2)) ((1 - ‖a‖) / 4)
+  have hr₀_pos : 0 < r₀ := lt_min (lt_min (half_pos hδ₀_pos) (half_pos hr_isol_pos)) (by linarith)
+  refine ⟨r₀, hr₀_pos, fun r hr hrr => ?_⟩
+  -- Enclose `annulus_at a (r / 2) r` inside `K_r ⊆ V_r ⊆ L_r` where `L_r` is compact and in `(univ \ S) ∩ H_-`.
+  let K_r : Set CP1 := stereo_chart.symm '' {w : ℂ | r / 2 ≤ dist w a ∧ dist w a ≤ r}
+  let V_r : Set CP1 := annulus_at a (r / 3) (3 * r / 2)
+  let L_r : Set CP1 := stereo_chart.symm '' {w : ℂ | r / 4 ≤ dist w a ∧ dist w a ≤ 7 * r / 4}
+  have hKr_cpt : IsCompact K_r := by
+    have h_eq : {w : ℂ | r / 2 ≤ dist w a ∧ dist w a ≤ r} =
+        Metric.closedBall a r ∩ {w : ℂ | r / 2 ≤ dist w a} := by
+      ext w; simp [Metric.mem_closedBall, and_comm]
+    dsimp [K_r]
+    rw [h_eq]
+    exact ((isCompact_closedBall a r).of_isClosed_subset
+      (isClosed_closedBall.inter (isClosed_le continuous_const (continuous_id.dist continuous_const)))
+      Set.inter_subset_left).image stereo_chart_symm_continuous
+  have hLr_cpt : IsCompact L_r := by
+    have h_eq : {w : ℂ | r / 4 ≤ dist w a ∧ dist w a ≤ 7 * r / 4} =
+        Metric.closedBall a (7 * r / 4) ∩ {w : ℂ | r / 4 ≤ dist w a} := by
+      ext w; simp [Metric.mem_closedBall, and_comm]
+    dsimp [L_r]
+    rw [h_eq]
+    exact ((isCompact_closedBall a (7 * r / 4)).of_isClosed_subset
+      (isClosed_closedBall.inter (isClosed_le continuous_const (continuous_id.dist continuous_const)))
+      Set.inter_subset_left).image stereo_chart_symm_continuous
+  have hVr_open : IsOpen V_r := is_open_annulus_at a (r / 3) (3 * r / 2)
+  have h_ann_Kr : annulus_at a (r / 2) r ⊆ K_r :=
+    Set.image_mono (fun _ hw => ⟨hw.1.le, hw.2.le⟩)
+  have hKr_Vr : K_r ⊆ V_r :=
+    Set.image_mono (fun _ hw => ⟨by linarith [hw.1], by linarith [hw.2]⟩)
+  have hVr_Lr : V_r ⊆ L_r :=
+    Set.image_mono (fun _ hw => ⟨by linarith [hw.1], by linarith [hw.2]⟩)
+  have hLr_sub : L_r ⊆ (Set.univ \ (cdata.S : Set CP1)) ∩ (stereo_chart.symm '' Metric.ball (0 : ℂ) 1) := by
+    rintro z ⟨w, ⟨hw_lo, hw_hi⟩, rfl⟩
+    have hr_le_isol2 : r ≤ r_isol / 2 := hrr.trans ((min_le_left _ _).trans (min_le_right _ _))
+    have hr_le_hemi : r ≤ (1 - ‖a‖) / 4 := hrr.trans (min_le_right _ _)
+    have hw_lt_isol : dist w a < r_isol := by linarith
+    have hz_in_disk : stereo_chart.symm w ∈ disk_at a r_isol := ⟨w, hw_lt_isol, rfl⟩
+    have h_isol_cl := hr_isol r_isol hr_isol_pos le_rfl
+    have hz_not_S : stereo_chart.symm w ∉ (cdata.S : Set CP1) := by
+      intro hzS
+      have hz_p : stereo_chart.symm w ∈ ({p} : Set CP1) := by
+        rw [← h_isol_cl]
+        exact ⟨subset_closure hz_in_disk, hzS⟩
+      rw [Set.mem_singleton_iff, ← ha] at hz_p
+      have hwa : w = a := stereo_chart_symm_injective hz_p
+      subst hwa
+      rw [dist_self] at hw_lo
+      linarith
+    refine ⟨⟨Set.mem_univ _, hz_not_S⟩, ⟨w, ?_, rfl⟩⟩
+    rw [Metric.mem_ball, dist_zero_right]
+    rw [dist_eq_norm] at hw_hi
+    have h_tri : ‖w‖ ≤ ‖a‖ + ‖w - a‖ := by
+      calc ‖w‖ = ‖a + (w - a)‖ := congr_arg norm (by ring)
+        _ ≤ ‖a‖ + ‖w - a‖ := norm_add_le a (w - a)
+    linarith
+  -- Uniform eventual gradient bound on `L_r` gives uniform bound `C_L + 1 > 0` for `n ≥ N₀` on `V_r`.
+  obtain ⟨C_L, hCL_nn, h_ev_CL⟩ :=
+    Compactness.eventually_gradient_bound_on_compact_southern_hemisphere_of_disjoint_S
+      I u_seq h_jhol th cdata.σ cdata.μ cdata.S cdata.weak_lim cdata.S_def hLr_cpt hLr_sub
+  obtain ⟨N₀, hN₀⟩ := Filter.eventually_atTop.mp h_ev_CL
+  have h_jhol_Vr : ∀ k, JHolomorphicOn (I := I) (I_dom := I_CP1) (u_seq (cdata.σ.1 (k + N₀))) V_r :=
+    fun k => ⟨(h_jhol (cdata.σ.1 (k + N₀))).1.mono (Set.subset_univ _),
+      fun z _ => (h_jhol (cdata.σ.1 (k + N₀))).2 z (Set.mem_univ z)⟩
+  have h_grad_Vr : ∀ K ⊆ V_r, IsCompact K →
+      ∃ C > 0, ∀ k, ∀ z ∈ K, riemannianEnergyDensity I (u_seq (cdata.σ.1 (k + N₀))) z ≤ C := by
+    intro K hKV _hKcpt
+    refine ⟨C_L + 1, by linarith, fun k z hzK => ?_⟩
+    have h1 := hN₀ (k + N₀) (Nat.le_add_left N₀ k) z (hVr_Lr (hKV hzK))
+    linarith
+  have h_equi : Equicontinuous (fun k (x : V_r) => u_seq (cdata.σ.1 (k + N₀)) (x : CP1)) :=
+    Analysis.equicontinuous_of_local_lipschitz_on_domain
+      (fun k => u_seq (cdata.σ.1 (k + N₀))) V_r
+      (local_lipschitz_of_bounded_energy_density I
+        (fun k => u_seq (cdata.σ.1 (k + N₀))) V_r hVr_open h_jhol_Vr h_grad_Vr)
+  have h_pt_Vr : ∀ z ∈ V_r, Tendsto (fun n => u_seq (cdata.σ.1 n) z) atTop (𝓝 (cdata.u₀ z)) := by
+    intro z hzV
+    have hz_off : z ∈ Set.univ \ (cdata.S : Set CP1) := (hLr_sub (hVr_Lr hzV)).1
+    exact ((cdata.smooth_conv []).2 {z} (Set.singleton_subset_iff.mpr hz_off) isCompact_singleton).1
+      z (Set.mem_singleton z)
+  have h_unif_Kr : TendstoUniformlyOn (fun n => u_seq (cdata.σ.1 n)) cdata.u₀ atTop K_r :=
+    tendstoUniformlyOn_of_pointwise_and_equicontinuous_on_open hVr_open hKr_Vr hKr_cpt
+      hu₀_cont.continuousOn h_pt_Vr h_equi
+  filter_upwards [Metric.tendstoUniformlyOn_iff.mp h_unif_Kr (ε / 2) (half_pos hε)] with n hn z hz_ann
+  have hz_Kr : z ∈ K_r := h_ann_Kr hz_ann
+  rcases hz_ann with ⟨w, ⟨_hw_lo, hw_hi⟩, rfl⟩
+  have hr_le_δ₀ : r ≤ δ₀ / 2 := hrr.trans ((min_le_left _ _).trans (min_le_left _ _))
+  have hw_lt_δ₀ : dist w a < δ₀ := lt_of_lt_of_le hw_hi (le_trans hr_le_δ₀ (half_le_self hδ₀_pos.le))
+  have hd_u0 : dist (cdata.u₀ (stereo_chart.symm w)) (cdata.u₀ p) < ε / 2 := by
+    rw [← ha]; exact hδ₀ hw_lt_δ₀
+  have hd_seq : dist (cdata.u₀ (stereo_chart.symm w)) (u_seq (cdata.σ.1 n) (stereo_chart.symm w)) < ε / 2 :=
+    hn (stereo_chart.symm w) hz_Kr
+  calc dist (u_seq (cdata.σ.1 n) (stereo_chart.symm w)) (cdata.u₀ p)
+      ≤ dist (u_seq (cdata.σ.1 n) (stereo_chart.symm w)) (cdata.u₀ (stereo_chart.symm w)) +
+        dist (cdata.u₀ (stereo_chart.symm w)) (cdata.u₀ p) := dist_triangle _ _ _
+    _ = dist (cdata.u₀ (stereo_chart.symm w)) (u_seq (cdata.σ.1 n) (stereo_chart.symm w)) +
+        dist (cdata.u₀ (stereo_chart.symm w)) (cdata.u₀ p) := by rw [dist_comm]
+    _ < ε / 2 + ε / 2 := add_lt_add hd_seq hd_u0
+    _ = ε := add_halves ε
+
+/-- Pushforward of `WeakMeasureConvergence` on `CP1` along any homeomorphism `h : CP1 ≃ₜ CP1` (`0 sorryAx`). -/
+theorem weakMeasureConvergence_map_homeomorph
+    {μ_seq : ℕ → MeasureTheory.Measure CP1} {μ_lim : MeasureTheory.Measure CP1}
+    (h_weak : Compactness.WeakMeasureConvergence μ_seq μ_lim) (h : CP1 ≃ₜ CP1) :
+    Compactness.WeakMeasureConvergence
+      (fun n => MeasureTheory.Measure.map h (μ_seq n))
+      (MeasureTheory.Measure.map h μ_lim) := by
+  let e := h.toMeasurableEquiv
+  have he_coe : (⇑e : CP1 → CP1) = ⇑h := rfl
+  have h_apply : ∀ (ν : MeasureTheory.Measure CP1) (A : Set CP1),
+      (MeasureTheory.Measure.map h ν) A = ν (h ⁻¹' A) := by
+    intro ν A
+    rw [← he_coe, e.map_apply]
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro f hf
+    have h_int : ∀ ν : MeasureTheory.Measure CP1,
+        (∫ z, f z ∂(MeasureTheory.Measure.map h ν)) = ∫ x, f (h x) ∂ν :=
+      fun ν => MeasureTheory.integral_map h.continuous.aemeasurable hf.aestronglyMeasurable
+    simp_rw [h_int]
+    exact h_weak.1 (f ∘ h) (hf.comp h.continuous)
+  · intro K hK
+    simp_rw [h_apply _ K]
+    exact h_weak.2.1 (h ⁻¹' K) (hK.preimage h.continuous)
+  · intro A hA_front
+    simp_rw [h_apply _ A]
+    apply h_weak.2.2.1 (h ⁻¹' A)
+    rw [← h.preimage_frontier A, ← h_apply μ_lim (frontier A)]
+    exact hA_front
+  · simp_rw [h_apply _ Set.univ, Set.preimage_univ]
+    exact h_weak.2.2.2
+
+/-- Conformal rotation witness sending `south_pole = stereo_chart.symm 0` to `p : CP1` while preserving
+global `JHolomorphicOn` (`lem_jhol_invariance`) and `energyMeasureExtended` pullback equivariance
+(`thm_energy_conformal`). -/
+def IsConformalRotationTo (p : CP1) (rot : MoebiusFrame) : Prop :=
+  rot.toHomeo south_pole = p ∧
+  (∀ (u : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+    JHolomorphicOn (I := I) (I_dom := I_CP1) (u ∘ rot.toHomeo) Set.univ ∧
+    energyMeasureExtended I (u ∘ rot.toHomeo) =
+      MeasureTheory.Measure.map rot.toHomeo.symm (energyMeasureExtended I u))
+
+/-- `MoebiusFrame.id` unconditionally satisfies `IsConformalRotationTo` for `south_pole` (`0 sorryAx`). -/
+theorem isConformalRotationTo_south_pole :
+    IsConformalRotationTo I (M := M) south_pole MoebiusFrame.id :=
+  ⟨rfl, fun u hu => ⟨hu, energyMeasureExtended_id I u⟩⟩
+
+/-- Construction of `IsConformalRotationTo` from domain biholomorphicity (`jholomorphic_coordinate_invariance`)
+and extended energy pullback equivariance (`energy_conformal_invariant`) (`0 sorryAx`). -/
+theorem isConformalRotationTo_of_biholomorphic_and_pullback
+    (p : CP1) (rot : MoebiusFrame)
+    (hp : rot.toHomeo south_pole = p)
+    (h_bihol : ∀ (z : CP1) (v : TangentSpace I_CP1 z),
+      mfderiv I_CP1 I_CP1 rot.toHomeo z (RiemannDomain.j z v) =
+        RiemannDomain.j (rot.toHomeo z) (mfderiv I_CP1 I_CP1 rot.toHomeo z v))
+    (h_pull : ∀ (u : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      energyMeasureExtended I (u ∘ rot.toHomeo) =
+        MeasureTheory.Measure.map rot.toHomeo.symm (energyMeasureExtended I u)) :
+    IsConformalRotationTo I (M := M) p rot := by
+  refine ⟨hp, fun u hu => ⟨?_, h_pull u hu⟩⟩
+  have h_inv := jholomorphic_coordinate_invariance I I_CP1 u Set.univ hu rot.toHomeo rot.is_smooth h_bihol
+    (fun z _ => ((hu.1 z (Set.mem_univ z)).mdifferentiableWithinAt (by simp)).mdifferentiableAt Filter.univ_mem)
+  rwa [Set.preimage_univ] at h_inv
+
+/-- Proof of `ConcDefectCertificate` (`cert_concdefect`) on any `[I.Boundaryless] [BoundedChartedTarget I M]
+[FiniteDimensional ℝ E]` (`0 sorryAx`):
+- for every atom `p = stereo_chart.symm a ∈ cdata.S` in the open southern hemisphere (`‖a‖ < 1`),
+  `rot = MoebiusFrame.id` and `a` work unconditionally via `isDefectSeq_of_concentration_southern_hemisphere`;
+- for any remaining atom `p ∈ cdata.S`, pulling `cdata` back along `rot` (`IsConformalRotationTo I p rot`)
+  moves `p` to `south_pole = stereo_chart.symm 0` (`‖0‖ = 0 < 1`), reducing to the unconditional
+  southern-hemisphere theorem. -/
+theorem concDefectCertificate_of_rotations
+    [I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_rot : ∀ p : CP1, (∃ a : ℂ, ‖a‖ < 1 ∧ stereo_chart.symm a = p) ∨
+      ∃ rot : MoebiusFrame, IsConformalRotationTo I (M := M) p rot) :
+    ConcDefectCertificate I u_seq B th := by
+  intro cdata m h_decomp p hp
+  rcases h_rot p with ⟨a, ha_norm, ha_eq⟩ | ⟨rot, hrot_sp, hrot_inv⟩
+  · -- Southern-hemisphere atom: `rot = MoebiusFrame.id`, `0` extra hypotheses!
+    obtain ⟨h_def, h_tot⟩ :=
+      isDefectSeq_of_concentration_southern_hemisphere I th u_seq B h_jhol h_energy cdata m h_decomp
+        hp a ha_norm ha_eq
+    exact ⟨MoebiusFrame.id, a, ha_eq, h_def, h_tot⟩
+  · -- General atom: pull `cdata` back along `rot` so `south_pole = stereo_chart.symm 0` corresponds to `p`.
+    haveI := cdata.μ_fin
+    let h_symm : CP1 ≃ₜ CP1 := rot.toHomeo.symm
+    let e_symm := h_symm.toMeasurableEquiv
+    have h_map_apply : ∀ (ν : MeasureTheory.Measure CP1) (A : Set CP1),
+        (MeasureTheory.Measure.map h_symm ν) A = ν (h_symm ⁻¹' A) := by
+      intro ν A; exact e_symm.map_apply A
+    let u'_seq : ℕ → (CP1 → M) := fun n => u_seq n ∘ rot.toHomeo
+    have hu'_jhol : ∀ n, JHolomorphicOn I I_CP1 (u'_seq n) Set.univ :=
+      fun n => (hrot_inv (u_seq n) (h_jhol n)).1
+    have hu'_energy : ∀ n, totalEnergy I (u'_seq n) ≤ B := by
+      intro n
+      rw [totalEnergy_conformal_invariant I (u_seq n) rot (hrot_inv (u_seq n) (h_jhol n)).2]
+      exact h_energy n
+    let μ' : MeasureTheory.Measure CP1 := MeasureTheory.Measure.map h_symm cdata.μ
+    have hμ'_univ : μ' Set.univ ≤ ENNReal.ofReal B := by
+      rw [h_map_apply cdata.μ Set.univ, Set.preimage_univ]
+      exact cdata.μ_total_le
+    haveI hμ'_fin : MeasureTheory.IsFiniteMeasure μ' :=
+      Compactness.isFiniteMeasure_of_univ_le_ofReal μ' hμ'_univ
+    have h_weak' : Compactness.WeakMeasureConvergence
+        (fun n => energyMeasureExtended I (u'_seq (cdata.σ.1 n))) μ' := by
+      have h_eq_fn : (fun n => energyMeasureExtended I (u'_seq (cdata.σ.1 n))) =
+          fun n => MeasureTheory.Measure.map h_symm (energyMeasureExtended I (u_seq (cdata.σ.1 n))) := by
+        ext n : 1
+        exact (hrot_inv (u_seq (cdata.σ.1 n)) (h_jhol (cdata.σ.1 n))).2
+      rw [h_eq_fn]
+      exact weakMeasureConvergence_map_homeomorph cdata.weak_lim h_symm
+    let S' : Finset CP1 := cdata.S.map ⟨h_symm, h_symm.injective⟩
+    have h_pre_singleton : ∀ q : CP1, h_symm ⁻¹' ({q} : Set CP1) = {rot.toHomeo q} := by
+      intro q
+      ext x
+      simp only [Set.mem_preimage, Set.mem_singleton_iff]
+      exact ⟨fun hx => by rw [← hx]; exact (rot.toHomeo.apply_symm_apply x).symm,
+        fun hx => by rw [hx]; exact rot.toHomeo.symm_apply_apply q⟩
+    have hS'_def : ∀ q : CP1, q ∈ S' ↔ ENNReal.ofReal th.ε_reg ≤ μ' {q} := by
+      intro q
+      rw [h_map_apply cdata.μ {q}, h_pre_singleton q, ← cdata.S_def (rot.toHomeo q)]
+      simp only [S', Finset.mem_map, Function.Embedding.coeFn_mk]
+      exact ⟨fun ⟨x, hxS, hxq⟩ => by
+          have : rot.toHomeo q = x := by rw [← hxq]; exact rot.toHomeo.apply_symm_apply x
+          rwa [this],
+        fun h_mem => ⟨rot.toHomeo q, h_mem, (rot.toHomeo.symm_apply_apply q)⟩⟩
+    have h_card_eq : S'.card = cdata.S.card := Finset.card_map _
+    let u'₀ : CP1 → M := cdata.u₀ ∘ rot.toHomeo
+    have hu'₀_jhol : JHolomorphicOn I I_CP1 u'₀ Set.univ :=
+      (hrot_inv cdata.u₀ cdata.u₀_jhol).1
+    have h_dom_eq : rot.toHomeo ⁻¹' (Set.univ \ (cdata.S : Set CP1)) = Set.univ \ (S' : Set CP1) := by
+      ext q
+      simp only [S', Set.mem_preimage, Set.mem_diff, Set.mem_univ, true_and, Finset.mem_coe,
+        Finset.mem_map, Function.Embedding.coeFn_mk]
+      constructor
+      · intro h_not ⟨x, hxS, hxq⟩
+        apply h_not
+        have : rot.toHomeo q = x := by rw [← hxq]; exact rot.toHomeo.apply_symm_apply x
+        rwa [this]
+      · intro h_not h_in
+        exact h_not ⟨rot.toHomeo q, h_in, rot.toHomeo.symm_apply_apply q⟩
+    have h_smooth' : SmoothLocalConvergesOn I (fun n => u'_seq (cdata.σ.1 n)) u'₀ (Set.univ \ S') := by
+      rw [← h_dom_eq]
+      exact smooth_local_comp_moebius I (fun n => u_seq (cdata.σ.1 n)) cdata.u₀
+        (Set.univ \ cdata.S) (fun _ => rot) rot cdata.smooth_conv tendsto_const_nhds
+    let m' : CP1 → ℝ := fun q => m (rot.toHomeo q)
+    have h_decomp' : μ' = energyMeasureExtended I u'₀ +
+        ∑ q ∈ S', (ENNReal.ofReal (m' q) • MeasureTheory.Measure.dirac q) := by
+      ext A hA
+      rw [h_map_apply cdata.μ A, h_decomp, MeasureTheory.Measure.add_apply,
+        MeasureTheory.Measure.add_apply]
+      have h_bg_eq : (energyMeasureExtended I u'₀) A =
+          (energyMeasureExtended I cdata.u₀) (h_symm ⁻¹' A) := by
+        rw [(hrot_inv cdata.u₀ cdata.u₀_jhol).2, h_map_apply _ A]
+      rw [h_bg_eq]
+      congr 1
+      rw [MeasureTheory.Measure.finsetSum_apply, MeasureTheory.Measure.finsetSum_apply,
+        Finset.sum_map]
+      refine Finset.sum_congr rfl (fun x _hx => ?_)
+      simp only [Function.Embedding.coeFn_mk, MeasureTheory.Measure.smul_apply, smul_eq_mul, m']
+      have h_rot_symm : rot.toHomeo (h_symm x) = x := rot.toHomeo.apply_symm_apply x
+      rw [h_rot_symm]
+      congr 1
+      have h_pre_meas : MeasurableSet (h_symm ⁻¹' A) := hA.preimage h_symm.continuous.measurable
+      rw [MeasureTheory.Measure.dirac_apply' x h_pre_meas, MeasureTheory.Measure.dirac_apply' (h_symm x) hA]
+      by_cases hxA : h_symm x ∈ A <;> simp [hxA]
+    let cdata' : Compactness.ConcentrationData I u'_seq B th :=
+      { σ := cdata.σ
+        μ := μ'
+        μ_fin := hμ'_fin
+        μ_total_le := hμ'_univ
+        weak_lim := h_weak'
+        S := S'
+        S_def := hS'_def
+        card_S_mul_le := by rw [h_card_eq]; exact cdata.card_S_mul_le
+        card_S_le := by rw [h_card_eq]; exact cdata.card_S_le
+        u₀ := u'₀
+        u₀_jhol := hu'₀_jhol
+        smooth_conv := h_smooth'
+        measure_decomp := by
+          conv_lhs => rw [h_decomp']
+          congr 1
+          refine Finset.sum_congr rfl (fun q hq => ?_)
+          have h_eval_q : μ' {q} = ENNReal.ofReal (m' q) := by
+            rw [h_decomp', MeasureTheory.Measure.add_apply,
+              Compactness.energyMeasureExtended_singleton_eq_zero I u'₀ q, zero_add,
+              Compactness.dirac_sum_singleton_mem S' m' q hq]
+          rw [h_eval_q] }
+    have h_sp_in_S' : south_pole ∈ S' := by
+      simp only [S', Finset.mem_map, Function.Embedding.coeFn_mk]
+      exact ⟨p, hp, by dsimp [h_symm]; rw [← hrot_sp]; exact rot.toHomeo.symm_apply_apply south_pole⟩
+    have h_symm_zero : stereo_chart.symm (0 : ℂ) = south_pole := by
+      rw [← stereo_chart_south_pole]
+      exact stereo_chart.left_inv (by rw [stereo_chart_source]; exact south_pole_ne_north_pole)
+    have h0_norm : ‖(0 : ℂ)‖ < 1 := by simp
+    obtain ⟨h_def0, h_tot0⟩ :=
+      isDefectSeq_of_concentration_southern_hemisphere I th u'_seq B hu'_jhol hu'_energy cdata' m'
+        h_decomp' h_sp_in_S' 0 h0_norm h_symm_zero
+    have hu'₀_sp : cdata'.u₀ south_pole = cdata.u₀ p := by
+      change cdata.u₀ (rot.toHomeo south_pole) = cdata.u₀ p
+      rw [hrot_sp]
+    have hm'_sp : m' south_pole = m p := by
+      dsimp [m']; rw [hrot_sp]
+    rw [hu'₀_sp, hm'_sp] at h_def0
+    rw [hm'_sp] at h_tot0
+    refine ⟨rot, 0, ?_, h_def0, ?_⟩
+    · rw [h_symm_zero, hrot_sp]
+    · rintro ⟨hS_single, c, hc⟩
+      apply h_tot0
+      refine ⟨?_, c, fun z => hc (rot.toHomeo z)⟩
+      ext q
+      simp only [cdata', S', hS_single, Finset.mem_map, Finset.mem_singleton,
+        Function.Embedding.coeFn_mk, exists_eq_left]
+      exact ⟨fun hq => by rw [← hq, ← hrot_sp]; exact rot.toHomeo.symm_apply_apply south_pole,
+        fun hq => by rw [hq, ← hrot_sp]; exact rot.toHomeo.symm_apply_apply south_pole⟩
+
+/-- Contract G01 (`assemble_prestable_limit_of_thresholds`) proved via `concDefectCertificate_of_rotations` (`0 sorryAx`). -/
+theorem assemble_prestable_limit_of_rotations
+    [I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_conc_extract : Compactness.SmoothConcentrationExtractProperty I u_seq th)
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_rot : ∀ p : CP1, (∃ a : ℂ, ‖a‖ < 1 ∧ stereo_chart.symm a = p) ∨
+      ∃ rot : MoebiusFrame, IsConformalRotationTo I (M := M) p rot) :
+    ∃ (pdata : PrestableLimitData I u_seq),
+      (∑ v : pdata.tree.V, totalEnergy I (pdata.map v)) ≤ B :=
+  assemble_prestable_limit_of_thresholds I th u_seq B h_jhol h_energy
+    h_conc_extract h_cert (concDefectCertificate_of_rotations I th u_seq B h_jhol h_energy h_rot)
 
 #print axioms frame_comp_id_left
 #print axioms frame_comp_id_right

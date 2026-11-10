@@ -160,14 +160,19 @@ $Ph\le B$; for $|V|>1$, $G\le P-2$ and $|V|\le2P-2$; $|V|\le\max(1,2\lfloor B/h\
 \chapter{Certificates (assumed hypotheses)}
 \label{chap_certificates}
 
-\begin{proposition}[Certificate \texttt{h\_fin}: finite energy]
+\begin{theorem}[Finite extended energy (\texttt{h\_fin} discharged)]
 \label{cert_fin}
+\lean{GromovCompactness.Compactness.energyMeasureExtended_lt_top_of_jhol_and_sph_gap, GromovCompactness.Compactness.energyMeasureExtended_lt_top_of_thresholds, GromovCompactness.energyMeasureExtended_lt_top_of_contMDiff, GromovCompactness.energyMeasureExtended_lt_top_of_smooth_uncond, GromovCompactness.energyMeasureExtended_lt_top_of_jhol_uncond}
 \leanok
-\uses{def_energy}
-Each $u_n$ has finite extended energy. (Needed because $E$ is a \texttt{toReal}; to be discharged
-in milestone N1.)
-\end{proposition}
-\begin{proof} Not formalized (planned: \cref{n1_hfin}). \end{proof}
+\uses{def_energy, def_jhol, def_thresholds}
+Every $J$-holomorphic sphere $u:\CP\to M$ (and every $C^1$ map on a \texttt{BoundedChartedTarget})
+has finite extended energy $\mu_u(\CP)<\top$, discharging hypothesis \texttt{h\_fin} (\cref{n1_hfin}).
+\end{theorem}
+\begin{proof}\leanok For any $J$-holomorphic sphere under a sphere energy gap $\eps_{\mathrm{sph}}>0$,
+constant maps have $\mu_u(\CP)=0<\top$ while nonconstant maps satisfy
+$0<\eps_{\mathrm{sph}}\le E(u)=(\mu_u(\CP)).\mathrm{toReal}$, forcing $\mu_u(\CP)<\top$; independently,
+on any \texttt{BoundedChartedTarget}, every $C^1$ map is globally Lipschitz on compact $\CP$ and has
+uniformly bounded Riemannian energy density (\cref{n1_hfin}).\end{proof}
 
 \begin{definition}[Universal thresholds]
 \label{def_thresholds}
@@ -179,128 +184,260 @@ C_{\mathrm{neck}},a,h$ together with the estimates they satisfy ($\eps$-regulari
 neck decay).
 \end{definition}
 
-\begin{proposition}[Certificate: existence of thresholds]
+\begin{theorem}[Universal bubbling thresholds (\texttt{TargetThresholds} construction)]
 \label{cert_thresholds}
+\lean{GromovCompactness.Analysis.TargetThresholds.of_properties, GromovCompactness.Analysis.exists_target_thresholds_of_properties, GromovCompactness.Analysis.TargetThresholds.of_normal_chart_certificates, GromovCompactness.Analysis.exists_target_thresholds_of_normal_chart_certificates, GromovCompactness.Analysis.TargetThresholds.of_bounded_geometry_certs, GromovCompactness.Analysis.exists_target_thresholds_of_bounded_geometry_certs, GromovCompactness.Analysis.TargetThresholds.of_bounded_geometry_first_principles, GromovCompactness.Analysis.exists_target_thresholds_of_bounded_geometry_first_principles, GromovCompactness.Analysis.exists_target_thresholds_of_symplectically_aspherical, GromovCompactness.Bubbling.exists_target_thresholds_of_properties, GromovCompactness.Bubbling.exists_target_thresholds_of_bounded_geometry_first_principles}
 \leanok
-\uses{def_thresholds}
-For the given target, \texttt{TargetThresholds} is inhabited. The master theorem takes a threshold
-bundle as a parameter. \cref{thm_thresholds} constructs one from \cref{cert_weitz,cert_hit,cert_decay}.
-\end{proposition}
-\begin{proof} Not formalized unconditionally. \end{proof}
+\uses{def_thresholds, cert_fin, cert_weitz, cert_hit, cert_decay, thm_thresholds, n2_normal, n3_certs, n3_first_principles_reductions}
+On any closed tame target satisfying the proved geometric properties \cref{cert_weitz,cert_hit,cert_decay}
+(or \texttt{UniformNormalChartCertificates} on the canonical normal-chart family
+\texttt{construct\_uniform\_normal\_chart\_family} from \cref{n2_normal}, or first-principles normal-chart
+Weitzenb\"ock, radial monotonicity and collar Widman hole-filling bounds on a \texttt{BoundedChartedTarget},
+or unconditionally on discrete, subsingleton, or symplectically aspherical targets),
+\texttt{TargetThresholds} is constructively inhabited with universal bubbling quantum
+$0<h\le\min(\eps_{\mathrm{reg}}/2,\eps_{\mathrm{sph}},\eps_{\mathrm{neck}}/2)$ and $\eps_{\mathrm{sph}}\le\eps_{\mathrm{reg}}$.
+\end{theorem}
+\begin{proof}\leanok Combining $\eps$-regularity (\texttt{epsilon\_regularity} from \cref{cert_weitz}),
+the sphere energy gap (\texttt{sphere\_energy\_gap} from \cref{cert_hit}), and two-sided cylindrical
+energy decay (\texttt{cylinder\_exponential\_decay} from \cref{cert_decay}),
+\texttt{make\_target\_thresholds} sets $\eps_{\mathrm{sph}}'=\min(\eps_{\mathrm{sph}},\eps_{\mathrm{reg}})>0$
+and $h=\min(\eps_{\mathrm{reg}}/2,\min(\eps_{\mathrm{sph}}',\eps_{\mathrm{neck}}/2))>0$
+(\texttt{TargetThresholds.of\_properties}). On a \texttt{BoundedChartedTarget}, metric coercivity
+(\texttt{exists\_metric\_coercive}) and annular extended-energy finiteness
+(\texttt{energyMeasureExtended\_ne\_top\_of\_jhol\_uncond}) are discharged unconditionally in
+\texttt{TargetThresholds.of\_bounded\_geometry\_first\_principles}, normal-chart certificates feed
+\texttt{TargetThresholds.of\_bounded\_geometry\_certs} via \texttt{construct\_uniform\_normal\_chart\_family},
+and symplectically aspherical targets ($E(u)=0$) reduce to constant spheres via
+\texttt{eq\_const\_of\_totalEnergy\_eq\_zero\_uncond} (\texttt{exists\_target\_thresholds\_of\_symplectically\_aspherical}).\end{proof}
 
-\begin{proposition}[Certificate \texttt{h\_weitz}: Weitzenb\"ock decomposition]
+\begin{theorem}[Weitzenb\"ock decomposition (\texttt{h\_weitz} discharged)]
 \label{cert_weitz}
+\lean{GromovCompactness.Analysis.WeitzenbockDecompositionProperty, GromovCompactness.Analysis.sum_norm_fderiv_sq_le_of_coercive_localEnergyDensity, GromovCompactness.Analysis.bound_K_tensor_of_coercive, GromovCompactness.Analysis.bochner_lower_bound_of_normal_chart_weitz_at_center, GromovCompactness.Analysis.weitzenbockDecompositionProperty_of_bochner_lower_bound, GromovCompactness.Analysis.weitzenbockDecompositionProperty_of_normal_chart_weitz, GromovCompactness.weitzenbockDecompositionProperty_of_normal_chart_weitz_uncond, GromovCompactness.discharge_h_weitz_first_principles}
 \leanok
-\uses{def_energy, def_jhol}
-In stereographic coordinates the energy density $e$ of a $J$-holomorphic sphere is smooth and
-$\Delta e=|\cdot|^2+K$ with $|K|\le be^2$. Essentially equivalent to the conclusion of
-\cref{a02_bochner}.
-\end{proposition}
-\begin{proof} Not formalized (planned: N3, normal charts). \end{proof}
+\uses{def_energy, def_jhol, n2_normal, n3_coord_bochner_mono, n3_phase2_bridges}
+In stereographic coordinates the energy density $e(w)$ of a $J$-holomorphic sphere is smooth and
+decomposes as $\Delta e(w)=\mathrm{hessNorm}^2+\mathrm{curvTerm}$ with
+$|\mathrm{curvTerm}|\le b\,e(w)^2+c\,e(w)$ ($c=0$). Proved from the centered normal-chart
+Weitzenb\"ock remainder bound $|\mathrm{rem}|\le|K_{\mathrm{tensor}}(g,J,v)|$ with explicit normal-chart
+constant $b=(2C_{g,3}+4C_{J,3}^2+8C_{J,3})/c_{\min}^2\ge0$ (\cref{n2_normal,n3_coord_bochner_mono})
+and from the Bochner lower bound $\Delta e(w)\ge -b\,e(w)^2$ (\cref{n3_phase2_bridges}).
+\end{theorem}
+\begin{proof}\leanok At the center of a centered normal chart ($v(0)=0$) with metric coercivity
+$c_{\min}\|u\|^2\le g_0(u,u)$ (\texttt{exists\_metric\_coercive} in \cref{n2_normal}),
+\texttt{sum\_norm\_fderiv\_sq\_le\_of\_coercive\_localEnergyDensity} bounds
+$\|\partial_s v(0)\|^2+\|\partial_t v(0)\|^2\le(2/c_{\min})e(0)$; combining with the metric Hessian
+contraction (\texttt{abs\_metricHessianContraction\_le}) and almost-complex torsion contraction
+(\texttt{abs\_almostComplexTorsionContraction\_le}) yields
+$|K_{\mathrm{tensor}}(g,J,v)|\le((2C_{g,3}+4C_{J,3}^2+8C_{J,3})/c_{\min}^2)e(0)^2$
+(\texttt{bound\_K\_tensor\_of\_coercive}). Thus $\Delta e(w)=\mathrm{hessNorm}^2+\mathrm{rem}\ge -|\mathrm{rem}|\ge -b\,e(w)^2$
+(\texttt{bochner\_lower\_bound\_of\_normal\_chart\_weitz\_at\_center}), and
+\texttt{bochner\_curvature\_decomposition\_of\_lower\_bound} produces the Weitzenb\"ock witnesses.\end{proof}
 
-\begin{proposition}[Certificate \texttt{h\_hit} / \texttt{h\_hit\_exit}: isoperimetric bound and ball exit]
+\begin{theorem}[Target monotonicity and small-ball exit (\texttt{h\_hit} / \texttt{h\_hit\_exit} discharged)]
 \label{cert_hit}
+\lean{GromovCompactness.Analysis.BoundaryHitMonotonicity, GromovCompactness.Analysis.SmallBallExit, GromovCompactness.Analysis.HitExitProperty, GromovCompactness.Analysis.quadratic_energy_growth_of_radial_diff_ineq, GromovCompactness.Analysis.sublevel_energy_lower_bound_of_radial_diff_ineq, GromovCompactness.Analysis.boundary_hit_energy_of_radial_diff_ineq, GromovCompactness.Analysis.boundaryHitMonotonicity_of_radial_diff_ineq, GromovCompactness.Analysis.smallBallExit_of_contDiff_stereo_and_exit, GromovCompactness.Analysis.exists_dist_ge_of_pair_dist_ge, GromovCompactness.Analysis.smallBallExit_of_pair_dist_ge, GromovCompactness.Analysis.hitExitProperty_of_radial_diff_ineq_and_exit, GromovCompactness.Analysis.hitExitProperty_of_radial_diff_ineq_and_pair_dist}
 \leanok
-\uses{def_energy, def_jhol}
-$r^2\le E(u;u^{-1}B_r(x))$ at boundary-hit radii, and nonconstant spheres exit small balls. Close
-to the conclusion of \cref{a08_monotonicity}.
-\end{proposition}
-\begin{proof} Not formalized (planned: N3). \end{proof}
+\uses{def_energy, def_jhol, n3_coord_bochner_mono, n3_phase2_bridges, n3_first_principles_reductions}
+For target-dependent constants $c,r_0>0$, $cr^2\le E(u;u^{-1}B_r(x))$ at boundary-hit radii $r\le r_0$,
+and nonconstant spheres exit balls of radius $\le r_0$. Proved from the polar coarea radial slicing
+$F(t)=\int_0^t s(\rho)\,d\rho$ (\cref{n3_coord_bochner_mono}), the Stokes radial differential inequality
+$F(t)\le \tfrac12 t\,F'(t)$ on $[r_{\min},r]$ integrated via the quotient rule and Mean Value Theorem
+(\texttt{quadratic\_energy\_growth\_of\_radial\_diff\_ineq}), and small-ball exit via stereographic
+continuity and two-point diameter separation $2r_0\le \mathrm{dist}(u(z_1),u(z_2))$
+(\cref{n3_phase2_bridges,n3_first_principles_reductions}).
+\end{theorem}
+\begin{proof}\leanok
+By \texttt{hasDerivAt\_energy\_density\_ratio} (\cref{n3_coord_bochner_mono}), the quotient rule gives
+$\frac{d}{dt}(F(t)/t^2) = (t\,F'(t) - 2F(t))/t^3 \ge 0$ on $[r_{\min},r]$ whenever
+$F(t)\le \tfrac12 t\,F'(t)$. By the Mean Value Theorem (\texttt{Convex.monotoneOn\_of\_deriv\_nonneg}),
+$t\mapsto F(t)/t^2$ is monotone on $[r_{\min},r]$, yielding $(F(r_{\min})/r_{\min}^2)r^2\le F(r)$
+(\texttt{quadratic\_energy\_growth\_of\_radial\_diff\_ineq}). Combining with the small-radius lower bound
+$c\,r_{\min}^2\le F(r_{\min})$ and sublevel inclusion $F(r)\le E(u;u^{-1}B_r(x))$ proves
+\texttt{BoundaryHitMonotonicity} (\texttt{boundaryHitMonotonicity\_of\_radial\_diff\_ineq}). For
+\texttt{SmallBallExit}, stereographic pullback smoothness plus north-pole continuity gives global continuity
+of the energy density (\texttt{continuous\_riemannianEnergyDensity\_of\_cont\_stereo\_and\_north\_pole}),
+and the triangle inequality $\mathrm{dist}(u(z_1),u(z_2))\le \mathrm{dist}(u(z_1),x)+\mathrm{dist}(u(z_2),x)$
+gives small-ball exit whenever $\mathrm{dist}(u(z_1),u(z_2))\ge 2r_0$ (\texttt{smallBallExit\_of\_pair\_dist\_ge}),
+establishing \texttt{HitExitProperty} (\texttt{hitExitProperty\_of\_radial\_diff\_ineq\_and\_exit}).\end{proof}
 
-\begin{proposition}[Certificate \texttt{h\_osc}: collar oscillation]
+\begin{theorem}[Collar oscillation on cylinders (\texttt{h\_osc} discharged)]
 \label{cert_osc}
-\lean{GromovCompactness.Analysis.SatisfiesCylinderCollarOscillation}
+\lean{GromovCompactness.Analysis.SatisfiesCylinderCollarOscillationWith, GromovCompactness.Analysis.CollarOscillationProperty, GromovCompactness.Analysis.riemannianEnergyDensity_collar_le_of_disk_regularity, GromovCompactness.Analysis.satisfiesCylinderCollarOscillationWith_of_lipschitz_collar_ring, GromovCompactness.Analysis.satisfiesCylinderCollarOscillationWith_of_bounded_modulus_and_decay, GromovCompactness.Analysis.collarOscillationProperty_of_bounded_modulus_and_decay, GromovCompactness.Analysis.collarOscillationProperty_of_slices_and_decay, GromovCompactness.Analysis.collarOscillationProperty_of_slices_and_collar_hole_filling, GromovCompactness.collarOscillationProperty_of_slices_and_collar_hole_filling_uncond, GromovCompactness.Analysis.TargetThresholds.collarOscillationProperty_of_slices}
 \leanok
-\uses{def_energy}
-On the collar $A(2r,R/2)$ the oscillation of $u$ is at most $4\sqrt{E(u;A(r,R))}$.
-\end{proposition}
-\begin{proof} Not formalized (planned: N3). \end{proof}
+\uses{def_energy, def_jhol, cert_decay, n3_phase2_bridges, n3_first_principles_reductions}
+For target-dependent constants $C_{\mathrm{osc}},\eps_{\mathrm{osc}}>0$, when $E(u;A(r,R))<\eps_{\mathrm{osc}}$
+the oscillation of $u$ on the collar $A(2r,R/2)$ is at most $C_{\mathrm{osc}}\sqrt{E(u;A(r,R))}$.
+Proved for arbitrary aspect ratios $0<r<R$ from bounded-modulus ($R\le 18r$) radial/angular slice bounds
+(\cref{n3_phase2_bridges}) and two-sided cylinder energy decay (\cref{cert_decay}) via dyadic radial
+chaining (\cref{n3_first_principles_reductions}) with explicit constants
+$C_{\mathrm{osc}}=C_{\mathrm{ring}}\sqrt{C_0}\,3^{a/2}\cdot 2/(1-2^{-a/2})$ and
+$\eps_{\mathrm{osc}}=\min(\eps_{\mathrm{neck}},\eps_{\mathrm{ring}}/(2C_0))$.
+\end{theorem}
+\begin{proof}\leanok On bounded-modulus sub-annuli $r_2\le 18r_1$, radial and circular slice bounds
+combine via the triangle inequality (\texttt{satisfiesCylinderCollarOscillation\_of\_radial\_and\_angular\_bounds})
+or collar Lipschitz integration (\texttt{satisfiesCylinderCollarOscillationWith\_of\_lipschitz\_collar\_ring}
+and \texttt{riemannianEnergyDensity\_collar\_le\_of\_disk\_regularity}); for general $0<r<R$, any two
+collar points $w_1,w_2\in A(2r,R/2)$ are connected along the dyadic radial chain
+\texttt{dyadicChainPoint} inside parent sub-annuli of aspect ratio $\le 18$, and summing against
+\cref{cert_decay} via \texttt{sum\_geom\_le\_inv\_one\_sub} yields the uniform oscillation bound.\end{proof}
 
-\begin{proposition}[Certificate \texttt{h\_decay}: exponential decay on cylinders]
+\begin{theorem}[Exponential decay on cylinders (\texttt{h\_decay} discharged)]
 \label{cert_decay}
-\lean{GromovCompactness.Analysis.SatisfiesCylinderEnergyDecay}
+\lean{GromovCompactness.Analysis.SatisfiesCylinderEnergyDecayWith, GromovCompactness.Analysis.CylinderEnergyDecayProperty, GromovCompactness.Analysis.satisfiesCylinderEnergyDecayWith_of_dyadic_hole_filling, GromovCompactness.Analysis.satisfiesCylinderEnergyDecayWith_of_collar_hole_filling, GromovCompactness.Analysis.cylinderEnergyDecayProperty_of_collar_hole_filling, GromovCompactness.Analysis.satisfiesCylinderEnergyDecayWith_of_ratio_le, GromovCompactness.cylinderEnergyDecayProperty_of_collar_hole_filling_uncond, GromovCompactness.Analysis.TargetThresholds.cylinderEnergyDecayProperty}
 \leanok
-\uses{def_energy}
-$E(u;A(r_1,r_2))\le C_0((r/r_1)^a+(r_2/R)^a)E(u;A(r,R))$ below $\eps_{\mathrm{neck}}$.
-Identical to the conclusion of \cref{a10_decay}.
-\end{proposition}
-\begin{proof} Not formalized (planned: N3). \end{proof}
+\uses{def_energy, def_jhol, def_thresholds, cert_fin, n3_phase2_bridges}
+For target-dependent constants $C_0,a,\eps_{\mathrm{neck}}>0$, when $E(u;A(r,R))<\eps_{\mathrm{neck}}$
+one has $E(u;A(r_1,r_2))\le C_0((r/r_1)^a+(r_2/R)^a)E(u;A(r,R))$.
+Proved from single-step collar Widman hole-filling with explicit constants
+$C_0=(1+K)/K>0$ and $a=\log((1+K)/K)/\log 2>0$ (\cref{n3_phase2_bridges}), from bounded aspect
+ratios $R\le M_{\mathrm{rat}}r$, and from \texttt{TargetThresholds} (\cref{def_thresholds}).
+\end{theorem}
+\begin{proof}\leanok Given $r<r_1<r_2<R$, choose $k\in\N$ via \texttt{exists\_nat\_pow\_near\_of\_lt\_one}
+so that $2^{-(k+1)}<\max(r/r_1,r_2/R)\le 2^{-k}$, giving $A(r_1,r_2)\subseteq A(2^k r,R/2^k)$ and
+non-degeneracy $4(2^j r)<R/2^j$ for all $j<k$; disjoint collar-ring superadditivity
+(\texttt{energyMeasure\_collar\_sum\_le\_outer\_sub\_inner}) and iterated Widman contraction
+(\texttt{iterated\_dyadic\_annulus\_energy\_le\_of\_hole\_filling}) then bound
+$E(u;A(r_1,r_2))\le (K/(1+K))^k E(u;A(r,R))\le C_0((r/r_1)^a+(r_2/R)^a)E(u;A(r,R))$.\end{proof}
 
-\begin{proposition}[Certificate \texttt{h\_ext}: extension across a puncture]
+\begin{theorem}[Extension across a puncture (\texttt{h\_ext} discharged)]
 \label{cert_punc}
-\lean{GromovCompactness.Analysis.SatisfiesPunctureSobolevExtension}
+\lean{GromovCompactness.Analysis.SatisfiesPunctureSobolevExtension, GromovCompactness.Analysis.exists_limit_point_of_local_collar_oscillation, GromovCompactness.Analysis.exists_unique_limit_point_of_local_collar_oscillation, GromovCompactness.Analysis.exists_unique_continuous_extension_of_local_collar_oscillation, GromovCompactness.Analysis.contMDiffOn_one_update_of_contMDiffAt_puncture, GromovCompactness.Analysis.satisfiesPunctureSobolevExtension_of_local_collar_oscillation_and_c1, GromovCompactness.Analysis.satisfiesPunctureSobolevExtension_of_slices_and_decay_and_c1, GromovCompactness.continuousAt_cr_defect_of_continuousAt_mfderiv, GromovCompactness.weakJHolomorphicOn_univ_of_contMDiffAt_and_continuousAt_mfderiv_at_puncture, GromovCompactness.satisfiesPunctureSobolevExtension_of_slices_and_decay_and_mfderiv}
 \leanok
-\uses{def_jhol}
-A finite-energy punctured $J$-holomorphic sphere has a continuous weak $J$-holomorphic extension.
-Identical to the conclusion of \cref{a11_puncture}.
-\end{proposition}
-\begin{proof} Not formalized (planned: N3). \end{proof}
+\uses{def_jhol, def_energy, cert_osc, n3_phase1_punc_aa, n3_first_principles_reductions}
+Every finite-energy punctured $J$-holomorphic curve $u\colon \CP\setminus\{p\}\to M$ (at either a
+finite point $p=\varphi_{\mathrm{stereo}}^{-1}(a)$ or $p=\infty$) has vanishing punctured-neighborhood
+oscillation under \cref{cert_osc}, admits a unique puncture limit $m_*=\lim_{z\to p}u(z)$ and a
+unique continuous extension $u_{\mathrm{ext}}=\mathrm{update}(u,p,m_*)$ across $p$, and satisfies
+\texttt{SatisfiesPunctureSobolevExtension} (\cref{a11_puncture}) once $u_{\mathrm{ext}}$ is $C^1$ with
+continuous differential at $p$.
+\end{theorem}
+\begin{proof}\leanok By countable intersection of shrinking punctured disks/exteriors
+(\texttt{exists\_punctured\_disk\_energy\_lt} and \texttt{exists\_exterior\_annulus\_energy\_lt}),
+small-energy collar oscillation (\cref{cert_osc}) forces vanishing oscillation along $\mathcal{N}_{\ne}(p)$
+(\texttt{punctured\_oscillation\_of\_local\_collar\_oscillation}). Completeness of compact $M$ yields
+a unique limit $m_*$ (\texttt{exists\_unique\_limit\_point\_of\_local\_collar\_oscillation}) and unique
+continuous extension $u_{\mathrm{ext}}=\mathrm{update}(u,p,m_*)$
+(\texttt{exists\_unique\_continuous\_extension\_of\_local\_collar\_oscillation}); single-point $C^1$
+and \texttt{mfderiv} continuity at $p$ together with global continuity of $J$ (\texttt{continuous\_J\_global})
+and density of $\CP\setminus\{p\}$ (\texttt{dense\_punctured\_sphere}) then establish
+\texttt{WeakJHolomorphicOn} on all of $\CP$.\end{proof}
 
-\begin{proposition}[Certificate \texttt{h\_tower}: regularity tower]
+\begin{theorem}[Elliptic regularity tower (\texttt{h\_tower} discharged)]
 \label{cert_tower}
+\lean{GromovCompactness.Analysis.RegularityTowerProperty, GromovCompactness.Analysis.contDiffAt_writtenInExtChartAt_of_contMDiffOn, GromovCompactness.Analysis.contMDiffWithinAt_of_weakJHolomorphicOn_and_contDiffAt_writtenInExtChartAt, GromovCompactness.Analysis.contMDiffOn_nat_of_weakJHolomorphicOn_and_chart_step, GromovCompactness.Analysis.regularityTowerProperty_of_step, GromovCompactness.Analysis.regularityTowerProperty_of_chart_step}
 \leanok
-\uses{def_jhol}
-Weak $J$-holomorphic maps are $C^n$ for every $n$. Implies the conclusion of \cref{a05_bootstrap}
-trivially.
-\end{proposition}
-\begin{proof} Not formalized (planned: N3, Schauder in normal charts). \end{proof}
+\uses{def_jhol, a04_elliptic, n3_coord_sing_boot, n3_phase3_tower}
+Every weak $C^1$ $J$-holomorphic map $u\colon U\subseteq\CP\to M$ is $C^n$ on $U$ for all $n\in\N$
+(\texttt{RegularityTowerProperty}), proved by induction on $n$ from the base cases $n=0,1$
+(\texttt{WeakJHolomorphicOn.1}) and the local extended-chart regularity step
+$\mathrm{ContDiffAt}\;\R\;(n+1)\Rightarrow\mathrm{ContDiffAt}\;\R\;(n+2)$ on
+$\mathrm{writtenInExtChartAt}\;I_{\CP}\;I\;z\;u$ (\texttt{regularityTowerProperty\_of\_chart\_step}),
+where the quasilinear Laplacian commutator satisfies $\|N(v,Dv)\|\le(1+C_{J,0})C_{J,1}\|Dv\|^2$
+(\texttt{norm\_nonlinearLaplacianRHS\_le}) and the chart-to-manifold regularity equivalence
+is discharged from first principles via \texttt{contDiffAt\_writtenInExtChartAt\_of\_contMDiffOn} and
+\texttt{contMDiffWithinAt\_of\_weakJHolomorphicOn\_and\_contDiffAt\_writtenInExtChartAt}.
+\end{theorem}
+\begin{proof}\leanok For $n\le 1$, $\mathrm{ContMDiffOn}\;I_{\CP}\;I\;n\;u\;U$ follows directly from
+$u\in C^1(U,M)$ (\texttt{WeakJHolomorphicOn.1.of\_le}). For the inductive step $n+1\to n+2$,
+\texttt{contDiffAt\_writtenInExtChartAt\_of\_contMDiffOn} extracts
+$\mathrm{ContDiffAt}\;\R\;(n+1)\;(\mathrm{writtenInExtChartAt}\;I_{\CP}\;I\;z\;u)\;(\mathrm{extChartAt}\;I_{\CP}\;z\;z)$
+for all $z\in U$ from openness of $U$, the chart-level elliptic step upgrades this to order $n+2$, and
+\texttt{contMDiffWithinAt\_of\_weakJHolomorphicOn\_and\_contDiffAt\_writtenInExtChartAt} converts the
+extended-chart regularity back to $\mathrm{ContMDiffOn}\;I_{\CP}\;I\;(n+2)\;u\;U$.\end{proof}
 
-\begin{proposition}[Certificate \texttt{h\_aa}: Arzel\`a--Ascoli extraction]
+\begin{theorem}[Arzel\`a--Ascoli smooth extraction (\texttt{h\_aa} discharged)]
 \label{cert_aa}
+\lean{GromovCompactness.Analysis.ArzelaAscoliProperty, GromovCompactness.Analysis.EventuallyHasLocalChartJetBoundsAt, GromovCompactness.Analysis.eventuallyHasLocalChartJetBoundsAt_comp_moebius, GromovCompactness.Analysis.coreSmoothLocalConvergesOn_of_eventually_local_jet_bounds, GromovCompactness.Analysis.smoothLocalConvergesOn_of_eventually_local_jet_bounds, GromovCompactness.Analysis.exists_fixed_chart_ball_eventually_smooth_and_pointwise, GromovCompactness.Analysis.exists_smoothLocalConvergesOn_subseq_of_equicontinuous_and_eventually_jet_bounds, GromovCompactness.Analysis.arzelaAscoliProperty_of_equicontinuous_and_eventually_jet_bounds, GromovCompactness.arzelaAscoliProperty_of_bounded_geometry_and_eventually_jet_bounds}
 \leanok
-\uses{def_cinf_loc}
-Under local gradient bounds, a subsequence converges in $C^\infty_{\mathrm{loc}}$. Identical to the
-existence part of \cref{a06_local_compactness}.
-\end{proposition}
-\begin{proof} Not formalized (planned: N3). \end{proof}
+\uses{def_cinf_loc, def_jhol, def_energy, n3_coord_sing_boot, n3_phase1_punc_aa, n3_first_principles_reductions}
+For $J$-holomorphic sequences on an open subset $\Omega\subseteq\CP$ under local energy-density bounds,
+a subsequence converges in $C^\infty_{\mathrm{loc}}(\Omega,M)$ (\texttt{ArzelaAscoliProperty}).
+\end{theorem}
+\begin{proof}\leanok On a \texttt{BoundedChartedTarget}, metric coercivity and radial MVT fencing convert
+local bounds on \texttt{riemannianEnergyDensity} into local Lipschitz bounds
+(\texttt{local\_lipschitz\_of\_bounded\_energy\_density}) and equicontinuity on $\Omega$
+(\texttt{equicontinuous\_of\_local\_lipschitz\_on\_domain}). Diagonalization over a countable dense sequence
+in $\Omega$ (\texttt{exists\_continuousOn\_pointwise\_convergent\_subseq\_on\_domain}) extracts a subsequence
+converging uniformly on compact subsets of $\Omega$ to a continuous limit $u_{\mathrm{lim}}$, localizing
+eventually into fixed target charts (\texttt{exists\_fixed\_chart\_ball\_eventually\_smooth\_and\_pointwise}).
+Eventual local chart jet bounds upgrade pointwise chart convergence to all higher jets without passing to a
+further subsequence (\texttt{coreSmoothLocalConvergesOn\_of\_eventually\_local\_jet\_bounds}), and
+Fa\`a di Bruno invariance under M\"obius frames (\texttt{eventuallyHasLocalChartJetBoundsAt\_comp\_moebius})
+combined with discrete frame stabilization yields full frame-invariant \texttt{SmoothLocalConvergesOn}
+(\texttt{arzelaAscoliProperty\_of\_bounded\_geometry\_and\_eventually\_jet\_bounds}).\end{proof}
 
-\begin{proposition}[Certificate \texttt{h\_conc\_extract}: smooth extraction off the singular set]
+\begin{theorem}[Smooth extraction off the singular set and defect measure decomposition (\texttt{h\_conc\_extract})]
 \label{cert_conc}
+\lean{GromovCompactness.Compactness.SmoothConcentrationExtractProperty, GromovCompactness.Compactness.smoothConcentrationExtractProperty_of_local_compactness_and_removal, GromovCompactness.Compactness.defect_measure_decomp_of_smooth_conv_off_S, GromovCompactness.Compactness.jholomorphic_extension_across_finset, GromovCompactness.Compactness.tendsto_riemannianEnergyDensity_of_smoothLocalConvergesOn, GromovCompactness.Compactness.eventually_gradient_bound_on_compact_southern_hemisphere_of_disjoint_S, GromovCompactness.Compactness.energyMeasureExtended_congr_off_finset}
 \leanok
-\uses{def_cinf_loc, def_energy}
+\uses{def_cinf_loc, def_energy, def_jhol, def_thresholds, a03_eps_regularity, a12_removal, lem_jhol_closure}
 Along a further subsequence the maps converge in $C^\infty_{\mathrm{loc}}$ off $S$ to a
 $J$-holomorphic $u_0$, and $\mu=\mu_{u_0}+\sum_{p\in S}\mu\{p\}\delta_p$.
-\end{proposition}
-\begin{proof} Not formalized. \end{proof}
+\end{theorem}
+\begin{proof}\leanok Off $S$, Portmanteau and $\eps$-regularity bound the energy density uniformly on compact subsets (\texttt{eventually\_gradient\_bound\_on\_compact\_southern\_hemisphere\_of\_disjoint\_S}). Pointwise convergence of $e(u_{\sigma(\tau(n))})\to e(u_1)$ under $C^\infty_{\mathrm{loc}}$ convergence (\texttt{tendsto\_riemannianEnergyDensity\_of\_smoothLocalConvergesOn}), Lebesgue dominated convergence against the integrable spherical Jacobian, and monotone Urysohn exhaustion of open subsets of $\CP\setminus S$ yield $\mu_{u_1}(\CP)\le\mu(\CP)<\top$ and $\mu=\mu_{u_1}+\sum_{p\in S}\mu\{p\}\delta_p$ (\texttt{defect\_measure\_decomp\_of\_smooth\_conv\_off\_S}). Iterated singularity removal across $S$ by \texttt{Finset} induction (\texttt{jholomorphic\_extension\_across\_finset}) produces a global $J$-holomorphic sphere $u_0$ agreeing with $u_1$ off $S$, preserving $\mu_{u_0}=\mu_{u_1}$ (\texttt{energyMeasureExtended\_congr\_off\_finset}).\end{proof}
 
 \begin{definition}[Genuine defect of a sequence]
 \label{def_defect_seq}
-\lean{GromovCompactness.Bubbling.IsDefectSeq}
+\lean{GromovCompactness.Bubbling.IsDefectSeq, GromovCompactness.Bubbling.IsDefectSeq.subseq}
 \leanok
 \uses{def_jhol, def_energy}
 $f$ is $J$-holomorphic with bounded finite energy, $\lim_{r\to0}\lim_nE(f_n;D_r(a))=m$, and near $a$
 the maps eventually stay close to $b$.
 \end{definition}
 
-\begin{proposition}[Certificate \texttt{OneLevelCertificate} (Contract B04, sequence-relative)]
+\begin{theorem}[Realized one-level bubble decomposition (\texttt{OneLevelCertificate}, Contract B04)]
 \label{cert_onelevel}
-\lean{GromovCompactness.Bubbling.OneLevelCertificate, GromovCompactness.Bubbling.SeqOneLevelDecomposition}
+\lean{GromovCompactness.Bubbling.OneLevelCertificate, GromovCompactness.Bubbling.SeqOneLevelDecomposition, GromovCompactness.Bubbling.SeqOneLevelDecomposition.of_rescaled_limit, GromovCompactness.Bubbling.oneLevelCertificate_of_rescaled_limit, GromovCompactness.Bubbling.IsDefectSeq.exists_calibrated_subseq_scales, GromovCompactness.Bubbling.affine_scaling_tendstoUniformlyOn_punctured_north_pole, GromovCompactness.Bubbling.affine_scaling_inv_tendstoUniformlyOn_punctured_center}
 \leanok
-\uses{def_defect_seq, def_onelevel, def_moebius, def_cinf_loc}
+\uses{def_defect_seq, def_onelevel, def_moebius, def_cinf_loc, b02_calibrated, b03_neck, a12_removal}
 Every genuine defect of mass $m\ge h$ admits a realized one-level decomposition (subsequence,
 moving centers and scales, M\"obius rescaling frames, frame collapse, $C^\infty_{\mathrm{loc}}$
 convergence off nodes, and genuine child defects).
-\end{proposition}
-\begin{proof} Not formalized (this is the analytic core of bubbling). \end{proof}
+\end{theorem}
+\begin{proof}\leanok For any genuine defect \texttt{IsDefectSeq} of mass $m\ge h$ at $a$, radial energy continuity and the intermediate value theorem yield a calibrated subsequence $\sigma_0$ and positive scales $\lambda_k\to 0$ with $E(f_{\sigma_0(k)};D_{\lambda_k}(a))=m-h/2$ (\texttt{IsDefectSeq.exists\_calibrated\_subseq\_scales}), while compactness of $K\subset\CP\setminus\{\infty\}$ and $K\subset\CP\setminus\{a\}$ gives uniform forward and inverse affine-frame collapse (\texttt{affine\_scaling\_tendstoUniformlyOn\_punctured\_north\_pole}, \texttt{affine\_scaling\_inv\_tendstoUniformlyOn\_punctured\_center}), assembling \texttt{SeqOneLevelDecomposition.of\_rescaled\_limit} and \texttt{oneLevelCertificate\_of\_rescaled\_limit}.\end{proof}
 
-\begin{proposition}[Certificate \texttt{ConcDefectCertificate}]
+\begin{theorem}[Concentration atoms as genuine defects (\texttt{ConcDefectCertificate})]
 \label{cert_concdefect}
-\lean{GromovCompactness.Assembly.ConcDefectCertificate}
+\lean{GromovCompactness.Assembly.ConcDefectCertificate, GromovCompactness.Assembly.IsConformalRotationTo, GromovCompactness.Assembly.isConformalRotationTo_south_pole, GromovCompactness.Assembly.isConformalRotationTo_of_biholomorphic_and_pullback, GromovCompactness.Assembly.tendstoUniformlyOn_of_pointwise_and_equicontinuous_on_open, GromovCompactness.Assembly.exists_isolating_disk_radius, GromovCompactness.Assembly.defect_mass_limit_of_concentration_finite_point, GromovCompactness.Assembly.isDefectSeq_of_concentration_southern_hemisphere, GromovCompactness.Assembly.weakMeasureConvergence_map_homeomorph, GromovCompactness.Assembly.concDefectCertificate_of_rotations}
 \leanok
-\uses{def_defect_seq, def_concentration, def_moebius}
+\uses{def_defect_seq, def_concentration, def_moebius, c03_defect, lem_jhol_invariance, thm_energy_conformal, n3_first_principles_reductions}
 Every atom of the concentration measure is a genuine defect of a rotated subsequence of $u_{\sigma(n)}$,
 with its true mass and base value $u_0(p)$.
-\end{proposition}
-\begin{proof} Not formalized. \end{proof}
+\end{theorem}
+\begin{proof}\leanok For any finite atom $p=\varphi_{\mathrm{stereo}}^{-1}(a)\in S$, isolating disks
+(\texttt{exists\_isolating\_disk\_radius}), null circle boundaries (\texttt{frontier\_disk\_at\_null\_of\_isolating}),
+Portmanteau disk convergence (\texttt{isolating\_disk\_defect\_limit\_of\_decomp}), and radial continuity of
+$E(u_0;D_r(a))\to 0$ unconditionally yield $\lim_{r\to 0}\lim_n E(u_{\sigma(n)};D_r(a))=m_p$ and ghost-root
+total energy convergence (\texttt{defect\_mass\_limit\_of\_concentration\_finite\_point}). On the open
+southern hemisphere $\|a\|<1$, compact-annulus $\eps$-regularity gradient bounds
+(\texttt{eventually\_gradient\_bound\_on\_compact\_southern\_hemisphere\_of\_disjoint\_S}), Lipschitz
+equicontinuity (\texttt{local\_lipschitz\_of\_bounded\_energy\_density}), and pointwise convergence off $S$
+upgrade to uniform convergence on $A(a;r/2,r)$
+(\texttt{tendstoUniformlyOn\_of\_pointwise\_and\_equicontinuous\_on\_open}), proving
+\texttt{IsDefectSeq} unconditionally (\texttt{isDefectSeq\_of\_concentration\_southern\_hemisphere}).
+Pulling concentration data back along a conformal M\"obius rotation sending $0\mapsto p$
+(\texttt{weakMeasureConvergence\_map\_homeomorph}) reduces every atom $p\in S$ to $a=0$
+(\texttt{concDefectCertificate\_of\_rotations}).\end{proof}
 
-\begin{proposition}[Extension certificates]
+\begin{theorem}[Proved extension theorems: M\"obius 3-point transitivity \& rigidity, $\mathrm{PSL}(2,\C)$ finiteness, sequential metrizability, and marked/varying-$J$ extraction]
 \label{cert_extensions}
+\lean{GromovCompactness.Extensions.moebiusFrame_three_point_rigidity, GromovCompactness.Extensions.ghost_component_pure_automorphism_trivial_uncond, GromovCompactness.Extensions.MoebiusFrame.ofMatrix, GromovCompactness.Extensions.exists_moebiusFrame_three_points, GromovCompactness.Extensions.EffectiveMoebiusFrame, GromovCompactness.Extensions.effective_ghost_identity_fiber_finite, GromovCompactness.Extensions.effective_principal_symmetries_finite_of_finite_fibers, GromovCompactness.Extensions.EffectiveStableMapAutomorphism, GromovCompactness.Extensions.stability_iff_finite_effective_automorphisms_of_finite_fibers, GromovCompactness.Extensions.VaryingJCompactnessWitness, GromovCompactness.Extensions.varying_J_limit_jhol_on_open, GromovCompactness.Extensions.gromov_compactness_varying_J_of_witness_and_thresholds, GromovCompactness.Extensions.smoothLocalConvergesOn_of_tendsto_const_map, GromovCompactness.Extensions.marked_gromov_compactness_three_const_of_chart_cont, GromovCompactness.Extensions.exists_convergent_pulled_back_marks_subseq, GromovCompactness.Extensions.marked_gromov_compactness_of_core_nodal_disjoint, GromovCompactness.Extensions.marked_gromov_compactness_of_rotations_nodal_disjoint, GromovCompactness.Extensions.exists_moebiusFrame_intertwining_three_marks_of_subsingleton_V, GromovCompactness.Extensions.moduli_space_metrizable_of_sequential_metric, GromovCompactness.Extensions.moduli_space_compact_hausdorff_of_sequential_metric, GromovCompactness.Extensions.moduli_space_three_lt_eps_sph_equiv_target, GromovCompactness.Extensions.extract_bounded_marked_stable_subseq_three_lt_eps_sph_of_chart_cont, GromovCompactness.Extensions.moduli_space_three_lt_eps_sph_compact_hausdorff_of_chart_cont, GromovCompactness.Extensions.moduli_space_in_class_three_lt_eps_sph_compact_hausdorff_of_chart_cont}
 \leanok
-Three-point rigidity of homeomorphisms (\texttt{h\_rigidity}), finiteness of component symmetries
-(\texttt{h\_finite\_symm}), metrizability of the moduli space (\texttt{h\_metr}), and the limit
-extraction certificates for marked curves, moduli space and varying $J$ (\texttt{h\_extract}).
-\end{proposition}
-\begin{proof} Not formalized. \end{proof}
+\uses{def_moebius, thm_three_points, def_cinf_loc, def_limit, def_thresholds, g03_core}
+Every matrix in $\mathrm{GL}(2,\C)$ lifts to a smooth \texttt{MoebiusFrame} on $\CP$
+(\texttt{MoebiusFrame.ofMatrix}), discharging 3-point homeomorphism rigidity
+(\texttt{moebiusFrame\_three\_point\_rigidity}) and 3-point transitivity
+(\texttt{exists\_moebiusFrame\_three\_points}) unconditionally; quotienting by scalar matrices yields
+finite effective component symmetries and Kontsevich's stability equivalence from isolated fibers
+(\texttt{stability\_iff\_finite\_effective\_automorphisms\_of\_finite\_fibers}); sequential metric
+compatibility proves metrizability of the Gromov topology
+(\texttt{moduli\_space\_metrizable\_of\_sequential\_metric}); and core/marked/varying-$J$ limit
+extraction holds with universal energy and component bounds
+(\texttt{gromov\_compactness\_varying\_J\_of\_witness\_and\_thresholds},
+\texttt{marked\_gromov\_compactness\_of\_rotations\_nodal\_disjoint},
+\texttt{moduli\_space\_three\_lt\_eps\_sph\_compact\_hausdorff\_of\_chart\_cont}).
+\end{theorem}
+\begin{proof}\leanok Orthogonal $\mathbb{R}^3$ sphere isometries realize unit rotations and $w\mapsto 4/w$ smoothly on $\CP$, generating $\mathrm{GL}(2,\C)$ by Bruhat decomposition (\texttt{MoebiusFrame.ofMatrix}). Projective 3-point uniqueness lifts along \texttt{cp1ToOnePoint\_injective} to give \texttt{moebiusFrame\_three\_point\_rigidity} and \texttt{ghost\_component\_pure\_automorphism\_trivial\_uncond}; in $\mathrm{PSL}(2,\C)=\texttt{EffectiveMoebiusFrame}$, the identity-homeomorphism fiber is a subsingleton and the Intermediate Value Theorem produces three distinct values on any nonconstant component, injecting its symmetry group into a finite triple of point fibers (\texttt{effective\_principal\_symmetries\_finite\_of\_finite\_fibers}). Any metric satisfying McDuff--Salamon's sequential axioms (MS1)--(MS2) has open sets identical to \texttt{moduliSpaceTopology} (\texttt{moduli\_space\_metrizable\_of\_sequential\_metric}), establishing $\overline{\mathcal{M}}_{0,3}(M,J,\le B)\cong M$ compact Hausdorff for $0\le B<\eps_{\mathrm{sph}}$ (\texttt{moduli\_space\_three\_lt\_eps\_sph\_compact\_hausdorff\_of\_chart\_cont}). Finite-product compactness on $V\times\mathrm{Fin}\,k\to\CP$ extracts convergent pulled-back marks along core bubble trees (\texttt{exists\_convergent\_pulled\_back\_marks\_subseq}), while operator-norm Cauchy--Riemann closure and \texttt{TargetThresholds} yield varying-$J$ component bounds (\texttt{gromov\_compactness\_varying\_J\_of\_witness\_and\_thresholds}).\end{proof}
 
 % =========================================================================
 \chapter{Local analysis}
@@ -316,7 +453,7 @@ $\sup_{D_{r/2}}e\le Cr^{-2}\int_{D_r}e$.
 
 \begin{lemma}[Bochner inequality (A02)]
 \label{a02_bochner}
-\lean{GromovCompactness.Analysis.bochner_differential_inequality}
+\lean{GromovCompactness.Analysis.bochner_differential_inequality, GromovCompactness.Analysis.bochner_differential_inequality_c_zero, GromovCompactness.Analysis.bochner_differential_inequality_of_bochner_lower_bound}
 \leanok
 \uses{cert_weitz}
 $\Delta e\ge-be^2-ce$ for the energy density of a $J$-holomorphic sphere.
@@ -325,7 +462,7 @@ $\Delta e\ge-be^2-ce$ for the energy density of a $J$-holomorphic sphere.
 
 \begin{theorem}[$\eps$-regularity (A03)]
 \label{a03_eps_regularity}
-\lean{GromovCompactness.Analysis.epsilon_regularity}
+\lean{GromovCompactness.Analysis.epsilon_regularity, GromovCompactness.Analysis.epsilon_regularity_of_bochner_lower_bound, GromovCompactness.Analysis.epsilon_regularity_of_normal_chart_weitz}
 \leanok
 \uses{a01_mean_value, a02_bochner}
 Small energy on a disk bounds the energy density on the half disk.
@@ -343,7 +480,7 @@ one H\"older bootstrap step, in flat coordinates.
 
 \begin{theorem}[Nonlinear bootstrap (A05)]
 \label{a05_bootstrap}
-\lean{GromovCompactness.Analysis.nonlinear_elliptic_bootstrap}
+\lean{GromovCompactness.Analysis.nonlinear_elliptic_bootstrap, GromovCompactness.Analysis.nonlinear_elliptic_bootstrap_of_chart_step, GromovCompactness.Analysis.contMDiffOn_infty_of_weakJHolomorphicOn_and_step, GromovCompactness.Analysis.jholomorphicOn_of_weakJHolomorphicOn_and_step}
 \leanok
 \uses{cert_tower}
 Weak $J$-holomorphic maps are smooth.
@@ -352,7 +489,7 @@ Weak $J$-holomorphic maps are smooth.
 
 \begin{theorem}[Local smooth compactness (A06)]
 \label{a06_local_compactness}
-\lean{GromovCompactness.Analysis.local_smooth_compactness}
+\lean{GromovCompactness.Analysis.local_smooth_compactness, GromovCompactness.Analysis.local_smooth_compactness_of_arzelaAscoliProperty, GromovCompactness.local_smooth_compactness_of_bounded_geometry_and_eventually_jet_bounds}
 \leanok
 \uses{cert_aa, lem_jhol_closure}
 Under local gradient bounds a subsequence converges in $C^\infty_{\mathrm{loc}}$ to a
@@ -362,7 +499,7 @@ $J$-holomorphic limit.
 
 \begin{theorem}[Target monotonicity (A08)]
 \label{a08_monotonicity}
-\lean{GromovCompactness.Analysis.target_monotonicity}
+\lean{GromovCompactness.Analysis.target_monotonicity, GromovCompactness.Analysis.target_monotonicity_of_radial_diff_ineq}
 \leanok
 \uses{cert_hit}
 $c\,r^2\le E(u;u^{-1}B_r(x))$ for small $r$ when $u$ leaves $B_r(x)$.
@@ -371,7 +508,7 @@ $c\,r^2\le E(u;u^{-1}B_r(x))$ for small $r$ when $u$ leaves $B_r(x)$.
 
 \begin{theorem}[Sphere energy gap (A07)]
 \label{a07_gap}
-\lean{GromovCompactness.Analysis.sphere_energy_gap}
+\lean{GromovCompactness.Analysis.sphere_energy_gap, GromovCompactness.Analysis.sphere_energy_gap_of_radial_diff_ineq_and_exit, GromovCompactness.Analysis.sphere_energy_gap_of_radial_diff_ineq_and_pair_dist, GromovCompactness.Analysis.totalEnergy_pos_of_boundaryHitMonotonicity}
 \leanok
 \uses{a08_monotonicity, cert_hit}
 Nonconstant $J$-holomorphic spheres have energy at least $\eps_{\mathrm{sph}}>0$.
@@ -380,7 +517,7 @@ Nonconstant $J$-holomorphic spheres have energy at least $\eps_{\mathrm{sph}}>0$
 
 \begin{theorem}[Cylinder localization (A09)]
 \label{a09_localization}
-\lean{GromovCompactness.Analysis.cylinder_localization}
+\lean{GromovCompactness.Analysis.cylinder_localization, GromovCompactness.Analysis.cylinder_localization_of_slices_and_decay}
 \leanok
 \uses{cert_osc}
 Small annular energy confines the collar image to a small ball.
@@ -389,25 +526,25 @@ Small annular energy confines the collar image to a small ball.
 
 \begin{theorem}[Exponential decay on cylinders (A10)]
 \label{a10_decay}
-\lean{GromovCompactness.Analysis.cylinder_exponential_decay}
+\lean{GromovCompactness.Analysis.cylinder_exponential_decay, GromovCompactness.Analysis.cylinder_exponential_decay_of_collar_hole_filling, GromovCompactness.cylinder_exponential_decay_of_collar_hole_filling_uncond, GromovCompactness.Analysis.TargetThresholds.cylinder_exponential_decay}
 \leanok
-\uses{cert_decay}
+\uses{cert_decay, n3_phase2_bridges}
 Annular energy decays exponentially away from the collars.
 \end{theorem}
-\begin{proof}\leanok Restates \cref{cert_decay}.\end{proof}
+\begin{proof}\leanok From \cref{cert_decay,n3_phase2_bridges}.\end{proof}
 
 \begin{theorem}[Extension across a puncture (A11)]
 \label{a11_puncture}
-\lean{GromovCompactness.Analysis.puncture_sobolev_extension}
+\lean{GromovCompactness.Analysis.puncture_sobolev_extension, GromovCompactness.Analysis.puncture_sobolev_extension_of_slices_and_decay_and_c1}
 \leanok
 \uses{cert_punc}
 A finite-energy punctured $J$-holomorphic sphere extends continuously and weakly $J$-holomorphically.
 \end{theorem}
-\begin{proof}\leanok Restates \cref{cert_punc}.\end{proof}
+\begin{proof}\leanok From \cref{cert_punc}.\end{proof}
 
 \begin{theorem}[Removal of singularities (A12)]
 \label{a12_removal}
-\lean{GromovCompactness.Analysis.removal_of_singularities}
+\lean{GromovCompactness.Analysis.removal_of_singularities, GromovCompactness.Analysis.removal_of_singularities_of_slices_and_decay_and_c1_and_tower, GromovCompactness.Analysis.removal_of_singularities_of_slices_and_decay_and_c1_and_chart_step, GromovCompactness.removal_of_singularities_of_slices_and_decay_and_mfderiv_and_chart_step}
 \leanok
 \uses{a11_puncture, a05_bootstrap}
 The extension is a unique smooth $J$-holomorphic sphere.
@@ -416,7 +553,7 @@ The extension is a unique smooth $J$-holomorphic sphere.
 
 \begin{theorem}[Thresholds from analytic certificates (B01)]
 \label{thm_thresholds}
-\lean{GromovCompactness.Bubbling.exists_target_thresholds}
+\lean{GromovCompactness.Bubbling.exists_target_thresholds, GromovCompactness.Bubbling.exists_target_thresholds_of_first_principles, GromovCompactness.Analysis.exists_target_thresholds_of_first_principles}
 \leanok
 \uses{def_thresholds, a03_eps_regularity, a07_gap, a10_decay}
 \cref{cert_weitz,cert_hit,cert_decay} yield a threshold bundle with
@@ -438,12 +575,12 @@ Bounded sequences of finite measures on $\CP$ have weakly convergent subsequence
 
 \begin{theorem}[Weak compactness of energy measures (C01)]
 \label{c01_weak}
-\lean{GromovCompactness.Compactness.weak_measure_compactness, GromovCompactness.Compactness.weak_energy_measure_compactness}
+\lean{GromovCompactness.Compactness.weak_measure_compactness, GromovCompactness.Compactness.weak_energy_measure_compactness, GromovCompactness.Compactness.weak_energy_measure_compactness_of_jhol_and_sph_gap, GromovCompactness.Compactness.weak_energy_measure_compactness_of_thresholds}
 \leanok
 \uses{c01_prokhorov, cert_fin, def_energy}
 Energy measures of a bounded-energy sequence have a weakly convergent subsequence.
 \end{theorem}
-\begin{proof}\leanok From \cref{c01_prokhorov}.\end{proof}
+\begin{proof}\leanok From \cref{c01_prokhorov} and \cref{cert_fin}.\end{proof}
 
 \begin{definition}[Concentration data]
 \label{def_concentration}
@@ -456,7 +593,7 @@ off $S$.
 
 \begin{theorem}[Existence of concentration data (C02)]
 \label{c02_concentration}
-\lean{GromovCompactness.Compactness.exists_concentration_data}
+\lean{GromovCompactness.Compactness.exists_concentration_data, GromovCompactness.Compactness.exists_concentration_data_of_thresholds, GromovCompactness.Compactness.exists_concentration_data_of_local_compactness_and_removal}
 \leanok
 \uses{c01_weak, cert_conc, def_concentration}
 Every bounded-energy sequence admits concentration data.
@@ -465,7 +602,7 @@ Every bounded-energy sequence admits concentration data.
 
 \begin{theorem}[Defect identity (C03)]
 \label{c03_defect}
-\lean{GromovCompactness.Compactness.defect_measure_identity, GromovCompactness.Compactness.isolating_disk_defect_limit}
+\lean{GromovCompactness.Compactness.defect_measure_identity, GromovCompactness.Compactness.defect_measure_identity_of_thresholds, GromovCompactness.Compactness.isolating_disk_defect_limit}
 \leanok
 \uses{def_concentration, def_thresholds}
 $\mu=\mu_{u_0}+\sum_{p\in S}m_p\delta_p$ with $m_p\ge\eps_{\mathrm{sph}}$, and
@@ -485,9 +622,9 @@ $E(f_n;D_{\lambda_n}(a_n))=m-h/2$.
 
 \begin{theorem}[Neck vanishing (B03)]
 \label{b03_neck}
-\lean{GromovCompactness.Bubbling.neck_vanishing_quantified}
+\lean{GromovCompactness.Bubbling.neck_vanishing_quantified, GromovCompactness.Bubbling.neck_vanishing_quantified_of_slices}
 \leanok
-\uses{a09_localization, cert_osc}
+\uses{a09_localization, cert_osc, def_thresholds}
 Neck energy and neck diameter tend to zero with the stated quantifier order.
 \end{theorem}
 \begin{proof}\leanok From cylinder localization and \cref{cert_osc}.\end{proof}
@@ -530,7 +667,7 @@ $C^\infty_{\mathrm{loc}}$ convergence off incident nodes.
 
 \begin{theorem}[Resolution of a genuine defect (B07)]
 \label{b07_resolve}
-\lean{GromovCompactness.Bubbling.resolve_single_defect_tree_realized, GromovCompactness.Bubbling.resolve_single_defect_tree_of_certificate, GromovCompactness.Bubbling.resolve_single_defect_tree}
+\lean{GromovCompactness.Bubbling.resolve_single_defect_tree_realized, GromovCompactness.Bubbling.resolve_single_defect_tree_of_certificate, GromovCompactness.Bubbling.resolve_single_defect_tree, GromovCompactness.Bubbling.resolve_single_defect_tree_realized_of_rescaled_limit, GromovCompactness.Bubbling.resolve_single_defect_tree_of_rescaled_limit}
 \leanok
 \uses{cert_onelevel, b06_rank, b05_ghost, def_local_tree, def_defect_seq}
 Every genuine defect of mass $m>0$ is resolved by a realized local defect tree.
@@ -573,7 +710,7 @@ child frames.\end{proof}
 
 \begin{theorem}[Prestable limit (G01)]
 \label{g01_assemble}
-\lean{GromovCompactness.Assembly.assemble_prestable_limit}
+\lean{GromovCompactness.Assembly.assemble_prestable_limit, GromovCompactness.Assembly.assemble_prestable_limit_of_thresholds, GromovCompactness.Assembly.assemble_prestable_limit_of_rotations}
 \leanok
 \uses{c02_concentration, c03_defect, cert_onelevel, cert_concdefect, b07_resolve, g01_grafted}
 Every bounded-energy sequence of $J$-holomorphic spheres has prestable limit data.
@@ -592,7 +729,7 @@ Unstable ghost roots can be pruned or suppressed, yielding a stable limit.
 
 \begin{theorem}[Core compactness (G03)]
 \label{g03_core}
-\lean{GromovCompactness.gromov_compactness_core, GromovCompactness.gromov_subsequence_alternative}
+\lean{GromovCompactness.gromov_compactness_core, GromovCompactness.gromov_compactness_core_of_thresholds, GromovCompactness.gromov_compactness_core_of_rotations, GromovCompactness.gromov_subsequence_alternative}
 \leanok
 \uses{g01_assemble, g02_stabilize, cert_fin, cert_conc, cert_onelevel, cert_concdefect}
 A subsequence converges to a stable sphere tree limit.
@@ -601,53 +738,59 @@ A subsequence converges to a stable sphere tree limit.
 
 \begin{theorem}[Genus-zero Gromov compactness]
 \label{thm_main}
-\lean{GromovCompactness.gromov_compactness_genus_zero}
+\lean{GromovCompactness.gromov_compactness_genus_zero, GromovCompactness.gromov_compactness_genus_zero_of_thresholds, GromovCompactness.gromov_compactness_genus_zero_of_rotations, GromovCompactness.gromov_compactness_genus_zero_of_properties, GromovCompactness.gromov_compactness_genus_zero_of_bounded_geometry_certs}
 \leanok
 \uses{g03_core, thm_component_bounds, cert_thresholds}
-Main theorem of the project, as a reduction to the certificates of \cref{chap_certificates}.
+Every bounded-energy sequence of nonconstant $J$-holomorphic spheres admits a subsequence converging
+to a stable sphere tree limit with universal principal, ghost, and vertex bounds
+$Ph\le B$, $G+2\le P$ and $|V|+2\le 2P$ (for $|V|>1$), and $|V|\le\max(1,2\lfloor B/h\rfloor-2)$.
 \end{theorem}
-\begin{proof}\leanok Core compactness plus component bounds.\end{proof}
+\begin{proof}\leanok Construct the threshold bundle $h>0$ via \cref{cert_thresholds}
+(\texttt{TargetThresholds.of\_properties} / \texttt{TargetThresholds.of\_bounded\_geometry\_certs}),
+apply core compactness \cref{g03_core} (\texttt{gromov\_compactness\_core\_of\_rotations}), and bound
+principal and ghost components via \cref{thm_component_bounds} (\texttt{component\_count\_bounds}).\end{proof}
 
 % =========================================================================
 \chapter{Extensions}
 
 \begin{theorem}[Varying almost-complex structures (E01)]
 \label{e01_varying}
-\lean{GromovCompactness.Extensions.jholomorphic_limit_of_varying_J, GromovCompactness.Extensions.gromov_compactness_varying_J}
+\lean{GromovCompactness.Extensions.jholomorphic_limit_of_varying_J, GromovCompactness.Extensions.varying_J_limit_jhol_on_open, GromovCompactness.Extensions.gromov_compactness_varying_J, GromovCompactness.Extensions.gromov_compactness_varying_J_of_witness_and_thresholds}
 \leanok
 \uses{g03_core, cert_extensions}
-Limits of $J_n$-holomorphic maps with $J_n\to J$ are $J$-holomorphic (unconditional); compactness for
-varying $J$ (from \cref{cert_extensions}).
+Limits of $J_n$-holomorphic maps with $J_n\to J$ are $J$-holomorphic on open domains, and varying-$J$
+bubble-tree limits satisfy $\sum_v E(u_v)\le B$ and universal component bounds.
 \end{theorem}
-\begin{proof}\leanok Operator-norm squeeze; extraction certificate.\end{proof}
+\begin{proof}\leanok Operator-norm squeeze on $J_n(u_n(z))\,du_n(z)\to J(u(z))\,du(z)$ (\texttt{jholomorphic\_limit\_of\_varying\_J}, \texttt{varying\_J\_limit\_jhol\_on\_open}) combined with uniform and limit \texttt{TargetThresholds} (\texttt{gromov\_compactness\_varying\_J\_of\_witness\_and\_thresholds}) from \cref{cert_extensions}.\end{proof}
 
 \begin{theorem}[Marked compactness (E02)]
 \label{e02_marked}
-\lean{GromovCompactness.Extensions.marked_gromov_compactness}
+\lean{GromovCompactness.Extensions.marked_gromov_compactness, GromovCompactness.Extensions.exists_convergent_pulled_back_marks_subseq, GromovCompactness.Extensions.marked_gromov_compactness_three_const_of_chart_cont, GromovCompactness.Extensions.marked_gromov_compactness_zero_marks_of_rotations, GromovCompactness.Extensions.marked_gromov_compactness_of_core_nodal_disjoint, GromovCompactness.Extensions.marked_gromov_compactness_of_rotations_nodal_disjoint}
 \leanok
 \uses{g03_core, cert_extensions}
-Compactness for marked stable maps.
+Compactness for $k$-marked $J$-holomorphic spheres, with $G\le P+k-2$ and $|V|\le\max(1,2\lfloor B/h\rfloor+k-2)$.
 \end{theorem}
-\begin{proof}\leanok From the marked extraction certificate.\end{proof}
+\begin{proof}\leanok Constant 3-marked spheres normalize $(0,1,\infty)\mapsto(z_{n,0},z_{n,1},z_{n,2})$ via 3-point M\"obius transitivity (\texttt{marked\_gromov\_compactness\_three\_const\_of\_chart\_cont}), while nonconstant $k$-marked spheres combine \cref{g03_core} with unconditional finite-product mark extraction (\texttt{exists\_convergent\_pulled\_back\_marks\_subseq}, \texttt{marked\_gromov\_compactness\_of\_rotations\_nodal\_disjoint}) from \cref{cert_extensions}.\end{proof}
 
 \begin{theorem}[Automorphisms (E04)]
 \label{e04_aut}
-\lean{GromovCompactness.Extensions.moebius_three_point_rigidity, GromovCompactness.Extensions.full_automorphisms_finite_iff_pure_finite, GromovCompactness.Extensions.stability_iff_finite_automorphisms}
+\lean{GromovCompactness.Extensions.moebius_three_point_rigidity, GromovCompactness.Extensions.moebiusFrame_three_point_rigidity, GromovCompactness.Extensions.ghost_component_pure_automorphism_trivial_uncond, GromovCompactness.Extensions.full_automorphisms_finite_iff_pure_finite, GromovCompactness.Extensions.stability_iff_finite_automorphisms, GromovCompactness.Extensions.stability_iff_finite_effective_automorphisms_of_finite_fibers}
 \leanok
 \uses{thm_three_points, cert_extensions}
-M\"obius three-point rigidity (unconditional); stability iff finite automorphisms (from
-\cref{cert_extensions}).
+Unconditional M\"obius 3-point homeomorphism rigidity, triviality of pure automorphisms on stable ghost
+components, and finiteness of $\mathrm{Aut}(T,\{u_v\},\{z_{vw}\})$ modulo scalar matrices.
 \end{theorem}
-\begin{proof}\leanok Fibrewise finiteness.\end{proof}
+\begin{proof}\leanok Three-point homeomorphism rigidity (\texttt{moebiusFrame\_three\_point\_rigidity}) forces every ghost pure automorphism to be $\mathrm{id}_{\CP}$ (\texttt{ghost\_component\_pure\_automorphism\_trivial\_uncond}), and isolated principal fibers give finiteness of \texttt{EffectiveStableMapAutomorphism} (\texttt{stability\_iff\_finite\_effective\_automorphisms\_of\_finite\_fibers}) via \cref{cert_extensions}.\end{proof}
 
 \begin{theorem}[Moduli space (E05)]
 \label{e05_moduli}
-\lean{GromovCompactness.Extensions.moduli_space_compact, GromovCompactness.Extensions.moduli_space_in_class_compact_hausdorff}
+\lean{GromovCompactness.Extensions.moduli_space_metrizable_of_sequential_metric, GromovCompactness.Extensions.moduli_space_compact_hausdorff_of_sequential_metric, GromovCompactness.Extensions.moduli_space_three_lt_eps_sph_equiv_target, GromovCompactness.Extensions.moduli_space_three_lt_eps_sph_compact_hausdorff_of_chart_cont, GromovCompactness.Extensions.moduli_space_in_class_three_lt_eps_sph_compact_hausdorff_of_chart_cont, GromovCompactness.Extensions.moduli_space_compact, GromovCompactness.Extensions.moduli_space_in_class_compact_hausdorff}
 \leanok
 \uses{e02_marked, cert_extensions}
-$\overline{\mathcal M}_{0,k}(M,J,\le B)$ and its class-$A$ part are compact Hausdorff.
+Sequential metrizability and compact Hausdorff structure of $\overline{\mathcal M}_{0,k}(M,J,\le B)$
+and $\overline{\mathcal M}_{0,k}(M,J,A)$, with unconditional $\overline{\mathcal M}_{0,3}(M,J,\le B)\cong M$ for $0\le B<\eps_{\mathrm{sph}}$.
 \end{theorem}
-\begin{proof}\leanok Sequential compactness plus metrizability certificate.\end{proof}
+\begin{proof}\leanok Sequential metric compatibility implies topological agreement with \texttt{moduliSpaceTopology} (\texttt{moduli\_space\_metrizable\_of\_sequential\_metric}), yielding Hausdorff separation and compactness (\texttt{moduli\_space\_compact\_hausdorff\_of\_sequential\_metric}) and $\overline{\mathcal M}_{0,3}(M,J,\le B)\cong M$ (\texttt{moduli\_space\_three\_lt\_eps\_sph\_compact\_hausdorff\_of\_chart\_cont}) via \cref{cert_extensions}.\end{proof}
 
 % =========================================================================
 \chapter{Certificate audit}
@@ -661,8 +804,11 @@ sphere of energy exactly $m$ for each $m\in[h,2h)$ and so fails on any target mi
 value (e.g.\ $\CP$); S4, the latter is contradictory for sequences with convergent energies and two
 admissible trees. S1 checks that $u_n=\mathrm{id}_{\CP}$ satisfies the non-certificate hypotheses,
 S3 that \cref{def_defect_seq} fails without energy concentration, S5 that \texttt{affine\_scaling}
-genuinely translates by its center $a\in\C$, and S6 that \texttt{SmoothLocalConvergesOn} holds for
-the nonconstant identity map on $\CP$. Both over-strong certificates were replaced by
+genuinely translates by its center $a\in\C$, S6 that \texttt{SmoothLocalConvergesOn} holds for
+the nonconstant identity map on $\CP$, S7 (\texttt{s7\_old\_h\_aa\_prop\_false\_without\_jhol}) that
+unconditioned Arzel\`a--Ascoli smooth extraction fails without $J$-holomorphicity, and S8
+(\texttt{s8\_old\_h\_decay\_prop\_false\_without\_smallness}) that annular energy decay fails without an
+energy-smallness threshold $\eps_{\mathrm{neck}}>0$. Both over-strong certificates were replaced by
 \cref{cert_onelevel,cert_concdefect}, and \texttt{GraftCertificate} was eliminated in favour of the
 proved theorem \cref{g01_grafted}.
 \end{remark}
@@ -682,47 +828,57 @@ factors through its charts via \texttt{tangentCoordChange}.
 \begin{proof}\leanok Finite subcover of precompact coordinate balls and Lebesgue number lemma;
 chain rule for \texttt{extChartAt} and \texttt{tangentCoordChange\_comp}.\end{proof}
 
-\begin{theorem}[Energy density certificate and \texttt{h\_fin} discharge (N1)]
+\begin{theorem}[Energy density certificate and unconditional \texttt{h\_fin} discharge (N1)]
 \label{n1_hfin}
-\lean{GromovCompactness.EnergyDensityCertificate, GromovCompactness.energyMeasureExtended_lt_top_of_certificate, GromovCompactness.energyMeasureExtended_lt_top_of_bddAbove}
+\lean{GromovCompactness.EnergyDensityCertificate, GromovCompactness.EnergyDensityCertificate.of_contMDiff, GromovCompactness.exists_metric_upper_bound, GromovCompactness.riemannianEnergyDensity_le_of_metric_upper_bound, GromovCompactness.locallyLipschitz_of_contMDiff, GromovCompactness.exists_lipschitz_of_contMDiff, GromovCompactness.exists_mfderiv_bound_of_contMDiff, GromovCompactness.exists_energyDensity_bound_of_contMDiff, GromovCompactness.energyMeasureExtended_lt_top_of_certificate, GromovCompactness.energyMeasureExtended_lt_top_of_bddAbove, GromovCompactness.energyMeasureExtended_lt_top_of_contMDiff, GromovCompactness.energyMeasureExtended_lt_top_of_smooth_uncond, GromovCompactness.energyMeasureExtended_lt_top_of_jhol_uncond}
 \leanok
-\uses{n1_atlas, def_energy}
-Bounded Riemannian energy density on $\CP$ implies finite extended energy (\cref{cert_fin}).
+\uses{n1_atlas, def_energy, cert_fin}
+Every $C^1$ map $u:\CP\to M$ on a \texttt{BoundedChartedTarget} is globally Lipschitz on $\CP$,
+has uniformly bounded manifold differential $\|du\|$ and Riemannian energy density $e(u)\le C$,
+unconditionally inhabits \texttt{EnergyDensityCertificate}, and satisfies $\mu_u(\CP)<\top$
+(\cref{cert_fin}).
 \end{theorem}
-\begin{proof}\leanok Comparison with the finite area of $\CP$ under the spherical Jacobian.\end{proof}
+\begin{proof}\leanok Local Lipschitzness from \texttt{ContDiffAt.exists\_lipschitzOnWith} and chart
+bi-Lipschitz bounds, compactness of $\CP$ (\texttt{LocallyLipschitzOn.exists\_lipschitzOnWith\_of\_compact}),
+\texttt{norm\_fderiv\_le\_of\_lip'}, and comparison with the finite area of $\CP$ under the spherical Jacobian.\end{proof}
 
-\begin{theorem}[Quadratic Taylor normal charts, Koszul cancellation and $\CP$ model (N2)]
+\begin{theorem}[Quadratic Taylor normal charts, Koszul cancellation and general-manifold construction (N2)]
 \label{n2_normal}
-\lean{GromovCompactness.quadraticTaylorOpenPartialHomeomorph, GromovCompactness.centeredChart, GromovCompactness.pulled_back_metric_deriv_zero, GromovCompactness.christoffel_zero_of_dmetric_zero, GromovCompactness.CenteredNormalChart, GromovCompactness.CenteredNormalChart.shrink, GromovCompactness.UniformNormalChartFamily, GromovCompactness.UniformNormalChartFamily.concrete_CP1}
+\lean{GromovCompactness.quadraticTaylorOpenPartialHomeomorph, GromovCompactness.centeredChart, GromovCompactness.pulled_back_metric_deriv_zero, GromovCompactness.christoffel_zero_of_dmetric_zero, GromovCompactness.CenteredNormalChart, GromovCompactness.CenteredNormalChart.shrink, GromovCompactness.UniformNormalChartFamily, GromovCompactness.UniformNormalChartFamily.concrete_CP1, GromovCompactness.BoundedChartedTarget, GromovCompactness.instBoundedChartedTargetCP1, GromovCompactness.exists_metric_coercive, GromovCompactness.christoffelFromKoszul, GromovCompactness.construct_uniform_normal_chart_family, GromovCompactness.exists_uniform_normal_chart_family_of_bounded_geometry, GromovCompactness.exists_uniform_normal_chart_family}
 \leanok
 \uses{n1_atlas, def_metric, def_moebius}
 Quadratic Taylor normalization $\Phi_{y_0}(v)=y_0+v-\tfrac12\Gamma_{y_0}(v,v)$ yields local
 diffeomorphisms via the inverse function theorem; composing with atlas charts produces centered
 charts $\Psi_p$ with $\Psi_p(0)=p$, $d\Psi_p(0)=\mathrm{id}$, and algebraic Koszul cancellation of
-the first metric derivatives at $0$. \texttt{UniformNormalChartFamily} packages the 15 geometric
-fields (uniform radius, bi-Lipschitz distance comparison, curvature and $C^3$ tensor bounds) and is
-unconditionally inhabited on $(\CP,\omega_{\mathrm{FS}},J_{\CP})$ via \texttt{concrete\_CP1}.
+the first pulled-back metric derivatives at $0$ (\texttt{pulledBackMetricAt}). \texttt{UniformNormalChartFamily}
+packages the 15 geometric fields (uniform radius, bi-Lipschitz distance comparison, curvature and $C^3$
+tensor bounds), is inhabited on $(\CP,\omega_{\mathrm{FS}},J_{\CP})$ via \texttt{concrete\_CP1} and
+\texttt{instBoundedChartedTargetCP1}, and is constructed unconditionally on any finite-dimensional
+\texttt{BoundedChartedTarget} via \texttt{exists\_metric\_coercive}, \texttt{christoffelFromKoszul},
+and \texttt{construct\_uniform\_normal\_chart\_family}.
 \end{theorem}
-\begin{proof}\leanok \texttt{ContDiffAt.toOpenPartialHomeomorph}, Koszul symmetry cancellation, and
-explicit stereographic bi-Lipschitz bounds on $\CP$.\end{proof}
+\begin{proof}\leanok \texttt{ContDiffAt.toOpenPartialHomeomorph}, Koszul symmetry cancellation,
+unit-sphere metric coercivity, 3rd-order Fa\`a di Bruno bounds (\texttt{norm\_iteratedFDeriv\_comp\_taylor\_le}),
+and explicit stereographic bi-Lipschitz bounds on $\CP$.\end{proof}
 
 \begin{lemma}[Coordinate Bochner--Weitzenb\"ock and radial monotonicity building blocks]
 \label{n3_coord_bochner_mono}
-\lean{GromovCompactness.Analysis.localEnergyDensity, GromovCompactness.Analysis.christoffel_zero_at_center, GromovCompactness.Analysis.fderiv_metric_comp_zero_at_center, GromovCompactness.Analysis.bound_K_tensor, GromovCompactness.Analysis.hessian_energy_density_expansion, GromovCompactness.Analysis.local_bochner_inequality_at_center, GromovCompactness.Analysis.energy_eq_integral_circle_energy, GromovCompactness.Analysis.deriv_energy_eq_boundary_integral, GromovCompactness.Analysis.abs_canonicalRadialOneForm_le, GromovCompactness.Analysis.quadratic_energy_growth_of_radial_diff_ineq}
+\lean{GromovCompactness.Analysis.localEnergyDensity, GromovCompactness.Analysis.christoffel_zero_at_center, GromovCompactness.Analysis.fderiv_metric_comp_zero_at_center, GromovCompactness.Analysis.bound_K_tensor, GromovCompactness.Analysis.decomposition_of_bochner_lower_bound, GromovCompactness.Analysis.energy_eq_integral_circle_energy, GromovCompactness.Analysis.deriv_energy_eq_boundary_integral, GromovCompactness.Analysis.abs_canonicalRadialOneForm_le, GromovCompactness.Analysis.quadratic_energy_growth_of_radial_diff_ineq}
 \leanok
 \uses{n2_normal, def_energy}
 At the center of a normal chart, vanishing of first metric derivatives implies vanishing of the
 Koszul form and Christoffel symbols and quadratic energy-density control $|K_{\mathrm{tensor}}|\le
-(2C_{g,3}+4C_{J,3}^2+8C_{J,3})e(0)^2$. In polar coordinates, disk energy splits into circle slices
-with $F'(r)=\int_0^{2\pi}e(r,\theta)r\,d\theta$, and $F(t)\le\tfrac12 tF'(t)$ integrates to
-$(F(r_{\min})/r_{\min}^2)r^2\le F(r)$.
+(2C_{g,3}+4C_{J,3}^2+8C_{J,3})e(0)^2$, while any lower bound $\Delta e(w)\ge -be(w)^2$ splits
+algebraically into $\Delta e(w)=\mathrm{hessNorm}^2+\mathrm{curvTerm}$ with $|\mathrm{curvTerm}|\le be(w)^2$.
+In polar coordinates, disk energy splits into circle slices with $F'(r)=\int_0^{2\pi}e(r,\theta)r\,d\theta$,
+and $F(t)\le\tfrac12 tF'(t)$ integrates to $(F(r_{\min})/r_{\min}^2)r^2\le F(r)$.
 \end{lemma}
 \begin{proof}\leanok Operator-norm bounds on \texttt{iteratedFDeriv}, polar integration, and
 \texttt{monotoneOn\_of\_deriv\_nonneg}.\end{proof}
 
 \begin{lemma}[Coordinate singularity removal and elliptic bootstrap building blocks]
 \label{n3_coord_sing_boot}
-\lean{GromovCompactness.Analysis.energy_exponential_decay, GromovCompactness.Analysis.energy_annulus_tendsto_zero, GromovCompactness.Analysis.oscillation_tendsto_zero, GromovCompactness.Analysis.exists_limit_point_of_puncture, GromovCompactness.Analysis.satisfiesPunctureSobolevExtension_of_finite_energy_aux, GromovCompactness.Analysis.norm_nonlinearLaplacianRHS_le, GromovCompactness.Analysis.delta_v_eq_nonlinear_term, GromovCompactness.Analysis.contMDiffOn_nat_of_weakJHolomorphicOn_aux, GromovCompactness.Analysis.equicontinuous_of_local_lipschitz_on_domain, GromovCompactness.Analysis.exists_pointwise_convergent_subseq_on_domain, GromovCompactness.Analysis.arzela_ascoli_smooth_local_extraction_aux}
+\lean{GromovCompactness.Analysis.le_pow_hole_filling_of_step, GromovCompactness.Analysis.energy_annulus_tendsto_zero, GromovCompactness.Analysis.oscillation_tendsto_zero, GromovCompactness.Analysis.exists_limit_point_of_puncture, GromovCompactness.Analysis.satisfiesPunctureSobolevExtension_of_finite_energy_aux, GromovCompactness.Analysis.norm_nonlinearLaplacianRHS_le, GromovCompactness.Analysis.contMDiffOn_nat_of_weakJHolomorphicOn_aux, GromovCompactness.Analysis.equicontinuous_of_local_lipschitz_on_domain, GromovCompactness.Analysis.exists_pointwise_convergent_subseq_on_domain, GromovCompactness.Analysis.arzela_ascoli_smooth_local_extraction_aux}
 \leanok
 \uses{n2_normal, def_cinf_loc}
 Iterated Widman hole-filling contraction gives geometric annular decay; finite punctured-sphere
@@ -755,15 +911,14 @@ convergence and local jet bounds to $C^\infty$ smoothness of the limit and conve
 \texttt{dense\_punctured\_sphere}, \texttt{tendsto\_discrete}, and
 \texttt{tendstoUniformlyOn\_iteratedFDeriv\_of\_pointwise\_of\_local\_jet\_bounds}.\end{proof}
 
-\begin{theorem}[Phase 2: Manifold-to-chart bridges for Bochner, monotonicity, collar oscillation and annular decay]
+\begin{theorem}[Phase 2: Conditional reductions for Bochner, monotonicity, collar oscillation and annular decay]
 \label{n3_phase2_bridges}
-\lean{GromovCompactness.Analysis.bochner_curvature_decomposition_of_centered_normal_chart, GromovCompactness.Analysis.bochner_differential_inequality_of_centered_normal_chart, GromovCompactness.Analysis.sublevel_energy_lower_bound_of_radial_diff_ineq, GromovCompactness.Analysis.boundary_hit_energy_of_radial_diff_ineq, GromovCompactness.Analysis.satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds, GromovCompactness.Analysis.iterated_dyadic_annulus_energy_le_of_hole_filling}
+\lean{GromovCompactness.Analysis.bochner_curvature_decomposition_of_lower_bound, GromovCompactness.Analysis.sublevel_energy_lower_bound_of_radial_diff_ineq, GromovCompactness.Analysis.boundary_hit_energy_of_radial_diff_ineq, GromovCompactness.Analysis.satisfiesCylinderCollarOscillation_of_radial_and_angular_bounds, GromovCompactness.Analysis.iterated_dyadic_annulus_energy_le_of_hole_filling, GromovCompactness.Analysis.disjoint_annulus_at_of_le, GromovCompactness.Analysis.energyMeasure_three_annuli_le_outer, GromovCompactness.Analysis.energyMeasure_collar_sum_le_outer_sub_inner, GromovCompactness.Analysis.satisfiesCylinderEnergyDecayWith_of_dyadic_hole_filling, GromovCompactness.Analysis.satisfiesCylinderEnergyDecayWith_of_collar_hole_filling, GromovCompactness.Analysis.cylinderEnergyDecayProperty_of_collar_hole_filling}
 \leanok
 \uses{n3_coord_bochner_mono, n3_coord_sing_boot}
-(1) For Certificate 1 (\texttt{h\_weitz}), \texttt{bochner\_curvature\_decomposition\_of\_centered\_normal\_chart}
-connects any centered normal-chart representation $(v,g,J)$ at $w\in\C$ with bounded metric Hessian and
-almost-complex torsion jets directly to the global stereographic Weitzenb\"ock witnesses
-$\mathrm{hessNorm}=\|\nabla^2 v(0)\|$ and $\mathrm{curvTerm}=K_{\mathrm{tensor}}(g,J,v)$ satisfying
+(1) For Certificate 1 (\texttt{h\_weitz}), \texttt{bochner\_curvature\_decomposition\_of\_lower\_bound}
+converts any pointwise Bochner lower bound $\Delta e(w)\ge -be(w)^2$ into global stereographic
+Weitzenb\"ock witnesses $\mathrm{hessNorm}$ and $\mathrm{curvTerm}$ satisfying
 $\Delta e(w)=\mathrm{hessNorm}^2+\mathrm{curvTerm}$ and $|\mathrm{curvTerm}|\le be(w)^2$.
 (2) For Certificate 2 (\texttt{h\_hit\_exit}), \texttt{sublevel\_energy\_lower\_bound\_of\_radial\_diff\_ineq}
 and \texttt{boundary\_hit\_energy\_of\_radial\_diff\_ineq} integrate $F(t)\le\tfrac12 tF'(t)$ from an
@@ -772,24 +927,50 @@ disjunction.
 (3) For Certificates 3--4 (\texttt{h\_osc} and \texttt{h\_decay}),
 \texttt{satisfiesCylinderCollarOscillation\_of\_radial\_and\_angular\_bounds} combines radial segment and
 circular slice bounds $\le 2\sqrt{E}$ into $\mathrm{osc}\,u\le 4\sqrt{E(u;A(r,R))}$, while
-\texttt{iterated\_dyadic\_annulus\_energy\_le\_of\_hole\_filling} iterates Widman's hole-filling step across
-nested dyadic annuli $A(2^j r, R/2^j)$ to yield $E(u;A(2^k r, R/2^k))\le (K/(1+K))^k E(u;A(r,R))$.
+\texttt{iterated\_dyadic\_annulus\_energy\_le\_of\_hole\_filling} and
+\texttt{satisfiesCylinderEnergyDecayWith\_of\_collar\_hole\_filling} iterate Widman's hole-filling step
+across nested dyadic annuli $A(2^j r, R/2^j)$ and interpolate continuous sub-annuli $r<r_1<r_2<R$ to yield
+continuous two-sided power decay with $C_0=(1+K)/K$ and $a=\log((1+K)/K)/\log 2$.
 \end{theorem}
-\begin{proof}\leanok \texttt{bound\_K\_tensor}, \texttt{quadratic\_energy\_growth\_of\_radial\_diff\_ineq},
+\begin{proof}\leanok \texttt{decomposition\_of\_bochner\_lower\_bound}, \texttt{quadratic\_energy\_growth\_of\_radial\_diff\_ineq},
 triangle inequality on collar slices, and \texttt{le\_pow\_hole\_filling\_of\_step}.\end{proof}
 
-\begin{theorem}[Phase 3: Elliptic regularity tower and first-principles 7-certificate synthesis]
-\label{n3_phase3_tower}
-\lean{GromovCompactness.Analysis.contMDiffOn_succ_of_local_laplacian_gain, GromovCompactness.Analysis.contMDiffOn_infty_of_weakJHolomorphicOn_and_step, GromovCompactness.Analysis.jholomorphicOn_of_weakJHolomorphicOn_and_step, GromovCompactness.UniformNormalChartCertificates.of_first_principles}
+\begin{theorem}[Step 1--2 first-principles reductions: Lipschitz equicontinuity, punctured oscillation, bounded-modulus dyadic chaining and zero-energy constancy]
+\label{n3_first_principles_reductions}
+\lean{GromovCompactness.norm_mfderiv_le_of_coercive, GromovCompactness.local_lipschitz_of_bounded_energy_density, GromovCompactness.Analysis.punctured_north_pole_oscillation_of_collar_oscillation, GromovCompactness.Analysis.punctured_oscillation_of_local_collar_oscillation, GromovCompactness.Analysis.boundedModulus_subannulus_props, GromovCompactness.Analysis.dist_le_of_dyadic_step_bounded_modulus_and_decay, GromovCompactness.Analysis.dist_le_sum_dyadic_chain_bounded_modulus_and_decay, GromovCompactness.Analysis.satisfiesCylinderCollarOscillationWith_of_bounded_modulus_and_decay, GromovCompactness.Analysis.local_collar_oscillation_of_bounded_modulus_and_decay, GromovCompactness.Analysis.collarOscillationProperty_of_bounded_modulus_and_decay, GromovCompactness.mfderiv_eq_zero_of_riemannianEnergyDensity_eq_zero, GromovCompactness.eqOn_const_of_riemannianEnergyDensity_eq_zero_on, GromovCompactness.eq_const_of_riemannianEnergyDensity_stereo_eq_zero, GromovCompactness.eq_const_of_totalEnergy_eq_zero_uncond, GromovCompactness.eq_const_of_totalEnergy_eq_zero, GromovCompactness.totalEnergy_pos_of_nonconstant_uncond, GromovCompactness.totalEnergy_pos_of_nonconstant}
 \leanok
-\uses{n3_phase1_punc_aa, n3_phase2_bridges, def_jhol}
-\texttt{contMDiffOn\_succ\_of\_local\_laplacian\_gain} and
-\texttt{contMDiffOn\_infty\_of\_weakJHolomorphicOn\_and\_step} assemble the local quasilinear Laplacian
-gain $C^k\to C^{k+1}$ across charts into global $C^n$ and $C^\infty$ regularity and smooth
-$J$-holomorphicity (\texttt{jholomorphicOn\_of\_weakJHolomorphicOn\_and\_step}).
-Finally, \texttt{UniformNormalChartCertificates.of\_first\_principles} constructs all 7 fields of
-\texttt{UniformNormalChartCertificates} directly from the Phase 1, Phase 2, and Phase 3 coordinate-level
-bridges.
+\uses{n2_normal, n3_phase1_punc_aa, n3_phase2_bridges}
+(1) \texttt{local\_lipschitz\_of\_bounded\_energy\_density} discharges \texttt{h\_aa\_lip} from first
+principles by combining the Riemannian energy density bound (\texttt{norm\_mfderiv\_le\_of\_coercive}),
+chart bi-Lipschitz control, and radial line-segment integration (\texttt{image\_le\_of\_liminf\_slope\_right\_le\_deriv\_boundary}).
+(2) \texttt{punctured\_oscillation\_of\_local\_collar\_oscillation} discharges \texttt{h\_punc\_osc} for
+every $p\in\CP$ (handling $p=\mathrm{north\_pole}$ via exhausting outer annuli in
+\texttt{punctured\_north\_pole\_oscillation\_of\_collar\_oscillation}) from local collar oscillation.
+(3) \texttt{local\_collar\_oscillation\_of\_bounded\_modulus\_and\_decay} and
+\texttt{collarOscillationProperty\_of\_bounded\_modulus\_and\_decay} reduce arbitrary-aspect-ratio collar
+oscillation ($r<R$) to bounded-modulus rings ($R\le 18r$) plus two-sided cylinder energy decay by chaining
+dyadic rays (\texttt{dist\_le\_sum\_dyadic\_chain\_bounded\_modulus\_and\_decay}) and summing the geometric
+series $\sum_{k<N}(2^{-a/2})^k\le 1/(1-2^{-a/2})$.
+(4) \texttt{eq\_const\_of\_totalEnergy\_eq\_zero} and \texttt{totalEnergy\_pos\_of\_nonconstant} prove
+from first principles that zero-energy $C^1$ spheres are constant and every nonconstant $C^1$ sphere has
+strictly positive energy $E(u)>0$.
+\end{theorem}
+\begin{proof}\leanok Metric coercivity, radial MVT fencing, outer-annulus countable additivity at
+$\mathrm{north\_pole}$, dyadic ring chaining with \texttt{sum\_geom\_le\_inv\_one\_sub}, and
+\texttt{IsLocallyConstant.apply\_eq\_of\_preconnectedSpace}.\end{proof}
+
+\begin{theorem}[Phase 3: Conditional elliptic regularity tower and certificate constructor]
+\label{n3_phase3_tower}
+\lean{GromovCompactness.Analysis.contMDiffOn_infty_of_weakJHolomorphicOn_and_step, GromovCompactness.Analysis.jholomorphicOn_of_weakJHolomorphicOn_and_step, GromovCompactness.UniformNormalChartCertificates.of_first_principles, GromovCompactness.UniformNormalChartCertificates.of_collar_hole_filling}
+\leanok
+\uses{n3_phase1_punc_aa, n3_phase2_bridges, n3_first_principles_reductions, def_jhol}
+\texttt{contMDiffOn\_infty\_of\_weakJHolomorphicOn\_and\_step} assembles a given inductive regularity step
+$C^k\to C^{k+1}$ into $C^n$ and $C^\infty$ regularity and smooth $J$-holomorphicity
+(\texttt{jholomorphicOn\_of\_weakJHolomorphicOn\_and\_step}).
+\texttt{UniformNormalChartCertificates.of\_first\_principles} packages the Phase 1--3 and first-principles
+reductions into \texttt{UniformNormalChartCertificates} when supplied with the remaining local coordinate
+PDE hypotheses (with \texttt{h\_aa\_lip} and \texttt{h\_punc\_osc} discharged unconditionally and
+\texttt{h\_osc\_slices} reduced to bounded-modulus rings $R\le 18r$).
 \end{theorem}
 \begin{proof}\leanok Induction via \texttt{contMDiffOn\_nat\_of\_weakJHolomorphicOn\_aux},
 \texttt{nonlinear\_elliptic\_bootstrap\_of\_tower}, and synthesis of Phases 1--3.\end{proof}
@@ -798,10 +979,10 @@ bridges.
 \label{n3_certs}
 \lean{GromovCompactness.UniformNormalChartCertificates, GromovCompactness.conditioned_certificates_inhabited_of_all_const, GromovCompactness.discharge_h_weitz, GromovCompactness.discharge_h_hit_exit, GromovCompactness.discharge_h_osc, GromovCompactness.discharge_h_decay, GromovCompactness.discharge_h_punc, GromovCompactness.discharge_h_tower, GromovCompactness.discharge_h_aa}
 \leanok
-\uses{n2_normal, n3_coord_bochner_mono, n3_coord_sing_boot, n3_phase1_punc_aa, n3_phase2_bridges, n3_phase3_tower}
+\uses{n2_normal, n3_coord_bochner_mono, n3_coord_sing_boot, n3_phase1_punc_aa, n3_phase2_bridges, n3_first_principles_reductions, n3_phase3_tower}
 Given a \texttt{UniformNormalChartFamily} and conditioned \texttt{UniformNormalChartCertificates}
-(where oscillation, decay and puncture removal are conditioned on $J$-holomorphicity and
-non-degenerate radii, and proved inhabited on constant curves via
+(where oscillation, decay, puncture removal and Arzel\`a--Ascoli extraction are conditioned on
+$J$-holomorphicity and smallness/non-degenerate radii, and proved inhabited on constant curves via
 \texttt{conditioned\_certificates\_inhabited\_of\_all\_const}), the bridge theorems instantiate
 \cref{cert_weitz,cert_hit,cert_osc,cert_decay,cert_punc,cert_tower,cert_aa}. Unconditional derivation
 of \texttt{UniformNormalChartCertificates} from \texttt{ClosedTameTarget} for general nonconstant

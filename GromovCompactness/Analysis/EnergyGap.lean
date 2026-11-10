@@ -1174,28 +1174,14 @@ theorem sphere_energy_gap_of_global_bddAbove_density_and_diam_gt
 
 /-- Minimal Energy Gap for Non-Constant Spheres (Contract A07).
 There exists a strictly positive constant `ε_sph > 0` depending only on `(M, ω, J)` such that
-every non-constant `J`-holomorphic sphere `u : CP1 → M` satisfies `E(u) ≥ ε_sph`. -/
+every non-constant `J`-holomorphic sphere `u : CP1 → M` satisfies `E(u) ≥ ε_sph`.
+The hypothesis is the corrected certificate `HitExitProperty I M` (target-dependent `c`, `r₀`). -/
 theorem sphere_energy_gap
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
     {M : Type*} [MetricSpace M] [ChartedSpace H M]
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
-    (h_hit_exit : (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 →
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) ∧
-      (∀ (u : CP1 → M) (x : M),
-        x ∈ Set.range u →
-        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-        (¬ ∃ c : M, ∀ z, u z = c) →
-        Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x))) :
+    (h_hit_exit : HitExitProperty I M) :
     ∃ (ε_sph : ℝ), 0 < ε_sph ∧
     ∀ (u : CP1 → M),
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
@@ -1206,4 +1192,99 @@ theorem sphere_energy_gap
     (fun u hu h_nc x hx => ⟨Or.inr (Or.inr (h_exit u x hx hu h_nc).1),
       Or.inl (h_exit u x hx hu h_nc).2⟩)
 
+/-- Minimal energy gap for non-constant `J`-holomorphic spheres (Contract A07) proved from the
+radial differential inequality `F t ≤ (1 / 2) * t * F' t` on `[r_min, r]` and small-ball exit (`0 sorryAx`). -/
+theorem sphere_energy_gap_of_radial_diff_ineq_and_exit
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {c r₀ : ℝ} (hc : 0 < c) (hr₀ : 0 < r₀)
+    (h_radial : ∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ r₀ →
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c₀ : M, ∀ z, u z = c₀) →
+      (∃ z, u z ∉ Metric.ball x r) →
+      ∃ (F F' : ℝ → ℝ) (r_min : ℝ),
+        0 < r_min ∧ r_min ≤ r ∧
+        (∀ t ∈ Set.Icc r_min r, HasDerivAt F (F' t) t) ∧
+        (∀ t ∈ Set.Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t) ∧
+        c * r_min ^ 2 ≤ F r_min ∧
+        F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)))
+    (h_exit : SmallBallExit I M r₀) :
+    ∃ (ε_sph : ℝ), 0 < ε_sph ∧
+    ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      ε_sph ≤ totalEnergy I u :=
+  sphere_energy_gap I (hitExitProperty_of_radial_diff_ineq_and_exit I hc hr₀ h_radial h_exit)
+
+/-- Minimal energy gap for non-constant `J`-holomorphic spheres (Contract A07) proved from the
+radial differential inequality on `[r_min, r]` and two-point diameter separation
+`∃ z₁ z₂ : CP1, 2 * r₀ ≤ dist (u z₁) (u z₂)` (`0 sorryAx`). -/
+theorem sphere_energy_gap_of_radial_diff_ineq_and_pair_dist
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {c r₀ : ℝ} (hc : 0 < c) (hr₀ : 0 < r₀)
+    (h_radial : ∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ r₀ →
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c₀ : M, ∀ z, u z = c₀) →
+      (∃ z, u z ∉ Metric.ball x r) →
+      ∃ (F F' : ℝ → ℝ) (r_min : ℝ),
+        0 < r_min ∧ r_min ≤ r ∧
+        (∀ t ∈ Set.Icc r_min r, HasDerivAt F (F' t) t) ∧
+        (∀ t ∈ Set.Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t) ∧
+        c * r_min ^ 2 ≤ F r_min ∧
+        F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)))
+    (h_cont_and_pair : ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      Continuous (riemannianEnergyDensity I u) ∧
+      ∃ z₁ z₂ : CP1, 2 * r₀ ≤ dist (u z₁) (u z₂)) :
+    ∃ (ε_sph : ℝ), 0 < ε_sph ∧
+    ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      ε_sph ≤ totalEnergy I u :=
+  sphere_energy_gap I (hitExitProperty_of_radial_diff_ineq_and_pair_dist I hc hr₀ h_radial h_cont_and_pair)
+
+/-- Every non-constant `J`-holomorphic sphere has strictly positive energy (`0 < totalEnergy I u`)
+from `BoundaryHitMonotonicity I M c r₀` and finite extended energy alone (without needing a uniform
+`SmallBallExit` radius `r₀`) (`0 sorryAx`). -/
+theorem totalEnergy_pos_of_boundaryHitMonotonicity
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {c r₀ : ℝ} (hc : 0 < c) (hr₀ : 0 < r₀)
+    (h_hit : BoundaryHitMonotonicity I M c r₀)
+    (u : CP1 → M)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ)
+    (h_nc : ¬ ∃ c₀ : M, ∀ z, u z = c₀)
+    (h_fin : energyMeasureExtended I u Set.univ ≠ ⊤) :
+    0 < totalEnergy I u := by
+  obtain ⟨x, w, hx, hpos, _⟩ := exists_outside_of_nonconstant I u h_nc
+  obtain ⟨hr_pos, hr_le, h_exit⟩ := target_monotonicity_at_exit_radius u x w c r₀ hc hr₀ hpos
+  have h_mono := target_monotonicity_of_boundaryHitMonotonicity I h_hit u x
+    (min r₀ (dist (u w) x / 2)) hr_pos hr_le hx hu h_nc h_exit
+  have h_le_tot : energyMeasure I u (u ⁻¹' Metric.ball x (min r₀ (dist (u w) x / 2))) ≤ totalEnergy I u :=
+    energyMeasure_le_totalEnergy_of_ne_top (measure_mono (Set.subset_univ _)) h_fin
+  have h_pos_bound : 0 < c * (min r₀ (dist (u w) x / 2)) ^ 2 :=
+    mul_pos hc (sq_pos_of_pos hr_pos)
+  exact lt_of_lt_of_le h_pos_bound (h_mono.trans h_le_tot)
+
 end GromovCompactness.Analysis
+
+namespace GromovCompactness.Bubbling
+
+export GromovCompactness.Analysis
+  (sphere_energy_gap_of_radial_diff_ineq_and_exit
+   sphere_energy_gap_of_radial_diff_ineq_and_pair_dist
+   totalEnergy_pos_of_boundaryHitMonotonicity)
+
+end GromovCompactness.Bubbling

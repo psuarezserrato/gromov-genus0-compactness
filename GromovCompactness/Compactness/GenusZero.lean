@@ -853,17 +853,14 @@ theorem gromov_compactness_core_of_eventually_nonconst_and_nonpos_energy
   gromov_compactness_core_of_eventually_nonconst_and_lt_eps_sph I th u_seq N₀ h_nc h_jhol
     (fun n hn => (h_nonpos n hn).trans_lt th.ε_sph_pos)
 
-/-- **Core Genus 0 Gromov Compactness Theorem (Theorem 1 Core & Contract G03)**.
-Let $u_n : \mathbb{CP}^1 \to M$ be a sequence of non-constant $J$-holomorphic spheres with
-uniformly bounded energy $E(u_n) \le B < \infty$. Then there exists a subsequence converging
-to a stable sphere tree limit in the compactness witness sense. Proved with zero direct sorry. -/
-theorem gromov_compactness_core
+/-- Core Genus 0 Gromov Compactness Theorem without requiring `h_fin` (`0 sorryAx`, discharging
+`h_fin` from `th` and `h_jhol`). -/
+theorem gromov_compactness_core_of_thresholds
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
     (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
-    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (h_conc_extract : ∀ (σ : Bookkeeping.SubseqMap) (μ : MeasureTheory.Measure CP1) (S : Finset CP1),
       MeasureTheory.IsFiniteMeasure μ →
       Compactness.WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ →
@@ -881,10 +878,36 @@ theorem gromov_compactness_core
     exact gromov_compactness_core_of_subseq_witness I u_seq σ u_lim wit
   · by_cases h_lt : B < th.ε_sph
     · exact gromov_compactness_core_of_lt_eps_sph I th u_seq B h_nonconst h_jhol h_energy h_lt
-    · obtain ⟨pdata, _h_en_le⟩ := assemble_prestable_limit I th u_seq B h_jhol h_energy h_fin
+    · obtain ⟨pdata, _h_en_le⟩ := assemble_prestable_limit_of_thresholds I th u_seq B h_jhol h_energy
         h_conc_extract h_cert h_conc_defects
       exact gromov_compactness_core_of_assemble_and_stabilize I u_seq pdata
         (stabilize_prestable_tree I th u_seq pdata h_nonconst h_jhol)
+
+/-- **Core Genus 0 Gromov Compactness Theorem (Theorem 1 Core & Contract G03)**.
+Let $u_n : \mathbb{CP}^1 \to M$ be a sequence of non-constant $J$-holomorphic spheres with
+uniformly bounded energy $E(u_n) \le B < \infty$. Then there exists a subsequence converging
+to a stable sphere tree limit in the compactness witness sense. Proved with zero direct sorry
+(`_h_fin` is discharged unconditionally from `th` and `h_jhol`). -/
+theorem gromov_compactness_core
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (_h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
+    (h_conc_extract : ∀ (σ : Bookkeeping.SubseqMap) (μ : MeasureTheory.Measure CP1) (S : Finset CP1),
+      MeasureTheory.IsFiniteMeasure μ →
+      Compactness.WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ →
+      (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal th.ε_reg ≤ μ {p}) →
+      ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
+        SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
+        μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_conc_defects : Assembly.ConcDefectCertificate I u_seq B th) :
+    ∃ (u_lim : StableSphereTreeLimit I (M := M)),
+      Nonempty (CompactnessWitness I u_seq u_lim) :=
+  gromov_compactness_core_of_thresholds I th u_seq B h_nonconst h_jhol h_energy
+    h_conc_extract h_cert h_conc_defects
 
 /-- Zero-sorry conditional reduction of `gromov_subsequence_alternative` from `gromov_compactness_core` (`0 sorryAx`). -/
 theorem gromov_subsequence_alternative_of_core
@@ -972,6 +995,25 @@ theorem gromov_subsequence_alternative
     (fun v hv_nc hv_jhol hv_en hv_fin =>
       gromov_compactness_core I th v B hv_nc hv_jhol hv_en hv_fin
         (h_conc_extract v) h_cert (h_conc_defects v))
+
+/-- Core Genus 0 Gromov Compactness Theorem (Contract G03) proved via
+`Assembly.concDefectCertificate_of_rotations` (`0 sorryAx`). -/
+theorem gromov_compactness_core_of_rotations
+    [I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_conc_extract : Compactness.SmoothConcentrationExtractProperty I u_seq th)
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_rot : ∀ p : CP1, (∃ a : ℂ, ‖a‖ < 1 ∧ stereo_chart.symm a = p) ∨
+      ∃ rot : MoebiusFrame, Assembly.IsConformalRotationTo I (M := M) p rot) :
+    ∃ (u_lim : StableSphereTreeLimit I (M := M)),
+      Nonempty (CompactnessWitness I u_seq u_lim) :=
+  gromov_compactness_core_of_thresholds I th u_seq B h_nonconst h_jhol h_energy
+    h_conc_extract h_cert
+    (Assembly.concDefectCertificate_of_rotations I th u_seq B h_jhol h_energy h_rot)
 
 #print axioms compactnessWitness_energy_le
 #print axioms compactnessWitness_subseq_strictMono

@@ -2102,6 +2102,56 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 variable {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
 variable [ChartedSpace H M] [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
 
+/-- Boundary-hit monotonicity with target-dependent constants `c` and `r₀`: at every boundary-hit
+radius `0 < r ≤ r₀` of `u ⁻¹' B(x, r)`, a non-constant `J`-holomorphic sphere carries energy at least
+`c * r ^ 2` in `u ⁻¹' B(x, r)` (directly, or through a finite-energy subset).
+
+The constants must depend on `(M, ω, J)`: with `c = r₀ = 1` the statement fails, e.g. on a
+round sphere with a long thin neck (a ball of radius `r` around a neck point has energy
+`≈ 2 r ℓ ≪ r ^ 2` when the neck circumference `ℓ` is small). -/
+def BoundaryHitMonotonicity
+    {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+    {H' : Type*} [TopologicalSpace H'] (I' : ModelWithCorners ℝ E' H')
+    (M' : Type*) [MetricSpace M'] [ChartedSpace H' M']
+    [IsManifold I' ∞ M'] [CompactSpace M'] [ClosedTameTarget I' M']
+    (c r₀ : ℝ) : Prop :=
+  ∀ (u : CP1 → M') (x : M') (r : ℝ),
+    0 < r → r ≤ r₀ → x ∈ Set.range u →
+    JHolomorphicOn (I := I') (I_dom := I_CP1) u Set.univ →
+    (¬ ∃ c' : M', ∀ z, u z = c') →
+    ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
+      dist (u z_hit) x = r →
+      (c * r ^ 2 ≤ energyMeasure I' u (u ⁻¹' (Metric.ball x r)) ∨
+        ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
+          energyMeasureExtended I' u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
+          c * r ^ 2 ≤ energyMeasure I' u s)
+
+/-- Small-ball exit with a target-dependent radius `r₀`: every non-constant `J`-holomorphic sphere
+leaves the ball of radius `r₀` around any point of its image (and has continuous energy density).
+
+A fixed radius `1` would be false on any target of diameter `< 1` carrying a non-constant
+`J`-sphere; the correct radius is a geometric constant of `(M, ω, J)`. -/
+def SmallBallExit
+    {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+    {H' : Type*} [TopologicalSpace H'] (I' : ModelWithCorners ℝ E' H')
+    (M' : Type*) [MetricSpace M'] [ChartedSpace H' M']
+    [IsManifold I' ∞ M'] [CompactSpace M'] [ClosedTameTarget I' M']
+    (r₀ : ℝ) : Prop :=
+  ∀ (u : CP1 → M') (x : M'),
+    x ∈ Set.range u →
+    JHolomorphicOn (I := I') (I_dom := I_CP1) u Set.univ →
+    (¬ ∃ c : M', ∀ z, u z = c) →
+    Continuous (riemannianEnergyDensity I' u) ∧ (∃ z : CP1, r₀ ≤ dist (u z) x)
+
+/-- Certificate `h_hit_exit` (corrected form): there exist target constants `c > 0` and `r₀ > 0`
+for which boundary-hit monotonicity and small-ball exit hold. -/
+def HitExitProperty
+    {E' : Type*} [NormedAddCommGroup E'] [NormedSpace ℝ E']
+    {H' : Type*} [TopologicalSpace H'] (I' : ModelWithCorners ℝ E' H')
+    (M' : Type*) [MetricSpace M'] [ChartedSpace H' M']
+    [IsManifold I' ∞ M'] [CompactSpace M'] [ClosedTameTarget I' M'] : Prop :=
+  ∃ (c r₀ : ℝ), 0 < c ∧ 0 < r₀ ∧ BoundaryHitMonotonicity I' M' c r₀ ∧ SmallBallExit I' M' r₀
+
 lemma continuous_of_jhol (u : CP1 → M)
     (h_jhol : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ) :
     Continuous u := by
@@ -2266,24 +2316,25 @@ theorem target_monotonicity_of_boundary_hit_energy
   exact target_monotonicity_at_boundary_hit I u x r hr hr0 hx hu h_nonconst z_hit hz_hit hdist
     (h_hit_en z_hit hz_hit hdist)
 
-/-- Target Monotonicity Formula paired with Darboux-ball non-containment for non-constant spheres (`0 sorryAx`). -/
+/-- From `BoundaryHitMonotonicity I M c r₀`, every non-constant `J`-holomorphic sphere exiting
+`B(x, r)` with `0 < r ≤ r₀` satisfies `c * r ^ 2 ≤ E(u; u⁻¹ B(x, r))` (`0 sorryAx`). -/
+theorem target_monotonicity_of_boundaryHitMonotonicity {c r₀ : ℝ}
+    (h_mono : BoundaryHitMonotonicity I M c r₀)
+    (u : CP1 → M) (x : M) (r : ℝ) (hr : 0 < r) (hr0 : r ≤ r₀)
+    (hx : x ∈ Set.range u)
+    (hu : JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ)
+    (h_nonconst : ¬ ∃ c : M, ∀ z, u z = c)
+    (h_out : ∃ z, u z ∉ Metric.ball x r) :
+    c * r ^ 2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) := by
+  obtain ⟨z_hit, hz_hit, hdist⟩ := exists_boundary_hit u x r hr (continuous_of_jhol I u hu) hx h_out
+  rcases h_mono u x r hr hr0 hx hu h_nonconst z_hit hz_hit hdist with h_direct | ⟨s, h_sub, h_fin, h_s⟩
+  · exact h_direct
+  · exact h_s.trans (energyMeasure_mono_of_ne_top I u h_sub h_fin)
+
+/-- Target Monotonicity Formula paired with small-ball exit for non-constant spheres, from the
+corrected certificate `HitExitProperty I M` (`0 sorryAx`). -/
 theorem target_monotonicity_and_darboux_exit
-    (h_hit_exit : (∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 →
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) ∧
-      (∀ (u : CP1 → M) (x : M),
-        x ∈ Set.range u →
-        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-        (¬ ∃ c : M, ∀ z, u z = c) →
-        Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, 1 ≤ dist (u z) x))) :
+    (h_hit_exit : HitExitProperty I M) :
     ∃ (c r₀ : ℝ), 0 < c ∧ 0 < r₀ ∧
     (∀ (u : CP1 → M) (x : M) (r : ℝ),
       0 < r → r ≤ r₀ →
@@ -2297,27 +2348,18 @@ theorem target_monotonicity_and_darboux_exit
       JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
       (¬ ∃ c : M, ∀ z, u z = c) →
       Continuous (riemannianEnergyDensity I u) ∧ (∃ z : CP1, r₀ ≤ dist (u z) x)) := by
-  refine ⟨1, 1, by norm_num, by norm_num, ⟨fun u x r hr hr0 hx hu h_nonconst h_out => ?_, h_hit_exit.2⟩⟩
-  exact target_monotonicity_of_boundary_hit_energy I u x r hr hr0 hx hu h_nonconst h_out
-    (h_hit_exit.1 u x r hr hr0 hx hu h_nonconst)
+  obtain ⟨c, r₀, hc, hr₀, h_mono, h_exit⟩ := h_hit_exit
+  exact ⟨c, r₀, hc, hr₀, fun u x r hr hr0 hx hu h_nonconst h_out =>
+    target_monotonicity_of_boundaryHitMonotonicity I h_mono u x r hr hr0 hx hu h_nonconst h_out, h_exit⟩
 
 /-- Target Monotonicity Formula (Contract A08).
 There exist uniform constants `c > 0` and `r₀ > 0` depending only on the target geometry
 `(M, ω, J)` such that for any non-constant J-holomorphic curve `u` intersecting `ball x r`
 whose image leaves `ball x r`, for all `0 < r ≤ r₀`:
-`c * r² ≤ E(u; u⁻¹(ball x r))`. -/
+`c * r² ≤ E(u; u⁻¹(ball x r))`.
+The hypothesis is boundary-hit monotonicity with target-dependent constants (`h_hit`). -/
 theorem target_monotonicity
-    (h_hit : ∀ (u : CP1 → M) (x : M) (r : ℝ),
-      0 < r → r ≤ 1 →
-      x ∈ Set.range u →
-      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
-      (¬ ∃ c : M, ∀ z, u z = c) →
-      ∀ z_hit ∈ frontier (u ⁻¹' (Metric.ball x r)),
-        dist (u z_hit) x = r →
-        (r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
-          ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
-            energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-            r^2 ≤ energyMeasure I u s)) :
+    (h_hit : ∃ (c r₀ : ℝ), 0 < c ∧ 0 < r₀ ∧ BoundaryHitMonotonicity I M c r₀) :
     ∃ (c r₀ : ℝ), 0 < c ∧ 0 < r₀ ∧
     ∀ (u : CP1 → M) (x : M) (r : ℝ),
       0 < r → r ≤ r₀ →
@@ -2326,9 +2368,9 @@ theorem target_monotonicity
       (¬ ∃ c : M, ∀ z, u z = c) →
       (∃ z, u z ∉ Metric.ball x r) →
       c * r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) := by
-  refine ⟨1, 1, by norm_num, by norm_num, fun u x r hr hr0 hx hu h_nonconst h_out => ?_⟩
-  exact target_monotonicity_of_boundary_hit_energy I u x r hr hr0 hx hu h_nonconst h_out
-    (h_hit u x r hr hr0 hx hu h_nonconst)
+  obtain ⟨c, r₀, hc, hr₀, h_mono⟩ := h_hit
+  exact ⟨c, r₀, hc, hr₀, fun u x r hr hr0 hx hu h_nonconst h_out =>
+    target_monotonicity_of_boundaryHitMonotonicity I h_mono u x r hr hr0 hx hu h_nonconst h_out⟩
 
 /-- Target Monotonicity Formula when every globally `J`-holomorphic sphere `u : CP1 → M` is constant (`0 sorryAx`). -/
 theorem target_monotonicity_of_all_jhol_const
@@ -2554,8 +2596,8 @@ This section implements the coordinate-level calculus for Certificate 2 (`h_hit_
    solid-ball integral into concentric circular slices via `setIntegral_ball_eq_polar_iterated`.
 2. `deriv_energy_eq_boundary_integral`: Fundamental Theorem of Calculus differentiation of the
    radial energy integral with respect to the outer radius `t`.
-3. `canonicalRadialOneForm` and `energy_le_boundary_action`: radial primitive 1-form
-   `λ₀(y)(w) = 1/2 ω₀(y, w)` in a centered normal/Darboux chart and its boundary action estimate.
+3. `canonicalRadialOneForm` and `abs_canonicalRadialOneForm_le`: radial primitive 1-form
+   `λ₀(y)(w) = 1/2 ω₀(y, w)` in a centered normal/Darboux chart and its operator-norm bound.
 4. `hasDerivAt_energy_density_ratio` and `quadratic_energy_growth_of_radial_diff_ineq`: integration
    of the radial differential inequality `F(t) ≤ (1 / 2) * t * F'(t)` via the Mean Value Theorem
    (`Convex.monotoneOn_of_deriv_nonneg`) to deduce quadratic energy growth `(F r₀ / r₀ ^ 2) * r ^ 2 ≤ F r`.
@@ -2602,14 +2644,6 @@ theorem abs_canonicalRadialOneForm_le
   have h3 : ‖ω₀ y‖ ≤ ‖ω₀‖ * t := le_trans h2 (mul_le_mul_of_nonneg_left hy ( norm_nonneg ω₀ ))
   have h4 : |ω₀ y w| ≤ (‖ω₀‖ * t) * ‖w‖ := le_trans h1 (mul_le_mul_of_nonneg_right h3 (norm_nonneg w))
   linarith
-
-/-- Isoperimetric / Stokes boundary action bound on the radial energy `F t` (`0 sorryAx`). -/
-theorem energy_le_boundary_action
-    (F : ℝ → ℝ) (dv_norm_sq : ℝ → ℝ) {C_stokes t r₀ : ℝ}
-    (_ht : t ≤ r₀)
-    (h_stokes : F t ≤ C_stokes * t * (∫ θ in (-Real.pi)..Real.pi, dv_norm_sq θ) ^ (1 / 2 : ℝ)) :
-    F t ≤ C_stokes * t * (∫ θ in (-Real.pi)..Real.pi, dv_norm_sq θ) ^ (1 / 2 : ℝ) :=
-  h_stokes
 
 /-- Quotient-rule derivative of the radial energy density ratio `s ↦ F s / s ^ 2` (`0 sorryAx`). -/
 theorem hasDerivAt_energy_density_ratio
@@ -2691,26 +2725,232 @@ theorem sublevel_energy_lower_bound_of_radial_diff_ineq
     mul_le_mul_of_nonneg_right h_c0_le (sq_nonneg r)
   exact h_mul.trans (h_quad.trans h_sublevel)
 
-/-- Boundary-hit sublevel energy disjunction for Certificate 2 (`h_hit_exit`) synthesized from
-`sublevel_energy_lower_bound_of_radial_diff_ineq` (`0 sorryAx`). -/
+/-- Boundary-hit sublevel energy disjunction (the shape used by `BoundaryHitMonotonicity`) with a
+general constant `c₀`, synthesized from `sublevel_energy_lower_bound_of_radial_diff_ineq` (`0 sorryAx`). -/
 theorem boundary_hit_energy_of_radial_diff_ineq
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
     {M : Type*} [MetricSpace M] [ChartedSpace H M]
     [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
-    (u : CP1 → M) (x : M) (F F' : ℝ → ℝ) {r_min r : ℝ}
+    (u : CP1 → M) (x : M) (F F' : ℝ → ℝ) {c₀ r_min r : ℝ}
     (hr_min : 0 < r_min) (hle : r_min ≤ r)
     (h_deriv : ∀ t ∈ Icc r_min r, HasDerivAt F (F' t) t)
     (h_ineq : ∀ t ∈ Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t)
-    (h_init : r_min ^ 2 ≤ F r_min)
+    (h_init : c₀ * r_min ^ 2 ≤ F r_min)
     (h_sublevel : F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r))) :
-    r ^ 2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
+    c₀ * r ^ 2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) ∨
       ∃ s : Set CP1, s ⊆ u ⁻¹' (Metric.ball x r) ∧
         energyMeasureExtended I u (u ⁻¹' (Metric.ball x r)) ≠ ⊤ ∧
-        r ^ 2 ≤ energyMeasure I u s := by
-  left
-  have h := sublevel_energy_lower_bound_of_radial_diff_ineq I u x F F' hr_min hle h_deriv h_ineq
-    (c₀ := 1) (by linarith) h_sublevel
-  linarith
+        c₀ * r ^ 2 ≤ energyMeasure I u s :=
+  Or.inl (sublevel_energy_lower_bound_of_radial_diff_ineq I u x F F' hr_min hle h_deriv h_ineq
+    h_init h_sublevel)
+
+/-- Global continuity of `riemannianEnergyDensity I u` on `CP1` deduced from continuity of its
+stereographic pullback `w ↦ riemannianEnergyDensity I u (stereo_chart.symm w)` on `ℂ` together
+with `ContinuousAt (riemannianEnergyDensity I u) north_pole` (`0 sorryAx`). -/
+theorem continuous_riemannianEnergyDensity_of_cont_stereo_and_north_pole
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [TopologicalSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    (u : CP1 → M)
+    (h_stereo : Continuous (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))
+    (h_np : ContinuousAt (riemannianEnergyDensity I u) north_pole) :
+    Continuous (riemannianEnergyDensity I u) := by
+  rw [continuous_iff_continuousAt]
+  intro z
+  by_cases hz : z = north_pole
+  · subst hz; exact h_np
+  · have hz_src : z ∈ stereo_chart.source := by
+      rw [stereo_chart_source]; exact hz
+    have h_comp : ContinuousOn
+        (fun w : CP1 => (fun ζ : ℂ => riemannianEnergyDensity I u (stereo_chart.symm ζ)) (stereo_chart w))
+        stereo_chart.source :=
+      h_stereo.continuousOn.comp stereo_chart.continuousOn stereo_chart.mapsTo
+    have h_congr : ContinuousOn (riemannianEnergyDensity I u) stereo_chart.source :=
+      h_comp.congr (fun w hw => by
+        dsimp
+        rw [stereo_chart.left_inv hw])
+    exact h_congr.continuousAt (stereo_chart.open_source.mem_nhds hz_src)
+
+/-- Reduction of `SmallBallExit I M r₀` when stereographic energy-density smoothness is already
+provided by the Bochner certificate (`0 sorryAx`): global continuity of `riemannianEnergyDensity I u`
+reduces to `ContinuousAt (riemannianEnergyDensity I u) north_pole`. -/
+theorem smallBallExit_of_contDiff_stereo_and_exit
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {r₀ : ℝ}
+    (h_stereo : ∀ u : CP1 → M, JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      ContDiff ℝ ∞ (fun w : ℂ => riemannianEnergyDensity I u (stereo_chart.symm w)))
+    (h_exit : ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      ContinuousAt (riemannianEnergyDensity I u) north_pole ∧
+      ∀ x ∈ Set.range u, ∃ z : CP1, r₀ ≤ dist (u z) x) :
+    SmallBallExit I M r₀ := by
+  intro u x hx hu h_nc
+  obtain ⟨h_np, h_ex⟩ := h_exit u hu h_nc
+  exact ⟨continuous_riemannianEnergyDensity_of_cont_stereo_and_north_pole I u
+    (h_stereo u hu).continuous h_np, h_ex x hx⟩
+
+/-- By the triangle inequality, if two points `u z₁` and `u z₂` on `CP1` have distance at least
+`2 * r₀`, then for every target point `x : M`, at least one of `u z₁` or `u z₂` has distance at
+least `r₀` from `x` (`0 sorryAx`). -/
+theorem exists_dist_ge_of_pair_dist_ge
+    {M : Type*} [MetricSpace M] (u : CP1 → M) {r₀ : ℝ}
+    (h_pair : ∃ z₁ z₂ : CP1, 2 * r₀ ≤ dist (u z₁) (u z₂)) (x : M) :
+    ∃ z : CP1, r₀ ≤ dist (u z) x := by
+  obtain ⟨z₁, z₂, h_dist⟩ := h_pair
+  have h_tri : dist (u z₁) (u z₂) ≤ dist (u z₁) x + dist (u z₂) x := by
+    simpa [dist_comm] using dist_triangle_left (u z₁) (u z₂) x
+  by_cases h1 : r₀ ≤ dist (u z₁) x
+  · exact ⟨z₁, h1⟩
+  · refine ⟨z₂, ?_⟩
+    have h1' : dist (u z₁) x < r₀ := not_le.mp h1
+    linarith
+
+/-- Proves `SmallBallExit I M r₀` from continuity of `riemannianEnergyDensity I u` and the two-point
+diameter separation `∃ z₁ z₂ : CP1, 2 * r₀ ≤ dist (u z₁) (u z₂)` (`0 sorryAx`). -/
+theorem smallBallExit_of_pair_dist_ge
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {r₀ : ℝ}
+    (h_cont_and_pair : ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      Continuous (riemannianEnergyDensity I u) ∧
+      ∃ z₁ z₂ : CP1, 2 * r₀ ≤ dist (u z₁) (u z₂)) :
+    SmallBallExit I M r₀ := by
+  intro u x _hx hu h_nc
+  obtain ⟨h_cont, h_pair⟩ := h_cont_and_pair u hu h_nc
+  exact ⟨h_cont, exists_dist_ge_of_pair_dist_ge u h_pair x⟩
+
+/-- Proves `BoundaryHitMonotonicity I M c r₀` from the radial differential inequality
+`F t ≤ (1 / 2) * t * F' t` on `[r_min, r]` (`0 < r_min ≤ r`), the small-radius quadratic lower
+bound `c * r_min ^ 2 ≤ F r_min`, and the sublevel energy comparison
+`F r ≤ energyMeasure I u (u ⁻¹' Metric.ball x r)` (`0 sorryAx`). -/
+theorem boundaryHitMonotonicity_of_radial_diff_ineq
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {c r₀ : ℝ}
+    (h_radial : ∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ r₀ →
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c₀ : M, ∀ z, u z = c₀) →
+      (∃ z, u z ∉ Metric.ball x r) →
+      ∃ (F F' : ℝ → ℝ) (r_min : ℝ),
+        0 < r_min ∧ r_min ≤ r ∧
+        (∀ t ∈ Icc r_min r, HasDerivAt F (F' t) t) ∧
+        (∀ t ∈ Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t) ∧
+        c * r_min ^ 2 ≤ F r_min ∧
+        F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r))) :
+    BoundaryHitMonotonicity I M c r₀ := by
+  intro u x r hr hr₀ hx hu h_nc z_hit _hz_front h_dist
+  have h_exit : ∃ z, u z ∉ Metric.ball x r := ⟨z_hit, by simp [Metric.mem_ball, h_dist]⟩
+  obtain ⟨F, F', r_min, hr_min, hle, h_deriv, h_ineq, h_init, h_sublevel⟩ :=
+    h_radial u x r hr hr₀ hx hu h_nc h_exit
+  exact boundary_hit_energy_of_radial_diff_ineq I u x F F' hr_min hle h_deriv h_ineq h_init h_sublevel
+
+/-- Proves `HitExitProperty I M` (`cert_hit`) from the radial differential inequality on `[r_min, r]`
+and the small-ball exit condition (`0 sorryAx`). -/
+theorem hitExitProperty_of_radial_diff_ineq_and_exit
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {c r₀ : ℝ} (hc : 0 < c) (hr₀ : 0 < r₀)
+    (h_radial : ∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ r₀ →
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c₀ : M, ∀ z, u z = c₀) →
+      (∃ z, u z ∉ Metric.ball x r) →
+      ∃ (F F' : ℝ → ℝ) (r_min : ℝ),
+        0 < r_min ∧ r_min ≤ r ∧
+        (∀ t ∈ Icc r_min r, HasDerivAt F (F' t) t) ∧
+        (∀ t ∈ Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t) ∧
+        c * r_min ^ 2 ≤ F r_min ∧
+        F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)))
+    (h_exit : SmallBallExit I M r₀) :
+    HitExitProperty I M :=
+  ⟨c, r₀, hc, hr₀, boundaryHitMonotonicity_of_radial_diff_ineq I h_radial, h_exit⟩
+
+/-- Proves `HitExitProperty I M` (`cert_hit`) from the radial differential inequality on `[r_min, r]`
+and two-point diameter separation `∃ z₁ z₂ : CP1, 2 * r₀ ≤ dist (u z₁) (u z₂)` (`0 sorryAx`). -/
+theorem hitExitProperty_of_radial_diff_ineq_and_pair_dist
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {c r₀ : ℝ} (hc : 0 < c) (hr₀ : 0 < r₀)
+    (h_radial : ∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ r₀ →
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c₀ : M, ∀ z, u z = c₀) →
+      (∃ z, u z ∉ Metric.ball x r) →
+      ∃ (F F' : ℝ → ℝ) (r_min : ℝ),
+        0 < r_min ∧ r_min ≤ r ∧
+        (∀ t ∈ Icc r_min r, HasDerivAt F (F' t) t) ∧
+        (∀ t ∈ Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t) ∧
+        c * r_min ^ 2 ≤ F r_min ∧
+        F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)))
+    (h_cont_and_pair : ∀ (u : CP1 → M),
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c : M, ∀ z, u z = c) →
+      Continuous (riemannianEnergyDensity I u) ∧
+      ∃ z₁ z₂ : CP1, 2 * r₀ ≤ dist (u z₁) (u z₂)) :
+    HitExitProperty I M :=
+  hitExitProperty_of_radial_diff_ineq_and_exit I hc hr₀ h_radial
+    (smallBallExit_of_pair_dist_ge I h_cont_and_pair)
+
+/-- Contract A08 (`target_monotonicity`) proved directly from the radial differential inequality
+`F t ≤ (1 / 2) * t * F' t` on `[r_min, r]` (`0 sorryAx`). -/
+theorem target_monotonicity_of_radial_diff_ineq
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
+    {M : Type*} [MetricSpace M] [ChartedSpace H M]
+    [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M]
+    {c r₀ : ℝ} (hc : 0 < c) (hr₀ : 0 < r₀)
+    (h_radial : ∀ (u : CP1 → M) (x : M) (r : ℝ),
+      0 < r → r ≤ r₀ →
+      x ∈ Set.range u →
+      JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+      (¬ ∃ c₀ : M, ∀ z, u z = c₀) →
+      (∃ z, u z ∉ Metric.ball x r) →
+      ∃ (F F' : ℝ → ℝ) (r_min : ℝ),
+        0 < r_min ∧ r_min ≤ r ∧
+        (∀ t ∈ Icc r_min r, HasDerivAt F (F' t) t) ∧
+        (∀ t ∈ Icc r_min r, F t ≤ (1 / 2 : ℝ) * t * F' t) ∧
+        c * r_min ^ 2 ≤ F r_min ∧
+        F r ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r))) :
+    ∃ (c r₀ : ℝ), 0 < c ∧ 0 < r₀ ∧
+      ∀ (u : CP1 → M) (x : M) (r : ℝ),
+        0 < r → r ≤ r₀ →
+        x ∈ Set.range u →
+        JHolomorphicOn (I := I) (I_dom := I_CP1) u Set.univ →
+        (¬ ∃ c : M, ∀ z, u z = c) →
+        (∃ z, u z ∉ Metric.ball x r) →
+        c * r^2 ≤ energyMeasure I u (u ⁻¹' (Metric.ball x r)) :=
+  target_monotonicity I ⟨c, r₀, hc, hr₀, boundaryHitMonotonicity_of_radial_diff_ineq I h_radial⟩
 
 end GromovCompactness.Analysis
+
+namespace GromovCompactness.Bubbling
+
+export GromovCompactness.Analysis
+  (exists_dist_ge_of_pair_dist_ge
+   smallBallExit_of_pair_dist_ge
+   boundaryHitMonotonicity_of_radial_diff_ineq
+   hitExitProperty_of_radial_diff_ineq_and_exit
+   hitExitProperty_of_radial_diff_ineq_and_pair_dist
+   target_monotonicity_of_radial_diff_ineq)
+
+end GromovCompactness.Bubbling

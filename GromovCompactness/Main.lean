@@ -34,7 +34,7 @@ and `gromov_compactness.pdf` Theorem 1.
 
 ## Main Result
 - `gromov_compactness_genus_zero`: Master reduction theorem combining subsequence convergence,
-  energy conservation, vanishing neck diameters, and universal component bounds.
+  energy conservation, and universal component bounds.
   Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
   This master theorem conditionally reduces genus 0 Gromov compactness to the core contract stack
   (`gromov_compactness_core` + `component_count_bounds`). It takes open analytical statements
@@ -64,33 +64,14 @@ theorem gromov_compactness_genus_zero_of_core
     exact le_of_tendsto h_conv (Eventually.of_forall h_le_B)
   exact Topology.component_count_bounds I th u_lim B h_lim_energy
 
-/-- **Master Theorem: Genus 0 Gromov Compactness in Lean 4 (Theorem 1, Conditional Reduction)**.
-Let $M$ be a compact, boundaryless manifold equipped with a smooth closed symplectic form $\omega$
-and a tame almost complex structure $J$. Let $u_n : \mathbb{CP}^1 \to M$ be a sequence of
-non-constant $J$-holomorphic spheres with uniformly bounded energy $E(u_n) \le B < \infty$.
-
-Then there exists a strictly increasing subsequence $u_{\sigma(n)}$ converging to a stable
-pseudo-holomorphic sphere tree limit curve $u_{\mathrm{lim}} = (T, \{u_v\}, \{z_{vw}\})$ in the
-compactness witness sense, satisfying:
-1. $C^\infty_{\mathrm{loc}}$ convergence on each spherical component away from incident nodes under
-   moving Möbius coordinate frames $\phi_{v, n} \in \operatorname{PSL}(2, \mathbb{C})$.
-2. Transition collapse of neighboring coordinate frames towards the nodal attachment points.
-3. Total energy conservation: $\lim_{n \to \infty} E(u_{\sigma(n)}) = \sum_{v \in V} E(u_v)$.
-4. Vanishing neck image diameters across all edges.
-5. Linear component bounds: $P \cdot h \le B$, and for $|V| > 1$, $G \le P - 2$ and $|V| \le 2P - 2$.
-6. Universal integer vertex bound: $(|V| : \mathbb{Z}) \le \max(1, 2\lfloor B / h \rfloor - 2)$.
-
-Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
-This theorem reduces the master compactness result to the core compactness theorem `gromov_compactness_core`
-and component bounds `component_count_bounds`. It takes open statements transitively and does not count
-as closing the master theorem unconditionally until the underlying analytical leaf contracts are proved. -/
-theorem gromov_compactness_genus_zero
+/-- Master Genus 0 Gromov Compactness Theorem without requiring `h_fin` (`0 sorryAx`, discharging
+`h_fin` from `th` and `h_jhol`). -/
+theorem gromov_compactness_genus_zero_of_thresholds
     (th : Bubbling.TargetThresholds I M)
     (u_seq : ℕ → (CP1 → M)) (B : ℝ)
     (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
     (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
     (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
-    (h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
     (h_conc_extract : ∀ (σ : Bookkeeping.SubseqMap) (μ : MeasureTheory.Measure CP1) (S : Finset CP1),
       MeasureTheory.IsFiniteMeasure μ →
       Compactness.WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ →
@@ -108,8 +89,59 @@ theorem gromov_compactness_genus_zero
       (1 < Fintype.card u_lim.tree.V → G + 2 ≤ P ∧ Fintype.card u_lim.tree.V + 2 ≤ 2 * P) ∧
       ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2)) :=
   gromov_compactness_genus_zero_of_core I th u_seq B h_energy
-    (gromov_compactness_core I th u_seq B h_nonconst h_jhol h_energy h_fin
+    (gromov_compactness_core_of_thresholds I th u_seq B h_nonconst h_jhol h_energy
       h_conc_extract h_cert h_conc_defects)
+
+/-- **Master Theorem: Genus 0 Gromov Compactness in Lean 4 (Theorem 1, Conditional Reduction)**.
+Let $M$ be a compact, boundaryless manifold equipped with a smooth closed symplectic form $\omega$
+and a tame almost complex structure $J$. Let $u_n : \mathbb{CP}^1 \to M$ be a sequence of
+non-constant $J$-holomorphic spheres with uniformly bounded energy $E(u_n) \le B < \infty$.
+
+Then there exists a strictly increasing subsequence $u_{\sigma(n)}$ converging to a stable
+pseudo-holomorphic sphere tree limit curve $u_{\mathrm{lim}} = (T, \{u_v\}, \{z_{vw}\})$ in the
+compactness witness sense (`CompactnessWitness`), satisfying:
+1. Convergence on each spherical component away from incident nodes under moving Möbius
+   coordinate frames $\phi_{v, n} \in \operatorname{PSL}(2, \mathbb{C})$, in the sense of
+   `SmoothLocalConvergesOn`. Note: this is *pointwise* convergence of all jets on compact subsets,
+   which is weaker than the locally uniform $C^\infty_{\mathrm{loc}}$ convergence of the standard
+   definition.
+2. Transition collapse of neighboring coordinate frames towards the nodal attachment points
+   (locally uniform).
+3. Total energy conservation: $\lim_{n \to \infty} E(u_{\sigma(n)}) = \sum_{v \in V} E(u_v)$.
+4. Linear component bounds: $P \cdot h \le B$, and for $|V| > 1$, $G \le P - 2$ and $|V| \le 2P - 2$.
+5. Universal integer vertex bound: $(|V| : \mathbb{Z}) \le \max(1, 2\lfloor B / h \rfloor - 2)$.
+
+Vanishing of neck image diameters is *not* part of the conclusion (`CompactnessWitness` has no
+such field).
+
+Note (Conditional Reduction per COMPLETION_PLAN.md §0 & §2 P0-9):
+This theorem reduces the master compactness result to the core compactness theorem `gromov_compactness_core`
+and component bounds `component_count_bounds` (`_h_fin` is discharged unconditionally from `th` and `h_jhol`). -/
+theorem gromov_compactness_genus_zero
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (_h_fin : ∀ n, energyMeasureExtended I (u_seq n) Set.univ < ⊤)
+    (h_conc_extract : ∀ (σ : Bookkeeping.SubseqMap) (μ : MeasureTheory.Measure CP1) (S : Finset CP1),
+      MeasureTheory.IsFiniteMeasure μ →
+      Compactness.WeakMeasureConvergence (fun n => energyMeasureExtended I (u_seq (σ.1 n))) μ →
+      (∀ p : CP1, p ∈ S ↔ ENNReal.ofReal th.ε_reg ≤ μ {p}) →
+      ∃ (τ : Bookkeeping.SubseqMap) (u₀ : CP1 → M), JHolomorphicOn (I := I) (I_dom := I_CP1) u₀ Set.univ ∧
+        SmoothLocalConvergesOn I (fun n => u_seq ((σ.comp τ).1 n)) u₀ (Set.univ \ S) ∧
+        μ = energyMeasureExtended I u₀ + ∑ p ∈ S, (μ {p} • MeasureTheory.Measure.dirac p))
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_conc_defects : Assembly.ConcDefectCertificate I u_seq B th) :
+    ∃ (u_lim : StableSphereTreeLimit I (M := M)),
+      Nonempty (CompactnessWitness I u_seq u_lim) ∧
+      let P := Fintype.card { v : u_lim.tree.V // is_principal_component I u_lim v }
+      let G := Fintype.card { v : u_lim.tree.V // is_ghost_component I u_lim v }
+      (P * th.h ≤ B) ∧
+      (1 < Fintype.card u_lim.tree.V → G + 2 ≤ P ∧ Fintype.card u_lim.tree.V + 2 ≤ 2 * P) ∧
+      ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2)) :=
+  gromov_compactness_genus_zero_of_thresholds I th u_seq B h_nonconst h_jhol h_energy
+    h_conc_extract h_cert h_conc_defects
 
 /-- Zero-sorry Genus 0 Gromov Compactness when a subsequence converges smoothly on `CP1` to a
 non-constant map with energy conservation (`0 sorryAx`). -/
@@ -779,7 +811,99 @@ theorem gromov_compactness_component_bounds
     ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2)) :=
   Topology.component_count_bounds I th u_lim B h_energy
 
+/-- Master Genus 0 Gromov Compactness Theorem proved via `gromov_compactness_core_of_rotations`
+(`cert_concdefect` + `g03_core`) and `component_count_bounds` (`0 sorryAx`). -/
+theorem gromov_compactness_genus_zero_of_rotations
+    [I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (th : Bubbling.TargetThresholds I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_conc_extract : Compactness.SmoothConcentrationExtractProperty I u_seq th)
+    (h_cert : Bubbling.OneLevelCertificate I th)
+    (h_rot : ∀ p : CP1, (∃ a : ℂ, ‖a‖ < 1 ∧ stereo_chart.symm a = p) ∨
+      ∃ rot : MoebiusFrame, Assembly.IsConformalRotationTo I (M := M) p rot) :
+    ∃ (u_lim : StableSphereTreeLimit I (M := M)),
+      Nonempty (CompactnessWitness I u_seq u_lim) ∧
+      let P := Fintype.card { v : u_lim.tree.V // is_principal_component I u_lim v }
+      let G := Fintype.card { v : u_lim.tree.V // is_ghost_component I u_lim v }
+      (P * th.h ≤ B) ∧
+      (1 < Fintype.card u_lim.tree.V → G + 2 ≤ P ∧ Fintype.card u_lim.tree.V + 2 ≤ 2 * P) ∧
+      ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2)) :=
+  gromov_compactness_genus_zero_of_core I th u_seq B h_energy
+    (gromov_compactness_core_of_rotations I th u_seq B h_nonconst h_jhol h_energy
+      h_conc_extract h_cert h_rot)
+
+/-- Threshold-constructing Master Genus 0 Gromov Compactness Theorem (`thm_main` + `cert_thresholds`,
+`0 sorryAx`): constructs `th := Analysis.TargetThresholds.of_properties I h_weitz h_hit_exit h_decay`
+directly from `WeitzenbockDecompositionProperty` (`cert_weitz`), `HitExitProperty` (`cert_hit`), and
+`CylinderEnergyDecayProperty` (`cert_decay`), and proves convergence to a stable sphere tree limit
+together with the universal principal/ghost/vertex bounds. -/
+theorem gromov_compactness_genus_zero_of_properties
+    [I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (h_weitz : Analysis.WeitzenbockDecompositionProperty I M)
+    (h_hit_exit : Analysis.HitExitProperty I M)
+    (h_decay : Analysis.CylinderEnergyDecayProperty I M)
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_conc_extract : Compactness.SmoothConcentrationExtractProperty I u_seq
+      (Analysis.TargetThresholds.of_properties I h_weitz h_hit_exit h_decay))
+    (h_cert : Bubbling.OneLevelCertificate I
+      (Analysis.TargetThresholds.of_properties I h_weitz h_hit_exit h_decay))
+    (h_rot : ∀ p : CP1, (∃ a : ℂ, ‖a‖ < 1 ∧ stereo_chart.symm a = p) ∨
+      ∃ rot : MoebiusFrame, Assembly.IsConformalRotationTo I (M := M) p rot) :
+    ∃ (th : Bubbling.TargetThresholds I M)
+      (u_lim : StableSphereTreeLimit I (M := M)),
+      Nonempty (CompactnessWitness I u_seq u_lim) ∧
+      let P := Fintype.card { v : u_lim.tree.V // is_principal_component I u_lim v }
+      let G := Fintype.card { v : u_lim.tree.V // is_ghost_component I u_lim v }
+      (P * th.h ≤ B) ∧
+      (1 < Fintype.card u_lim.tree.V → G + 2 ≤ P ∧ Fintype.card u_lim.tree.V + 2 ≤ 2 * P) ∧
+      ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2)) :=
+  let th := Analysis.TargetThresholds.of_properties I h_weitz h_hit_exit h_decay
+  let ⟨u_lim, hwit⟩ := gromov_compactness_genus_zero_of_rotations I th u_seq B
+    h_nonconst h_jhol h_energy h_conc_extract h_cert h_rot
+  ⟨th, u_lim, hwit⟩
+
+/-- Normal-chart Master Genus 0 Gromov Compactness Theorem (`thm_main` + `cert_thresholds`,
+`0 sorryAx`): constructs `th := Analysis.TargetThresholds.of_bounded_geometry_certs I certs` on any
+`[I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]` via the canonical normal-chart
+family `construct_uniform_normal_chart_family I` (`n2_normal`), establishing stable sphere tree
+convergence and universal component bounds without taking an external `TargetThresholds` bundle. -/
+theorem gromov_compactness_genus_zero_of_bounded_geometry_certs
+    [I.Boundaryless] [BoundedChartedTarget I M] [FiniteDimensional ℝ E]
+    (certs : UniformNormalChartCertificates I (construct_uniform_normal_chart_family I (M := M)))
+    (u_seq : ℕ → (CP1 → M)) (B : ℝ)
+    (h_nonconst : ∀ n, ¬ ∃ c : M, ∀ z, u_seq n z = c)
+    (h_jhol : ∀ n, JHolomorphicOn I I_CP1 (u_seq n) Set.univ)
+    (h_energy : ∀ n, totalEnergy I (u_seq n) ≤ B)
+    (h_conc_extract : Compactness.SmoothConcentrationExtractProperty I u_seq
+      (Analysis.TargetThresholds.of_bounded_geometry_certs I certs))
+    (h_cert : Bubbling.OneLevelCertificate I
+      (Analysis.TargetThresholds.of_bounded_geometry_certs I certs))
+    (h_rot : ∀ p : CP1, (∃ a : ℂ, ‖a‖ < 1 ∧ stereo_chart.symm a = p) ∨
+      ∃ rot : MoebiusFrame, Assembly.IsConformalRotationTo I (M := M) p rot) :
+    ∃ (th : Bubbling.TargetThresholds I M)
+      (u_lim : StableSphereTreeLimit I (M := M)),
+      Nonempty (CompactnessWitness I u_seq u_lim) ∧
+      let P := Fintype.card { v : u_lim.tree.V // is_principal_component I u_lim v }
+      let G := Fintype.card { v : u_lim.tree.V // is_ghost_component I u_lim v }
+      (P * th.h ≤ B) ∧
+      (1 < Fintype.card u_lim.tree.V → G + 2 ≤ P ∧ Fintype.card u_lim.tree.V + 2 ≤ 2 * P) ∧
+      ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2)) :=
+  gromov_compactness_genus_zero_of_properties I
+    (discharge_h_weitz I _ certs)
+    (discharge_h_hit_exit I _ certs)
+    (discharge_h_decay I _ certs)
+    u_seq B h_nonconst h_jhol h_energy h_conc_extract h_cert h_rot
+
 #print axioms gromov_compactness_component_bounds
 #print axioms gromov_compactness_genus_zero
+#print axioms gromov_compactness_genus_zero_of_rotations
+#print axioms gromov_compactness_genus_zero_of_properties
+#print axioms gromov_compactness_genus_zero_of_bounded_geometry_certs
 
 end GromovCompactness
