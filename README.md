@@ -1,4 +1,4 @@
-# Genus-Zero Gromov Compactness in Lean 4 (`SympTopAutoForm`)
+# Genus-Zero Gromov Compactness in Lean 4
 
 A machine-checked Lean 4 / Mathlib (`v4.35.0`) formalization of **Gromov's Compactness Theorem for genus-zero $J$-holomorphic curves** in closed tame symplectic manifolds, engineered with a multi-agent workflow in Google Antigravity and verified via `leanblueprint`.
 
