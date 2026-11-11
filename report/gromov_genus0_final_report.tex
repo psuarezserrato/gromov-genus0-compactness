@@ -46,57 +46,25 @@
            {∧}{{$\wedge$}}1 {∘}{{$\circ$}}1 {₁}{{$_1$}}1 {₂}{{$_2$}}1 {₃}{{$_3$}}1 {₀}{{$_0$}}1
            {·}{{$\cdot$}}1 {∨}{{$\vee$}}1 {⊤}{{$\top$}}1 {<}{{$<$}}1 {‖}{{$\|$}}1}
 
-\title{\vspace{-1.8em}\textbf{Machine-Checked Genus-Zero Gromov Compactness in Lean~4:\\
-Final Audit, Mathematical Achievements, and Multi-Agent Workflow}}
+\title{\vspace{-1.8em}\textbf{Auto-formalization of genus-0 Gromov compactness pseudo-holomorphic curves in Lean~4}}
 \author{Pablo Su\'arez-Serrato}
-\date{November 2026\vspace{-1.0em}}
+\date{\today\vspace{-1.0em}}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
 \noindent
-We present the final executive audit and architectural summary of \code{SympTopAutoForm}, a
-machine-checked formalization of genus-zero Gromov compactness for pseudo-holomorphic curves in
-closed tame symplectic manifolds in Lean~4 and Mathlib (\code{v4.35.0}). Across 37 library modules
-($57{,}480$ lines of Lean code), 76 blueprint nodes, and 362 tracked blueprint declarations, the
+We present a formalization of genus-zero Gromov compactness for pseudo-holomorphic curves in
+closed tame symplectic manifolds in Lean~4 and Mathlib (\code{v4.35.0}). 
+Across 37 library modules ($57{,}480$ lines of Lean code), 76 blueprint nodes, and 362 tracked blueprint declarations, the
 entire formalization compiles with \textbf{zero \code{sorryAx}} and depends exclusively on Lean's
-three standard axioms (\code{propext}, \code{Classical.choice}, \code{Quot.sound}). All 76 nodes of
-the \code{leanblueprint} dependency graph are fully green (63 proved theorem nodes in dark green
-\code{\#1CAC78} and 13 definition nodes in green \code{\#B0ECA3}). We detail the exact mathematical
-content of the master theorem (\code{thm\_main}), delineate the boundary between unconditional
-formal theorems and canonical normal-chart reductions, and describe the multi-agent autoformalization
-and verification workflow in Google Antigravity that produced the library.
+three standard axioms (\code{propext}, \code{Classical.choice}, \code{Quot.sound}). 
+We describe the multi-agent autoformalization and verification workflow in Google Antigravity that produced the library.
 \end{abstract}
 
-\section{Executive Audit Verdict and Verification Gate}
 
-The formalization of Theorem~\ref{thm:main} (\code{thm\_main}) and its supporting hierarchy of 39
-mathematical contracts has passed an automated, end-to-end kernel and blueprint audit executed via
-\code{verify\_blueprint.py audit}. No custom \code{axiom}, \code{sorry}, \code{admit}, \code{unsafe},
-or \code{implemented\_by} occurs anywhere in the repository.
-
-\begin{table}[!ht]
-\centering\footnotesize
-\renewcommand{\arraystretch}{1.12}
-\begin{tabularx}{\textwidth}{@{}>{\bfseries}l l X r@{}}
-\toprule
-Audit Gate Component & Tool / Target & Verification Scope & Result \\
-\midrule
-Full Library Compilation & \code{lake build} & 37 library modules ($57{,}480$ LOC, Lean \code{v4.35.0}) & \textbf{Pass} (0 errors) \\
-Axiom \& Soundness Census & \code{\#print axioms} & All 362 declarations in \code{blueprint/lean\_decls} & \textbf{0 \code{sorryAx}} \\
-Foundational Axiom Closure & Kernel inspection & Standard axioms only: \code{\{propext, choice, Quot.sound\}} & \textbf{0 custom axioms} \\
-Blueprint Dependency Graph & \code{leanblueprint web} & 76 total nodes (\code{blueprint/dep\_graph.dot}) & \textbf{100\% Green} (63+13) \\
-End-to-End Integration Suite & \code{TestNormalCharts.lean} & 29 test suites ($1{,}312$ LOC) covering N1--N3, G01--G05, E01--E05 & \textbf{Pass} (0 \code{sorryAx}) \\
-Hypothesis Sanity Suite & \code{CertificateSanity.lean} & 8 non-vacuity and satisfiability checks ($381$ LOC) & \textbf{Pass} (0 \code{sorryAx}) \\
-Print \& Report Typesetting & \code{pdflatex} / \code{plasTeX} & \code{blueprint/print/print.pdf} \& report generation & \textbf{0 \code{plasTeX} errors} \\
-\bottomrule
-\end{tabularx}
-\caption{Summary of the automated verification gate (\code{verify\_blueprint.py audit}).}
-\label{tab:audit}
-\end{table}
-
-\section{Mathematical Achievements: The Master Theorem (\code{thm\_main})}
+\section{Mathematical context and main theorem statement}
 
 Let $(M, \omega, J)$ be a compact, boundaryless smooth manifold equipped with a closed nondegenerate
 two-form $\omega$ and an $\omega$-tame almost-complex structure $J$ ($J^2 = -\mathrm{Id}$ and
@@ -175,9 +143,38 @@ theorem gromov_compactness_genus_zero_of_bounded_geometry_certs
       ((Fintype.card u_lim.tree.V : ℤ) ≤ max 1 (2 * ⌊B / th.h⌋ - 2))
 \end{lstlisting}
 
-\section{Architectural Synthesis: Unconditional Proofs vs.\ Reductions}
 
-A central design principle of \code{SympTopAutoForm} is strict transparency regarding which parts of
+\section{Audit and verifications}
+
+The formalization of Theorem~\ref{thm:main} (\code{thm\_main}) and its supporting hierarchy of 39
+mathematical contracts has passed an automated, end-to-end kernel and blueprint audit executed via
+\code{verify\_blueprint.py audit}. No custom \code{axiom}, \code{sorry}, \code{admit}, \code{unsafe},
+or \code{implemented\_by} occurs anywhere in the repository.
+
+\begin{table}[!ht]
+\centering\footnotesize
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{@{}>{\bfseries}l l X r@{}}
+\toprule
+Audit Gate Component & Tool / Target & Verification Scope & Result \\
+\midrule
+Full Library Compilation & \code{lake build} & 37 library modules ($57{,}480$ LOC, Lean \code{v4.35.0}) & \textbf{Pass} (0 errors) \\
+Axiom \& Soundness Census & \code{\#print axioms} & All 362 declarations in \code{blueprint/lean\_decls} & \textbf{0 \code{sorryAx}} \\
+Foundational Axiom Closure & Kernel inspection & Standard axioms only: \code{\{propext, choice, Quot.sound\}} & \textbf{0 custom axioms} \\
+Blueprint Dependency Graph & \code{leanblueprint web} & 76 total nodes (\code{blueprint/dep\_graph.dot}) & \textbf{100\% Green} (63+13) \\
+End-to-End Integration Suite & \code{TestNormalCharts.lean} & 29 test suites ($1{,}312$ LOC) covering N1--N3, G01--G05, E01--E05 & \textbf{Pass} (0 \code{sorryAx}) \\
+Hypothesis Sanity Suite & \code{CertificateSanity.lean} & 8 non-vacuity and satisfiability checks ($381$ LOC) & \textbf{Pass} (0 \code{sorryAx}) \\
+Print \& Report Typesetting & \code{pdflatex} / \code{plasTeX} & \code{blueprint/print/print.pdf} \& report generation & \textbf{0 \code{plasTeX} errors} \\
+\bottomrule
+\end{tabularx}
+\caption{Summary of the automated verification gate (\code{verify\_blueprint.py audit}).}
+\label{tab:audit}
+\end{table}
+
+
+\section{Architectural synthesis}
+
+A central design principle is strict transparency regarding which parts of
 the theory are proved unconditionally from Mathlib first principles and which parts reduce nonlinear
 coordinate PDE estimates on general manifolds to explicit geometric interfaces. Table~\ref{tab:layers}
 summarizes the 76 blueprint nodes across all seven architectural layers.
