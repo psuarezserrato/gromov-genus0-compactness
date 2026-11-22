@@ -57,3 +57,13 @@ Comprehensive Forensic Integrity Audit of Phase 5 Milestone 4 across all 8 check
 - `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/auditor_m4_1/BRIEFING.md` — persistent memory
 - `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/auditor_m4_1/progress.md` — liveness heartbeat
 - `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/auditor_m4_1/handoff.md` — forensic report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

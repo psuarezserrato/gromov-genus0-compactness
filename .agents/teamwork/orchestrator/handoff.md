@@ -60,3 +60,13 @@ All automated test suites verified on the host system:
 8. `python3 .agents/teamwork/challenger_2/test_math_bounds.py`: 100% PASS
 9. `python3 .agents/teamwork/challenger_2/test_multiprocess_concurrency.py`: 200 cycles PASS
 10. Forensic Integrity Audit: CLEAN (Zero unproved axioms, zero hardcoded mocks).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -41,3 +41,13 @@ Write your complete, verified report to /Users/pablosuarez/Desktop/SympTopAutoFo
 **Context**: CI Workflows Exploration for Lean 4 and leanblueprint
 **Content**: Checking in on your status. Explorer 1 and Explorer 2 have completed their investigations and delivered handoff reports. Please provide an update on your progress designing `.github/workflows/build.yml` and `.github/workflows/blueprint.yml`.
 **Action**: Please let me know your current status and estimated time to deliver handoff.md.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

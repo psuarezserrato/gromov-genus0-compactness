@@ -399,3 +399,13 @@ To independently reproduce, test, and verify this remediation specification:
    - If any `\begin{proof}` block for A01–A12 retains `\leanok`, Check 4 of the forensic audit fails.
    - If `b02:calibration` remains bound to `CalibratedRescaling` instead of `exists_calibrated_rescaling`, the category mismatch finding remains unresolved.
    - If `[CompactSpace M]` remains in scope on lines 117 or 150 of `Monotonicity.lean`, the compiler warnings will reappear.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

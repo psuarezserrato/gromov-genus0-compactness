@@ -43,3 +43,13 @@ Read Worker Handoff: /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork
 Review all Phase 5 Milestone 1 changes (strict 9B Ollama config/client, Modelfile.gromov-lean4, dataset extraction, BM25 premise index, and fast axiom census tool P0-6).
 Run build and test commands independently.
 Write your review to `review.md` and `handoff.md` with explicit verdict APPROVE or REQUEST_CHANGES, and message me.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

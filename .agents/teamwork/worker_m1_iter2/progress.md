@@ -13,3 +13,13 @@ Last visited: 2026-11-04T23:03:00Z
 - [x] Deliverable 3: Implemented empty prefix pre-traversal check (< 4s exit) and empty scope post-traversal error check (`total == 0` -> exit 1) in `tests/PhaseAxiomCensus.lean` & `tools/phase_axiom_census.sh`. Tested all 4 cases.
 - [x] Deliverable 4: Aligned test suite `tools/test_ollama_pipeline.py` (42/42 tests passed). Ran full `lake build` (exit code 0).
 - [x] Deliverable 5: Produced `changes.md`, `handoff.md`, updated BRIEFING.md, and messaged parent orchestrator.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -167,3 +167,13 @@ To independently verify this deliverable:
    lake env lean .agents/teamwork/explorer_m3_iter2_3/proposed_ChallengeMilestone3Phase5.lean 2>&1 | tail -n 25
    ```
    *Expected output*: All 10 Section B declarations print `[propext, sorryAx, Classical.choice, Quot.sound]`, documenting transitive dependencies on leaf contracts.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

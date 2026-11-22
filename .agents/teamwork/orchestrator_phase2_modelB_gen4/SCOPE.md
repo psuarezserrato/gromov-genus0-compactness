@@ -42,3 +42,13 @@ Target Files:
 - Challenger 2 (`challenger2_m4`): **`APPROVE`** (test suite `tests/ChallengeMilestone4Singularities.lean`: 50 adversarial tests, exit code 0, 0 warnings)
 - Auditor 1 (`auditor1_m4`): **`CLEAN`** (0 integrity violations, 0 custom axioms, 100% standard Lean 4 kernel axioms verified across all 31 declarations)
 Deliverables: 33 machine-checked zero-`sorry` auxiliary definitions, conformal bridge identities, Grönwall differential inequality bounds, Cauchy-Schwarz oscillation estimates, collar emptiness, topological density uniqueness, and modular reduction theorems (+686 lines across `EnergyGap.lean` and `SingularityRemoval.lean`). Committing to `main`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

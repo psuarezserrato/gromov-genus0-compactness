@@ -37,3 +37,13 @@ Investigate and document leanblueprint setup for Phase 2 (A01–A12, B01–B02) 
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/spec_miner_phase2_blueprint/handoff.md — Final handoff report
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/spec_miner_phase2_blueprint/progress.md — Progress tracker
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/spec_miner_phase2_blueprint/DISPATCH.md — Task dispatch record
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

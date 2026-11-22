@@ -96,3 +96,13 @@ To independently reproduce and verify this commit:
 1. `git log -1 --stat` — verify commit `3889b23` and the 6 files committed.
 2. `lake build GromovCompactness` — verify exit code 0 and clean build.
 3. `lake env lean tests/ChallengeMilestone5Thresholds.lean tests/ChallengeMilestone5Rescaling.lean tests/AdversarialAttacksMilestone5Iter2.lean tests/ChallengeB02AdversarialStress.lean tests/ChallengePhase2ModelA.lean` — verify exit code 0 across all Milestone 5 test suites.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

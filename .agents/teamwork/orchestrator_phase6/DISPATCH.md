@@ -100,3 +100,13 @@ CRITICAL ARCHITECTURAL GUIDANCE FOR MILESTONE 1 (from Parent/Sentinel):
 2. **Watch out for `P0-5` in `EpsilonRegularity.lean` (`u = id : CP1 → CP1` as $\|a\| \to \infty$)**:
    - For `u = id : CP1 → CP1`, `riemannianEnergyDensity I_CP1 id z = 1` everywhere, while `energyMeasure I_CP1 id (disk_at a 1) = ∫_{w ∈ ball a 1} sphericalJacobian w → 0` as $\|a\| \to \infty$.
    - Check `COMPLETION_PLAN.md` Row `P0-5`: either weight the chart energy density by `sphericalJacobian` (or equivalently bound `sphericalJacobian (stereo_chart z) * riemannianEnergyDensity I u z ≤ C_reg * r ^ (-2) * (energyMeasure I u (disk_at a r)).toReal`, which makes the disk integral equality `∫_{ball a r} chartEnergyDensity = energyMeasure I u (disk_at a r)` exact on all of $\mathbb{C}$!) or include the chart-domain subharmonic mean-value bound in `JHolomorphicOn`. Verify that `A05` (`DerivativeBounds.lean`), `A07` (`RemovableSingularity.lean`), and `B02` (`BubbleTree.lean`) remain 100% compatible.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

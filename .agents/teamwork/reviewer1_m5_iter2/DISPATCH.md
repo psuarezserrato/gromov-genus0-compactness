@@ -18,3 +18,13 @@ Objective:
 4. Verify mathematical validity of all theorems and lemmas in Sections 1–6.
 5. Write your complete review report to `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/reviewer1_m5_iter2/handoff.md` with an explicit verdict: `APPROVE` or `REQUEST_CHANGES`.
 6. Send a brief message back to the orchestrator reporting your verdict and linking to your handoff report.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

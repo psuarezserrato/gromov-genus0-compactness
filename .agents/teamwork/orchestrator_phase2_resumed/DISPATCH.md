@@ -29,3 +29,13 @@ Immediate Tasks:
 3. Maximize use of local Gemma models via Ollama (`http://localhost:11434`, `tools/ollama_lean4_client.py`, and the skills in `skills/`: `ollama-lean4-gemma-prover`, `lean4-symplectic-autoformalizer`, `lean4-proof-repair-engine`) for premise selection, tactic search, and proof repair to save external compute.
 4. Continue monitoring `.pause_workflow` and `python3 tools/workflow_control.py status` at all boundaries.
 5. Signal victory to Sentinel upon full completion and certification of Phase 2.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

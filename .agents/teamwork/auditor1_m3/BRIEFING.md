@@ -61,3 +61,13 @@ Forensic integrity audit of Milestone 3 (`GromovCompactness/Analysis/EllipticBoo
 - `.agents/teamwork/auditor1_m3/BRIEFING.md` — Working state
 - `.agents/teamwork/auditor1_m3/progress.md` — Progress tracker
 - `.agents/teamwork/auditor1_m3/handoff.md` — Final audit handoff report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

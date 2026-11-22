@@ -141,9 +141,13 @@
 
 ```lean
 /-
-Copyright (c) 2026 Autoformalization Team. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Autoformalization Team
+Copyright (c) 2026 Pablo Suárez-Serrato. All rights reserved.
+Released under the GNU Affero General Public License v3.0 (AGPLv3) for non-commercial use;
+see LICENSE.md for details.
+This project is licensed under non-commercial use. If you wish to use this software in a
+commercial product, service, or enterprise environment, please contact the developer to purchase
+a commercial license or negotiate royalty terms.
+Authors: Pablo Suárez-Serrato (November 2026)
 -/
 import Mathlib.MeasureTheory.Measure.Portmanteau
 import GromovCompactness.Geometry.Target
@@ -213,9 +217,13 @@ end GromovCompactness.Compactness
 
 ```lean
 /-
-Copyright (c) 2026 Autoformalization Team. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Autoformalization Team
+Copyright (c) 2026 Pablo Suárez-Serrato. All rights reserved.
+Released under the GNU Affero General Public License v3.0 (AGPLv3) for non-commercial use;
+see LICENSE.md for details.
+This project is licensed under non-commercial use. If you wish to use this software in a
+commercial product, service, or enterprise environment, please contact the developer to purchase
+a commercial license or negotiate royalty terms.
+Authors: Pablo Suárez-Serrato (November 2026)
 -/
 import GromovCompactness.Compactness.Measures
 import GromovCompactness.Analysis.HoferRescaling
@@ -290,9 +298,13 @@ end GromovCompactness.Compactness
 
 ```lean
 /-
-Copyright (c) 2026 Autoformalization Team. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Autoformalization Team
+Copyright (c) 2026 Pablo Suárez-Serrato. All rights reserved.
+Released under the GNU Affero General Public License v3.0 (AGPLv3) for non-commercial use;
+see LICENSE.md for details.
+This project is licensed under non-commercial use. If you wish to use this software in a
+commercial product, service, or enterprise environment, please contact the developer to purchase
+a commercial license or negotiate royalty terms.
+Authors: Pablo Suárez-Serrato (November 2026)
 -/
 import GromovCompactness.Compactness.Concentration
 
@@ -353,9 +365,13 @@ end GromovCompactness.Compactness
 
 ```lean
 /-
-Copyright (c) 2026 Autoformalization Team. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Autoformalization Team
+Copyright (c) 2026 Pablo Suárez-Serrato. All rights reserved.
+Released under the GNU Affero General Public License v3.0 (AGPLv3) for non-commercial use;
+see LICENSE.md for details.
+This project is licensed under non-commercial use. If you wish to use this software in a
+commercial product, service, or enterprise environment, please contact the developer to purchase
+a commercial license or negotiate royalty terms.
+Authors: Pablo Suárez-Serrato (November 2026)
 -/
 import GromovCompactness.Analysis.HoferRescaling
 import Mathlib.Topology.MetricSpace.Bounded
@@ -420,9 +436,13 @@ end GromovCompactness.Bubbling
 
 ```lean
 /-
-Copyright (c) 2026 Autoformalization Team. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Autoformalization Team
+Copyright (c) 2026 Pablo Suárez-Serrato. All rights reserved.
+Released under the GNU Affero General Public License v3.0 (AGPLv3) for non-commercial use;
+see LICENSE.md for details.
+This project is licensed under non-commercial use. If you wish to use this software in a
+commercial product, service, or enterprise environment, please contact the developer to purchase
+a commercial license or negotiate royalty terms.
+Authors: Pablo Suárez-Serrato (November 2026)
 -/
 import GromovCompactness.Analysis.HoferRescaling
 import GromovCompactness.Bubbling.Neck
@@ -486,9 +506,13 @@ end GromovCompactness.Bubbling
 
 ```lean
 /-
-Copyright (c) 2026 Autoformalization Team. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Autoformalization Team
+Copyright (c) 2026 Pablo Suárez-Serrato. All rights reserved.
+Released under the GNU Affero General Public License v3.0 (AGPLv3) for non-commercial use;
+see LICENSE.md for details.
+This project is licensed under non-commercial use. If you wish to use this software in a
+commercial product, service, or enterprise environment, please contact the developer to purchase
+a commercial license or negotiate royalty terms.
+Authors: Pablo Suárez-Serrato (November 2026)
 -/
 import GromovCompactness.Bubbling.OneLevel
 
@@ -549,9 +573,13 @@ end GromovCompactness.Bubbling
 
 ```lean
 /-
-Copyright (c) 2026 Autoformalization Team. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Autoformalization Team
+Copyright (c) 2026 Pablo Suárez-Serrato. All rights reserved.
+Released under the GNU Affero General Public License v3.0 (AGPLv3) for non-commercial use;
+see LICENSE.md for details.
+This project is licensed under non-commercial use. If you wish to use this software in a
+commercial product, service, or enterprise environment, please contact the developer to purchase
+a commercial license or negotiate royalty terms.
+Authors: Pablo Suárez-Serrato (November 2026)
 -/
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import GromovCompactness.Bubbling.GhostBranching
@@ -633,9 +661,13 @@ end GromovCompactness.Bubbling
 
 ```lean
 /-
-Copyright (c) 2026 Autoformalization Team. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Autoformalization Team
+Copyright (c) 2026 Pablo Suárez-Serrato. All rights reserved.
+Released under the GNU Affero General Public License v3.0 (AGPLv3) for non-commercial use;
+see LICENSE.md for details.
+This project is licensed under non-commercial use. If you wish to use this software in a
+commercial product, service, or enterprise environment, please contact the developer to purchase
+a commercial license or negotiate royalty terms.
+Authors: Pablo Suárez-Serrato (November 2026)
 -/
 import GromovCompactness.Bubbling.Rank
 import GromovCompactness.Topology.SphereTree
@@ -725,3 +757,13 @@ To verify the specifications in this report:
 
 3. **Verify Pure Axiom Status of B06**:
    Inspect the proof of `energy_rank_strict_decrease` to confirm it depends only on `[propext, Classical.choice, Quot.sound]` with zero `sorryAx`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -84,3 +84,13 @@ Implement Phase 5 Milestone 3 (P0-4 through P0-11) by synthesizing machine-check
 - **Build/test result**: Pass (lake build exits 0; lake env lean tests/ChallengeMilestone3Phase5.lean exits 0).
 - **Lint status**: Clean (zero sorry-defined defs or instances).
 - **Tests added/modified**: `tests/ChallengeMilestone3Phase5.lean` (12 test probes covering all P0-4 through P0-11 components).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

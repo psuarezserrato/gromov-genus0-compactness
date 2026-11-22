@@ -19,3 +19,13 @@ Last visited: 2026-11-03T14:31:00Z
 - [x] Compile comprehensive survey report (`report.md`)
 - [x] Generate self-contained handoff report (`handoff.md`)
 - [x] Send handoff message to orchestrator
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

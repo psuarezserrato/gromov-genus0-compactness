@@ -11,3 +11,13 @@
      - Unclosed comment in `challenge_query_B02` mentions dirty constants `interior_cauchy_riemann_estimate` and `morrey_sobolev_embedding`.
      - Leaked top-level command `set_option` in `challenge_affine_scaling_fixes_all`.
      - 5 broken, uncompilable proofs harvested from `tests/ChallengeGeometry.lean` (where `rfl` fails on remediated definitions).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -378,3 +378,13 @@ MODULE_PREFIX="${MODULE_PREFIX}" lake env lean tests/PhaseAxiomCensus.lean
 2. **Add CLI Wrapper `tools/phase_axiom_census.sh`**: Add the executable wrapper script with `chmod +x`.
 3. **Integrate with `tools/workflow_control.py`**: Add a `--census [PREFIX]` flag to `tools/workflow_control.py` invoking the census tool and parsing the exit code and dirty count.
 4. **Attach to All Phase 5 Gates**: Every gate hand-off in Phase 5 (M1 through M5) must attach the output of `MODULE_PREFIX=<target> lake env lean tests/PhaseAxiomCensus.lean` per `COMPLETION_PLAN.md` §0.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

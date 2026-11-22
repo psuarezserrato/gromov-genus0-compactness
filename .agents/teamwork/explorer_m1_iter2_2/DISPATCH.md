@@ -31,3 +31,13 @@ Investigate remediation for dataset quality in tools/build_accepted_proofs_datas
 - Fix regex in harvest_test_proofs so it only matches genuine theorem declarations, not docstring prose.
 - Ensure all records in data/gemma_accepted_proofs.jsonl are authentic zero-sorry proofs.
 Write recommendations to analysis.md and handoff.md and message me.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -85,3 +85,13 @@ To verify the specifications and artifacts:
    - Verify integration of Ivashkovich-Shevchishin (1999) genus 0 bubble tree / cusp-curve limit structure.
 4. **Invalidation Conditions**:
    - The specifications are invalidated if Mathlib deprecates `Mathlib.Analysis.Hofer` without a metric space replacement, or if Ollama deprecates its `/api/generate` and `/api/tags` REST endpoints.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

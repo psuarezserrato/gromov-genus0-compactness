@@ -329,3 +329,13 @@ theorem exists_unique_moebius_three_points (v₁ v₂ v₃ w₁ w₂ w₃ : ℂ 
 - **`Energy.lean`**: Compatible. Consumers of 3-point normalization can extract the existence tuple via `.1` and the uniqueness guarantee via `.2`.
 - **`SmoothLocal.lean` & `SphereTree.lean`**: Provides the foundational uniqueness required for canonical bubble domain normalization.
 - **Reviewer Finding**: Finding 2 is 100% resolved and ready for formal sign-off.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

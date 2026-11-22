@@ -30,3 +30,12 @@ Perform your objective review of Milestone 3 Iteration 2 remediation:
 Run `lake build`, run `lake env lean tests/ChallengeMilestone3Phase5.lean`, verify 0 tautologies, verify Section A is pure-kernel and Section B is properly attributed, and write your report to /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/reviewer_m3_iter2_1/handoff.md with an explicit APPROVE or REQUEST_CHANGES verdict.
 Notify me with send_message when complete.
 
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

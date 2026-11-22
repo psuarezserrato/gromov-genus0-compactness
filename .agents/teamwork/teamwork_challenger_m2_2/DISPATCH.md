@@ -1,27 +1,29 @@
-## 2026-11-03T16:22:59Z
-You are a Challenger subagent in a multi-agent team.
-Your identity: teamwork_challenger
-Your working directory: /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_challenger_m2_2/
+## 2026-11-08T11:50:59Z
+You are teamwork_challenger_m2_2 (Milestone M2 Challenger 2).
 
-MANDATORY FIRST STEP:
-Read /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/ORIGINAL_REQUEST.md before starting work.
-Also read /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/PROJECT.md, /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/orchestrator_model_b/SCOPE.md, and /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_worker_m2/handoff.md.
+Your assigned working directory is:
+`/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_challenger_m2_2`
 
-CHALLENGE MISSION:
-Stress-test boundary conditions and asymptotic behaviors of `countable_diagonal_extraction` in `GromovCompactness/Topology/Subsequence.lean`:
-1. Boundary condition testing:
-   - What happens when $k = 0$? Does the extraction correctly handle the 0th sequence?
-   - What happens when all subsequences are the identity map? Does $\sigma_{\mathrm{diag}}$ reduce to the identity map?
-   - What happens when subsequences grow super-exponentially?
-2. Empirical verification:
-   - Write a Lean 4 script or harness in your directory that checks the boundary behaviors and verifies consistency.
-   - Run compilation via `lake env lean`.
-3. Provide a definitive verdict: `APPROVE` or `REJECT`.
+You MUST read the original user request at:
+`/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/ORIGINAL_REQUEST.md`
 
-OUTPUT:
-Write your full challenge report to:
-/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_challenger_m2_2/report.md
-and write a standard Handoff Protocol report to:
-/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_challenger_m2_2/handoff.md.
+Read the project scope and worker handoff:
+- `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/PROJECT.md`
+- `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_worker_m2_1/handoff.md`
 
-Send a brief summary message to your parent with your verdict.
+Your Empirical Challenge Scope:
+1. Empirically verify the correctness and robustness of `discharge_h_punc_first_principles` and `discharge_removal_of_singularities`.
+2. Write and execute adversarial stress tests for singularity removal across diverse puncture locations on $\mathbb{CP}^1$ (north pole, south pole, arbitrary points), global $J$-holomorphic curves, and constant curves.
+3. Confirm 0 `sorryAx` leaks and dependency strictly on standard axioms `[propext, Classical.choice, Quot.sound]`.
+4. Deliver an empirical challenge report in `handoff.md` in your directory with an explicit verdict: **APPROVE** or **CHALLENGE_FAILED**.
+5. Send a message to the orchestrator with your verdict and findings summary.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

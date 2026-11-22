@@ -73,3 +73,13 @@ Create the git commit and register the workflow control checkpoint for Phase 3 M
 - **Build/test result**: PASS (lake build and test suites exit 0)
 - **Lint status**: Clean
 - **Tests added/modified**: `tests/ChallengePhase3ModelB.lean` (760 lines), `tests/ChallengePhase3ModelBStressEdgeCases.lean` (304 lines)
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

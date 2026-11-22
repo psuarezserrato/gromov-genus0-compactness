@@ -1,31 +1,41 @@
-## 2026-11-03T16:23:10Z
+## 2026-11-08T11:51:08Z
 
-You are a Forensic Auditor subagent in a multi-agent team.
-Your identity: teamwork_auditor
-Your working directory: /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_auditor_m2_1/
+You are teamwork_auditor_m2_1 (Milestone M2 Forensic Auditor).
 
-MANDATORY FIRST STEP:
-Read /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/ORIGINAL_REQUEST.md before starting work.
-Also read /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/PROJECT.md, /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/orchestrator_model_b/SCOPE.md, and /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_worker_m2/handoff.md.
+Your assigned working directory is:
+`/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_auditor_m2_1`
 
-FORENSIC AUDIT MISSION:
-Perform an exhaustive integrity forensic audit on GromovCompactness/Topology/Subsequence.lean and the associated artifacts for Milestone 2:
-1. Static Analysis:
-   - Check for any occurrences of `sorry`, `admit`, dummy facades, unproven axioms, or hidden cheat tactics.
-   - Verify whether all proof steps in `GromovCompactness/Topology/Subsequence.lean` are authentic, non-trivial, and machine-checked.
-2. Axiom Tracing:
-   - Verify `#print axioms GromovCompactness.Bookkeeping.countable_diagonal_extraction` in Lean 4.
-   - Confirm that it depends STRICTLY on standard Mathlib 4 axioms: `propext`, `Classical.choice`, `Quot.sound`.
-   - Confirm that NO custom axioms, unproved lemmas, or unsound axioms are imported or utilized.
-3. Checkpoint & Git Provenance:
-   - Verify git commit `2797f0a` exists and touches `GromovCompactness/Topology/Subsequence.lean`.
-   - Verify checkpoint `checkpoint_20261103T161959Z_m2_subsequence_zero_sorry.json` in `.agents/teamwork/checkpoints/`.
-4. Provide a definitive verdict: `CLEAN` or `INTEGRITY VIOLATION`.
+You MUST read the original user request at:
+`/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/ORIGINAL_REQUEST.md`
 
-OUTPUT:
-Write your full forensic audit report to:
-/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_auditor_m2_1/report.md
-and write a standard Handoff Protocol report to:
-/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_auditor_m2_1/handoff.md.
+Read the project scope and worker handoff:
+- `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/PROJECT.md`
+- `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_worker_m2_1/handoff.md`
+- `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/TEST_READY.md`
 
-Send a brief summary message to your parent with your verdict.
+Perform Forensic Integrity Audit across all 6 checks:
+1. Check 1 (Target Geometry Purity): Verify via `git diff GromovCompactness/Geometry/Target.lean` that `Target.lean` is 100% UNTOUCHED (0 diff, strictly 9 original fields, no axioms added).
+2. Check 2 (Static Analysis for Cheating Patterns): Scan `GromovCompactness/Geometry/NormalCharts.lean` for forbidden keywords (`sorry`, `sorryAx`, `admit`, `unsafe`, unproven axioms, tautological loops).
+3. Check 3 (Runtime Verification): Execute:
+   - `lake env lean GromovCompactness/Geometry/NormalCharts.lean`
+   - `lake build`
+   - `lake env lean tests/TestCertificatesCensus.lean`
+   - `lake env lean tests/PhaseAxiomCensus.lean`
+4. Check 4 (Attestation Integrity): Verify that the logs in `.agents/teamwork/TEST_READY.md` match live runtime execution verbatim across all 58 checked declarations.
+5. Check 5 (Kernel Axiom Purity): Verify that `#print axioms` across all declarations reports ONLY standard Lean 4 / Mathlib axioms: `[propext, Classical.choice, Quot.sound]`.
+6. Check 6 (Code Layout & Contract Conformance): Verify compliance with `PROJECT.md § Code Layout` and `Interface Contracts`.
+
+Deliver a full forensic audit report in `handoff.md` in your directory with a binary verdict:
+**CLEAN** or **INTEGRITY VIOLATION**.
+
+Send a message to the orchestrator with your verdict and findings summary.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

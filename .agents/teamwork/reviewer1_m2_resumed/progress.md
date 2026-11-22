@@ -13,3 +13,13 @@ Current Status: Complete. Writing handoff.md and preparing dispatch message.
 - [x] Integrity check (no hardcoded cheats, facades, or ungrounded claims; verified clean).
 - [x] Assessment of the 4 core contracts (A01, A02, A08, A03) under Mathlib 4.16.0 capabilities.
 - [ ] Write handoff.md and send verdict to orchestrator.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

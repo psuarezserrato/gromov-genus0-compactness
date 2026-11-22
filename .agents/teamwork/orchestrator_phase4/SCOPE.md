@@ -29,3 +29,13 @@ Implement and certify Phase 4 of the Gromov Compactness autoformalization based 
 - **Milestone 4**: Phase 4 Model B Part 2: Zero-sorry proofs for Homological Invariance (`E03`) & Automorphism Finiteness (`E04`).
 - **Milestone 5**: Phase 4 Model B Part 3: Zero-sorry proofs for Moduli Space Hausdorff Topology & Compactness (`E05`).
 - **Milestone 6**: Phase 4 Victory, Blueprint Sync, PDF compilation, 5-Agent Gate & Sentinel Handoff.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

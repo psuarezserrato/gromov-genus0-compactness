@@ -161,3 +161,13 @@ The formal blueprint and Phase 1 scaffolding satisfy all criteria established in
 3. **Tooling & Operability**: The workflow control engine (`workflow_control.py`) and Ollama/Gemma client (`ollama_lean4_client.py`) are fully tested and ready for production use.
 
 **Recommendation**: **APPROVE without reservations.** The orchestrator may proceed to Phase 2 (Local Analytic Estimates & Bubbling Engine) with full confidence in this blueprint and architecture.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

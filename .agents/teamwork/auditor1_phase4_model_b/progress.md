@@ -11,3 +11,13 @@ Last visited: 2026-11-04T20:27:30Z
 - [x] Step 5: Workflow control script inspection (verified genuine file-based scanning in `tools/workflow_control.py`; unit tests pass 100%)
 - [x] Step 6: Test suite execution (`tests/ForensicPhase4Axioms.lean` exit code 0; `tests/ChallengePhase4ModelA.lean` exit code 0; `tests/ChallengePhase4ModelBAdversarial.lean` exit code 0)
 - [ ] Step 7: Final handoff report & verdict
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -18,3 +18,13 @@ Current Status: Empirical testing complete. Writing final handoff report.
 - [x] Write and run empirical adversarial test harness `tests/ChallengeMilestone2Challenger1.lean` (passed, exit code 0, standard axioms only)
 - [ ] Write handoff.md with APPROVE verdict
 - [ ] Send message to orchestrator
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

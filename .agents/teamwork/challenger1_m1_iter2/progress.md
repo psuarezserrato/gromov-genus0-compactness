@@ -17,3 +17,13 @@ Status: In Progress
 - [x] Step 5: Mine and test for NEW potential failure modes, edge cases, or unsound signatures in Phase 2 modules (audited all 14 contracts; no new defects found)
 - [x] Step 6: Verify Phase 1 modules remain untouched and zero-sorry (0 matches for `sorry` across `Geometry/`, `Topology/`, `Analysis/Energy.lean`)
 - [ ] Step 7: Update BRIEFING.md, generate handoff.md with Gate Verdict, and message orchestrator
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

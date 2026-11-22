@@ -96,3 +96,13 @@ python3 -c "import json; ids = {json.loads(l)['id'] for l in open('data/gemma_ac
 # 5. Verify no hardcoded axioms in harvest_test_proofs
 python3 -c "import json; tests_recs = [json.loads(l) for l in open('data/gemma_accepted_proofs.jsonl') if json.loads(l)['id'].startswith('tests.')]; assert all(r['axioms'] is None for r in tests_recs), 'Found hardcoded axioms in test records'"
 ```
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

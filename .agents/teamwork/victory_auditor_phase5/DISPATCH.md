@@ -29,3 +29,13 @@ Conduct an independent 3-phase post-victory audit (timeline verification, cheati
    - Check Checkpoint and Git working tree status (clean working tree).
 
 Deliver your structured audit report (handoff.md) in your working directory and notify the Project Sentinel via send_message with your final verdict: either VICTORY CONFIRMED or VICTORY REJECTED.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

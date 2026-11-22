@@ -13,3 +13,13 @@
   - [x] Formulated full dependency matrix and 32 task contracts (F00–F06, A01–A12, C01–C03, B01–B07, G01–G05, E01–E05).
   - [x] Formulated candidate Lean 4 type signatures with mathlib docstrings.
   - [x] Written `report.md` and `handoff.md`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

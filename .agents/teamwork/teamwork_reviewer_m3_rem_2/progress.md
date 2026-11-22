@@ -12,3 +12,13 @@ Last visited: 2026-11-03T19:07:30Z
   1. Critical Integrity Violation: `affine_scaling.toHomeo := Homeomorph.refl CP1` is a constant dummy facade.
   2. Major Defect: `exists_unique_moebius_three_points` has no uniqueness clause (`∃` instead of `∃!`).
 - Completed review report and handoff.md with verdict `REQUEST_CHANGES`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

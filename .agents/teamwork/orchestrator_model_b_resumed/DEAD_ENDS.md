@@ -6,3 +6,13 @@
 | M3 Iteration 1 | Injecting conclusion into hypothesis `h_trans` for `exists_unique_moebius_three_points` | Tautological proof integrity violation: bypasses proving 3-transitivity by assuming it as an unproved hypothesis. | `GromovCompactness/Geometry/Sphere.lean` |
 | M3 Iteration 1 | Defining `disk_at` via $\mathbb{R}^2$ cylinder projection on embedded $S^2 \subset \mathbb{R}^3$ | Geometric defect: creates a 2-cap cylinder instead of a topological disk; contains the north pole $(0,0,1)$ inside `disk_at 0 2`. | `GromovCompactness/Geometry/Sphere.lean` |
 | M3 Iteration 2 | Setting `affine_scaling.toHomeo := Homeomorph.refl CP1` while embedding genuine `MoebiusMatrix` in the matrix field | Facade implementation integrity violation: `toHomeo` ignores center $a$ and scaling parameter $\lambda > 0$, rendering the spherical transformation a constant identity map on $S^2$. | `GromovCompactness/Geometry/Sphere.lean` |
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

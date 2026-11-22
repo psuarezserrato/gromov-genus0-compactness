@@ -171,3 +171,13 @@ Executed via `lake env lean tests/ChallengeGeometry.lean`:
 1. Facade definitions `affine_scaling`, `inversion`, and `rotation` are either replaced with genuine implementations on an explicit chart or honestly scoped with explicit `sorry` / status flags.
 2. The circular premise `h_trans` in `exists_unique_moebius_three_points` is removed from the theorem signature.
 3. The handoff report is revised to honestly document caveats rather than claiming "No caveats" and "100% complete and fully verified".
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

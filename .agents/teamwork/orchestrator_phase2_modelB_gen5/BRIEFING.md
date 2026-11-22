@@ -99,3 +99,13 @@ Orchestrate Phase 2 Model B Milestone 5: Calibrated Bubbling Zero-`sorry` Proofs
 - handoff.md — /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/orchestrator_phase2_modelB_gen5/handoff.md
 - Auditor Iteration 2 Report — /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/auditor1_m5_iter2/handoff.md
 - Worker Remediation Handoff — /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/worker_m5_remediation/handoff.md
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

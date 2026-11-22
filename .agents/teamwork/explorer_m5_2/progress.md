@@ -9,3 +9,13 @@ Last visited: 2026-11-04T10:40:00Z
 - [x] Formulated and verified 12 zero-`sorry` auxiliary definitions, metric lemmas, scaling identities, and modular reduction theorems for Contract B02
 - [x] Tested all candidate snippets with `lake env lean` and verified `#print axioms` (standard Lean 4 kernel axioms only: `propext, Classical.choice, Quot.sound`)
 - [ ] Deliver comprehensive handoff report in `handoff.md` and inform orchestrator parent
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

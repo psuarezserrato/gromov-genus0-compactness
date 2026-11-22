@@ -85,3 +85,13 @@ In accordance with `DISPATCH.md` and the recommendations of `auditor_m1_iter2`, 
 | Library records axioms integrity | 395 records with Lean kernel axioms, 0 `sorryAx`, 0 nonstandard | 395 verified clean | **PASS** |
 | Test records axioms integrity | 513 records with `"axioms": None` | 513 verified `None` | **PASS** |
 | `lake build` | Exit code 0 | Exit code 0 (Build completed successfully) | **PASS** |
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

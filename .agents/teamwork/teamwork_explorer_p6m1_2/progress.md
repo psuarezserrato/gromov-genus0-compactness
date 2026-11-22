@@ -13,3 +13,13 @@ Status: COMPLETED technical investigation of Contract A02 (`bochner_differential
 7. Formulated 8-sub-lemma Model A decomposition with explicit type signatures and docstrings.
 8. Written detailed analysis to `analysis.md` and structured 5-component report to `handoff.md`.
 9. Sent completion message to caller.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

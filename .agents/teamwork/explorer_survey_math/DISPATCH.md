@@ -55,3 +55,13 @@ When finished, send a message back to the orchestrator.
 `/Users/pablosuarez/Desktop/SympTopAutoForm/gromov_compactness.pdf` (size 371 KB).
 The user specifically requests: "take into account the file gromov_compactness.pdf (located in the workspace /Users/pablosuarez/Desktop/SympTopAutoForm/gromov_compactness.pdf). Please make sure the team inspects and incorporates gromov_compactness.pdf into the blueprint, plan, and skill artifacts."
 **Action**: Inspect `gromov_compactness.pdf` (using view_file or tools to examine its text/contents/sections), analyze its specific formulations, bubbling theorems, and techniques, and incorporate them into your `report.md` and `handoff.md`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

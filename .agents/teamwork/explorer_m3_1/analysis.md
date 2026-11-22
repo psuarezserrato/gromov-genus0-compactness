@@ -493,3 +493,13 @@ theorem removal_of_singularities
   By definition of `energyMeasureExtended` in `Energy.lean` line 272, the left-hand side is EXACTLY `energyMeasure I u (disk_at a r)`.
 - **Conclusion**:
   The Bochner inequality $\Delta_{\mathbb{C}} e_{\mathrm{eucl}} \ge -b e_{\mathrm{eucl}}^2 - c e_{\mathrm{eucl}}$ holds on flat discs with uniform constants $b, c$ depending ONLY on the target curvature and $\|\nabla J\|$, with zero domain curvature contribution. Applying `scalar_mean_value_inequality` to $e_{\mathrm{eucl}}$ on $B(a, r)$ immediately yields the $\varepsilon$-regularity bound in `EpsilonRegularity.lean`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

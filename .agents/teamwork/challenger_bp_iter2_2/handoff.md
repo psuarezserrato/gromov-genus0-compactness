@@ -248,3 +248,13 @@ To independently verify all findings:
    grep -n "texlive-pictures" .github/workflows/blueprint.yml
    ```
    *Expected*: HEAD is `0ad0691d5dd8987bc06c12e3dbfdf030c9b7f4ee`, both files tracked, line 41 contains `texlive-pictures`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

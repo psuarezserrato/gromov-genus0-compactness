@@ -11,3 +11,13 @@ Last visited: 2026-11-03T15:38:30Z
 - [x] Item 6: Fix docstring in `GromovCompactness/Topology/SphereTree.lean` regarding unmarked vs marked stability
 - [x] Item 7: Execute all unit and stress tests (including `test_workflow_control_adversarial.py`) and verify 100% pass rate
 - [x] Item 8: Write handoff report and notify orchestrator
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

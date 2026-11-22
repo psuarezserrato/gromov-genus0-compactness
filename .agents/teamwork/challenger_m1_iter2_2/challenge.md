@@ -131,3 +131,13 @@ The critical defect from Iteration 1 (where a misspelled prefix vacously passed 
 **Verdict: APPROVE**
 
 All three Iteration 1 failure conditions and all empirical requirements from the dispatch have been rigorously tested and validated. The remediation is sound, complete, and production-ready.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

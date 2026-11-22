@@ -161,3 +161,13 @@ To independently verify the Lean 4 blueprints provided in this report:
 
 5. **Direct Sorry Invalidation Condition**:
    Verify with `grep -rn "sorry" <block>` that none of `gromov_compactness_core`, `gromov_subsequence_alternative`, `stabilize_prestable_tree`, `assemble_prestable_limit`, `resolve_single_defect_tree`, or `weak_energy_measure_compactness` contain a direct `sorry` in their proof bodies.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -38,3 +38,13 @@ Implement the zero-`sorry` remediation exactly as specified in `explorer_m5_reme
 5. Deliver a comprehensive completion handoff report to:
    `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/worker_m5_remediation/handoff.md`
    and send a completion message via send_message to the orchestrator parent.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

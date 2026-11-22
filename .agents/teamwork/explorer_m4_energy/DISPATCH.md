@@ -41,3 +41,13 @@ Formulate complete, machine-checked, zero-sorry, facade-free Lean 4 definitions 
 [Message] timestamp=2026-11-03T21:53:36Z sender=d157d344-ea97-439a-b25a-64cacb9d78a1 priority=MESSAGE_PRIORITY_HIGH content=**Context**: Milestone 4 Energy Exploration (Task F03)
 **Content**: All test lemmas in `test_lemmas.lean` and `ScratchEnergy.lean` are proved with zero sorry. Please write your final `handoff.md` in `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/explorer_m4_energy/handoff.md` and send your completion report.
 **Action**: Deliver handoff.md and completion message.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

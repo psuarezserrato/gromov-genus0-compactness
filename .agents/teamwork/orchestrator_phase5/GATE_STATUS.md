@@ -176,3 +176,12 @@ Gate Result: **PASS** (Phase 5 Certified Clean — Unanimous 5/5)
 - Check 8: 100% compliance with 9B local Gemma model policy (422/422 operations strictly 9B).
 - Regression suites: All 6 milestone test suites (`ChallengePhase4ModelB.lean`, `ForensicPhase4Axioms.lean`, `ChallengeMilestone2Phase5.lean`, `ChallengeMilestone3Phase5.lean`, `ChallengeMilestone4WiringAutomorphisms.lean`, `AdversarialAutomorphismsM4.lean`) plus 2 new adversarial suites (`AdversarialPhase5Census.lean`, `AdversarialStressPhase5.lean`) compile and pass with exit code 0.
 
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

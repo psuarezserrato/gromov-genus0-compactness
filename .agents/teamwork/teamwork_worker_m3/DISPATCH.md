@@ -48,3 +48,13 @@ Send a summary message when complete.
 **Context**: Milestone 3 Target & Sphere Proof Implementation
 **Content**: Checking in on your progress with GromovCompactness/Geometry/Target.lean and Sphere.lean. We noticed Target.lean has been updated to 9,299 bytes. Are the proofs for metric_J_invariant, biholomorphism coordinate invariance, and Sphere.lean Möbius frames compiling cleanly?
 **Action**: Please update progress.md with your latest status and let us know if you need any adjustments or if you are preparing your handoff report.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

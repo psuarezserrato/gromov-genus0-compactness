@@ -6,3 +6,13 @@
 - **2026-11-03T23:08:00Z**: Adversarial stress testing discovered fatal LaTeX compilation errors in `pdflatex print.tex` (`\C already defined` and undefined `\NewDocumentCommand` in `print.tex`), plus untracked `lake-manifest.json`. Tested and verified exact 2-line fix yielding exit code 0.
 - **2026-11-03T23:09:00Z**: Finalizing handoff report with verdict REQUEST_CHANGES and actionable fixes.
 - Last visited: 2026-11-03T23:09:00Z
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

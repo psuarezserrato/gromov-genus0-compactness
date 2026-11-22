@@ -43,3 +43,13 @@ Completed 100% of Phase 1 Foundations.
 - Git Commit: aaea655 (`feat(Phase1): complete 100% zero-sorry formalization of Phase 1 foundations (F00-F06)`)
 - Checkpoint ID: chk_20261103T221705Z_phase1_foundations_complete
 - ALL 7 Phase 1 modules (F00, F01, F02, F03, F04, F05, F06) 100% zero-sorry, verified clean by Forensic Auditor.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

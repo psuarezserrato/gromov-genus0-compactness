@@ -70,3 +70,13 @@ Add:
 2. Axioms: `#print axioms` must yield strictly `[propext, Classical.choice, Quot.sound]`.
 3. Check 0 sorry: `grep -n "sorry" GromovCompactness/Geometry/Sphere.lean` must return 0 matches.
 4. Verify anti-facade: ensure `affine_scaling_toHomeo_ne_id` compiles and proves non-identity.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

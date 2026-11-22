@@ -30,3 +30,13 @@ Target File: `GromovCompactness/Analysis/EllipticBootstrap.lean`
 - Challenger 2 (`challenger2_m3`): **`APPROVE`** (test suite `tests/ChallengeMilestone3Smoothness.lean` passed with 29 theorems)
 - Auditor 1 (`auditor1_m3`): **`CLEAN`** (0 integrity violations, 0 custom axioms, 100% kernel purity)
 All 3 contracts (A04, A05, A06) verified with 49 machine-checked auxiliary foundation, reduction, and constant-curve theorems, 0 integrity violations, 0 custom axioms, 100% build and challenge pass.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

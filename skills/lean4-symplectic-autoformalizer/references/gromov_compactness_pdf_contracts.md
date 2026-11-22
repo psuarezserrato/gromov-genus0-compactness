@@ -185,3 +185,13 @@ Per user specification (2026-11-03), any missing foundational prerequisite (e.g.
 6. **Inequality Margin Consistency:** Strict vs non-strict inequalities at thresholds must preserve margin $h \le \min(\varepsilon_{reg}/2, \varepsilon_{sph}, \varepsilon_{neck}/2)$.
 7. **Colliding Domain Labels:** Marked constant sequence requires domain reparametrization even without bubbling.
 8. **Varying Homology Classes:** Sequences of curves need not share the same homology class $[u_n]$; fixed energy bound is sufficient.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -53,3 +53,13 @@ Investigate and design machine-checked Lean 4 blueprints for Phase 5 Milestone 3
 - proposed_Assembly.patch — Machine-checked patch for Task P0-7
 - proposed_ModuliSpace.patch — Machine-checked patch for Task P0-8
 - proposed_Docstrings.patch — Machine-checked patch for Task P0-9
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

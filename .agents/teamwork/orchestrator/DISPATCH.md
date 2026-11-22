@@ -62,3 +62,13 @@ Action items:
 2. Provide a robust pause/resume mechanism (e.g. CLI tool / sentinel file / checkpoint manager `tools/workflow_control.py`) allowing the user to pause and resume the autoformalization workflow cleanly at any time without data loss.
 
 This has been recorded in ORIGINAL_REQUEST.md. Ensure workers implement the Lean 4 modules F01–F06 and the workflow control script.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -557,3 +557,13 @@ To independently verify all findings and validate future worker implementations:
 6. **Conditions that would invalidate this conclusion**:
    - Changes to the signatures of `epsilon_regularity`, `sphere_energy_gap`, or `cylinder_exponential_decay` in `EpsilonRegularity.lean`, `EnergyGap.lean`, or `SingularityRemoval.lean`.
    - Modifying `TargetThresholds` or `CalibratedRescaling` structure fields in a way that breaks `ChallengePhase2ModelA.lean` lines 212–234.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -57,3 +57,13 @@ Conduct a rigorous, independent 3-phase audit:
 3. Independent Build & Test Execution (lake build GromovCompactness, blueprint PDF build, ChallengePhase3ModelB.lean, ChallengePhase3ModelBStressEdgeCases.lean, ChallengePhase3StressCases.lean, ChallengePhase3ModelA.lean).
 
 Write your full findings to /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/victory_auditor_phase3/handoff.md and report a structured verdict: VICTORY CONFIRMED or VICTORY REJECTED back to Sentinel via send_message.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

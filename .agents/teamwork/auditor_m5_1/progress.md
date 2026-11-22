@@ -13,3 +13,13 @@ Status: Completed (STATUS: CLEAN)
 - [x] Check 7: Zero tautological test facades (True := by trivial) -> PASS (0 tautological tests across 38 files)
 - [x] Check 8: 9B local Gemma model policy compliance -> PASS (100% 9B compliance, 0 12B/27B calls)
 - [x] Final Report: handoff.md & send_message to orchestrator -> In progress
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

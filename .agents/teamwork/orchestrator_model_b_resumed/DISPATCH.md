@@ -11,3 +11,13 @@ Immediate tasks:
 2. Advance to Milestone 4: prove remaining foundations in Analysis/Energy.lean (F03), Topology/SmoothLocal.lean (F04), and Topology/SphereTree.lean (F06).
 3. Actively respect workflow_control pause sentinel (.pause_workflow).
 4. Maintain zero-unproved-axioms mandate (standard Mathlib4 axioms only).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -26,3 +26,13 @@ Last visited: 2026-11-05T06:55:00Z
   * Verified `tests/ChallengeMilestone3Phase5.lean` runs cleanly with exit code 0.
   * Verified full `lake build` exits 0 with 0 errors.
   * All target zero-sorry declarations depend strictly on standard Lean kernel axioms `[propext, Classical.choice, Quot.sound]`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

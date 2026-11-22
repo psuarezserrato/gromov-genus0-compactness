@@ -25,3 +25,13 @@ Investigate remediation for empty prefix handling in tests/PhaseAxiomCensus.lean
 - If total == 0 (no declarations found matching the prefix), throw an error so Lean exits with non-zero exit code.
 - Ensure ./tools/phase_axiom_census.sh properly reflects this failure and exits with code 1.
 Write recommendations to analysis.md and handoff.md and message me.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

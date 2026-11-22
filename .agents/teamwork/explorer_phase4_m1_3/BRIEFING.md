@@ -46,3 +46,13 @@ Investigate and design the Lean 4 architecture, type signatures, structures, doc
 - `handoff.md` — Complete 5-component handoff report
 - `proposed_ModuliSpace.lean` — Complete Lean 4 implementation for Contract E05 (verified exit code 0)
 - `proposed_workflow_control.patch` — Workflow control tracking patch
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

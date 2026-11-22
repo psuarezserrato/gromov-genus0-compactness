@@ -211,3 +211,13 @@ Exit code: 0
    - Provide a genuine proof or leave the proof placeholder transparently documented.
 3. **Transparent Reporting**:
    - Handoff reports must accurately differentiate between fully proved theorems and definitions that are placeholders, rather than claiming "100% complete and fully verified" when dummy implementations are present.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

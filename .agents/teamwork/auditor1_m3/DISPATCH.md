@@ -25,3 +25,13 @@ Perform a comprehensive forensic integrity audit of `GromovCompactness/Analysis/
 4. Regression Integrity: Run the project test suite (`tests/ChallengePhase2ModelA.lean`, `tests/AdversarialAttacksIter2.lean`, etc.) to confirm 0 regressions.
 5. Write your forensic audit report to `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/auditor1_m3/handoff.md` with explicit binary verdict `CLEAN` or `INTEGRITY VIOLATION`.
 6. Notify orchestrator via `send_message`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

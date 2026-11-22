@@ -17,3 +17,13 @@ Perform the clean git commit and workflow checkpoint registration for Phase 5 co
    `python3 tools/workflow_control.py checkpoint --phase 5 --name "phase5_complete"`
 5. Verify `git log -n 1` shows the new commit and verify the checkpoint registration output (`chk_phase5_complete` or similar).
 6. Write a comprehensive `handoff.md` in your working directory documenting the commit hash, modified files summary, and checkpoint details, and notify the orchestrator via `send_message`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -26,3 +26,13 @@ Conduct an independent, adversarial and objective review of the blueprint setup 
    - Verify git commit `cf15f86a47c35d12dd66e2cff3c1c3baa63bd6e4` on branch `main`.
 4. Render an explicit verdict: APPROVE or REQUEST_CHANGES.
 Write your review report to /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/reviewer_bp_2/handoff.md and notify with send_message. Keep progress.md updated.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

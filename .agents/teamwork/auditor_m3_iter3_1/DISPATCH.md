@@ -32,3 +32,13 @@ Perform a strict, rigorous Forensic Integrity Audit of /Users/pablosuarez/Deskto
    VERDICT: CLEAN  or  VERDICT: INTEGRITY VIOLATION
    in /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/auditor_m3_iter3_1/handoff.md
 6. Send a message to parent d157d344-ea97-439a-b25a-64cacb9d78a1 with your verdict and report path.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

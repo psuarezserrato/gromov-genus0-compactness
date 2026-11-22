@@ -23,3 +23,13 @@ Execute a forensic integrity audit across all Milestone 2 deliverables:
 4. Build verification: Run `lake build GromovCompactness` (exit 0) and run both test suites `tests/ChallengePhase2ModelA.lean` and `tests/AdversarialAttacksIter2.lean`.
 5. Issue an explicit forensic verdict: CLEAN or INTEGRITY VIOLATION. Note: If any integrity violation is found, report INTEGRITY VIOLATION with full evidence.
 6. Write your audit report to handoff.md in your working directory and notify the parent orchestrator via send_message.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

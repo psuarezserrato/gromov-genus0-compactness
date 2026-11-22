@@ -49,3 +49,13 @@ Investigate Phase 1 codebase and Mathlib foundations for gromov-genus0-compactne
 - DISPATCH.md — incoming instructions
 - progress.md — liveness and heartbeat log
 - handoff.md — final comprehensive report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

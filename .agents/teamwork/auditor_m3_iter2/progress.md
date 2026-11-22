@@ -15,3 +15,13 @@ Status: Audit complete — STATUS: CLEAN
 - [x] Execute Check 7: Elimination of tautological stubs (PASS: 0 trivial, genuine calls to MVI & Bochner)
 - [x] Execute Check 8: Strict 9B Ollama model policy compliance (PASS: 42/42 tests pass, strict 9B enforced)
 - [x] Compile handoff.md and send verdict to orchestrator
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -58,7 +58,7 @@ No integrity violations, hardcoded test tricks, facade implementations, unproved
   - `Mathlib` (specifically `Mathlib.Analysis.Hofer`, manifolds, and simple graphs)
   - TauCeti Symplectic Geometry Roadmap
   - `gromov_compactness.pdf`
-- All files contain authentic Apache 2.0 copyright notices and citations. No unauthorized third-party code was copied.
+- All files contain authentic AGPLv3 non-commercial copyright notices (Pablo Suárez-Serrato, November 2026) and citations. No unauthorized third-party code was copied.
 
 ### 4. Behavioral Verification & Test Execution: PASS
 Empirically executed the test suites from clean terminal sessions:
@@ -97,3 +97,13 @@ Empirically executed the test suites from clean terminal sessions:
 
 ## Verdict
 **CLEAN**: The deliverable meets all integrity, anti-plagiarism, anti-facade, and anti-hardcoding criteria under Demo Mode.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

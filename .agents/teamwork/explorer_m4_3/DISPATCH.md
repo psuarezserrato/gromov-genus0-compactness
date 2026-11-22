@@ -39,3 +39,13 @@ Investigate Component 5 `#audit_wiring` in `tests/PhaseAxiomCensus.lean` and the
 Provide a concrete blueprint and patch for `tests/PhaseAxiomCensus.lean` and proving instructions for the Worker.
 Write your report to /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/explorer_m4_3/handoff.md.
 Notify me with send_message when complete.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

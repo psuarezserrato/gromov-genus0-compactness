@@ -19,3 +19,13 @@
 - [x] Step 4: Run Ollama pipeline test suite (`python3 tools/test_ollama_pipeline.py`) (42/42 tests pass).
 - [ ] Step 5: Synthesize observations, complete handoff report (`handoff.md`), update BRIEFING.md.
 - [ ] Step 6: Dispatch completion message to parent orchestrator.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

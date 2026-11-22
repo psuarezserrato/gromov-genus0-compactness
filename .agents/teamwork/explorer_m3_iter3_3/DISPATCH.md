@@ -29,3 +29,13 @@ Formulate and machine-check the uniqueness clause in `exists_unique_moebius_thre
 4. Prove that if $M_1$ and $M_2$ both map $(v_1, v_2, v_3) \mapsto (w_1, w_2, w_3)$, then $PglEquiv M_1 M_2$.
 5. State and prove the completed theorem with uniqueness in Lean 4 without sorry.
 6. Deliver your report to `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/explorer_m3_iter3_3/report.md` and handoff to `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/explorer_m3_iter3_3/handoff.md`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

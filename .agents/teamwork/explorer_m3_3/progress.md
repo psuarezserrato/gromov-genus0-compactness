@@ -16,3 +16,13 @@ Status: Completed (Tasks P0-7, P0-8, P0-9 Investigated, Machine-Checked, and Han
 5. [x] Synthesized Lean 4 blueprints and generated patches (`proposed_Assembly.patch`, `proposed_ModuliSpace.patch`, `proposed_Docstrings.patch`).
 6. [x] Delivered comprehensive `analysis.md` and 5-component `handoff.md`.
 7. [x] Message orchestrator (`8e7bd612-f2f7-4a5c-8f0d-e33b6e7beac0`).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

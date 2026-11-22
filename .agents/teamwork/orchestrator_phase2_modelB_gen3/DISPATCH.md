@@ -42,3 +42,13 @@ Received Milestone 3 synthesis report and worker dispatch confirmation.
 `worker_m3_bootstrap` (Conv ID: `4c59352e-1b10-4947-8f97-b1e264756175`) acknowledged with exclusive ownership of `GromovCompactness/Analysis/EllipticBootstrap.lean`.
 53 verified auxiliary lemmas and zero-`sorry` reductions of A05 and A06 recorded.
 Sentinel monitoring and liveness tracking are active. Proceed with worker supervision and convening the 5-agent verification gate upon worker completion.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

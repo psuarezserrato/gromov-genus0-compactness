@@ -255,3 +255,13 @@ Independent reproduction commands:
 
 6. **Invalidation Conditions**:
    Any introduction of `sorry` into `def`/`instance`, reappearance of `ConformalEquiv`/`h_conf`, leakage of `sorryAx` into target declarations, or disconnection in `#audit_wiring` invalidates this certification.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

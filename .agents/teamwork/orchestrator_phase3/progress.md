@@ -48,3 +48,13 @@ Current iteration: 1 / 32
   - [x] Committed Phase 3 Model B to git: commit `cd69c2c` (`cd69c2cd558ed33ebb1093e407e5a826760a0baf`), 17 files changed (+2164 insertions, -38 deletions)
   - [x] Workflow Checkpoint registered: `chk_20261104T173333Z_3-model-b` (70.59% overall progress, Phase 1 100.0%)
   - [x] Delivered full completion handoff to Sentinel
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

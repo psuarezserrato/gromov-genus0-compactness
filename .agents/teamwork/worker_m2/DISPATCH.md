@@ -121,3 +121,13 @@ You exclusively own and may edit the following 3 files:
 **Context**: Milestone 2 Checkpoint Acknowledgement
 **Content**: Received and acknowledged your clean pause checkpoint. Excellent work completing and building Task P0-3, and machine-checking the P0-1 and P0-2 proofs with zero sorry. All activity remains paused until the user issues the resume command.
 **Action**: Remain paused. Do not execute any further commands until resume instruction.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

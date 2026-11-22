@@ -171,3 +171,13 @@ Benchmark over 250 queries:
    - Verify that running with `--model gemma2:27b` outputs a redirection warning and executes on 9B without producing HTTP 404s.
 3. **Guard Census Against Empty Scope (`tests/PhaseAxiomCensus.lean`)**:
    - Add a check: if `clean + dirty.size == 0`, throw an error or exit with code 1 indicating that no declarations were found matching `MODULE_PREFIX`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

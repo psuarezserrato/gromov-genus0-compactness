@@ -36,3 +36,13 @@ Perform an exhaustive Forensic Integrity Audit of the Milestone 3 remediation on
    - If ANY check fails or any shortcut is detected, verdict MUST BE `INTEGRITY VIOLATION`.
    - If ALL checks pass cleanly and genuinely, verdict is `CLEAN`.
    - Document all findings in `report.md` and `handoff.md` and send a message when complete.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

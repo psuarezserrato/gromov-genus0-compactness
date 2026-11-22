@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 Pablo Suárez-Serrato. All rights reserved.
+# Released under the GNU Affero General Public License v3.0 (AGPLv3) for non-commercial use;
+# see LICENSE.md for details.
+# This project is licensed under non-commercial use. If you wish to use this software in a
+# commercial product, service, or enterprise environment, please contact the developer to purchase
+# a commercial license or negotiate royalty terms.
+# Authors: Pablo Suárez-Serrato (November 2026)
 # Rebuild the web blueprint and export its dependency graph as a static PDF for the report.
 # Requires the conda env `leanblueprint` (graphviz + pygraphviz + leanblueprint).
 set -euo pipefail

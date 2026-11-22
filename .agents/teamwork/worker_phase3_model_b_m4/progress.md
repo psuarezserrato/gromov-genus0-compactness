@@ -36,3 +36,13 @@ Status: Completed
 - [x] Verified `lake build GromovCompactness` compiles with exit code 0 and zero non-sorry warnings.
 - [x] Verified `latexmk -pdf -cd blueprint/src/print.tex` compiles with exit code 0 (13 pages).
 - [x] Writing handoff report and preparing completion message.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -11,3 +11,13 @@ Then there exists a subsequence $\sigma: \mathbb{N} \to \mathbb{N}$ and a stable
 2. The total energy is preserved:
    $$\lim_{n \to \infty} E(u_{\sigma(n)}) = \sum_{v \in V} E(u_v)$$
 3. The number of components $|V|$ is bounded by $|V| \le 2 \lfloor B / \hbar \rfloor - 2$.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

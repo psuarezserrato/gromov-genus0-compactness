@@ -104,3 +104,13 @@ The 3-point transitivity problem has a clean, robust, zero-sorry solution in Lea
    - `frame_mat` or `general_three_point_mat` fails to compile in Lean 4.
    - Any evaluation theorem requires non-standard axioms or fails under `ring`.
    - `exists_unique_moebius_three_points` retains `h_trans` or any circular assumption.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

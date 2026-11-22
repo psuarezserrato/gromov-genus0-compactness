@@ -69,3 +69,13 @@ Implement all Milestone 1 Iteration 3 forensic audit remediation deliverables:
 2. Update `tools/build_accepted_proofs_dataset.py` with depth-0 bracket-balanced lexical scanning, substantive proof enforcement (rejecting "by" and empty proofs), strict skipping of any chunk containing "sorry" or "admit", and elimination of hardcoded axiom claims.
 3. Regenerate `data/gemma_accepted_proofs.jsonl`.
 4. Run self-verification against all auditor verification commands in handoff.md §5, run `lake build`, and write results in changes.md and handoff.md, then message me.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

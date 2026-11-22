@@ -58,3 +58,13 @@ Invalidation conditions:
 - Commit SHA differs from `3b7d77900a22b88f17535ff64e96499eb0ba4479`.
 - `lake build GromovCompactness` fails or exits non-zero.
 - The 3 committed files are missing or modified from the commit tree.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

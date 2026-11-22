@@ -16,3 +16,13 @@ Adversarially challenge and stress-test the Phase 3 Model A code and theorems:
    - Instantiate and typecheck structures `WeakMeasureConvergence`, `ConcentrationData`, `OneLevelDecomposition`, `PrestableLimitData`, `CompactnessWitness`.
 2. Compile and execute `lake env lean tests/ChallengePhase3ModelA.lean`.
 3. Deliver a clear gate verdict: `APPROVE` or `REQUEST_CHANGES` in `handoff.md`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

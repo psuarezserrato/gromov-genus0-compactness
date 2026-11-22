@@ -172,3 +172,13 @@ lake env lean tests/ChallengeMilestone2Challenger2.lean
 
 ## 6. Coverage Gaps & Unverified Items
 - **Singular Integral Operator Leaf**: The analytic proof of `interior_cauchy_riemann_estimate` for general smooth non-constant maps on $\mathbb{C}$ is left with standard `sorry`, consistent with the Milestone 3 protocol and Project Blueprint. Risk level: LOW (standard analytical leaf isolation; zero-`sorry` reduction to Contract A05 fully verified).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

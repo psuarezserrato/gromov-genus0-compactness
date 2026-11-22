@@ -52,3 +52,13 @@ Review all Milestone 3 changes (P0-4 through P0-11):
 - Verify 0 direct sorry in master composite theorems (removal_of_singularities, elliptic_bootstrap_holder, stabilize_prestable_tree, gromov_compactness_core, gromov_subsequence_alternative, assemble_prestable_limit, resolve_single_defect_tree, weak_energy_measure_compactness, exists_concentration_data).
 
 Deliver your report in .agents/teamwork/reviewer_m3_1/handoff.md with a clear verdict (APPROVE or REQUEST_CHANGES) and message the orchestrator (8e7bd612-f2f7-4a5c-8f0d-e33b6e7beac0).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

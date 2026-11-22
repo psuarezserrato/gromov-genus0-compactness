@@ -97,3 +97,13 @@ Your mission: Phase 4 Model B (Zero-`sorry` Foundation Proofs) across contracts 
 **Context**: Phase 4 Model B Proof Worker Status Check
 **Content**: 14 minutes since last progress update. Please report your current status on E02, E04, E05, and E01 zero-sorry proofs, update your progress.md, and indicate if you have completed any additional modules or if you are running into any compilation/tactic issues.
 **Action**: Update progress.md and send status update.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

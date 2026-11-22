@@ -27,3 +27,13 @@ Map each blueprint node (F00 through G05) from GROMOV_COMPACTNESS_BLUEPRINT.md t
 4. Provide the exact LaTeX snippet recommendations for blueprint/src/content.tex for each node.
 
 Write your complete, verified report to /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/explorer_bp_lean/handoff.md and notify with send_message. Keep progress.md updated during your run.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

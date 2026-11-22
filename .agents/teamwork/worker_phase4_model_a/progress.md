@@ -22,3 +22,13 @@ Last visited: 2026-11-04T18:45:00Z
 10. Built entire Lean library via `lake build GromovCompactness` (exit code 0, 2337/2337 jobs).
 11. Built blueprint PDF via `cd blueprint/src && pdflatex -interaction=batchmode print.tex` (exit code 0, `print.pdf` 255 KB generated).
 12. Prepared comprehensive handoff report (`handoff.md`).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

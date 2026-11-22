@@ -54,3 +54,13 @@ Perform axiomatic & interface review of Milestone 3 (Contracts A04, A05, A06 in 
   - Integrability and nonnegativity of Bochner Sobolev seminorms on compact disks (Verified).
 - **Vulnerabilities found**: None in implementation; minor documentation nuance in worker's handoff Section 5.2.
 - **Untested angles**: Full Calderón-Zygmund singular integral theory for non-constant smooth functions (deferred to downstream Mathlib developments per Project Blueprint).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

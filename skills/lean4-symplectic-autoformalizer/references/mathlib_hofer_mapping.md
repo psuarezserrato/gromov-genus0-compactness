@@ -71,3 +71,13 @@ theorem hofer_rescale_point (f : X → ℝ) (hf : Continuous f) (x : X) (ε : �
   obtain ⟨x', ε', hε'_pos, hε'_le, hf_le, h_bound⟩ := Mathlib.Analysis.Hofer.hofer f x ε hε hf hfx
   exact ⟨x', ε', hε'_pos, hε'_le, fun y hy => h_bound y hy⟩
 ```
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

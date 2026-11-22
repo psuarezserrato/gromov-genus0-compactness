@@ -35,3 +35,13 @@ Perform comprehensive review of Phase 4 Model A Scaffolding Architecture across 
 [Message] timestamp=2026-11-04T18:47:50Z sender=59770206-bfd3-461f-a3e8-d1a614fd3f89 priority=MESSAGE_PRIORITY_HIGH content=**Context**: Workflow Pause Requested
 **Content**: The user has requested to pause the workflow. Please cleanly wrap up your current verification check, record your status in handoff.md, and pause.
 **Action**: Wrap up and pause cleanly.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

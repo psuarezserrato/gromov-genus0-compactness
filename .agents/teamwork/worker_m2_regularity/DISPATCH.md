@@ -346,3 +346,13 @@ Orchestrator heartbeat check:
    - Contract A03 (`epsilon_regularity`): what is the current status of the translation reduction to A01 + A02?
 3. Please update your `progress.md` with your latest timestamp and current progress.
 **Action**: Reply with your exact proof states, integrate the verified zero-`sorry` lemmas into `Bochner.lean`, `Monotonicity.lean`, and `EpsilonRegularity.lean`, verify `lake build GromovCompactness` (exit 0), and proceed to completion.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -291,3 +291,13 @@ To independently reproduce and verify this audit:
    git diff blueprint/src/content.tex
    ```
    *Expected Output*: 14 `\leanok` tags added to Contracts A01–A12, B01, B02, directly conflicting with the presence of `sorryAx`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

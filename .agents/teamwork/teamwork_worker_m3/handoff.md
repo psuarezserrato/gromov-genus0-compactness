@@ -51,3 +51,13 @@ lake build GromovCompactness.Geometry.Target GromovCompactness.Geometry.Sphere
 rg "sorry" GromovCompactness/Geometry/Target.lean GromovCompactness/Geometry/Sphere.lean
 ```
 Expected output: 0 errors, 0 warnings, 0 matches for `sorry`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

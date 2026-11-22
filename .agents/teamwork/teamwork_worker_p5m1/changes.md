@@ -79,3 +79,13 @@ This document records the complete implementation of all deliverables for Phase 
 | Accepted Proofs Count | `wc -l data/gemma_accepted_proofs.jsonl` | 1,289 pairs | > 748 verified zero-sorry pairs |
 | BM25 Query Latency | `python3 tools/premise_retrieval.py benchmark` | 2.28 ms | < 5.0 ms target |
 | Proving Ledger Logging | `python3 tools/ollama_lean4_client.py ledger-summary` | Logged to `.agents/gemma_usage.jsonl` | Valid JSONL audit records |
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

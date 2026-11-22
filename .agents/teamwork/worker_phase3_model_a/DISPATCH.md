@@ -47,3 +47,13 @@ Implement and verify Phase 3 Model A (sorry-First-Pass Skeleton) across all assi
 **Context**: Phase 3 Model A Scaffolding Progress Check
 **Content**: All 13 Phase 3 Lean modules are observed present on disk. Checking in on compilation status (`lake build GromovCompactness`), blueprint verification, and preparation of `handoff.md`.
 **Action**: Update `progress.md` with current verification steps and deliver `handoff.md` once tests pass.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

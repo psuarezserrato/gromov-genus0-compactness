@@ -112,3 +112,13 @@ The verification gate will assess:
 4. `challenger1_m4`: creates adversarial test suite `tests/ChallengeMilestone4EnergyGap.lean` stress-testing non-constancy, energy vanishing, and monotonicity bounds.
 5. `challenger2_m4`: creates adversarial test suite `tests/ChallengeMilestone4Singularities.lean` stress-testing decay bounds, collar emptiness, Grönwall inequality, and uniqueness.
 6. `auditor1_m4`: verifies 0 fake proofs, 0 custom axioms, 100% Lean 4 standard kernel axioms (`[propext, Classical.choice, Quot.sound]`).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

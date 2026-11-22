@@ -23,3 +23,13 @@ Review the Iteration 4 fixes implemented in `tools/build_accepted_proofs_dataset
 4. Inspect `strip_trailing_block_comment` and the iterative fixpoint `clean_proof_trailing`.
 5. Write your structured review and verdict (APPROVE or REQUEST_CHANGES) in `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/reviewer_m1_iter4_1/handoff.md`.
 6. Send a brief completion message back to Parent Orchestrator (`8e7bd612-f2f7-4a5c-8f0d-e33b6e7beac0`) via `send_message`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

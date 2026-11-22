@@ -65,3 +65,13 @@ You have three fully formulated, machine-checked handoff reports and patch sets 
 4. Acceptance test suite `tests/ChallengeMilestone3Phase5.lean` must compile and pass cleanly with standard kernel axioms `[propext, Classical.choice, Quot.sound]`.
 
 Deliver your completion report in `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/worker_m3/handoff.md` and message the orchestrator (`8e7bd612-f2f7-4a5c-8f0d-e33b6e7beac0`).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

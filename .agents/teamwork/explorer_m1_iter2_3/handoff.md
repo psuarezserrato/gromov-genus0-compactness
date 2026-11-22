@@ -247,3 +247,13 @@ To independently verify the implementation, execute the following commands in th
 
 5. **Invalidation Condition**:
    Any run of `./tools/phase_axiom_census.sh` on an invalid or empty scope that returns exit code 0, or any run on `MODULE_PREFIX=""` that traverses the global Mathlib environment, invalidates this remediation.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

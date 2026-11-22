@@ -401,3 +401,13 @@ To independently verify the mapping and test the blueprint:
    *Expected result*: Clean PDF generation in `blueprint/print/print.pdf` with exit code 0.
 4. **Invalidation Condition**:
    Any mismatch between declaration names, failure of `latexmk`, or premature addition of `\leanok` to Phase 3 items (`c01`–`c03`, `b03`–`b07`) invalidates the blueprint integrity.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

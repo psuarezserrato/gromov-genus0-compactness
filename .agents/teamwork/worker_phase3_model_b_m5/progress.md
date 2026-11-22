@@ -37,3 +37,13 @@
 - [x] Compile blueprint PDF with `latexmk`: compiled cleanly with exit code 0 (14 pages, 250,883 bytes).
 - [x] Run stress tests: `tests/ChallengePhase3StressCases.lean` typechecks cleanly with exit code 0.
 - [x] Write handoff report `handoff.md` and send message to parent orchestrator.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

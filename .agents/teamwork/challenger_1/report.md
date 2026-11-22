@@ -164,3 +164,13 @@ Most critically:
 ## 4. Unchallenged Areas
 
 - **Live GPU generation with `gemma2:9b` on Apple Silicon Metal**: Unchallenged due to running in sandbox environment without local Ollama daemon actively bound to port 11434. Network connectivity, fallback logic, mock generation, parameter options, and turn templates were rigorously verified via mock and dry-run execution.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

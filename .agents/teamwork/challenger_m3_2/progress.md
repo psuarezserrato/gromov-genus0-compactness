@@ -14,3 +14,13 @@ Last visited: 2026-11-05T07:05:30Z
 - [x] Check lake build status (0 errors across 2337 targets)
 - [x] Verified 0 genuine sorry-defined defs or instances repo-wide
 - [ ] Deliver handoff report and notify orchestrator
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

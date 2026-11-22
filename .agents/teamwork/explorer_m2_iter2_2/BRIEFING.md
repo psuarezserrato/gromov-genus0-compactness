@@ -44,3 +44,13 @@ Investigate the authentic integration and change-of-variables proof for Task P0-
 - `progress.md` — Liveness heartbeat
 - `BlueprintTest.lean` — Fully compiled, machine-checked Lean 4 prototype containing the 10 core lemmas
 - `handoff.md` — Comprehensive 5-component handoff report and remediation blueprint
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

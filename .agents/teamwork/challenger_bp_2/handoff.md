@@ -309,3 +309,13 @@ To independently reproduce the empirical failure and verify the subsequent fix:
    pdflatex -interaction=nonstopmode -output-directory=/tmp/tex_test print.tex
    ```
    *Expected*: Exits with code `0`, `0` errors, generating a complete 12-page PDF.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -18,3 +18,13 @@ Last visited: 2026-11-04T00:03:00Z
   - Identified 1 Major finding on unconstrained constants in `TargetThresholds` B01.
   - Identified 1 Minor/Major finding on unconstrained $r \to \infty$ in `epsilon_regularity` A03.
 - [ ] Write handoff.md and send message to orchestrator.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -36,3 +36,13 @@ Perform a rigorous mathematical and formal review of the Milestone 2 Regularity 
 4. Assess the status of the 4 core contracts (A01, A08, A02, A03) and their proof reductions in the context of Mathlib 4.16.0 capabilities.
 5. Write your comprehensive review report to handoff.md in your working directory, ending with an explicit verdict: APPROVE or REQUEST_CHANGES.
 6. Communicate your verdict and report path back to the parent orchestrator via send_message.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

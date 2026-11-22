@@ -1,25 +1,32 @@
-## 2026-11-03T16:22:40Z
+## 2026-11-08T11:50:59Z
+You are teamwork_reviewer_m2_2 (Milestone M2 Reviewer 2).
 
-You are a Reviewer subagent in a multi-agent team.
-Your identity: teamwork_reviewer
-Your working directory: /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_reviewer_m2_2/
+Your assigned working directory is:
+`/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_reviewer_m2_2`
 
-MANDATORY FIRST STEP:
-Read /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/ORIGINAL_REQUEST.md before starting work.
-Also read /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/PROJECT.md, /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/orchestrator_model_b/SCOPE.md, and /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_worker_m2/handoff.md.
+You MUST read the original user request at:
+`/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/ORIGINAL_REQUEST.md`
 
-SCOPE OF REVIEW:
-Review the architecture and interface conformance of GromovCompactness/Topology/Subsequence.lean (F05):
-1. Verify interface conformance: Are definitions (`SubseqMap`, `IsSubsequenceOf`, `countable_diagonal_extraction`, `tendsto_subseq_comp`) clean, idiomatic Lean 4, and directly usable by downstream modules (`SmoothLocal.lean`, `GenusZero.lean`)?
-2. Check for compiler diagnostics, deprecations, and warnings when compiling `lake env lean GromovCompactness/Topology/Subsequence.lean`.
-3. Verify that all axioms used are strictly standard Mathlib axioms.
-4. Verify that workflow checkpointing and git commit standards were satisfied.
-5. Provide a clear, unambiguous verdict: `APPROVE` or `REQUEST_CHANGES`.
+Read the project scope and worker handoff:
+- `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/PROJECT.md`
+- `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_worker_m2_1/handoff.md`
 
-OUTPUT:
-Write your full review to:
-/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_reviewer_m2_2/report.md
-and write a standard Handoff Protocol report to:
-/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_reviewer_m2_2/handoff.md.
+Your Review Scope:
+1. Examine `GromovCompactness/Geometry/NormalCharts.lean`, focusing on `discharge_h_punc_first_principles` and `discharge_removal_of_singularities`.
+2. Run build and verification commands:
+   - `lake build` (verify complete repository build exits 0, 3092 jobs)
+   - `lake env lean tests/PhaseAxiomCensus.lean` (verify 3606 clean declarations, 0 sorryAx)
+3. Check for any compiler warnings treated as errors or unused section variables.
+4. Verify that `GromovCompactness/Geometry/Target.lean` is completely unmodified (0 diff).
+5. Deliver a structured review report in `handoff.md` in your directory with an explicit verdict: **APPROVE** or **REQUEST_CHANGES**.
+6. Send a message to the orchestrator with your verdict and findings summary.
 
-Send a brief summary message to your parent with your verdict.
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -30,3 +30,13 @@ Investigate and design genuine mathematical definitions for `disk_at` on $\mathb
 4. Audit all symbols and exports of `Sphere.lean` to verify that `Analysis/Energy.lean` and `Topology/SmoothLocal.lean` can import and build against the remediated `Sphere.lean`.
 5. Write your report to `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/explorer_m3_rem_3/report.md` and handoff to `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/explorer_m3_rem_3/handoff.md`.
 6. Send a completion message back when finished.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -29,3 +29,13 @@ Required Workflow Integration:
    - Phase 2 Model B (Full Proof Completion / Zero-`sorry`): Systematically formalize and certify full proofs for Phase 2 contracts (0 `sorry`, 0 `admit`, standard Lean 4 axioms only), tagging proved items with `\leanok` in `leanblueprint`.
 3. Compute Mandate: Maximize usage of local Gemma model via Ollama (`http://localhost:11434`, `tools/ollama_lean4_client.py`) for premise selection, skeleton translation, tactic search, and proof repair.
 4. Pause/Resume Compliance: Actively respect `.pause_workflow` and `python3 tools/workflow_control.py`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

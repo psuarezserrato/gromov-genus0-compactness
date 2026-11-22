@@ -76,3 +76,13 @@ Perform independent adversarial review of all Milestone 3 changes (P0-4 through 
 - `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/reviewer_m3_2/BRIEFING.md` — persistent situational awareness
 - `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/reviewer_m3_2/progress.md` — liveness heartbeat
 - `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/reviewer_m3_2/handoff.md` — final review report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

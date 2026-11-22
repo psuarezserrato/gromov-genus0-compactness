@@ -1463,3 +1463,12 @@ To balance rigorous formal verification with practical execution velocity, the f
   - All `sorry` stubs across the dependency closure of `gromov_compactness_genus_zero` are replaced with verified proofs.
   - Executing `#print axioms gromov_compactness_genus_zero` outputs only standard Lean 4 axioms (`propext`, `Quot.sound`, `Classical.choice`), certifying complete kernel verification.
 
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

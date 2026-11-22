@@ -192,3 +192,13 @@ In accordance with strict reviewer integrity instructions:
    - `python3 skills/ollama-lean4-gemma-prover/scripts/ollama_query.py test`
    - `python3 skills/lean4-proof-repair-engine/scripts/proof_repair.py test`
 3. **Issue Full APPROVAL**: Once this minor patch is applied, all 5 CLI test suites will achieve a 100% pass rate under the standard `python3` environment.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

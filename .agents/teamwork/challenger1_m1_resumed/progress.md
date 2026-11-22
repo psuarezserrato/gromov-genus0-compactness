@@ -11,3 +11,13 @@ Last visited: 2026-11-04T00:19:40Z
 - [x] Update BRIEFING.md with attack surface and findings
 - [x] Write handoff report with explicit verdict (`REQUEST_CHANGES`)
 - [x] Send message to orchestrator with verdict and findings
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

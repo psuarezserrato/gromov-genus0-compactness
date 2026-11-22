@@ -13,3 +13,13 @@
 Gate Result: **PASS**
 Certified: 2026-11-04T09:16:00Z
 All 3 contracts (A04, A05, A06) verified with 49 machine-checked auxiliary foundation, reduction, and constant-curve theorems, 0 integrity violations, 0 custom axioms, 100% build and challenge pass across all 6 test suites (`ChallengePhase2ModelA.lean`, `AdversarialAttacksIter2.lean`, `AdversarialAttacksMilestone2.lean`, `ChallengeMilestone2Challenger2.lean`, `ChallengeMilestone3Bootstrap.lean`, `ChallengeMilestone3Smoothness.lean`).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

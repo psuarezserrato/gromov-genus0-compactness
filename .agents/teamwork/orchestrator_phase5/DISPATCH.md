@@ -190,3 +190,12 @@ Milestone 5 dispatch acknowledged. The convening of the 5-Agent Milestone 5 Gate
 
 Standing by for the gate verdicts, the `worker_m5` commit and checkpoint registration (`chk_phase5_complete`), and the final Phase 5 completion handoff. Once received, the Sentinel will initiate the post-victory audit via `teamwork_victory_auditor`.
 
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

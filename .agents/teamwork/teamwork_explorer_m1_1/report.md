@@ -686,3 +686,13 @@ Phase 1 provides a clean mathematical decomposition, but 5 critical type-level `
 2. **Milestone 3**: Clear `F01` algebraic and geometric properties (`metric_J_invariant`, biholomorphic hypothesis correction), followed by `F02` frame identities (`id`, `comp`).
 3. **Milestone 4**: Complete `F06` graph theorems (`tree_degree_sum`, `ghost_components_bound`) and resolve definition defects in `F03` and `F04`.
 4. **Milestone 5**: Implement the analytical measure-theoretic and PDE convergence proofs to achieve total zero-`sorry` completion across all of Phase 1.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

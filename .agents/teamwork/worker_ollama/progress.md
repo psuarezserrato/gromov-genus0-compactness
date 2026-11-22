@@ -13,3 +13,13 @@ All deliverables implemented, tested, verified, and documented.
 - [x] Verified 100% test pass rate (39/39 tests in `test_ollama_pipeline.py` and 8/8 tests in `ollama_lean4_client.py test`).
 - [x] Authored complete documentation in `docs/OLLAMA_GEMMA_INTEGRATION.md` (macOS installation, daemon setup, model zoo, CLI/curl examples, Gemma tokens, prompt templates, troubleshooting, and skill integration).
 - [x] Maintained strict integrity (genuine logic, real state transitions, no fake test results).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -30,3 +30,13 @@ MANDATORY: Read /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/ORIG
 Then read your task instructions in /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m3_iter2_2/DISPATCH.md.
 Run `lake env lean tests/AdversarialMilestone3Challenger2.lean` (25 empirical probes), probe boundary/corner cases (shrinking radius, empty defect set, monotonicity default args, topology axioms), run `lake build`, and write your report to /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m3_iter2_2/handoff.md with an explicit APPROVE or REJECT verdict.
 Notify me with send_message when complete.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -13,3 +13,13 @@
   7. Tested and verified `sanitize_sorry_mentions` to eliminate all occurrences of `"sorry"` and `"sorryAx"` from docstring and signature fields (remedying the 97 lines violating the line invariant).
   8. Verified clean library theorems count (395 genuine theorems with source proof blocks) and total clean dataset count (937 genuine zero-sorry pairs).
   9. Documenting findings in `analysis.md` and `handoff.md`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

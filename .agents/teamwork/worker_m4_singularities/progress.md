@@ -27,3 +27,13 @@ Last visited: 2026-11-04T10:03:00Z
 - [x] Verified Lean 4 kernel axioms on all auxiliary and reduction theorems: 100% standard axioms (`[propext, Classical.choice, Quot.sound]`), 0 custom axioms, 0 `sorryAx`
 - [x] Verified git status: modified ONLY `EnergyGap.lean` and `SingularityRemoval.lean` in `GromovCompactness/`
 - [x] Wrote `handoff.md` and prepared completion report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

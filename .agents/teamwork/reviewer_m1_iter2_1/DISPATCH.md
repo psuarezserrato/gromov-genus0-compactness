@@ -33,3 +33,13 @@ Review all Phase 5 Milestone 1 Iteration 2 remediation changes:
 - Fast axiom census tool empty scope and non-existent prefix handling in `tests/PhaseAxiomCensus.lean`
 Run builds and tests independently.
 Write findings to `review.md` and `handoff.md` with explicit verdict APPROVE or REQUEST_CHANGES, and message me.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -147,3 +147,13 @@ Milestone 4 is completely fulfilled:
    latexmk -pdf -cd blueprint/src/print.tex
    ```
    *Expected Result*: Exit code 0, `print.pdf` generated (13 pages, ~250 KB).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -59,3 +59,13 @@ Conduct Milestone 6 Architecture, Typeclass, and Build Verification for all Phas
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/reviewer2_m6/BRIEFING.md — Situational awareness
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/reviewer2_m6/progress.md — Heartbeat progress
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/reviewer2_m6/handoff.md — Final review report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

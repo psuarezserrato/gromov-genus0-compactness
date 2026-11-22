@@ -153,3 +153,13 @@ lake env lean tests/AdversarialMilestone3Challenger2.lean
 - Any non-zero exit code from either command.
 - The appearance of `sorryAx` in `#print axioms` for any of the 12 Section A declarations.
 - Any direct `sorry` appearing in the proof body of any Section B theorem.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

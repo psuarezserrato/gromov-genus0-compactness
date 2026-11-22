@@ -12,3 +12,13 @@
   - All 8 stress cases mathematically defended with concrete architectural guardrails.
   - Model A ('sorry'-first-pass) faithfully scaffolded with real proofs where available and zero false axioms.
   - All unit tests passing: `workflow_control.py` (8/8), `test_ollama_pipeline.py` (39/39).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

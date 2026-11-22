@@ -112,9 +112,13 @@ The following complete code has been verified via `lake env lean` with 0 errors:
 
 ```lean
 /-
-Copyright (c) 2026 Autoformalization Team. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Autoformalization Team
+Copyright (c) 2026 Pablo Suárez-Serrato. All rights reserved.
+Released under the GNU Affero General Public License v3.0 (AGPLv3) for non-commercial use;
+see LICENSE.md for details.
+This project is licensed under non-commercial use. If you wish to use this software in a
+commercial product, service, or enterprise environment, please contact the developer to purchase
+a commercial license or negotiate royalty terms.
+Authors: Pablo Suárez-Serrato (November 2026)
 -/
 import Mathlib.Topology.Homotopy.Basic
 import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
@@ -305,9 +309,13 @@ The following complete code has been verified via `lake env lean` with 0 errors:
 
 ```lean
 /-
-Copyright (c) 2026 Autoformalization Team. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Autoformalization Team
+Copyright (c) 2026 Pablo Suárez-Serrato. All rights reserved.
+Released under the GNU Affero General Public License v3.0 (AGPLv3) for non-commercial use;
+see LICENSE.md for details.
+This project is licensed under non-commercial use. If you wish to use this software in a
+commercial product, service, or enterprise environment, please contact the developer to purchase
+a commercial license or negotiate royalty terms.
+Authors: Pablo Suárez-Serrato (November 2026)
 -/
 import Mathlib.Data.Fintype.Perm
 import Mathlib.Data.Fintype.Prod
@@ -499,3 +507,13 @@ To independently verify the architecture and type signatures:
 
 3. **Verify Master Build Invariant**:
    Ensure `lake build GromovCompactness` succeeds without regressions before committing.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

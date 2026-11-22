@@ -21,3 +21,13 @@ Your objective:
 5. Check `git diff blueprint/src/content.tex` to ensure only the intended edits were made.
 6. Write a comprehensive `handoff.md` in your working directory following the Handoff Protocol.
 7. Send a message to parent (`e9af8afd-7ba8-4c3f-a823-483a7935b05b`) when finished.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

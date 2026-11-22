@@ -180,3 +180,13 @@ python3 skills/ollama-lean4-gemma-prover/scripts/ollama_query.py test
 4. **Unreachable Ollama Daemon**:
    - *Mistake*: Script crashing with unhandled socket error.
    - *Fix*: Robust error handling with actionable recovery advice or `--mock` fallback.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

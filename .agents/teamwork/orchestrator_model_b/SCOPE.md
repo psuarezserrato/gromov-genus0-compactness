@@ -39,3 +39,13 @@ Phase 1 formalizes the foundational layer for Gromov Compactness in Lean 4:
 ### Pause Sentinel & Git Checkpoint Contract
 - Before and after each milestone, check `.pause_workflow`. If set, write checkpoint snapshot and pause cleanly.
 - After each milestone passes gate, invoke git commit and `python3 tools/workflow_control.py checkpoint`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

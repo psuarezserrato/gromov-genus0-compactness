@@ -10,3 +10,13 @@ Last visited: 2026-11-04T19:31:30Z
 - [x] Registered checkpoint `chk_phase4_model_a` via `python3 tools/workflow_control.py checkpoint --name chk_phase4_model_a` (ID: `chk_20261104T193108Z_chk_phase4_model_a`)
 - [x] Verified workflow status (39 of 39 contracts, 100.0% progress, RUNNING)
 - [ ] Generate handoff.md and notify orchestrator parent via send_message
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

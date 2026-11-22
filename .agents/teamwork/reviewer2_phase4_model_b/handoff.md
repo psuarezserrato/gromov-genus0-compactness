@@ -173,3 +173,13 @@ To independently reproduce and verify this assessment:
    *Expected result*: 100.0% (39 of 39 contracts recognized).
 
 6. **Invalidation condition**: Any non-zero exit code on the commands above or introduction of `sorryAx` into the verified foundation declarations.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

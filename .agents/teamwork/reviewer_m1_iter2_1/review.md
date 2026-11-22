@@ -119,3 +119,13 @@ Independent builds (`lake build`) and automated test suites (`ollama_lean4_clien
 - Zero facade logic or mock bypasses in live execution paths.
 - Dataset contains 100% genuine Lean 4 proofs extracted from kernel and test suite declarations.
 - Integrity status: **VERIFIED CLEAN**.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

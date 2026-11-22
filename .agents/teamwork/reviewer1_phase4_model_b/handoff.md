@@ -95,3 +95,13 @@ To independently reproduce this verification:
 3. `lake env lean tests/ForensicPhase4Axioms.lean` (must exit 0, confirming axioms).
 4. `python3 tools/workflow_control.py status` (must report 100.0%, 39/39 contracts).
 5. `cd blueprint/src && pdflatex -interaction=batchmode print.tex` (must exit 0, producing `print.pdf`).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -18,3 +18,13 @@ Last visited: 2026-11-03T23:55:00Z
 - [x] Step 6: Run `lake build GromovCompactness` and verify exit code 0.
 - [x] Step 7: Commit on git `main` branch (commit `a895693`) and execute `tools/workflow_control.py checkpoint --label "phase2_model_a_scaffolding"`.
 - [x] Step 8: Write `handoff.md` and send completion message to parent.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

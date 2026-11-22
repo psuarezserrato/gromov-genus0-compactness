@@ -11,3 +11,13 @@ Last visited: 2026-11-05T07:03:00Z
 - [x] Verified axiom census: pure standard kernel axioms `[propext, Classical.choice, Quot.sound]` on all closed probes
 - [x] Executed negative grep scan for sorry in defs/instances (0 sorry-defined defs/instances)
 - [x] Authored handoff report with verdict APPROVE
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

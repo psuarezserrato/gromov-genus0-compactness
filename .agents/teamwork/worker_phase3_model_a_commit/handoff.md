@@ -65,3 +65,13 @@ Phase 3 Model A scaffolding deliverables are successfully committed to Git (`cc8
 - Verify checkpoint: `cat .agents/teamwork/checkpoints/checkpoint_20261104T153808Z_phase3_model_a_scaffolding_certified.json`
 - Verify build: `lake build GromovCompactness`
 - Run challenge tests: `lake env lean tests/ChallengePhase3ModelA.lean` and `lake env lean tests/ChallengePhase3StressCases.lean`
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

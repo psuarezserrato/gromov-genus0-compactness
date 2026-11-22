@@ -64,3 +64,13 @@ Perform comprehensive forensic integrity audit of Phase 4 Model B Zero-Sorry Fou
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/auditor1_phase4_model_b/progress.md — Liveness progress log
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/auditor1_phase4_model_b/handoff.md — Final forensic audit report and verdict
 - /Users/pablosuarez/Desktop/SympTopAutoForm/tests/ForensicPhase4Axioms.lean — Independent axiom verification harness
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

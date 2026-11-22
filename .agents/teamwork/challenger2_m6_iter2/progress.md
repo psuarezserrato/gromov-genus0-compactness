@@ -11,3 +11,13 @@
 - [x] 4. Run `tests/ChallengeBlueprintLinkage.lean` with Lean/Lake and verify exit code 0 (exit code 0, 100% pass)
 - [x] 5. Perform stress tests / consistency checks on blueprint linkage (syntax, environment matching, dollar parity, brace depth, plasTeX tagging discipline all verified with 0 failures)
 - [x] 6. Complete verdict, write `handoff.md`, and message parent
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

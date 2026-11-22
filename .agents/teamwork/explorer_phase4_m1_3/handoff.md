@@ -322,3 +322,13 @@ The moduli space $\overline{\mathcal{M}}_{0, k}(M, J, \le B)$ is a compact Hausd
 For any fixed homology class $A \in H_2(M; \mathbb{Z})$, the moduli space $\overline{\mathcal{M}}_{0, k}(M, J, A)$ is compact and Hausdorff.
 \end{theorem}
 ```
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

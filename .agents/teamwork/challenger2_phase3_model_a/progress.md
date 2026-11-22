@@ -14,3 +14,13 @@
 - [x] Executed `python3 tools/workflow_control.py test` (8/8 unit tests passed, 100%)
 - [x] Compiled adversarial challenge handoff report `handoff.md` with gate verdict `APPROVE`
 - [ ] Transmit handoff message to orchestrator (`02ef07b4-e669-479a-8a3d-86a44c7477a8`)
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -465,3 +465,13 @@ This investigation directly establishes the technical contracts for the three ag
 ## 9. Conclusion
 
 The local Gemma pipeline via Ollama is fully designed, calibrated, and validated for Lean 4 autoformalization of Gromov Compactness. By locking down deterministic parameter profiles, context window expansion to 8192 tokens, rigorous Gemma `<start_of_turn>` templates, and an automated model fallback cascade, the project achieves an autonomous, compute-conservative formalization workflow ready for immediate skill authoring and worker execution.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

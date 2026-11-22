@@ -25,3 +25,13 @@ Your Task:
 5. Execute the regression test suites (`lake env lean tests/ChallengePhase2ModelA.lean`, `lake env lean tests/AdversarialAttacksIter2.lean`, etc.).
 6. Write your structured handoff to `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger1_m3/handoff.md` with explicit verdict `APPROVE` or `REQUEST_CHANGES`.
 7. Notify orchestrator via `send_message`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

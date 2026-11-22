@@ -69,3 +69,13 @@ Implement Phase 4 Model A Scaffolding Architecture across the 5 contracts (E01�
 - **Build/test result**: PASS (lake build GromovCompactness exit 0; pdflatex exit 0; python3 tools/workflow_control.py test: 8/8 passed)
 - **Lint status**: clean (set_option linter.unusedSectionVars false applied where needed)
 - **Tests added/modified**: Verified against test suite and lake build
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

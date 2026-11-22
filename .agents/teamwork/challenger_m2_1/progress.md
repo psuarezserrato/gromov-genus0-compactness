@@ -15,3 +15,13 @@
   - `worker_m2_2/handoff.md` misreported the signature of `energyMeasure_conformal_invariant`.
 - **2026-11-05T04:43:00Z**: Verified P0-1 (genuine polar coordinates integration and lower bound) and P0-3 (concrete predicates in Target and Sphere).
 - **2026-11-05T04:44:00Z**: Preparing final challenge handoff report with verdict `REQUEST_CHANGES`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

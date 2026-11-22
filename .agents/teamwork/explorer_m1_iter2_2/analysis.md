@@ -245,3 +245,13 @@ The Worker must execute the following commands to verify the remediation:
    ```bash
    python3 -c "import json; n = sum(1 for _ in open('data/gemma_accepted_proofs.jsonl')); print(f'Total records: {n}'); assert n == 937, f'Expected 937 records, got {n}'"
    ```
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -452,3 +452,13 @@ Empirical results across the entire codebase when executing this parser:
 3. **Total Dataset Output**:
    - `395 + 542 = 937` genuine, syntactically complete zero-`sorry` proof pairs.
    - 100% bracket balance across every single signature and proof in the dataset.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -117,3 +117,13 @@ Inspect and reuse those exact polar FTC lemmas directly for the radial circle-av
    - Check `COMPLETION_PLAN.md` Row `P0-5`: either weight the chart energy density by `sphericalJacobian` (or equivalently bound `sphericalJacobian (stereo_chart z) * riemannianEnergyDensity I u z ≤ C_reg * r ^ (-2) * (energyMeasure I u (disk_at a r)).toReal`, which makes the disk integral equality `∫_{ball a r} chartEnergyDensity = energyMeasure I u (disk_at a r)` exact on all of $\mathbb{C}$!) or include the chart-domain subharmonic mean-value bound in `JHolomorphicOn`. Verify that `A05` (`DerivativeBounds.lean`), `A07` (`RemovableSingularity.lean`), and `B02` (`BubbleTree.lean`) remain 100% compatible.
 
 **Action**: Incorporate this architectural guidance directly into `Target.lean`, `Bochner.lean`, and `EpsilonRegularity.lean` to ensure 100% zero-`sorry` closure across all instances and tests.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

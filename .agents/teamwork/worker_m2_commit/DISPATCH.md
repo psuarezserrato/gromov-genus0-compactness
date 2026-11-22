@@ -38,3 +38,13 @@ Tasks:
 8. Run `git rev-parse HEAD` and `git log -1` to obtain the commit hash and details.
 9. Write a comprehensive `handoff.md` in your working directory following the Handoff Protocol (Observation, Logic Chain, Caveats, Conclusion, Verification Method).
 10. Send a message to the orchestrator (`8f40ca31-2f76-410e-ba36-d9890963bdd8`) with the commit hash, verification output, and handoff report path.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

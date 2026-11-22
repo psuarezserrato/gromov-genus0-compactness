@@ -258,3 +258,13 @@ theorem totalEnergy_pos_of_exists_ball (u : CP1 → M)
 This investigation would be invalidated if:
 - Mathlib's `stereographic'` were changed in a way that alters the round pullback metric conformal factor away from $(2 / (1 + |w|^2))^2$.
 - The type `CP1` were redefined to use a different coordinate chart system.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

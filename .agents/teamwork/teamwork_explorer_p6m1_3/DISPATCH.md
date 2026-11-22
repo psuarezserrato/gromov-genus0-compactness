@@ -20,3 +20,13 @@ Investigate Contract A03 (`epsilon_regularity`, `#3` in COMPLETION_PLAN.md §3.1
 5. Formulate a Model A decomposition for wiring A01 + A02 to A03, ensuring 100% zero-`sorryAx`.
 6. Write your detailed analysis to `analysis.md` and a structured `handoff.md` (Observation, Logic Chain, Caveats, Conclusion, Verification Method) in your working directory.
 When done, send a message back to caller.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -17,3 +17,13 @@ Research and document the exact, standard `leanblueprint` setup following offici
 5. Provide complete, syntactically valid templates for all these files ready to be created by the Worker.
 
 Write your complete, verified report to /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/explorer_bp_plastex/handoff.md and notify with send_message. Keep progress.md updated during your run.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

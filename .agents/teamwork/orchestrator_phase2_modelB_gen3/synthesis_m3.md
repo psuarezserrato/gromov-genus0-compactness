@@ -66,3 +66,13 @@ The worker will:
 6. Run `#print axioms` on all deliverables to guarantee 100% kernel axiom purity (`propext`, `Classical.choice`, `Quot.sound`).
 7. Run the existing test suites (`tests/ChallengePhase2ModelA.lean`, `tests/AdversarialAttacksIter2.lean`, `tests/AdversarialAttacksMilestone2.lean`, `tests/ChallengeMilestone2Challenger2.lean`) to verify zero regressions.
 8. Deliver handoff with commands, results, and proof verification.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

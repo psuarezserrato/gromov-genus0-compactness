@@ -55,3 +55,13 @@ Perform comprehensive forensic integrity audit for Milestone 3 (Iteration 2), ve
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/auditor_m3_iter2/DISPATCH.md — Task assignment
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/auditor_m3_iter2/progress.md — Progress tracker
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/auditor_m3_iter2/handoff.md — Final audit report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

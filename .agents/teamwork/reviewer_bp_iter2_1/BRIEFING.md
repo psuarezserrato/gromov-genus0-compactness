@@ -67,3 +67,13 @@ Conduct independent quality and adversarial review for Gate Iteration 2 of gromo
 - `.agents/teamwork/reviewer_bp_iter2_1/BRIEFING.md` — persistent memory
 - `.agents/teamwork/reviewer_bp_iter2_1/progress.md` — liveness heartbeat
 - `.agents/teamwork/reviewer_bp_iter2_1/handoff.md` — final handoff report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

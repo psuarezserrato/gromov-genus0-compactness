@@ -14,3 +14,13 @@ Milestone 4 Adversarial Challenge complete. Verdict: APPROVE.
 6. Verified sensitivity suite `tests/ChallengeMilestone4WiringAutomorphisms.lean`: passed with exit code 0.
 7. Authored and executed dedicated adversarial challenge harness `tests/AdversarialAutomorphismsM4.lean`: 14 empirical probes on group actions, ghost degree boundary cases, sharpness, non-vacuousness, non-circularity, and fiber finiteness; all passed with exit code 0 and standard axioms.
 8. Authored final handoff report in `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m4_2/handoff.md` with explicit APPROVE verdict.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

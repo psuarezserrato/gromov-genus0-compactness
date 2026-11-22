@@ -37,3 +37,13 @@ Perform comprehensive forensic integrity audit of Phase 4 Model B Zero-Sorry Fou
    - Verify blueprint/src/content.tex matches the Lean declarations without fake \leanok claims.
    - Verify tools/workflow_control.py genuinely checks contracts without hardcoded fake counters.
 3. Record your binary veto verdict (CLEAN or INTEGRITY VIOLATION) in /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/auditor1_phase4_model_b/handoff.md with full evidence, and notify me via send_message.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -52,3 +52,13 @@ Phase 1 Foundations formalization (F00–F06) has been successfully committed to
 - Run `git log -n 1 --stat aaea655` to view commit details.
 - Run `python3 tools/workflow_control.py status` to confirm 100.0% Phase 1 completion and active Phase 2.
 - Run `lake build GromovCompactness` to verify compilation.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

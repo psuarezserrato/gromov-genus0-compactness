@@ -96,3 +96,13 @@ Orchestrate Phase 4 of Gromov Compactness in Lean 4 (Model A Scaffolding & Model
 - /Users/pablosuarez/Desktop/SympTopAutoForm/GROMOV_COMPACTNESS_BLUEPRINT.md — Complete formalization blueprint
 - /Users/pablosuarez/Desktop/SympTopAutoForm/AUTOFORMALIZATION_PLAN.md — Master autoformalization plan
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/worker_phase4_commit_model_b/DISPATCH.md — Task assignment for Model B commit worker
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

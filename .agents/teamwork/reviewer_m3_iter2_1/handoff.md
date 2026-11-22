@@ -179,3 +179,13 @@ To independently verify these findings:
 
 ### Unchallenged Areas
 - Full transitive zero-`sorry` proof bodies of leaf contracts A01, A02, A04, A05, A11 (assigned to Milestones 4 and 5).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

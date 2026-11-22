@@ -155,3 +155,13 @@ To independently reproduce observations and verify the remediation:
    *Expected behavior*: Creates `.pause_workflow`, status shows `🔴 PAUSED`, resume deletes `.pause_workflow`, status returns to `🟢 RUNNING`.
 4. **Invalidation Condition**:
    If `python3 skills/.../scripts/*.py test` succeeds without error on `/usr/local/bin/python3` (Python 3.6.6), this finding is invalidated.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -54,3 +54,13 @@ When finished, send a message to the orchestrator (conversation ID: 02ef07b4-e66
 **Context**: Milestone 1 Exploration Status Check
 **Content**: Checking in on progress for Phase 3 Bubbling and Concentration specifications (C01–C03, B03–B07). Peer agents `spec_miner_phase3_compactness` and `explorer_phase3_blueprint` have completed their handoff reports. Please provide your current status and estimated completion time for `handoff.md`.
 **Action**: Update `progress.md` and report current status or deliver `handoff.md`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

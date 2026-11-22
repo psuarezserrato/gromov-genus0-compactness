@@ -11,3 +11,13 @@ Last visited: 2026-11-05T08:35:30Z
 - [x] Task 5: Run regression suites: `tests/ChallengePhase4ModelB.lean` and `tests/ForensicPhase4Axioms.lean` (both exit code 0)
 - [x] Task 6: Write handoff.md with explicit verdict APPROVE or REJECT (`APPROVE` written)
 - [x] Task 7: Send message to orchestrator
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

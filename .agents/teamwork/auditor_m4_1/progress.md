@@ -18,3 +18,13 @@
 - [x] Check 6: Component 5 #audit_wiring in tests/PhaseAxiomCensus.lean compiles and runs cleanly, reporting STATUS: WIRING AUDIT PASSED with all 9 core contracts connected. [PASSED]
 - [x] Check 7: No facade implementations, hardcoded test results, or fabricated verification strings. [PASSED]
 - [x] Check 8: Strict 9B local Gemma policy compliance. [PASSED]
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

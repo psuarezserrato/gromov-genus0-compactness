@@ -38,3 +38,13 @@ Independently review the Phase 3 Model A deliverables:
 6. Run `python3 tools/workflow_control.py test`.
 7. Deliver a clear gate verdict: APPROVE or REQUEST_CHANGES in handoff.md.
 When finished, send a message to orchestrator (conversation ID: 02ef07b4-e669-479a-8a3d-86a44c7477a8).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

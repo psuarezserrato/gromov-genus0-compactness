@@ -234,3 +234,13 @@ python3 tools/ollama_lean4_client.py ledger-summary
 This report's conclusions are invalidated if:
 1. `GromovCompactness.Analysis.TargetThresholds` or `GromovCompactness.Analysis.removal_of_singularities` are renamed or relocated without updating the qualified names in `#audit_wiring`.
 2. `tools/ollama_lean4_client.py` is invoked with disallowed model tags (`12b`/`27b`), violating the 9B memory constraint.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

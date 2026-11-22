@@ -59,3 +59,13 @@ Investigate and design the Lean 4 architecture, type signatures, structures, doc
 - `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/explorer_phase4_m1_1/proposed_VaryingJ.lean` — verified Lean 4 code prototype for E01
 - `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/explorer_phase4_m1_1/proposed_MarkedCurves.lean` — verified Lean 4 code prototype for E02
 - `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/explorer_phase4_m1_1/handoff.md` — comprehensive 5-component report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

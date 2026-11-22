@@ -86,3 +86,13 @@ Execute Phase 6: Local Analysis (`A01–A12`, declarations `#1–#13` in `COMPLE
 - `SCOPE.md` — Phase 6 milestones, interface contracts, and status tracking
 - `progress.md` — Progress tracker and liveness heartbeat
 - `GATE_STATUS.md` — Milestone gate verdicts
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

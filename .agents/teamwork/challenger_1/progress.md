@@ -20,3 +20,13 @@ Status: Complete
 - [x] Wrote 5-component handoff report in `.agents/teamwork/challenger_1/handoff.md` with explicit verdict `REQUEST_CHANGES`
 - [x] Updated BRIEFING.md
 - [x] Notified orchestrator via `send_message`
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -12,3 +12,13 @@ Current Status: Forensic audit complete. Integrity violation detected in tests/C
 - [x] Check 6: Zero regression build (`lake build`) — PASS (exits 0, 2337 jobs built)
 - [x] Check 7: Test suite validity (`tests/ChallengeMilestone3Phase5.lean`) — FAIL (Tests 2.1 & 2.2 are trivial `True := by trivial` facades on tautologies)
 - [x] Check 8: Metadata workspace layout compliance — PASS (no source/test files in .agents/teamwork/)
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

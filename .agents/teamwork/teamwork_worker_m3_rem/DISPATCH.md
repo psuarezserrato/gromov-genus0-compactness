@@ -51,3 +51,13 @@ Do NOT modify any other source files without explicit instruction.
    - Run `#print axioms` to verify strictly standard axioms `[propext, Classical.choice, Quot.sound]`.
    - Run `grep -n "sorry" GromovCompactness/Geometry/Sphere.lean` to verify 0 sorry.
 7. Write your handoff report to `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_worker_m3_rem/handoff.md` and send a message when finished.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

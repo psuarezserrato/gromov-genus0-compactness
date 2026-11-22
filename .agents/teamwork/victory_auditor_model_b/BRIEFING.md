@@ -54,3 +54,13 @@ Perform independent 3-phase Victory Audit for Model B Phase 1 Foundations (`F00`
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/victory_auditor_model_b/BRIEFING.md — Working memory
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/victory_auditor_model_b/progress.md — Liveness & progress tracker
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/victory_auditor_model_b/handoff.md — Formal Victory Audit Report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

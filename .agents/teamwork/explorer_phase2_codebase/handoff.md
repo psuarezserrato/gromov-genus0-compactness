@@ -435,3 +435,13 @@ To independently verify all findings and signatures:
    - Upgrading Lean toolchain beyond `v4.16.0` alters the declaration syntax of `hofer` or `IsManifold`.
    - Modifying `GromovCompactness/Geometry/Target.lean` alters the representation of `ClosedTameTarget` or `metric`.
    - Changing `GromovCompactness/Analysis/Energy.lean` breaks the definition of `energyMeasure` or `totalEnergy`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

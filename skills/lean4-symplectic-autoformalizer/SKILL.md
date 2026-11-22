@@ -198,3 +198,13 @@ python3 skills/lean4-symplectic-autoformalizer/scripts/autoformalize.py test
 4. **Neck Annulus Energy Leaks**:
    - *Mistake*: Concluding energy conservation purely from Fatou's lemma without proving neck energy vanishes.
    - *Fix*: Apply cylinder decay (Contract B03) to prove $\lim_{R \to \infty} \lim_{n \to \infty} E(u_n; A(R\lambda_n, \delta)) = 0$.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

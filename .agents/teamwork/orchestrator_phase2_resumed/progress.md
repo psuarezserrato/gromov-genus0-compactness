@@ -23,3 +23,13 @@ Current iteration: 2 / 32
 - [ ] Milestone 4: Phase 2 Model B Energy Gap & Singularities Zero-`sorry` Proofs (A07, A09–A12)
 - [ ] Milestone 5: Phase 2 Model B Calibrated Bubbling Zero-`sorry` Proofs (B01, B02)
 - [ ] Milestone 6: Phase 2 Integration, Axiom Audit, and Blueprint Certification
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

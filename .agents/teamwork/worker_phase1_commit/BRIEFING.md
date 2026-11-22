@@ -31,3 +31,13 @@ Commit Phase 1 Foundations completion (F00-F06) to Git and create formal workflo
 ## Artifact Index
 - handoff.md — Final handoff report (/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/worker_phase1_commit/handoff.md)
 - Checkpoint — /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/checkpoints/checkpoint_20261103T221705Z_phase1_foundations_complete.json
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

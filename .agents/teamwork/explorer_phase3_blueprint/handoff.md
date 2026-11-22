@@ -300,3 +300,13 @@ To independently verify all findings in this report, execute the following comma
    sed -n '401,538p' blueprint/src/content.tex
    ```
    *Expected outcome*: All labels `c01`–`c03`, `b01`–`b07`, `g01`–`g05` match the formal identifiers specified in this report.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -283,3 +283,13 @@ theorem moduli_space_in_class_compact_hausdorff (k : ℕ) (A : HomologyClass2 M)
    - Line 513: `elliptic_bootstrap_wkp` takes `interior_cauchy_riemann_estimate` (Contract A04) and was described as "Proved with ZERO sorry via reduction". Must be labeled "Conditional Reduction".
 7. **`GromovCompactness/Extensions/Homology.lean`**:
    - Lines 162 & 178: `tree_homology_eq_fixed_class` and `fixed_homology_pairing_eq_total_energy` depend on the `SecondHomology` structure axiom. Must be labeled "Conditional Reduction".
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -19,3 +19,13 @@ Initializing remediation workflow.
 11. [ ] Check Phase 1 `F00`–`F06` for zero `sorry`.
 12. [ ] Git commit changes.
 13. [ ] Write handoff report and notify caller.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

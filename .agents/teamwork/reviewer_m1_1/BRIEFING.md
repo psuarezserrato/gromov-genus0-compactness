@@ -67,3 +67,13 @@ Independently review and adversarial-stress-test Phase 5 Milestone 1 deliverable
   - Census on empty/misspelled module scope returns exit code 0 (documented in review.md)
   - Worker handoff verification command checked whole line rather than `proof` key (documented in review.md)
 - **Untested angles**: none for M1 scope
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

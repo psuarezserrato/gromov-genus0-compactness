@@ -20,3 +20,13 @@ Last visited: 2026-11-04T20:35:00Z
 - [x] Registered checkpoint `chk_phase4_model_b` (`chk_20261104T203443Z_chk_phase4_model_b`)
 - [x] Verified `python3 tools/workflow_control.py status` confirms 100.0% progress (39 of 39 contracts)
 - [x] Writing handoff report and sending notification to parent
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

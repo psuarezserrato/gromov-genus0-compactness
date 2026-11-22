@@ -374,3 +374,13 @@ theorem epsilon_regularity
    - Leaf sub-lemmas 3, 4, 5, 6 are already closed or nearly closed by standard Mathlib composition.
    - Leaf sub-lemmas 1 and 2 (Laplacian translation invariance) are ideal for local Gemma 9B tactic synthesis (`tools/ollama_lean4_client.py`).
    - Leaf sub-lemma 7 isolates the integral/measure comparison, which follows from `sphericalJacobian` bounds on balls.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

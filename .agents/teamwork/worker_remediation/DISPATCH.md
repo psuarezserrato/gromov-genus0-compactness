@@ -77,3 +77,12 @@ Send a message to orchestrator when complete.
 **Content**: We observed the successful updates in `tools/workflow_control.py` and `skills/ollama-lean4-gemma-prover/scripts/ollama_query.py`.
 **Action**: Please let us know if test executions are complete and when handoff.md will be finalized.
 
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

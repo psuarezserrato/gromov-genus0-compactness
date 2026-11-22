@@ -307,3 +307,13 @@ A standard LoRA parameter fine-tuning session on a 9.2B parameter model requires
 5. **Step 5: Verify End-to-End**:
    - Run `tools/ollama_lean4_client.py test`.
    - Check `.agents/gemma_usage.jsonl` is populated and `~/.ollama/logs/server.log` shows 0 new 404s.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

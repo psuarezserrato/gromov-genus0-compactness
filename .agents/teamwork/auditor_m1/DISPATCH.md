@@ -44,3 +44,13 @@ Perform forensic integrity auditing of Milestone 1:
 3. Validate genuine execution of census, client tests, and BM25 index.
 Provide explicit verdict: CLEAN or INTEGRITY VIOLATION.
 Write your report to `audit.md` and `handoff.md` and message me.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

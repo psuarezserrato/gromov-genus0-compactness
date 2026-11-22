@@ -52,3 +52,13 @@ Phase 5 establishes the foundation for the entire Gromov Compactness autoformali
 - `GromovCompactness/Analysis/Energy.lean`: `energyMeasureExtended` integrates against Lebesgue with spherical Jacobian or spherical measure on CP1. `energy_conformal_invariant` proved unconditionally.
 - `GromovCompactness/Target.lean`: `ClosedTameTarget` specifies `ω_closed` and `J_smooth` using concrete Mathlib manifold differential topology predicates.
 - `GromovCompactness/Extensions/Automorphisms.lean`: `moebius_three_point_rigidity`, `ghost_component_pure_automorphism_trivial`, `pure_component_automorphisms_finite`, and `full_automorphisms_finite_iff_pure_finite` are 100% sorry-free.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

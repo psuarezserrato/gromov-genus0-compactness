@@ -21,3 +21,13 @@ Current iteration: 1 / 32
 - [ ] Milestone 3 — Target Monotonicity & Sphere Energy Gap (`A07–A08`, `#8–#9`)
 - [ ] Milestone 4 — Cylinder Decay & Singularity Removal (`A09–A12` + `B01`, `#10–#13`)
 - [ ] Milestone 5 — Phase 6 Final Gate, Fine-Tuning Update & Kernel Axiom Census Certification
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

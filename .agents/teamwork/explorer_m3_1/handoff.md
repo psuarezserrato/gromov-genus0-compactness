@@ -140,3 +140,13 @@ The blueprint is fully certified and ready for worker implementation:
    - Any failure of `lake build GromovCompactness` to compile.
    - Any `sorryAx` introduced directly into `removal_of_singularities` or `elliptic_bootstrap_holder`.
    - Any break in existing Sobolev norm test cases in `ChallengeMilestone3Bootstrap.lean`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

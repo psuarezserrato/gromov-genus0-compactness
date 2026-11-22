@@ -272,7 +272,7 @@ Below are the refined, concrete candidate Lean 4 type declarations, directly con
 ```lean
 /-
 Copyright (c) 2026 SympTopAutoForm Contributors. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
+Released under the GNU Affero General Public License v3.0 (AGPLv3) for non-commercial use; see LICENSE.md for details.
 Authors: Explorer Survey Math Agent
 -/
 import Mathlib.Analysis.Hofer
@@ -460,3 +460,13 @@ Before finalizing any blueprint or code, the design must be verified against the
    - **Workspace Blueprint** (`gromov_compactness.pdf`) supplies: the exact 32 task contracts, well-founded induction, calibration equations, ghost stability, and the master theorem.
 2. **Local Gemma / Ollama Autoformalization Workflow**:
    - The modular design of tasks F00–G05 allows individual tasks (such as scalar mean-value A01, Bochner inequality A02, and rank decrease B06) to be prompted directly to local Gemma models running via Ollama (`http://localhost:11434`), conserving external compute while automating lemma proofs.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

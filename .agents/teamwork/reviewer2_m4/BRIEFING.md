@@ -66,3 +66,13 @@ Perform high-reliability axiomatic and interface review of newly added declarati
 - `.agents/teamwork/reviewer2_m4/progress.md` — Liveness heartbeat
 - `.agents/teamwork/reviewer2_m4/TestReviewer2.lean` — Independent stress test harness
 - `.agents/teamwork/reviewer2_m4/handoff.md` — Final review report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

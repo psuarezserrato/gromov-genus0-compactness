@@ -27,3 +27,13 @@ Your Task:
 5. Verify the commit with `git log -1 --stat` and capture the commit SHA.
 6. Write your report to `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/worker_m3_commit/handoff.md`.
 7. Notify the orchestrator via `send_message` with the commit SHA and status.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

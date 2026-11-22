@@ -72,3 +72,12 @@ Current iteration: 1 / 32 (Milestone 2 Model B)
 - 2026-11-04T08:12:00Z: `worker_m2_commit` completed and delivered handoff report (`handoff.md`). All tests passed, Phase 1 regressions verified empty, and deliverables committed cleanly to `main` at `f25a440aec2225da511fd46e72cef64c9ff3988b`.
 - 2026-11-04T08:14:00Z: Cumulative spawn count = 16 / 16. All 16 subagents completed. Succession protocol fired. Soft handoff written to `handoff.md`. Cancelling background task `task-34` and spawning successor orchestrator generation 3 to drive Milestone 3 (Elliptic Bootstrap).
 
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

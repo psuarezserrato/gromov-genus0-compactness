@@ -188,3 +188,13 @@ Replace the partial `CollectAxioms` traversal with cycle-safe memoized axiom col
 ## 6. Conclusion
 
 Strategy B is unequivocally the correct, authentic, and mathematically rigorous path forward. Restricting `data/gemma_accepted_proofs.jsonl` to the 395 kernel-verified library theorems while deriving all axiom attestations directly from the Lean environment completely eliminates all integrity defects and establishes an irreproachable verification standard.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

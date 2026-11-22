@@ -11,3 +11,13 @@ Status: Completed independent 3-phase audit — VERDICT: VICTORY CONFIRMED
 - [x] Step 5: Phase C — Independent Test & Build Execution (clean lake build of all 7 modules exit 0, exhaustive axiom verification certifying [propext, Classical.choice, Quot.sound], challenger stress-tests verified)
 - [x] Step 6: Adversarial stress-testing of definitions and theorem statements (confirmed elimination of facades via failing rfl in challenge tests)
 - [x] Step 7: Final report generation (handoff.md) and notification to caller
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

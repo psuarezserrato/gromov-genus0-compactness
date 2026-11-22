@@ -80,3 +80,13 @@
 | `MODULE_PREFIX="" lake env lean tests/PhaseAxiomCensus.lean` | Census empty prefix | Fast error in < 4s, exit code 1 | `STATUS: ERROR (empty module prefix)` in 3.1s (Exit 1) | PASS |
 | `./tools/phase_axiom_census.sh ""` | Census script empty arg | Fast error, exit code 1 | `STATUS: ERROR (empty module prefix)` (Exit 1) | PASS |
 | `lake build` | Full repository build | Exit code 0, 0 build errors | `Build completed successfully.` (Exit 0) | PASS |
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  7 NOV 2026 14:16
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  22 NOV 2026 11:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -275,27 +275,6 @@ File: listings.cfg 2015/06/04 1.6 listings configuration
 ))
 Package: listings 2015/06/04 1.6 (Carsten Heinz)
 
-(/usr/local/texlive/2018/texmf-dist/tex/latex/pgf/frontendlayer/tikz.sty
-(/usr/local/texlive/2018/texmf-dist/tex/latex/pgf/basiclayer/pgf.sty
-(/usr/local/texlive/2018/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty
-(/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.te
-x
-\pgfutil@everybye=\toks33
-\pgfutil@tempdima=\dimen145
-\pgfutil@tempdimb=\dimen146
-
-(/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/utilities/pgfutil-common-li
-sts.tex))
-(/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/utilities/pgfutil-latex.def
-\pgfutil@abb=\box33
-(/usr/local/texlive/2018/texmf-dist/tex/latex/ms/everyshi.sty
-Package: everyshi 2001/05/15 v3.00 EveryShipout Package (MS)
-))
-(/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/utilities/pgfrcs.code.tex
-Package: pgfrcs 2015/08/07 v3.0.1a (rcs-revision 1.31)
-))
-Package: pgf 2015/08/07 v3.0.1a (rcs-revision 1.15)
-(/usr/local/texlive/2018/texmf-dist/tex/latex/pgf/basiclayer/pgfcore.sty
 (/usr/local/texlive/2018/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 2017/06/01 v1.1a Enhanced LaTeX Graphics (DPC,SPQR)
 
@@ -310,9 +289,30 @@ File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
 )
 Package graphics Info: Driver file: pdftex.def on input line 99.
 )
-\Gin@req@height=\dimen147
-\Gin@req@width=\dimen148
+\Gin@req@height=\dimen145
+\Gin@req@width=\dimen146
 )
+(/usr/local/texlive/2018/texmf-dist/tex/latex/pgf/frontendlayer/tikz.sty
+(/usr/local/texlive/2018/texmf-dist/tex/latex/pgf/basiclayer/pgf.sty
+(/usr/local/texlive/2018/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty
+(/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.te
+x
+\pgfutil@everybye=\toks33
+\pgfutil@tempdima=\dimen147
+\pgfutil@tempdimb=\dimen148
+
+(/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/utilities/pgfutil-common-li
+sts.tex))
+(/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/utilities/pgfutil-latex.def
+\pgfutil@abb=\box33
+(/usr/local/texlive/2018/texmf-dist/tex/latex/ms/everyshi.sty
+Package: everyshi 2001/05/15 v3.00 EveryShipout Package (MS)
+))
+(/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/utilities/pgfrcs.code.tex
+Package: pgfrcs 2015/08/07 v3.0.1a (rcs-revision 1.31)
+))
+Package: pgf 2015/08/07 v3.0.1a (rcs-revision 1.15)
+(/usr/local/texlive/2018/texmf-dist/tex/latex/pgf/basiclayer/pgfcore.sty
 (/usr/local/texlive/2018/texmf-dist/tex/latex/pgf/systemlayer/pgfsys.sty
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/systemlayer/pgfsys.code.tex
 Package: pgfsys 2014/07/09 v3.0.1a (rcs-revision 1.48)
@@ -564,6 +564,14 @@ File: pgfmodulematrix.code.tex 2013/09/17  (rcs-revision 1.8)
 s/tikzlibrarytopaths.code.tex
 File: tikzlibrarytopaths.code.tex 2008/06/17 v3.0.1a (rcs-revision 1.2)
 )))
+(/usr/local/texlive/2018/texmf-dist/tex/latex/oberdiek/pdflscape.sty
+Package: pdflscape 2016/05/14 v0.11 Display of landscape pages in PDF (HO)
+
+(/usr/local/texlive/2018/texmf-dist/tex/latex/graphics/lscape.sty
+Package: lscape 2000/10/22 v3.01 Landscape Pages (DPC)
+)
+Package pdflscape Info: Auto-detected driver: pdftex on input line 81.
+)
 (/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/libraries/pgflibraryarrows.
 meta.code.tex
 File: pgflibraryarrows.meta.code.tex 2015/05/13 v3.0.1a (rcs-revision 1.13)
@@ -576,6 +584,16 @@ File: pgflibraryarrows.meta.code.tex 2015/05/13 v3.0.1a (rcs-revision 1.13)
 s/tikzlibrarypositioning.code.tex
 File: tikzlibrarypositioning.code.tex 2008/10/06 v3.0.1a (rcs-revision 1.7)
 )
+(/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/frontendlayer/tikz/librarie
+s/tikzlibraryshapes.geometric.code.tex
+File: tikzlibraryshapes.geometric.code.tex 2008/01/09 v3.0.1a (rcs-revision 1.1
+)
+
+(/usr/local/texlive/2018/texmf-dist/tex/generic/pgf/libraries/shapes/pgflibrary
+shapes.geometric.code.tex
+File: pgflibraryshapes.geometric.code.tex 2008/06/26 v3.0.1a (rcs-revision 1.1)
+
+))
 (/usr/local/texlive/2018/texmf-dist/tex/latex/hyperref/hyperref.sty
 Package: hyperref 2018/02/06 v6.86b Hypertext links for LaTeX
 
@@ -693,21 +711,21 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 (./gromov_lean_report.aux)
 \openout1 = `gromov_lean_report.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Try loading font information for T1+lmr on input line 49.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 64.
+LaTeX Font Info:    ... okay on input line 64.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 64.
+LaTeX Font Info:    ... okay on input line 64.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 64.
+LaTeX Font Info:    ... okay on input line 64.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 64.
+LaTeX Font Info:    ... okay on input line 64.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 64.
+LaTeX Font Info:    ... okay on input line 64.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 64.
+LaTeX Font Info:    ... okay on input line 64.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 64.
+LaTeX Font Info:    ... okay on input line 64.
+LaTeX Font Info:    Try loading font information for T1+lmr on input line 64.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/t1lmr.fd
 File: t1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
@@ -780,7 +798,7 @@ e
 
 ABD: EveryShipout initializing macros
 \AtBeginShipoutBox=\box45
-Package hyperref Info: Link coloring ON on input line 49.
+Package hyperref Info: Link coloring ON on input line 64.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
@@ -790,163 +808,568 @@ Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
 )
 \c@section@level=\count154
 )
-LaTeX Info: Redefining \ref on input line 49.
-LaTeX Info: Redefining \pageref on input line 49.
-LaTeX Info: Redefining \nameref on input line 49.
+LaTeX Info: Redefining \ref on input line 64.
+LaTeX Info: Redefining \pageref on input line 64.
+LaTeX Info: Redefining \nameref on input line 64.
 
 (./gromov_lean_report.out) (./gromov_lean_report.out)
 \@outlinefile=\write4
 \openout4 = `gromov_lean_report.out'.
 
-LaTeX Font Info:    Try loading font information for OT1+lmr on input line 51.
+LaTeX Font Info:    Try loading font information for OT1+lmr on input line 66.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/ot1lmr.fd
 File: ot1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OML+lmm on input line 51.
+LaTeX Font Info:    Try loading font information for OML+lmm on input line 66.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/omllmm.fd
 File: omllmm.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OMS+lmsy on input line 51.
+LaTeX Font Info:    Try loading font information for OMS+lmsy on input line 66.
 
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/omslmsy.fd
 File: omslmsy.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OMX+lmex on input line 51.
+LaTeX Font Info:    Try loading font information for OMX+lmex on input line 66.
 
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/omxlmex.fd
 File: omxlmex.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 51.
+(Font)              <12> on input line 66.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 51.
+(Font)              <8> on input line 66.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 51.
-LaTeX Font Info:    Try loading font information for U+msa on input line 51.
+(Font)              <6> on input line 66.
+LaTeX Font Info:    Try loading font information for U+msa on input line 66.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 51.
+LaTeX Font Info:    Try loading font information for U+msb on input line 66.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-LaTeX Font Info:    Try loading font information for T1+lmtt on input line 55.
+LaTeX Font Info:    Try loading font information for T1+lmtt on input line 70.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 57.
+(Font)              <10> on input line 72.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 57.
+(Font)              <7> on input line 72.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 57.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 93.
+(Font)              <5> on input line 72.
  [1
 
 {/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-LaTeX Font Info:    Try loading font information for OMS+lmr on input line 114.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <10.95> on input line 112.
+LaTeX Font Info:    Try loading font information for OMS+lmr on input line 133.
 
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/lm/omslmr.fd
 File: omslmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    Font shape `OMS/lmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/lmsy/m/n' tried instead on input line 114.
+(Font)              Font shape `OMS/lmsy/m/n' tried instead on input line 133.
  [2]
-LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <9> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 164.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <9> on input line 165.
+Underfull \hbox (badness 2626) in paragraph at lines 181--189
+\T1/lmr/m/n/10.95 node \T1/lmtt/m/n/10.95 cert_fin\T1/lmr/m/n/10.95 ) is now pr
+oved as a the-o-rem both from the sphere en-ergy gap
+ []
 
-Underfull \hbox (badness 2027) in paragraph at lines 180--187
+
+Underfull \hbox (badness 2564) in paragraph at lines 181--189
+\T1/lmr/m/n/10.95 (\T1/lmtt/m/n/10.95 energyMeasureExtended_lt_top_of_jhol_and_
+sph_gap \T1/lmr/m/n/10.95 and \T1/lmtt/m/n/10.95 energyMeasureExtended_
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 181--189
+\T1/lmr/m/n/10.95 on a \T1/lmtt/m/n/10.95 BoundedChartedTarget \T1/lmr/m/n/10.9
+5 (\T1/lmtt/m/n/10.95 energyMeasureExtended_lt_top_of_contMDiff \T1/lmr/m/n/10.
+95 and
+ []
+
+
+Underfull \hbox (badness 2334) in paragraph at lines 189--197
+\T1/lmtt/m/n/10.95 decay \T1/lmr/m/n/10.95 and Con-tract A10 \T1/lmtt/m/n/10.95
+ a10_decay\T1/lmr/m/n/10.95 ) is now proved from single-step col-lar Wid-
+ []
+
+
+Underfull \hbox (badness 6792) in paragraph at lines 189--197
+\OML/lmm/m/it/10.95 K\OT1/lmr/m/n/10.95 )\OML/lmm/m/it/10.95 =K\OT1/lmr/m/n/10.
+95 )\OML/lmm/m/it/10.95 = [] \OT1/lmr/m/n/10.95 2 \OML/lmm/m/it/10.95 > \OT1/lm
+r/m/n/10.95 0$ \T1/lmr/m/n/10.95 (\T1/lmtt/m/n/10.95 satisfiesCylinderEnergyDec
+ayWith_of_collar_hole_filling\T1/lmr/m/n/10.95 ,
+ []
+
+
+Underfull \hbox (badness 4341) in paragraph at lines 197--204
+\T1/lmr/m/n/10.95 chain-ing (\T1/lmtt/m/n/10.95 satisfiesCylinderCollarOscillat
+ionWith_of_bounded_modulus_and_decay\T1/lmr/m/n/10.95 ,
+ []
+
+
+Underfull \hbox (badness 1210) in paragraph at lines 197--204
+\T1/lmtt/m/n/10.95 of_slices_and_collar_hole_filling_uncond\T1/lmr/m/n/10.95 ),
+ turn-ing \T1/lmtt/m/n/10.95 cert_osc\T1/lmr/m/n/10.95 , \T1/lmtt/m/n/10.95 a09
+_localization\T1/lmr/m/n/10.95 ,
+ []
+
+
+Underfull \hbox (badness 7558) in paragraph at lines 204--211
+\T1/lmr/m/n/10.95 single-point $\OML/lmm/m/it/10.95 C[]$\T1/lmr/m/n/10.95 /\T1/
+lmtt/m/n/10.95 mfderiv \T1/lmr/m/n/10.95 con-ti-nu-ity (\T1/lmtt/m/n/10.95 exis
+ts_unique_limit_point_of_local_collar_
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 204--211
+\T1/lmtt/m/n/10.95 oscillation\T1/lmr/m/n/10.95 , \T1/lmtt/m/n/10.95 exists_uni
+que_continuous_extension_of_local_collar_oscillation\T1/lmr/m/n/10.95 ,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 204--211
+\T1/lmtt/m/n/10.95 weakJHolomorphicOn_univ_of_contMDiffAt_and_continuousAt_mfde
+riv_at_puncture\T1/lmr/m/n/10.95 ,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 211--220
+\T1/lmtt/m/n/10.95 bound_of_normal_chart_weitz_at_center\T1/lmr/m/n/10.95 , \T1
+/lmtt/m/n/10.95 weitzenbockDecompositionProperty_of_
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 211--220
+\T1/lmtt/m/n/10.95 normal_chart_weitz\T1/lmr/m/n/10.95 , and \T1/lmtt/m/n/10.95
+ weitzenbockDecompositionProperty_of_normal_chart_
+ []
+
+[3]
+Underfull \hbox (badness 10000) in paragraph at lines 220--232
+\T1/lmtt/m/n/10.95 writtenInExtChartAt_of_contMDiffOn\T1/lmr/m/n/10.95 , \T1/lm
+tt/m/n/10.95 contMDiffWithinAt_of_weakJHolomorphicOn_
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 220--232
+\T1/lmtt/m/n/10.95 and_contDiffAt_writtenInExtChartAt\T1/lmr/m/n/10.95 , \T1/lm
+tt/m/n/10.95 regularityTowerProperty_of_chart_step\T1/lmr/m/n/10.95 ,
+ []
+
+
+Underfull \hbox (badness 2478) in paragraph at lines 220--232
+\T1/lmtt/m/n/10.95 nonlinear_elliptic_bootstrap_of_chart_step\T1/lmr/m/n/10.95 
+, and \T1/lmtt/m/n/10.95 removal_of_singularities_of_
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 232--244
+\T1/lmtt/m/n/10.95 of_radial_diff_ineq\T1/lmr/m/n/10.95 , \T1/lmtt/m/n/10.95 bo
+undaryHitMonotonicity_of_radial_diff_ineq\T1/lmr/m/n/10.95 ), to-gether
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 232--244
+\T1/lmr/m/n/10.95 (\T1/lmtt/m/n/10.95 smallBallExit_of_pair_dist_ge\T1/lmr/m/n/
+10.95 , \T1/lmtt/m/n/10.95 hitExitProperty_of_radial_diff_ineq_and_
+ []
+
+
+Underfull \hbox (badness 7649) in paragraph at lines 244--255
+\T1/lmr/m/n/10.95 cal-i-brated de-fect rescal-ing (\T1/lmtt/m/n/10.95 IsDefectS
+eq.exists_calibrated_subseq_scales\T1/lmr/m/n/10.95 ), uni-
+ []
+
+
+Underfull \hbox (badness 3525) in paragraph at lines 244--255
+\T1/lmr/m/n/10.95 form for-ward and in-verse affine-frame col-lapse on com-pact
+ sub-sets of punc-tured
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 244--255
+\T1/lmr/m/n/10.95 spheres (\T1/lmtt/m/n/10.95 affine_scaling_tendstoUniformlyOn
+_punctured_north_pole\T1/lmr/m/n/10.95 , \T1/lmtt/m/n/10.95 affine_
+ []
+
+
+Underfull \hbox (badness 1838) in paragraph at lines 244--255
+\T1/lmr/m/n/10.95 (\T1/lmtt/m/n/10.95 SeqOneLevelDecomposition.of_rescaled_limi
+t\T1/lmr/m/n/10.95 , \T1/lmtt/m/n/10.95 oneLevelCertificate_of_rescaled_
+ []
+
+
+Underfull \hbox (badness 3919) in paragraph at lines 255--268
+\T1/lmr/m/n/10.95 compact-set $\OML/lmm/m/it/10.95 "$\T1/lmr/m/n/10.95 -regular
+ity gra-di-ent bounds (\T1/lmtt/m/n/10.95 eventually_gradient_bound_on_compact_
+
+ []
+
+
+Underfull \hbox (badness 4531) in paragraph at lines 255--268
+\T1/lmtt/m/n/10.95 southern_hemisphere_of_disjoint_S\T1/lmr/m/n/10.95 ), point-
+wise en-ergy den-sity con-ver-gence un-der
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 255--268
+\OML/lmm/m/it/10.95 C[]$ \T1/lmr/m/n/10.95 con-ver-gence (\T1/lmtt/m/n/10.95 te
+ndsto_riemannianEnergyDensity_of_smoothLocalConvergesOn\T1/lmr/m/n/10.95 ),
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 255--268
+\T1/lmtt/m/n/10.95 extension_across_finset \T1/lmr/m/n/10.95 and \T1/lmtt/m/n/1
+0.95 smoothConcentrationExtractProperty_of_local_
+ []
+
+[4]
+Underfull \hbox (badness 2035) in paragraph at lines 268--279
+\T1/lmtt/m/n/10.95 aa \T1/lmr/m/n/10.95 and Con-tract A06 \T1/lmtt/m/n/10.95 a0
+6_local_compactness\T1/lmr/m/n/10.95 ) is now proved from first-principles
+ []
+
+
+Underfull \hbox (badness 6001) in paragraph at lines 268--279
+\T1/lmr/m/n/10.95 Lip-s-chitz equicon-ti-nu-ity un-der lo-cal energy-density bo
+unds (\T1/lmtt/m/n/10.95 local_lipschitz_of_
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 268--279
+\T1/lmtt/m/n/10.95 pointwise_convergent_subseq_on_domain\T1/lmr/m/n/10.95 ), fi
+xed-target-chart even-tual lo-cal-iza-tion
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 268--279
+\T1/lmr/m/n/10.95 (\T1/lmtt/m/n/10.95 exists_fixed_chart_ball_eventually_smooth
+_and_pointwise\T1/lmr/m/n/10.95 ), even-tual higher-jet
+ []
+
+
+Underfull \hbox (badness 1466) in paragraph at lines 268--279
+\T1/lmr/m/n/10.95 Bruno Möbius-frame in-vari-ance (\T1/lmtt/m/n/10.95 eventuall
+yHasLocalChartJetBoundsAt_comp_moebius
+ []
+
+
+Underfull \hbox (badness 6961) in paragraph at lines 279--291
+[]\T1/lmr/m/n/10.95 Concentration-to-defect ex-trac-tion (\T1/lmtt/m/n/10.95 Co
+ncDefectCertificate\T1/lmr/m/n/10.95 , blueprint node \T1/lmtt/m/n/10.95 cert_
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 279--291
+\T1/lmtt/m/n/10.95 disk_radius\T1/lmr/m/n/10.95 , \T1/lmtt/m/n/10.95 defect_mas
+s_limit_of_concentration_finite_point\T1/lmr/m/n/10.95 ), un-con-di-tional
+ []
+
+
+Underfull \hbox (badness 4859) in paragraph at lines 279--291
+\T1/lmr/m/n/10.95 southern-hemisphere compact-annulus equicon-ti-nu-ity and uni
+-form neck con-ver-gence
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 279--291
+\T1/lmr/m/n/10.95 (\T1/lmtt/m/n/10.95 tendstoUniformlyOn_of_pointwise_and_equic
+ontinuous_on_open\T1/lmr/m/n/10.95 , \T1/lmtt/m/n/10.95 isDefectSeq_
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 279--291
+\T1/lmtt/m/n/10.95 of_concentration_southern_hemisphere\T1/lmr/m/n/10.95 ), and
+ con-for-mal Möbius pull-back push-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 279--291
+\T1/lmr/m/n/10.95 for-ward (\T1/lmtt/m/n/10.95 weakMeasureConvergence_map_homeo
+morph\T1/lmr/m/n/10.95 , \T1/lmtt/m/n/10.95 concDefectCertificate_of_
+ []
+
+
+Underfull \hbox (badness 3019) in paragraph at lines 291--303
+\T1/lmr/m/n/10.95 struc-tors from the proved cer-tifi-cate pred-i-cates (\T1/lm
+tt/m/n/10.95 TargetThresholds.of_properties\T1/lmr/m/n/10.95 ,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 291--303
+\T1/lmtt/m/n/10.95 exists_target_thresholds_of_properties\T1/lmr/m/n/10.95 ), c
+anon-i-cal normal-chart cer-tifi-cates
+ []
+
+
+Underfull \hbox (badness 1275) in paragraph at lines 291--303
+\T1/lmr/m/n/10.95 (\T1/lmtt/m/n/10.95 TargetThresholds.of_bounded_geometry_cert
+s\T1/lmr/m/n/10.95 ), first-principles normal-chart bounds
+ []
+
+
+Underfull \hbox (badness 1466) in paragraph at lines 291--303
+\T1/lmr/m/n/10.95 dis-charg-ing met-ric co-er-civ-ity and an-nu-lar finite-ness
+ (\T1/lmtt/m/n/10.95 TargetThresholds.of_bounded_
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 291--303
+\T1/lmtt/m/n/10.95 geometry_first_principles\T1/lmr/m/n/10.95 ), sym-plec-ti-ca
+lly as-pher-i-cal tar-gets (\T1/lmtt/m/n/10.95 exists_target_
+ []
+
+
+Underfull \hbox (badness 1762) in paragraph at lines 291--303
+\T1/lmtt/m/n/10.95 thresholds_of_symplectically_aspherical\T1/lmr/m/n/10.95 ), 
+and threshold-constructing mas-ter the-
+ []
+
+
+Underfull \hbox (badness 4429) in paragraph at lines 291--303
+\T1/lmr/m/n/10.95 o-rems (\T1/lmtt/m/n/10.95 gromov_compactness_genus_zero_of_r
+otations\T1/lmr/m/n/10.95 , \T1/lmtt/m/n/10.95 gromov_compactness_genus_
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 291--303
+\T1/lmtt/m/n/10.95 zero_of_properties\T1/lmr/m/n/10.95 , and \T1/lmtt/m/n/10.95
+ gromov_compactness_genus_zero_of_bounded_geometry_
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 303--320
+\T1/lmr/m/n/10.95 prove marked and varying-$\OML/lmm/m/it/10.95 J$ \T1/lmr/m/n/
+10.95 limit ex-trac-tion (\T1/lmtt/m/n/10.95 exists_convergent_pulled_back_
+ []
+
+
+Underfull \hbox (badness 3612) in paragraph at lines 303--320
+\T1/lmtt/m/n/10.95 marks_subseq\T1/lmr/m/n/10.95 , \T1/lmtt/m/n/10.95 marked_gr
+omov_compactness_of_rotations_nodal_disjoint\T1/lmr/m/n/10.95 , \T1/lmtt/m/n/10
+.95 gromov_
+ []
+
+[5]
+LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <9> not available
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 324.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <9> on input line 325.
+
+Underfull \hbox (badness 2027) in paragraph at lines 347--354
  []\T1/lmr/bx/n/10.95 What is fully checked.[] \T1/lmr/m/n/10.95 For ev-ery dec
 -la-ra-tion in the \T1/lmtt/m/n/10.95 GromovCompactness \T1/lmr/m/n/10.95 names
 -pace
  []
 
 
-Underfull \hbox (badness 2538) in paragraph at lines 180--187
+Underfull \hbox (badness 2538) in paragraph at lines 347--354
 \T1/lmr/m/n/10.95 we com-puted the ax-ioms of its full de-pen-dency clo-sure wi
 th a single-traversal cen-sus
  []
 
 
-Underfull \hbox (badness 1975) in paragraph at lines 192--195
+Underfull \hbox (badness 1975) in paragraph at lines 359--363
 []\T1/lmr/m/it/10.95 Measures (C01, C03). \T1/lmr/m/n/10.95 Prokhorov se-quen-t
 ial com-pact-ness on $[][]$ from Math-lib's
  []
 
 
-Underfull \hbox (badness 1430) in paragraph at lines 192--195
+Overfull \hbox (57.57257pt too wide) in paragraph at lines 359--363
 \T1/lmtt/m/n/10.95 RealRMK.rieszMeasure \T1/lmr/m/n/10.95 and finite-measure Po
-rt-man-teau the-o-rems; weak com-pact-ness
+rt-man-teau the-o-rems; finite-ness of \T1/lmtt/m/n/10.95 energyMeasureExtended
+
  []
 
-[3] [4]
-Underfull \hbox (badness 2799) in paragraph at lines 301--313
+[6]
+Overfull \hbox (12.46262pt too wide) in paragraph at lines 411--411
+\T1/lmtt/m/n/9 BoundedChartedTarget\T1/lmr/m/n/9 ).|  
+ []
+
+
+Overfull \hbox (38.24306pt too wide) in paragraph at lines 411--411
+\T1/lmr/m/n/9 (\T1/lmtt/m/n/9 collarOscillationProperty_ 
+ []
+
+
+Overfull \hbox (71.318pt too wide) in paragraph at lines 411--411
+\T1/lmr/m/n/9 (\T1/lmtt/m/n/9 satisfiesCylinderEnergyDecayWith_ 
+ []
+
+
+Overfull \hbox (6.29611pt too wide) in paragraph at lines 411--411
+\T1/lmtt/m/n/9 writtenInExtChartAt_ 
+ []
+
+
+Overfull \hbox (1.57112pt too wide) in paragraph at lines 411--411
+\T1/lmtt/m/n/9 weakJHolomorphicOn_ 
+ []
+
+
+Overfull \hbox (5.16812pt too wide) in paragraph at lines 411--411
+\T1/lmtt/m/n/9 writtenInExtChartAt\T1/lmr/m/n/9 ) 
+ []
+
+
+Overfull \hbox (30.23459pt too wide) in paragraph at lines 411--411
+\T1/lmr/m/n/9 (\T1/lmtt/m/n/9 RealizedLocalDefectTree\T1/lmr/m/n/9 ), 
+ []
+
+
+Overfull \hbox (20.7846pt too wide) in paragraph at lines 411--411
+\T1/lmr/m/n/9 (\T1/lmtt/m/n/9 MoebiusFrame.ofMatrix\T1/lmr/m/n/9 ), 
+ []
+
+
+Overfull \hbox (4.14063pt too wide) in paragraph at lines 411--411
+\T1/lmtt/m/n/9 moduliSpaceTopology\T1/lmr/m/n/9 , 
+ []
+
+
+LaTeX Warning: Float too large for page by 752.85553pt on input line 415.
+
+[7] [8]
+Underfull \hbox (badness 2799) in paragraph at lines 517--529
  []\T1/lmr/bx/n/10.95 Local com-pute with Gemma.[] \T1/lmr/m/n/10.95 A stdlib-o
 nly Python client ex-poses \T1/lmtt/m/n/10.95 autoformalize\T1/lmr/m/n/10.95 ,
  []
 
-[5] [6]
-Underfull \hbox (badness 10000) in paragraph at lines 395--397
+[9]
+Overfull \hbox (5.98706pt too wide) in paragraph at lines 563--567
+\T1/lmr/m/n/10.95 The mod-ule \T1/lmtt/m/n/10.95 Geometry/NormalCharts.lean \T1
+/lmr/m/n/10.95 (1,836 lines, ver-i-fied by \T1/lmtt/m/n/10.95 tests/TestNormalC
+harts.lean
+ []
+
+LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10.95> not available
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 567.
+
+Underfull \hbox (badness 1622) in paragraph at lines 567--576
+[]\T1/lmr/bx/n/10.95 N1 (at-las, \T1/lmtt/b/n/10.95 mfderiv \T1/lmr/bx/n/10.95 
+fac-tor-iza-tion and proof of \T1/lmtt/b/n/10.95 cert_fin\T1/lmr/bx/n/10.95 ): 
+\T1/lmtt/m/n/10.95 FiniteGoodAtlas
+ []
+
+
+Underfull \hbox (badness 2582) in paragraph at lines 567--576
+\T1/lmr/m/n/10.95 and \T1/lmtt/m/n/10.95 exists_finiteGoodAtlas \T1/lmr/m/n/10.
+95 con-struct a fi-nite pre-com-pact co-or-di-nate cover with
+ []
+
+
+Underfull \hbox (badness 7291) in paragraph at lines 567--576
+\T1/lmr/m/n/10.95 a pos-i-tive Lebesgue ra-dius from com-pact-ness, \T1/lmtt/m/
+n/10.95 mfderiv_eq_tangentCoordChange_
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 567--576
+\T1/lmtt/m/n/10.95 EnergyDensityCertificate.of_contMDiff \T1/lmr/m/n/10.95 and 
+\T1/lmtt/m/n/10.95 energyMeasureExtended_lt_top_of_
+ []
+
+[10]
+Overfull \hbox (49.90132pt too wide) in paragraph at lines 576--584
+[]\T1/lmr/bx/n/10.95 N2 (quadratic Tay-lor nor-mal charts and $[][]$ model): \T
+1/lmtt/m/n/10.95 quadraticTaylorOpenPartialHomeomorph
+ []
+
+
+Underfull \hbox (badness 2626) in paragraph at lines 584--594
+\T1/lmtt/m/n/10.95 of_all_const\T1/lmr/m/n/10.95 ), and \T1/lmtt/m/n/10.95 disc
+harge_h_weitz\T1/lmr/m/n/10.95 , \T1/lmtt/m/n/10.95 discharge_h_hit_exit\T1/lmr
+/m/n/10.95 , \T1/lmtt/m/n/10.95 discharge_h_osc\T1/lmr/m/n/10.95 ,
+ []
+
+
+Overfull \hbox (29.34967pt too wide) in paragraph at lines 595--598
+\T1/lmr/m/n/10.95 Beyond the chart PDE es-ti-mates: \T1/lmtt/m/n/10.95 h_conc_e
+xtract\T1/lmr/m/n/10.95 , \T1/lmtt/m/n/10.95 OneLevelCertificate \T1/lmr/m/n/10
+.95 and \T1/lmtt/m/n/10.95 ConcDefectCertificate
+ []
+
+[11]
+
+pdfTeX warning: pdflatex (file ./blueprint_dep_graph.pdf): PDF inclusion: found
+ PDF version <1.7>, but at most version <1.5> allowed
+<blueprint_dep_graph.pdf, id=163, 2304.61pt x 2074.75125pt>
+File: blueprint_dep_graph.pdf Graphic file (type pdf)
+<use blueprint_dep_graph.pdf>
+Package pdftex.def Info: blueprint_dep_graph.pdf  used on input line 623.
+(pdftex.def)             Requested size: 365.22859pt x 328.80118pt.
+[12
+
+ <./blueprint_dep_graph.pdf>]
+Underfull \hbox (badness 10000) in paragraph at lines 653--655
 []\T1/lmr/m/n/10 TauCeti Project, Sym-plec-tic ge-om-e-try roadmap, [][]$\T1/lm
 tt/m/n/10 https : / / github . com / TauCetiProject /
  []
 
-[7]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 400.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 400.
+[13
+
+]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 660.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 660.
  (./gromov_lean_report.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 400.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 400.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 660.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 660.
 Package rerunfilecheck Info: File `gromov_lean_report.out' has not changed.
-(rerunfilecheck)             Checksum: BF00F18B2834A06B993ACB9B6A64B5DF;397.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 400.
+(rerunfilecheck)             Checksum: 7CF7D447F3EFDE5C5785C34F8128CE3D;459.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 660.
  ) 
 Here is how much of TeX's memory you used:
- 19236 strings out of 492649
- 349619 string characters out of 6129622
- 511136 words of memory out of 5000000
- 22719 multiletter control sequences out of 15000+600000
- 73801 words of font info for 72 fonts, out of 8000000 for 9000
+ 19814 strings out of 492649
+ 363406 string characters out of 6129622
+ 541419 words of memory out of 5000000
+ 23267 multiletter control sequences out of 15000+600000
+ 84694 words of font info for 77 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 55i,8n,65p,439b,1182s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 55i,18n,65p,559b,1182s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2018/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/usr/local/
-texlive/2018/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/local/texlive/20
-18/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/local/texlive/2018/texmf-d
-ist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/local/texlive/2018/texmf-dist/fonts/enc/
+texlive/2018/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/local/texlive/2018/t
+exmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/local/texlive/2018/texmf-dist/
+fonts/enc/dvips/lm/lm-mathit.enc}{/usr/local/texlive/2018/texmf-dist/fonts/enc/
 dvips/lm/lm-mathex.enc}</usr/local/texlive/2018/texmf-dist/fonts/type1/public/l
 m/lmbx10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmbx12.p
-fb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmex10.pfb></usr/l
-ocal/texlive/2018/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></usr/local/texli
-ve/2018/texmf-dist/fonts/type1/public/lm/lmmi8.pfb></usr/local/texlive/2018/tex
-mf-dist/fonts/type1/public/lm/lmmi9.pfb></usr/local/texlive/2018/texmf-dist/fon
-ts/type1/public/lm/lmr10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/pu
-blic/lm/lmr12.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmr
-17.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmr6.pfb></usr
-/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmr7.pfb></usr/local/texli
-ve/2018/texmf-dist/fonts/type1/public/lm/lmr8.pfb></usr/local/texlive/2018/texm
-f-dist/fonts/type1/public/lm/lmri10.pfb></usr/local/texlive/2018/texmf-dist/fon
-ts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/p
-ublic/lm/lmsy7.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lm
-sy8.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmsy9.pfb></u
-sr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmtk10.pfb></usr/local/t
-exlive/2018/texmf-dist/fonts/type1/public/lm/lmtt10.pfb></usr/local/texlive/201
-8/texmf-dist/fonts/type1/public/lm/lmtt9.pfb></usr/local/texlive/2018/texmf-dis
-t/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on gromov_lean_report.pdf (7 pages, 380379 bytes).
+fb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmbx9.pfb></usr/lo
+cal/texlive/2018/texmf-dist/fonts/type1/public/lm/lmex10.pfb></usr/local/texliv
+e/2018/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></usr/local/texlive/2018/tex
+mf-dist/fonts/type1/public/lm/lmmi6.pfb></usr/local/texlive/2018/texmf-dist/fon
+ts/type1/public/lm/lmmi8.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/pu
+blic/lm/lmmi9.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmr
+10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmr12.pfb></us
+r/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmr17.pfb></usr/local/tex
+live/2018/texmf-dist/fonts/type1/public/lm/lmr5.pfb></usr/local/texlive/2018/te
+xmf-dist/fonts/type1/public/lm/lmr6.pfb></usr/local/texlive/2018/texmf-dist/fon
+ts/type1/public/lm/lmr7.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/pub
+lic/lm/lmr8.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmr9.
+pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmri10.pfb></usr/
+local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmri9.pfb></usr/local/texli
+ve/2018/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2018/te
+xmf-dist/fonts/type1/public/lm/lmsy6.pfb></usr/local/texlive/2018/texmf-dist/fo
+nts/type1/public/lm/lmsy7.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/p
+ublic/lm/lmsy8.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lm
+sy9.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmtk10.pfb></
+usr/local/texlive/2018/texmf-dist/fonts/type1/public/lm/lmtt10.pfb></usr/local/
+texlive/2018/texmf-dist/fonts/type1/public/lm/lmtt9.pfb></usr/local/texlive/201
+8/texmf-dist/fonts/type1/public/lm/lmtti10.pfb></usr/local/texlive/2018/texmf-d
+ist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
+Output written on gromov_lean_report.pdf (13 pages, 590373 bytes).
 PDF statistics:
- 219 PDF objects out of 1000 (max. 8388607)
- 187 compressed objects within 2 object streams
- 47 named destinations out of 1000 (max. 500000)
- 61 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 299 PDF objects out of 1000 (max. 8388607)
+ 250 compressed objects within 3 object streams
+ 59 named destinations out of 1000 (max. 500000)
+ 74 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -741,3 +741,13 @@ Each skill adheres strictly to standard agent skill structure:
 | **R2.2**: Local Gemma/Ollama Interface | `ollama-lean4-gemma-prover` | §5: YAML frontmatter, `http://localhost:11434` REST endpoints, model fallback cascade (`gemma2:27b` $\to$ `9b` $\to$ `2b`), hyperparameter matrix, prompt turn wrapping. |
 | **R2.3**: Lean 4 Proof Checking & Repair | `lean4-proof-repair-engine` | §6: YAML frontmatter, `lean --json` diagnostic parser, 6-class error taxonomy, Mathlib lookup, bounded iterative repair loop. |
 | **R3**: Local Model Pipeline | Ollama Integration Pipeline | §5.4, §5.6, §5.7: Detailed CLI scripts, connection healthcheck, graceful fallback for offline daemon, and Lean 4 specific prompt engineering. |
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -13,3 +13,13 @@ Current Task: All Phase 5 Milestone 1 deliverables implemented, verified, and ce
 - [x] Deliverable 4: Implement tests/PhaseAxiomCensus.lean and tools/phase_axiom_census.sh (4.55s runtime, exact baseline match of 1194 clean / 54 sorryAx)
 - [x] Deliverable 5: Final self-verification (lake build, ollama client queries, premise retrieval, census runs, status)
 - [x] Write changes.md, handoff.md, and send message to orchestrator
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

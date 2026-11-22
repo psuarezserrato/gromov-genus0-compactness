@@ -309,3 +309,13 @@ theorem scalar_mean_value_inequality
 2. **Local Prover Utilization**: Sub-lemmas 1 (`laplacian2D_sq_dist`), 4 (`integral_sq_dist_ball`), 6 (`heinz_maximum_exists`), 7 (`heinz_maximum_interior`), 8 (`heinz_ball_subset_and_bound`), and 10 (`heinz_transfer_to_half_ball`) are purely metric and algebraic and should be closed directly by Gemma 9B with `linarith`, `nlinarith`, `ring`, `positivity`.
 3. **Core Analysis Effort**: Focus worker proving attention on Sub-lemma 3 (`subharmonic_mean_value_le`) and Sub-lemma 9 (`heinz_central_value_bound`).
 4. **Zero-`sorryAx` Census Verification**: Once proved, verify that `GromovCompactness.Analysis.scalar_mean_value_inequality` depends strictly on standard Lean 4 axioms (`[propext, Classical.choice, Quot.sound]`).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

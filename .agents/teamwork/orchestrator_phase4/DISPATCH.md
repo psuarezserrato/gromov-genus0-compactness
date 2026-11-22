@@ -97,3 +97,13 @@ Please immediately resume execution from the Phase 4 Milestone 1 -> Milestone 2 
 1. Execute the 5-Agent Phase 4 Model A Verification Gate across VaryingJ.lean (E01), MarkedCurves.lean (E02), Homology.lean (E03), Automorphisms.lean (E04), and ModuliSpace.lean (E05).
 2. Commit the Phase 4 Model A checkpoint on main.
 3. Proceed directly into Phase 4 Model B (Full Proof Completion / Zero-sorry Foundations) using local Ollama (gemma-lean4:latest), run the 5-agent Model B verification gate, commit on main, and prepare handoff for the independent Victory Auditor (victory_auditor_phase4).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -130,3 +130,13 @@ While significant high-quality progress was made on metric algebraic properties,
    - Either formulate genuine stereographic transformations for `affine_scaling`, `inversion`, and `rotation`, or clearly mark their biholomorphicity proofs as `sorry`.
    - Fix `disk_at` and `annulus_at` to use stereographic coordinates or metric balls.
    - Connect `TargetGeometryConstants` to geometric hypotheses, leaving existence as `sorry` if unproved.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

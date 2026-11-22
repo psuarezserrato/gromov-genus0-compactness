@@ -161,3 +161,13 @@ The following empirical verification harnesses were authored and executed in `/U
    Update lines 37 and 273 from $|V| \le 2\lfloor B/h \rfloor - 2$ to $|V| \le \max(1, 2\lfloor B/h \rfloor + k - 2)$ (or $\max(1, 2P - 2)$), matching Task G04.
 3. **Clarify Scope in `GromovCompactness/Topology/SphereTree.lean`**:
    Add docstring clarification to line 70 stating that `SphereTree.lean` formalizes unmarked genus-0 limits ($k = 0$). For marked curves ($k > 0$), state the general condition $3 \le \operatorname{deg}_{\text{nodal}}(v) + k_v$.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

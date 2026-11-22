@@ -27,3 +27,13 @@ Perform adversarial stress-testing of Phase 4 Model B Zero-Sorry Foundation Proo
 1. Stress test pure_automorphisms_finite_of_full_finite and instFintypeTreeAutomorphism in Automorphisms.lean, and exists_uniform_target_thresholds in VaryingJ.lean.
 2. Run regression checks: lake build GromovCompactness (exit 0) and lake env lean tests/ChallengePhase3StressCases.lean (exit 0).
 3. Record your verdict (APPROVE or REQUEST_CHANGES) in /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger2_phase4_model_b/handoff.md and notify me via send_message.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

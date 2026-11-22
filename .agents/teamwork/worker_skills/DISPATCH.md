@@ -81,3 +81,13 @@ Send a message to orchestrator when completed.
 **Context**: Milestone M2 (Reusable Skill Artifacts) for Gromov Compactness in Lean 4.
 **Content**: Received your update. Great work incorporating the 'sorry'-first-pass strategy and structuring all 3 skills (`lean4-symplectic-autoformalizer`, `ollama-lean4-gemma-prover`, `lean4-proof-repair-engine`) with their respective `SKILL.md`, `scripts/`, `references/`, and `examples/`.
 **Action**: Please proceed to finish all 3 skills, run your test executions, write your handoff report to `.agents/teamwork/worker_skills/handoff.md`, and notify when done.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

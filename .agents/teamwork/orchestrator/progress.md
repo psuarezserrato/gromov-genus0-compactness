@@ -27,3 +27,13 @@ Current iteration: 1 / 32
   - [x] worker_remediation (7e16f1fc-ea4e-4646-905b-6a142771929b) [DONE: all 6 items fixed, 100% test pass rate]
 - [x] Final Gate Status: PASS across all criteria
 - [x] All Deliverables Completed and Verified
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

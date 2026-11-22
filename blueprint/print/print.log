@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  4 NOV 2026 12:53
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  22 NOV 2026 11:40
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**src/print.tex
-(./src/print.tex
+**print.tex
+(./print.tex
 LaTeX2e <2018-04-01> patch level 2
 Babel <3.18> and hyphenation patterns for 84 language(s) loaded.
 (/usr/local/texlive/2018/texmf-dist/tex/latex/base/report.cls
@@ -797,38 +797,38 @@ e 7716.
 Package cleveref Info: always capitalise cross-reference names on input line 77
 16.
 )
-(src/macros/common.tex
+(./macros/common.tex
 \c@theorem=\count292
-) (src/macros/print.tex
+) (./macros/print.tex
 .................................................
 . LaTeX info: "xparse/redefine-command"
 . 
-. Redefining command \uses with sig. 'm' on line 25.
+. Redefining command \uses with sig. 'm' on line 32.
 .................................................
 .................................................
 . LaTeX info: "xparse/redefine-command"
 . 
-. Redefining command \proves with sig. 'm' on line 30.
+. Redefining command \proves with sig. 'm' on line 37.
 .................................................
-) (print/print.aux)
+) (../print/print.aux)
 \openout1 = `print.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 23.
-LaTeX Font Info:    ... okay on input line 23.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 23.
-LaTeX Font Info:    ... okay on input line 23.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 23.
-LaTeX Font Info:    ... okay on input line 23.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 23.
-LaTeX Font Info:    ... okay on input line 23.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 23.
-LaTeX Font Info:    ... okay on input line 23.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 23.
-LaTeX Font Info:    ... okay on input line 23.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 23.
-LaTeX Font Info:    ... okay on input line 23.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 23.
-LaTeX Font Info:    ... okay on input line 23.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 30.
+LaTeX Font Info:    ... okay on input line 30.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -896,7 +896,7 @@ e
 ))
 ABD: EveryShipout initializing macros
 \AtBeginShipoutBox=\box55
-Package hyperref Info: Link coloring ON on input line 23.
+Package hyperref Info: Link coloring ON on input line 30.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
@@ -906,115 +906,793 @@ Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
 )
 \c@section@level=\count299
 )
-LaTeX Info: Redefining \ref on input line 23.
-LaTeX Info: Redefining \pageref on input line 23.
-LaTeX Info: Redefining \nameref on input line 23.
+LaTeX Info: Redefining \ref on input line 30.
+LaTeX Info: Redefining \pageref on input line 30.
+LaTeX Info: Redefining \nameref on input line 30.
 
-(print/print.out) (print/print.out)
+(../print/print.out) (../print/print.out)
 \@outlinefile=\write4
 \openout4 = `print.out'.
 
-LaTeX Font Info:    Try loading font information for U+msa on input line 25.
+LaTeX Font Info:    Try loading font information for U+msa on input line 32.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 25.
+LaTeX Font Info:    Try loading font information for U+msb on input line 32.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
-{/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (print/
-print.toc)
+{/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (../pri
+nt/print.toc)
 \tf@toc=\write5
 \openout5 = `print.toc'.
 
-
-(src/content.texpdfTeX warning (ext4): destination with the same identifier (na
-me{page.1}) has been already used, duplicate ignored
+(./content.texpdfTeX warning (ext4): destination with the same identifier (name
+{page.1}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.3 \chapter
-            {Foundations and Bookkeeping Layer} [1
+l.23 \chapter
+             {Status and conventions} [1
 
 ]
 Chapter 1.
-[2
 
-] [3]
-Overfull \hbox (3.90205pt too wide) in paragraph at lines 178--179
-[]\OT1/cmr/bx/n/10.95 Theorem 1.14 \OT1/cmr/m/n/10.95 (Cauchy-Rie-mann Clo-sure
- Un-der Smooth Lo-cal Lim-its)\OT1/cmr/bx/n/10.95 . []\OT1/cmr/m/it/10.95 If $\
-OML/cmm/m/it/10.95 u[] \OMS/cmsy/m/n/10.95 ! \OML/cmm/m/it/10.95 u$ \OT1/cmr/m/
-it/10.95 in $\OML/cmm/m/it/10.95 C[]\OT1/cmr/m/n/10.95 (
-\OML/cmm/m/it/10.95 ; M\OT1/cmr/m/n/10.95 )$
+Overfull \hbox (6.53815pt too wide) in paragraph at lines 25--32
+\OT1/cmr/m/n/10.95 only on \OT1/cmtt/m/n/10.95 propext\OT1/cmr/m/n/10.95 , \OT1
+/cmtt/m/n/10.95 Classical.choice \OT1/cmr/m/n/10.95 and \OT1/cmtt/m/n/10.95 Quo
+t.sound \OT1/cmr/m/n/10.95 (cen-sus: \OT1/cmtt/m/n/10.95 tests/PhaseAxiomCensus
+.lean\OT1/cmr/m/n/10.95 ).
  []
 
-[4] [5]
+[2
+
+]
 Chapter 2.
-[6
 
-] [7] [8]
+Overfull \hbox (6.31796pt too wide) in paragraph at lines 110--111
+[]\OT1/cmr/bx/n/10.95 Theorem 2.9 \OT1/cmr/m/n/10.95 (Con-for-mal in-vari-ance 
+of en-ergy)\OT1/cmr/bx/n/10.95 . []\OT1/cmr/m/it/10.95 En-ergy is in-vari-ant u
+n-der M^^?obius reparametriza-
+ []
+
+[3
+
+]
+Overfull \hbox (10.43394pt too wide) in paragraph at lines 153--155
+[]\OT1/cmr/bx/n/10.95 Definition 2.14 \OT1/cmr/m/n/10.95 (Sta-ble sphere tree l
+imit and com-pact-ness wit-ness)\OT1/cmr/bx/n/10.95 . []\OT1/cmr/m/n/10.95 A fi
+-nite tree of $\OML/cmm/m/it/10.95 J$\OT1/cmr/m/n/10.95 -holomorphic
+ []
+
+[4]
 Chapter 3.
-[9
 
-] [10]
+Overfull \hbox (6.4354pt too wide) in paragraph at lines 175--177
+[][] \OMS/cmsy/m/n/10.95 ! \OML/cmm/m/it/10.95 M$ \OT1/cmr/m/it/10.95 (and ev-e
+ry $\OML/cmm/m/it/10.95 C[]$ \OT1/cmr/m/it/10.95 map on a \OT1/cmtt/m/it/10.95 
+BoundedChartedTarget\OT1/cmr/m/it/10.95 ) has fi-nite ex-tended en-ergy $\OML/c
+mm/m/it/10.95 ^^V[]\OT1/cmr/m/n/10.95 ([][]) \OML/cmm/m/it/10.95 <
+ []
+
+
+Overfull \hbox (1.85918pt too wide) in paragraph at lines 199--206
+[]\OT1/cmr/bx/n/10.95 Theorem 3.3 \OT1/cmr/m/n/10.95 (Uni-ver-sal bub-bling thr
+esh-olds (\OT1/cmtt/m/n/10.95 TargetThresholds \OT1/cmr/m/n/10.95 con-struc-tio
+n))\OT1/cmr/bx/n/10.95 . []\OT1/cmr/m/it/10.95 On any closed
+ []
+
+
+Overfull \hbox (110.74326pt too wide) in paragraph at lines 199--206
+\OT1/cmr/m/it/10.95 tame tar-get sat-is-fy-ing the proved ge-o-met-ric prop-er-
+ties [][]The-o-rems 3.4[][], [][]3.5[][] and [][]3.7[][] (or \OT1/cmtt/m/it/10.
+95 UniformNormalChartCertificates
+ []
+
+
+Overfull \hbox (72.76628pt too wide) in paragraph at lines 207--218
+\OT1/cmr/m/n/10.95 (\OT1/cmtt/m/n/10.95 sphere[]energy[]gap \OT1/cmr/m/n/10.95 
+from [][]The-o-rem 3.5[][]), and two-sided cylin-dri-cal en-ergy de-cay (\OT1/c
+mtt/m/n/10.95 cylinder[]exponential[]decay
+ []
+
+
+Overfull \hbox (102.24594pt too wide) in paragraph at lines 207--218
+\OT1/cmr/m/n/10.95 from [][]The-o-rem 3.7[][]), \OT1/cmtt/m/n/10.95 make[]targe
+t[]thresholds \OT1/cmr/m/n/10.95 sets $\OML/cmm/m/it/10.95 "[] \OT1/cmr/m/n/10.
+95 = [](\OML/cmm/m/it/10.95 "[]; "[]\OT1/cmr/m/n/10.95 ) \OML/cmm/m/it/10.95 > 
+\OT1/cmr/m/n/10.95 0$ and $\OML/cmm/m/it/10.95 h \OT1/cmr/m/n/10.95 = [](\OML/c
+mm/m/it/10.95 "[]=\OT1/cmr/m/n/10.95 2\OML/cmm/m/it/10.95 ; []\OT1/cmr/m/n/10.9
+5 (\OML/cmm/m/it/10.95 "[]; "[]=\OT1/cmr/m/n/10.95 2)) \OML/cmm/m/it/10.95 >
+ []
+
+
+Overfull \hbox (98.51468pt too wide) in paragraph at lines 207--218
+\OT1/cmr/m/n/10.95 0$ (\OT1/cmtt/m/n/10.95 TargetThresholds.of[]properties\OT1/
+cmr/m/n/10.95 ). On a \OT1/cmtt/m/n/10.95 BoundedChartedTarget\OT1/cmr/m/n/10.9
+5 , met-ric co-er-civ-ity (\OT1/cmtt/m/n/10.95 exists[]metric[]coercive\OT1/cmr
+/m/n/10.95 )
+ []
+
+
+Overfull \hbox (26.47137pt too wide) in paragraph at lines 207--218
+\OT1/cmr/m/n/10.95 dis-charged un-con-di-tion-ally in \OT1/cmtt/m/n/10.95 Targe
+tThresholds.of[]bounded[]geometry[]first[]principles\OT1/cmr/m/n/10.95 , normal
+-
+ []
+
+
+Overfull \hbox (112.16077pt too wide) in paragraph at lines 207--218
+\OT1/cmr/m/n/10.95 chart cer-tifi-cates feed \OT1/cmtt/m/n/10.95 TargetThreshol
+ds.of[]bounded[]geometry[]certs \OT1/cmr/m/n/10.95 via \OT1/cmtt/m/n/10.95 cons
+truct[]uniform[]normal[]chart[]family\OT1/cmr/m/n/10.95 ,
+ []
+
+
+Overfull \hbox (126.10973pt too wide) in paragraph at lines 207--218
+\OT1/cmr/m/n/10.95 and sym-plec-ti-cally as-pher-i-cal tar-gets ($\OML/cmm/m/it
+/10.95 E\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 u\OT1/cmr/m/n/10.95 ) = 0$) re-
+duce to con-stant spheres via \OT1/cmtt/m/n/10.95 eq[]const[]of[]totalEnergy[]e
+q[]zero[]uncond
+ []
+
+[5
+
+]
+Overfull \hbox (81.26393pt too wide) in paragraph at lines 232--241
+\OML/cmm/m/it/10.95 g[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 u; u\OT1/cmr/m/n
+/10.95 )$ (\OT1/cmtt/m/n/10.95 exists[]metric[]coercive \OT1/cmr/m/n/10.95 in [
+][]The-o-rem 9.3[][]), \OT1/cmtt/m/n/10.95 sum[]norm[]fderiv[]sq[]le[]of[]coerc
+ive[]localEnergyDensity
+ []
+
+
+Overfull \hbox (143.20961pt too wide) in paragraph at lines 232--241
+\OT1/cmr/m/n/10.95 (\OT1/cmtt/m/n/10.95 abs[]metricHessianContraction[]le\OT1/c
+mr/m/n/10.95 ) and almost-complex tor-sion con-trac-tion (\OT1/cmtt/m/n/10.95 a
+bs[]almostComplexTorsionContraction[]le\OT1/cmr/m/n/10.95 )
+ []
+
+
+Overfull \hbox (92.90857pt too wide) in paragraph at lines 232--241
+\OT1/cmr/m/n/10.95 Thus $^^A\OML/cmm/m/it/10.95 e\OT1/cmr/m/n/10.95 (\OML/cmm/m
+/it/10.95 w\OT1/cmr/m/n/10.95 ) = [][] + [] \OMS/cmsy/m/n/10.95 ^^U ^^@j[]j ^^U
+ ^^@\OML/cmm/m/it/10.95 b e\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 w\OT1/cmr/m/
+n/10.95 )[]$ (\OT1/cmtt/m/n/10.95 bochner[]lower[]bound[]of[]normal[]chart[]wei
+tz[]at[]center\OT1/cmr/m/n/10.95 ),
+ []
+
+
+Overfull \hbox (44.68214pt too wide) in paragraph at lines 248--255
+\OT1/cmr/m/it/10.95 grated via the quo-tient rule and Mean Value The-o-rem (\OT
+1/cmtt/m/it/10.95 quadratic[]energy[]growth[]of[]radial[]diff[]ineq\OT1/cmr/m/i
+t/10.95 ),
+ []
+
+
+Overfull \hbox (37.1539pt too wide) in paragraph at lines 248--255
+\OT1/cmr/m/it/10.95 and small-ball exit via stere-o-graphic con-ti-nu-ity and t
+wo-point di-am-e-ter sep-a-ra-tion $\OT1/cmr/m/n/10.95 2\OML/cmm/m/it/10.95 r[]
+ \OMS/cmsy/m/n/10.95 ^^T []\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 u\OT1/cmr/m/
+n/10.95 (\OML/cmm/m/it/10.95 z[]\OT1/cmr/m/n/10.95 )\OML/cmm/m/it/10.95 ; u\OT1
+/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 z[]\OT1/cmr/m/n/10.95 ))$
+ []
+
+
+Overfull \hbox (8.16772pt too wide) in paragraph at lines 257--268
+[]\OT1/cmr/m/n/10.95 By \OT1/cmtt/m/n/10.95 hasDerivAt[]energy[]density[]ratio 
+\OT1/cmr/m/n/10.95 ([][]Lemma 9.4[][]), the quo-tient rule gives $[](\OML/cmm/m
+/it/10.95 F\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t\OT1/cmr/m/n/10.95 )\OML/cm
+m/m/it/10.95 =t[]\OT1/cmr/m/n/10.95 ) =
+ []
+
+
+Overfull \hbox (65.02777pt too wide) in paragraph at lines 257--268
+\OT1/cmr/m/n/10.95 proves \OT1/cmtt/m/n/10.95 BoundaryHitMonotonicity \OT1/cmr/
+m/n/10.95 (\OT1/cmtt/m/n/10.95 boundaryHitMonotonicity[]of[]radial[]diff[]ineq\
+OT1/cmr/m/n/10.95 ). For \OT1/cmtt/m/n/10.95 SmallBallExit\OT1/cmr/m/n/10.95 ,
+ []
+
+
+Overfull \hbox (23.57983pt too wide) in paragraph at lines 257--268
+\OT1/cmr/m/n/10.95 when-ever $[](\OML/cmm/m/it/10.95 u\OT1/cmr/m/n/10.95 (\OML/
+cmm/m/it/10.95 z[]\OT1/cmr/m/n/10.95 )\OML/cmm/m/it/10.95 ; u\OT1/cmr/m/n/10.95
+ (\OML/cmm/m/it/10.95 z[]\OT1/cmr/m/n/10.95 )) \OMS/cmsy/m/n/10.95 ^^U \OT1/cmr
+/m/n/10.95 2\OML/cmm/m/it/10.95 r[]$ \OT1/cmr/m/n/10.95 (\OT1/cmtt/m/n/10.95 sm
+allBallExit[]of[]pair[]dist[]ge\OT1/cmr/m/n/10.95 ), es-tab-lish-ing \OT1/cmtt/
+m/n/10.95 HitExitProperty
+ []
+
+[6]
+Overfull \hbox (13.57646pt too wide) in paragraph at lines 283--289
+\OT1/cmr/m/n/10.95 the tri-an-gle in-equal-ity (\OT1/cmtt/m/n/10.95 satisfiesCy
+linderCollarOscillation[]of[]radial[]and[]angular[]bounds\OT1/cmr/m/n/10.95 )
+ []
+
+
+Overfull \hbox (45.57236pt too wide) in paragraph at lines 283--289
+\OT1/cmr/m/n/10.95 or col-lar Lip-s-chitz in-te-gra-tion (\OT1/cmtt/m/n/10.95 s
+atisfiesCylinderCollarOscillationWith[]of[]lipschitz[]collar[]ring
+ []
+
+
+Overfull \hbox (16.98404pt too wide) in paragraph at lines 283--289
+\OT1/cmr/m/n/10.95 two col-lar points $\OML/cmm/m/it/10.95 w[]; w[] \OMS/cmsy/m
+/n/10.95 2 \OML/cmm/m/it/10.95 A\OT1/cmr/m/n/10.95 (2\OML/cmm/m/it/10.95 r; R=\
+OT1/cmr/m/n/10.95 2)$ are con-nected along the dyadic ra-dial chain \OT1/cmtt/m
+/n/10.95 dyadicChainPoint
+ []
+
+
+Overfull \hbox (61.63756pt too wide) in paragraph at lines 283--289
+\OT1/cmr/m/n/10.95 in-side par-ent sub-annuli of as-pect ra-tio $\OMS/cmsy/m/n/
+10.95 ^^T \OT1/cmr/m/n/10.95 18$, and sum-ming against [][]The-o-rem 3.7[][] vi
+a \OT1/cmtt/m/n/10.95 sum[]geom[]le[]inv[]one[]sub
+ []
+
+
+Overfull \hbox (42.0404pt too wide) in paragraph at lines 302--307
+\OML/cmm/m/it/10.95 R=\OT1/cmr/m/n/10.95 2[]$ for all $\OML/cmm/m/it/10.95 j < 
+k$\OT1/cmr/m/n/10.95 ; dis-joint collar-ring su-per-ad-di-tiv-ity (\OT1/cmtt/m/
+n/10.95 energyMeasure[]collar[]sum[]le[]outer[]sub[]inner\OT1/cmr/m/n/10.95 )
+ []
+
+
+Overfull \hbox (6.86026pt too wide) in paragraph at lines 302--307
+\OT1/cmr/m/n/10.95 and it-er-ated Wid-man con-trac-tion (\OT1/cmtt/m/n/10.95 it
+erated[]dyadic[]annulus[]energy[]le[]of[]hole[]filling\OT1/cmr/m/n/10.95 ) then
+
+ []
+
+
+Overfull \hbox (58.65358pt too wide) in paragraph at lines 321--330
+[]\OT1/cmr/m/n/10.95 By count-able in-ter-sec-tion of shrink-ing punc-tured dis
+ks/exteriors (\OT1/cmtt/m/n/10.95 exists[]punctured[]disk[]energy[]lt
+ []
+
+
+Overfull \hbox (96.00371pt too wide) in paragraph at lines 321--330
+\OT1/cmr/m/n/10.95 Com-plete-ness of com-pact $\OML/cmm/m/it/10.95 M$ \OT1/cmr/
+m/n/10.95 yields a unique limit $\OML/cmm/m/it/10.95 m[]$ \OT1/cmr/m/n/10.95 (\
+OT1/cmtt/m/n/10.95 exists[]unique[]limit[]point[]of[]local[]collar[]oscillation
+\OT1/cmr/m/n/10.95 )
+ []
+
+
+Overfull \hbox (169.62967pt too wide) in paragraph at lines 321--330
+\OT1/cmr/m/n/10.95 and unique con-tin-u-ous ex-ten-sion $\OML/cmm/m/it/10.95 u[
+] \OT1/cmr/m/n/10.95 = [](\OML/cmm/m/it/10.95 u; p; m[]\OT1/cmr/m/n/10.95 )$ (\
+OT1/cmtt/m/n/10.95 exists[]unique[]continuous[]extension[]of[]local[]collar[]os
+cillation\OT1/cmr/m/n/10.95 );
+ []
+
+
+Overfull \hbox (34.33374pt too wide) in paragraph at lines 321--330
+\OT1/cmr/m/n/10.95 single-point $\OML/cmm/m/it/10.95 C[]$ \OT1/cmr/m/n/10.95 an
+d \OT1/cmtt/m/n/10.95 mfderiv \OT1/cmr/m/n/10.95 con-ti-nu-ity at $\OML/cmm/m/i
+t/10.95 p$ \OT1/cmr/m/n/10.95 to-gether with global con-ti-nu-ity of $\OML/cmm/
+m/it/10.95 J$ \OT1/cmr/m/n/10.95 (\OT1/cmtt/m/n/10.95 continuous[]J[]global\OT1
+/cmr/m/n/10.95 )
+ []
+
+[7]
+Overfull \hbox (120.42386pt too wide) in paragraph at lines 337--346
+\OT1/cmr/m/it/10.95 manifold reg-u-lar-ity equiv-a-lence is dis-charged from fi
+rst prin-ci-ples via \OT1/cmtt/m/it/10.95 contDiffAt[]writtenInExtChartAt[]of[]
+contMDiffOn
+ []
+
+
+Overfull \hbox (86.26453pt too wide) in paragraph at lines 347--353
+[]\OT1/cmr/m/n/10.95 For $\OML/cmm/m/it/10.95 n \OMS/cmsy/m/n/10.95 ^^T \OT1/cm
+r/m/n/10.95 1$, $[] \OML/cmm/m/it/10.95 I[] I n u U$ \OT1/cmr/m/n/10.95 fol-low
+s di-rectly from $\OML/cmm/m/it/10.95 u \OMS/cmsy/m/n/10.95 2 \OML/cmm/m/it/10.
+95 C[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 U; M\OT1/cmr/m/n/10.95 )$ (\OT1/c
+mtt/m/n/10.95 WeakJHolomorphicOn.1.of[]le\OT1/cmr/m/n/10.95 ).
+ []
+
+
+Overfull \hbox (94.45439pt too wide) in paragraph at lines 363--374
+\OT1/cmr/m/n/10.95 bounds on \OT1/cmtt/m/n/10.95 riemannianEnergyDensity \OT1/c
+mr/m/n/10.95 into lo-cal Lip-s-chitz bounds (\OT1/cmtt/m/n/10.95 local[]lipschi
+tz[]of[]bounded[]energy[]density\OT1/cmr/m/n/10.95 )
+ []
+
+
+Overfull \hbox (44.51303pt too wide) in paragraph at lines 363--374
+\OT1/cmr/m/n/10.95 over a count-able dense se-quence in $
+$ (\OT1/cmtt/m/n/10.95 exists[]continuousOn[]pointwise[]convergent[]subseq[]on[
+]domain\OT1/cmr/m/n/10.95 )
+ []
+
+
+Overfull \hbox (68.1799pt too wide) in paragraph at lines 363--374
+\OT1/cmr/m/n/10.95 lo-cal-iz-ing even-tu-ally into fixed tar-get charts (\OT1/c
+mtt/m/n/10.95 exists[]fixed[]chart[]ball[]eventually[]smooth[]and[]pointwise\OT
+1/cmr/m/n/10.95 ).
+ []
+
+
+Overfull \hbox (29.54562pt too wide) in paragraph at lines 363--374
+\OT1/cmr/m/n/10.95 pass-ing to a fur-ther sub-se-quence (\OT1/cmtt/m/n/10.95 co
+reSmoothLocalConvergesOn[]of[]eventually[]local[]jet[]bounds\OT1/cmr/m/n/10.95 
+),
+ []
+
+
+Overfull \hbox (55.30194pt too wide) in paragraph at lines 363--374
+\OT1/cmr/m/n/10.95 and Fa^^Ra di Bruno in-vari-ance un-der M^^?obius frames (\O
+T1/cmtt/m/n/10.95 eventuallyHasLocalChartJetBoundsAt[]comp[]moebius\OT1/cmr/m/n
+/10.95 )
+ []
+
+
+Overfull \hbox (12.09479pt too wide) in paragraph at lines 381--383
+\OT1/cmr/m/n/10.95 (\OT1/cmtt/m/n/10.95 h[]conc[]extract\OT1/cmr/m/n/10.95 ))\O
+T1/cmr/bx/n/10.95 . []\OT1/cmr/m/it/10.95 Along a fur-ther sub-se-quence the ma
+ps con-verge in $\OML/cmm/m/it/10.95 C[]$ \OT1/cmr/m/it/10.95 off $\OML/cmm/m/i
+t/10.95 S$ \OT1/cmr/m/it/10.95 to a $\OML/cmm/m/it/10.95 J$\OT1/cmr/m/it/10.95 
+-holomorphic
+ []
+
+[8]
+Overfull \hbox (175.59763pt too wide) in paragraph at lines 384--384
+\OT1/cmr/m/n/10.95 wise con-ver-gence of $\OML/cmm/m/it/10.95 e\OT1/cmr/m/n/10.
+95 (\OML/cmm/m/it/10.95 u[]\OT1/cmr/m/n/10.95 ) \OMS/cmsy/m/n/10.95 ! \OML/cmm/
+m/it/10.95 e\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 u[]\OT1/cmr/m/n/10.95 )$ un
+-der $\OML/cmm/m/it/10.95 C[]$ \OT1/cmr/m/n/10.95 con-ver-gence (\OT1/cmtt/m/n/
+10.95 tendsto[]riemannianEnergyDensity[]of[]smoothLocalConvergesOn\OT1/cmr/m/n/
+10.95 ),
+ []
+
+
+Overfull \hbox (8.9148pt too wide) in paragraph at lines 384--384
+\OT1/cmr/m/n/10.95 Lebesgue dom-i-nated con-ver-gence against the in-te-grable 
+spher-i-cal Ja-co-bian, and mono-tone Urysohn
+ []
+
+
+Overfull \hbox (11.59006pt too wide) in paragraph at lines 384--384
+\OT1/cmr/m/n/10.95 (\OT1/cmtt/m/n/10.95 defect[]measure[]decomp[]of[]smooth[]co
+nv[]off[]S\OT1/cmr/m/n/10.95 ). It-er-ated sin-gu-lar-ity re-moval across $\OML
+/cmm/m/it/10.95 S$ \OT1/cmr/m/n/10.95 by \OT1/cmtt/m/n/10.95 Finset
+ []
+
+
+Overfull \hbox (193.01372pt too wide) in paragraph at lines 404--404
+\OT1/cmr/m/n/10.95 lapse (\OT1/cmtt/m/n/10.95 affine[]scaling[]tendstoUniformly
+On[]punctured[]north[]pole\OT1/cmr/m/n/10.95 , \OT1/cmtt/m/n/10.95 affine[]scal
+ing[]inv[]tendstoUniformlyOn[]punctured[]center\OT1/cmr/m/n/10.95 ),
+ []
+
+
+Overfull \hbox (70.51537pt too wide) in paragraph at lines 404--404
+\OT1/cmr/m/n/10.95 as-sem-bling \OT1/cmtt/m/n/10.95 SeqOneLevelDecomposition.of
+[]rescaled[]limit \OT1/cmr/m/n/10.95 and \OT1/cmtt/m/n/10.95 oneLevelCertificat
+e[]of[]rescaled[]limit\OT1/cmr/m/n/10.95 .
+ []
+
+
+Overfull \hbox (205.91551pt too wide) in paragraph at lines 414--427
+\OMS/cmsy/m/n/10.95 k\OML/cmm/m/it/10.95 a\OMS/cmsy/m/n/10.95 k \OML/cmm/m/it/1
+0.95 < \OT1/cmr/m/n/10.95 1$, compact-annulus $\OML/cmm/m/it/10.95 "$\OT1/cmr/m
+/n/10.95 -regularity gra-di-ent bounds (\OT1/cmtt/m/n/10.95 eventually[]gradien
+t[]bound[]on[]compact[]southern[]hemisphere[]of[]disjoint[]S\OT1/cmr/m/n/10.95 
+),
+ []
+
+
+Overfull \hbox (169.66629pt too wide) in paragraph at lines 414--427
+\OT1/cmr/m/n/10.95 ver-gence off $\OML/cmm/m/it/10.95 S$ \OT1/cmr/m/n/10.95 up-
+grade to uni-form con-ver-gence on $\OML/cmm/m/it/10.95 A\OT1/cmr/m/n/10.95 (\O
+ML/cmm/m/it/10.95 a\OT1/cmr/m/n/10.95 ; \OML/cmm/m/it/10.95 r=\OT1/cmr/m/n/10.9
+5 2\OML/cmm/m/it/10.95 ; r\OT1/cmr/m/n/10.95 )$ (\OT1/cmtt/m/n/10.95 tendstoUni
+formlyOn[]of[]pointwise[]and[]equicontinuous[]on[]open\OT1/cmr/m/n/10.95 ),
+ []
+
+
+Overfull \hbox (6.33513pt too wide) in paragraph at lines 414--427
+\OT1/cmr/m/n/10.95 prov-ing \OT1/cmtt/m/n/10.95 IsDefectSeq \OT1/cmr/m/n/10.95 
+un-con-di-tion-ally (\OT1/cmtt/m/n/10.95 isDefectSeq[]of[]concentration[]southe
+rn[]hemisphere\OT1/cmr/m/n/10.95 ).
+ []
+
+
+Overfull \hbox (147.31686pt too wide) in paragraph at lines 414--427
+\OT1/cmr/m/n/10.95 Pulling con-cen-tra-tion data back along a con-for-mal M^^?o
+bius ro-ta-tion send-ing $0 \OMS/cmsy/m/n/10.95 7! \OML/cmm/m/it/10.95 p$ \OT1/
+cmr/m/n/10.95 (\OT1/cmtt/m/n/10.95 weakMeasureConvergence[]map[]homeomorph\OT1/
+cmr/m/n/10.95 )
+ []
+
+[9]
+Overfull \hbox (127.17117pt too wide) in paragraph at lines 434--446
+\OT1/cmr/m/it/10.95 mor-phism rigid-ity (\OT1/cmtt/m/it/10.95 moebiusFrame[]thr
+ee[]point[]rigidity\OT1/cmr/m/it/10.95 ) and 3-point tran-si-tiv-ity (\OT1/cmtt
+/m/it/10.95 exists[]moebiusFrame[]three[]points\OT1/cmr/m/it/10.95 )
+ []
+
+
+Overfull \hbox (145.82494pt too wide) in paragraph at lines 434--446
+\OT1/cmr/m/it/10.95 Kont-se-vich's sta-bil-ity equiv-a-lence from iso-lated fib
+ers (\OT1/cmtt/m/it/10.95 stability[]iff[]finite[]effective[]automorphisms[]of[
+]finite[]fibers\OT1/cmr/m/it/10.95 );
+ []
+
+
+Overfull \hbox (152.38731pt too wide) in paragraph at lines 434--446
+\OT1/cmr/m/it/10.95 se-quen-tial met-ric com-pat-i-bil-ity proves metriz-abil-i
+ty of the Gro-mov topol-ogy (\OT1/cmtt/m/it/10.95 moduli[]space[]metrizable[]of
+[]sequential[]metric\OT1/cmr/m/it/10.95 );
+ []
+
+
+Overfull \hbox (153.15567pt too wide) in paragraph at lines 434--446
+\OT1/cmr/m/it/10.95 (\OT1/cmtt/m/it/10.95 gromov[]compactness[]varying[]J[]of[]
+witness[]and[]thresholds\OT1/cmr/m/it/10.95 , \OT1/cmtt/m/it/10.95 marked[]grom
+ov[]compactness[]of[]rotations[]nodal[]disjoint\OT1/cmr/m/it/10.95 ,
+ []
+
+
+Overfull \hbox (35.66858pt too wide) in paragraph at lines 447--447
+\OT1/cmr/m/n/10.95 and \OT1/cmtt/m/n/10.95 ghost[]component[]pure[]automorphism
+[]trivial[]uncond\OT1/cmr/m/n/10.95 ; in $[](2\OML/cmm/m/it/10.95 ; \U/msb/m/n/
+10.95 C\OT1/cmr/m/n/10.95 ) = []$,
+ []
+
+
+Overfull \hbox (171.28044pt too wide) in paragraph at lines 447--447
+[][]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 M; J; \OMS/cmsy/m/n/10.95 ^^T \OML/
+cmm/m/it/10.95 B\OT1/cmr/m/n/10.95 ) [] \OML/cmm/m/it/10.95 M$ \OT1/cmr/m/n/10.
+95 com-pact Haus-dorff for $0 \OMS/cmsy/m/n/10.95 ^^T \OML/cmm/m/it/10.95 B < "
+[]$ \OT1/cmr/m/n/10.95 (\OT1/cmtt/m/n/10.95 moduli[]space[]three[]lt[]eps[]sph[
+]compact[]hausdorff[]of[]chart[]cont\OT1/cmr/m/n/10.95 ).
+ []
+
+
+Overfull \hbox (14.03413pt too wide) in paragraph at lines 447--447
+\OT1/cmr/m/n/10.95 core bub-ble trees (\OT1/cmtt/m/n/10.95 exists[]convergent[]
+pulled[]back[]marks[]subseq\OT1/cmr/m/n/10.95 ), while operator-norm Cauchy--
+ []
+
+
+Overfull \hbox (215.88998pt too wide) in paragraph at lines 447--447
+\OT1/cmr/m/n/10.95 Riemann clo-sure and \OT1/cmtt/m/n/10.95 TargetThresholds \O
+T1/cmr/m/n/10.95 yield varying-$\OML/cmm/m/it/10.95 J$ \OT1/cmr/m/n/10.95 com-p
+o-nent bounds (\OT1/cmtt/m/n/10.95 gromov[]compactness[]varying[]J[]of[]witness
+[]and[]thresholds\OT1/cmr/m/n/10.95 ).
+ []
+
+[10]
 Chapter 4.
 [11
 
-] [12]
+]
+Overfull \hbox (7.3294pt too wide) in paragraph at lines 557--558
+[]\OT1/cmr/bx/n/10.95 Theorem 4.12 \OT1/cmr/m/n/10.95 (Re-moval of sin-gu-lar-i
+-ties (A12))\OT1/cmr/bx/n/10.95 . []\OT1/cmr/m/it/10.95 The ex-ten-sion is a un
+ique smooth $\OML/cmm/m/it/10.95 J$\OT1/cmr/m/it/10.95 -holomorphic
+ []
+
+[12]
 Chapter 5.
+
+Overfull \hbox (11.04883pt too wide) in paragraph at lines 580--581
+[]\OT1/cmr/m/n/10.95 Diagonal ar-gu-ment over a dense se-quence in $\OML/cmm/m/
+it/10.95 C\OT1/cmr/m/n/10.95 ([][])$ and Math-lib's \OT1/cmtt/m/n/10.95 RealRMK
+.rieszMeasure\OT1/cmr/m/n/10.95 .
+ []
+
 [13
 
+] [14]
+Chapter 6.
+[15
+
 ]
+Overfull \hbox (10.41794pt too wide) in paragraph at lines 755--758
+[]\OT1/cmr/m/n/10.95 Construct the thresh-old bun-dle $\OML/cmm/m/it/10.95 h > 
+\OT1/cmr/m/n/10.95 0$ via [][]The-o-rem 3.3[][] (\OT1/cmtt/m/n/10.95 TargetThre
+sholds.of[]properties
+ []
 
-LaTeX Warning: Reference `f03:energy_definition' on page 14 undefined on input 
-line 652.
 
-[14]) [15]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 27.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 27.
- (print/print.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 27.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 27.
+Overfull \hbox (185.7997pt too wide) in paragraph at lines 755--758
+\OT1/cmr/m/n/10.95 / \OT1/cmtt/m/n/10.95 TargetThresholds.of[]bounded[]geometry
+[]certs\OT1/cmr/m/n/10.95 ), ap-ply core com-pact-ness [][]The-o-rem 6.6[][] (\
+OT1/cmtt/m/n/10.95 gromov[]compactness[]core[]of[]rotations\OT1/cmr/m/n/10.95 )
+,
+ []
+
+[16]
+Chapter 7.
+
+Overfull \hbox (47.97586pt too wide) in paragraph at lines 771--771
+[]\OT1/cmr/m/n/10.95 Operator-norm squeeze on $\OML/cmm/m/it/10.95 J[]\OT1/cmr/
+m/n/10.95 (\OML/cmm/m/it/10.95 u[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 z\OT1
+/cmr/m/n/10.95 )) \OML/cmm/m/it/10.95 du[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.
+95 z\OT1/cmr/m/n/10.95 ) \OMS/cmsy/m/n/10.95 ! \OML/cmm/m/it/10.95 J\OT1/cmr/m/
+n/10.95 (\OML/cmm/m/it/10.95 u\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 z\OT1/cmr
+/m/n/10.95 )) \OML/cmm/m/it/10.95 du\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 z\O
+T1/cmr/m/n/10.95 )$ (\OT1/cmtt/m/n/10.95 jholomorphic[]limit[]of[]varying[]J\OT
+1/cmr/m/n/10.95 ,
+ []
+
+
+Overfull \hbox (262.82568pt too wide) in paragraph at lines 771--771
+\OT1/cmtt/m/n/10.95 varying[]J[]limit[]jhol[]on[]open\OT1/cmr/m/n/10.95 ) com-b
+ined with uni-form and limit \OT1/cmtt/m/n/10.95 TargetThresholds \OT1/cmr/m/n/
+10.95 (\OT1/cmtt/m/n/10.95 gromov[]compactness[]varying[]J[]of[]witness[]and[]t
+hresholds\OT1/cmr/m/n/10.95 )
+ []
+
+
+Overfull \hbox (200.64069pt too wide) in paragraph at lines 780--780
+\OT1/cmr/m/n/10.95 marked spheres com-bine [][]The-o-rem 6.6[][] with un-con-di
+-tional finite-product mark ex-trac-tion (\OT1/cmtt/m/n/10.95 exists[]convergen
+t[]pulled[]back[]marks[]subseq\OT1/cmr/m/n/10.95 ,
+ []
+
+
+Overfull \hbox (3.84279pt too wide) in paragraph at lines 787--789
+\OT1/cmr/m/it/10.95 triv-i-al-ity of pure au-to-mor-phisms on sta-ble ghost com
+-po-nents, and finite-ness of $[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 T; \OM
+S/cmsy/m/n/10.95 f\OML/cmm/m/it/10.95 u[]\OMS/cmsy/m/n/10.95 g\OML/cmm/m/it/10.
+95 ; \OMS/cmsy/m/n/10.95 f\OML/cmm/m/it/10.95 z[]\OMS/cmsy/m/n/10.95 g\OT1/cmr/
+m/n/10.95 )$
+ []
+
+
+Overfull \hbox (17.3829pt too wide) in paragraph at lines 790--790
+\OT1/cmr/m/n/10.95 ery ghost pure au-to-mor-phism to be $[][]$ (\OT1/cmtt/m/n/1
+0.95 ghost[]component[]pure[]automorphism[]trivial[]uncond\OT1/cmr/m/n/10.95 ),
+
+ []
+
+
+Overfull \hbox (279.2085pt too wide) in paragraph at lines 790--790
+\OT1/cmr/m/n/10.95 and iso-lated prin-ci-pal fibers give finite-ness of \OT1/cm
+tt/m/n/10.95 EffectiveStableMapAutomorphism \OT1/cmr/m/n/10.95 (\OT1/cmtt/m/n/1
+0.95 stability[]iff[]finite[]effective[]automorphisms[]of[]finite[]fibers\OT1/c
+mr/m/n/10.95 )
+ []
+
+
+Overfull \hbox (4.1378pt too wide) in paragraph at lines 800--800
+[]\OT1/cmr/m/n/10.95 Sequential met-ric com-pat-i-bil-ity im-plies topo-log-i-c
+al agree-ment with \OT1/cmtt/m/n/10.95 moduliSpaceTopology
+ []
+
+[17
+
+]
+Chapter 8.
+[18
+
+]
+Chapter 9.
+
+Overfull \hbox (45.63391pt too wide) in paragraph at lines 832--834
+\OT1/cmr/m/it/10.95 nite at-las with a pos-i-tive Lebesgue ra-dius, and \OT1/cm
+tt/m/it/10.95 mfderiv \OT1/cmr/m/it/10.95 fac-tors through its charts via \OT1/
+cmtt/m/it/10.95 tangentCoordChange\OT1/cmr/m/it/10.95 . 
+ []
+
+
+Overfull \hbox (60.7141pt too wide) in paragraph at lines 857--866
+\OT1/cmr/m/it/10.95 con-structed un-con-di-tion-ally on any finite-dimensional 
+\OT1/cmtt/m/it/10.95 BoundedChartedTarget \OT1/cmr/m/it/10.95 via \OT1/cmtt/m/i
+t/10.95 exists[]metric[]coercive\OT1/cmr/m/it/10.95 ,
+ []
+
+
+Overfull \hbox (5.20139pt too wide) in paragraph at lines 867--869
+[]\OT1/cmtt/m/n/10.95 ContDiffAt.toOpenPartialHomeomorph\OT1/cmr/m/n/10.95 , Ko
+szul sym-me-try can-cel-la-tion, unit-sphere met-
+ []
+
+[19
+
+]
+Overfull \hbox (43.35086pt too wide) in paragraph at lines 883--884
+[]\OT1/cmr/m/n/10.95 Operator-norm bounds on \OT1/cmtt/m/n/10.95 iteratedFDeriv
+\OT1/cmr/m/n/10.95 , po-lar in-te-gra-tion, and \OT1/cmtt/m/n/10.95 monotoneOn[
+]of[]deriv[]nonneg\OT1/cmr/m/n/10.95 .
+ []
+
+
+Overfull \hbox (213.0614pt too wide) in paragraph at lines 897--898
+[]\OT1/cmr/m/n/10.95 Dyadic in-duc-tion, \OT1/cmtt/m/n/10.95 CompleteSpace.comp
+lete \OT1/cmr/m/n/10.95 on $\OML/cmm/m/it/10.95 M$\OT1/cmr/m/n/10.95 , operator
+-norm bounds, and \OT1/cmtt/m/n/10.95 tendstoUniformlyOn[]of[]equicontinuous[]o
+f[]dense\OT1/cmr/m/n/10.95 .
+ []
+
+
+Overfull \hbox (199.65794pt too wide) in paragraph at lines 905--916
+\OT1/cmtt/m/it/10.95 CoreSmoothLocalConvergesOn \OT1/cmr/m/it/10.95 un-der fixe
+d M^^?obius frames, while \OT1/cmtt/m/it/10.95 tendsto[]iteratedFDeriv[]written
+InExtChartAt[]of[]local[]jet[]bounds
+ []
+
+
+Overfull \hbox (44.7325pt too wide) in paragraph at lines 917--919
+[]\OT1/cmr/m/n/10.95 Single-collar place-ment $\OML/cmm/m/it/10.95 r \OT1/cmr/m
+/n/10.95 = [] [](\OMS/cmsy/m/n/10.95 j\OML/cmm/m/it/10.95 w[] \OMS/cmsy/m/n/10.
+95 ^^@ \OML/cmm/m/it/10.95 a\OMS/cmsy/m/n/10.95 j\OML/cmm/m/it/10.95 ; \OMS/cms
+y/m/n/10.95 j\OML/cmm/m/it/10.95 w[] \OMS/cmsy/m/n/10.95 ^^@ \OML/cmm/m/it/10.9
+5 a\OMS/cmsy/m/n/10.95 j\OT1/cmr/m/n/10.95 )$, \OT1/cmtt/m/n/10.95 dense[]punct
+ured[]sphere\OT1/cmr/m/n/10.95 , \OT1/cmtt/m/n/10.95 tendsto[]discrete\OT1/cmr/
+m/n/10.95 ,
+ []
+
+
+Overfull \hbox (29.54941pt too wide) in paragraph at lines 926--941
+\OT1/cmr/m/n/10.95 an-nu-lar de-cay)\OT1/cmr/bx/n/10.95 . []\OT1/cmr/m/it/10.95
+ (1) For Cer-tifi-cate 1 (\OT1/cmtt/m/it/10.95 h[]weitz\OT1/cmr/m/it/10.95 ), \
+OT1/cmtt/m/it/10.95 bochner[]curvature[]decomposition[]of[]lower[]bound
+ []
+
+
+Overfull \hbox (15.58936pt too wide) in paragraph at lines 926--941
+\OT1/cmr/m/it/10.95 con-verts any point-wise Bochner lower bound $\OT1/cmr/m/n/
+10.95 ^^A\OML/cmm/m/it/10.95 e\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 w\OT1/cmr
+/m/n/10.95 ) \OMS/cmsy/m/n/10.95 ^^U ^^@\OML/cmm/m/it/10.95 be\OT1/cmr/m/n/10.9
+5 (\OML/cmm/m/it/10.95 w\OT1/cmr/m/n/10.95 )[]$ \OT1/cmr/m/it/10.95 into global
+ stere-o-graphic Weitzenb^^?ock
+ []
+
+
+Overfull \hbox (9.75319pt too wide) in paragraph at lines 926--941
+\OML/cmm/m/it/10.95 be\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 w\OT1/cmr/m/n/10.
+95 )[]$\OT1/cmr/m/it/10.95 . (2) For Cer-tifi-cate 2 (\OT1/cmtt/m/it/10.95 h[]h
+it[]exit\OT1/cmr/m/it/10.95 ), \OT1/cmtt/m/it/10.95 sublevel[]energy[]lower[]bo
+und[]of[]radial[]diff[]ineq
+ []
+
+
+Overfull \hbox (79.17502pt too wide) in paragraph at lines 926--941
+\OT1/cmr/m/it/10.95 Cer-tifi-cates 3--4 (\OT1/cmtt/m/it/10.95 h[]osc \OT1/cmr/m
+/it/10.95 and \OT1/cmtt/m/it/10.95 h[]decay\OT1/cmr/m/it/10.95 ), \OT1/cmtt/m/i
+t/10.95 satisfiesCylinderCollarOscillation[]of[]radial[]and[]angular[]bounds
+ []
+
+
+Overfull \hbox (147.85962pt too wide) in paragraph at lines 926--941
+\OT1/cmtt/m/it/10.95 iterated[]dyadic[]annulus[]energy[]le[]of[]hole[]filling \
+OT1/cmr/m/it/10.95 and \OT1/cmtt/m/it/10.95 satisfiesCylinderEnergyDecayWith[]o
+f[]collar[]hole[]filling
+ []
+
+[20]
+Overfull \hbox (25.87567pt too wide) in paragraph at lines 942--943
+[]\OT1/cmtt/m/n/10.95 decomposition[]of[]bochner[]lower[]bound\OT1/cmr/m/n/10.9
+5 , \OT1/cmtt/m/n/10.95 quadratic[]energy[]growth[]of[]radial[]diff[]ineq\OT1/c
+mr/m/n/10.95 ,
+ []
+
+
+Overfull \hbox (113.70679pt too wide) in paragraph at lines 950--964
+\OT1/cmr/m/n/10.95 tion, bound-ed--mod-u-lus dyadic chain-ing and ze-ro-en-ergy
+ con-stancy)\OT1/cmr/bx/n/10.95 . []\OT1/cmr/m/it/10.95 (1) \OT1/cmtt/m/it/10.9
+5 local[]lipschitz[]of[]bounded[]energy[]density
+ []
+
+
+Overfull \hbox (115.77936pt too wide) in paragraph at lines 950--964
+\OT1/cmr/m/it/10.95 (\OT1/cmtt/m/it/10.95 image[]le[]of[]liminf[]slope[]right[]
+le[]deriv[]boundary\OT1/cmr/m/it/10.95 ). (2) \OT1/cmtt/m/it/10.95 punctured[]o
+scillation[]of[]local[]collar[]oscillation
+ []
+
+
+Overfull \hbox (180.84561pt too wide) in paragraph at lines 950--964
+\OT1/cmr/m/it/10.95 (3) \OT1/cmtt/m/it/10.95 local[]collar[]oscillation[]of[]bo
+unded[]modulus[]and[]decay \OT1/cmr/m/it/10.95 and \OT1/cmtt/m/it/10.95 collarO
+scillationProperty[]of[]bounded[]modulus[]and[]decay
+ []
+
+
+Overfull \hbox (89.2104pt too wide) in paragraph at lines 950--964
+\OT1/cmr/m/it/10.95 two-sided cylin-der en-ergy de-cay by chain-ing dyadic rays
+ (\OT1/cmtt/m/it/10.95 dist[]le[]sum[]dyadic[]chain[]bounded[]modulus[]and[]dec
+ay\OT1/cmr/m/it/10.95 )
+ []
+
+
+Overfull \hbox (45.29488pt too wide) in paragraph at lines 950--964
+\OT1/cmr/m/it/10.95 and sum-ming the ge-o-met-ric se-ries $[][]\OT1/cmr/m/n/10.
+95 (2[])[] \OMS/cmsy/m/n/10.95 ^^T \OT1/cmr/m/n/10.95 1\OML/cmm/m/it/10.95 =\OT
+1/cmr/m/n/10.95 (1 \OMS/cmsy/m/n/10.95 ^^@ \OT1/cmr/m/n/10.95 2[])$\OT1/cmr/m/i
+t/10.95 . (4) \OT1/cmtt/m/it/10.95 eq[]const[]of[]totalEnergy[]eq[]zero
+ []
+
+
+Overfull \hbox (83.90672pt too wide) in paragraph at lines 965--967
+\OT1/cmr/m/n/10.95 dyadic ring chain-ing with \OT1/cmtt/m/n/10.95 sum[]geom[]le
+[]inv[]one[]sub\OT1/cmr/m/n/10.95 , and \OT1/cmtt/m/n/10.95 IsLocallyConstant.a
+pply[]eq[]of[]preconnectedSpace\OT1/cmr/m/n/10.95 .
+ []
+
+
+Overfull \hbox (156.54123pt too wide) in paragraph at lines 974--981
+\OT1/cmr/m/it/10.95 step $\OML/cmm/m/it/10.95 C[] \OMS/cmsy/m/n/10.95 ! \OML/cm
+m/m/it/10.95 C[]$ \OT1/cmr/m/it/10.95 into $\OML/cmm/m/it/10.95 C[]$ \OT1/cmr/m
+/it/10.95 and $\OML/cmm/m/it/10.95 C[]$ \OT1/cmr/m/it/10.95 reg-u-lar-ity and s
+mooth $\OML/cmm/m/it/10.95 J$\OT1/cmr/m/it/10.95 -holomorphicity (\OT1/cmtt/m/i
+t/10.95 jholomorphicOn[]of[]weakJHolomorphicOn[]and[]step\OT1/cmr/m/it/10.95 ).
+
+ []
+
+
+Overfull \hbox (88.43802pt too wide) in paragraph at lines 982--983
+[]\OT1/cmr/m/n/10.95 Induction via \OT1/cmtt/m/n/10.95 contMDiffOn[]nat[]of[]we
+akJHolomorphicOn[]aux\OT1/cmr/m/n/10.95 , \OT1/cmtt/m/n/10.95 nonlinear[]ellipt
+ic[]bootstrap[]of[]tower\OT1/cmr/m/n/10.95 ,
+ []
+
+
+Overfull \hbox (2.3887pt too wide) in paragraph at lines 990--997
+\OT1/cmr/m/it/10.95 la-tion, de-cay, punc-ture re-moval and Arzel^^Ra--Ascoli e
+x-trac-tion are con-di-tioned on $\OML/cmm/m/it/10.95 J$\OT1/cmr/m/it/10.95 -ho
+lomorphicity
+ []
+
+
+Overfull \hbox (194.12663pt too wide) in paragraph at lines 990--997
+\OT1/cmr/m/it/10.95 and smallness/non-degenerate radii, and proved in-hab-ited 
+on con-stant curves via \OT1/cmtt/m/it/10.95 conditioned[]certificates[]inhabit
+ed[]of[]all[]const\OT1/cmr/m/it/10.95 ),
+ []
+
+
+Overfull \hbox (102.19547pt too wide) in paragraph at lines 990--997
+\OT1/cmr/m/it/10.95 the bridge the-o-rems in-stan-ti-ate [][]The-o-rems 3.4[][]
+ to [][]3.10[][]. Un-con-di-tional deriva-tion of \OT1/cmtt/m/it/10.95 UniformN
+ormalChartCertificates
+ []
+
+[21]) [22]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 34.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 34.
+ (../print/print.aux)
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 34.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 34.
 Package rerunfilecheck Info: File `print.out' has not changed.
-(rerunfilecheck)             Checksum: D3CD889A48901D48E712A6A18F9CDF43;5592.
-
-
-LaTeX Warning: There were undefined references.
-
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 27.
+(rerunfilecheck)             Checksum: 253C16EFCD0B5DCBA1D8ABF62346D1EE;1439.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 34.
  ) 
 Here is how much of TeX's memory you used:
- 31001 strings out of 492649
- 594193 string characters out of 6129622
- 637700 words of memory out of 5000000
- 34432 multiletter control sequences out of 15000+600000
- 540463 words of font info for 59 fonts, out of 8000000 for 9000
+ 31000 strings out of 492649
+ 593065 string characters out of 6129622
+ 639700 words of memory out of 5000000
+ 34435 multiletter control sequences out of 15000+600000
+ 540003 words of font info for 59 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 56i,8n,84p,10344b,441s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 56i,8n,84p,10340b,439s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
-</usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb
-></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb>
-</usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><
-/usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></u
-sr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr
-/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/l
-ocal/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/loc
-al/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local
-/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/te
-xlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texli
-ve/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texliv
-e/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/
-2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2
-018/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/20
-18/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on print/print.pdf (16 pages, 261745 bytes).
+</usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><
+/usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmitt10.pfb><
+/usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></
+usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></us
+r/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/
+local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/lo
+cal/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/loca
+l/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/
+texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/tex
+live/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texliv
+e/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive
+/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2
+018/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/20
+18/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/201
+8/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
+Output written on ../print/print.pdf (23 pages, 302709 bytes).
 PDF statistics:
- 495 PDF objects out of 1000 (max. 8388607)
- 323 compressed objects within 4 object streams
- 113 named destinations out of 1000 (max. 500000)
- 197 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 595 PDF objects out of 1000 (max. 8388607)
+ 345 compressed objects within 4 object streams
+ 110 named destinations out of 1000 (max. 500000)
+ 85 words of extra memory for PDF output out of 10000 (max. 10000000)
 

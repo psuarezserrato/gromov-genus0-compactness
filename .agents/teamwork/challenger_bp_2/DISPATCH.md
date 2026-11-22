@@ -18,3 +18,13 @@ Perform empirical and adversarial verification of the blueprint structure, plasT
    - Run `lake build GromovCompactness` and assert exit code 0 and 0 `sorry` statements.
 2. Render an explicit verdict: APPROVE or REJECT.
 Write your full report and test scripts to /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_bp_2/handoff.md and notify with send_message. Keep progress.md updated.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

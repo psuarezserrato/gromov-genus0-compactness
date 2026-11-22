@@ -40,3 +40,13 @@ Synthesize and verify the complete certified replacement for tests/ChallengeMile
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/explorer_m3_iter2_3/proposed_ChallengeMilestone3Phase5.lean — Complete certified replacement file
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/explorer_m3_iter2_3/ChallengeMilestone3Phase5.patch — Validated git apply patch
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/explorer_m3_iter2_3/handoff.md — 5-component handoff report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

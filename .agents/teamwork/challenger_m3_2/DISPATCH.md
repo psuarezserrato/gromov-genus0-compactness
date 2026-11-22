@@ -14,3 +14,13 @@ Stress-test and probe edge cases across the Milestone 3 contracts:
 4. **Adversarial Test Suite**: Write and run `tests/AdversarialMilestone3Challenger2.lean` verifying all probes elaborate and depend strictly on standard kernel axioms `[propext, Classical.choice, Quot.sound]`.
 
 Record your findings and verdict (`APPROVE` or `REQUEST_CHANGES`) in `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/challenger_m3_2/handoff.md` and message the orchestrator (`8e7bd612-f2f7-4a5c-8f0d-e33b6e7beac0`).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

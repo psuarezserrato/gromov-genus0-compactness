@@ -49,3 +49,13 @@ Discover, probe, and specify 3 reusable agent skill artifacts for autoformalizin
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/spec_miner_skills/progress.md — Progress heartbeat (100% complete)
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/spec_miner_skills/report.md — Full specification report (Features Discovered, Edge Cases, Skill Specs 1-3, Prompts, CLI Architecture)
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/spec_miner_skills/handoff.md — 5-component hard handoff report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -68,3 +68,13 @@ Objective review and adversarial challenge of Phase 5 Milestone 2 (Energy & Targ
 - `.agents/teamwork/reviewer_m2_1/BRIEFING.md` — situational awareness
 - `.agents/teamwork/reviewer_m2_1/progress.md` — progress heartbeat
 - `.agents/teamwork/reviewer_m2_1/handoff.md` — review & challenge report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -51,3 +51,13 @@ Investigate Contract A07 (`minimal_energy_gap`) in `EnergyGap.lean`, analyze mat
 - `progress.md` — liveness heartbeat
 - `Scratch.lean` — verified Lean 4 code containing `moebius_three_point_rigidity_proj`, `pure_automorphism_fixes_nodes`, and `ghost_component_pure_automorphism_trivial_of_rigidity`
 - `handoff.md` — full 5-component handoff report
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

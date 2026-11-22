@@ -236,3 +236,13 @@ All declarations use strictly standard Lean 4 axioms. No custom axioms or `sorry
    - Fix parameter order on `JHolomorphicOn`, `energyMeasureExtended`, and `energyMeasure`.
    - Provide a `TopologicalSpace` instance on `MoebiusFrame` so that `Tendsto ϕ_seq atTop (nhds ϕ_lim)` in `SmoothLocal.lean` typechecks.
    - Import `Mathlib.MeasureTheory.Constructions.BorelSpace` so `MeasurableSpace CP1` is available.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

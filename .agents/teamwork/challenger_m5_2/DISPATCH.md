@@ -31,3 +31,13 @@ Execute empirical adversarial challenge across all Phase 5 deliverables:
    - `tests/ChallengeMilestone4WiringAutomorphisms.lean`
    - `tests/AdversarialAutomorphismsM4.lean`
 5. Write a detailed adversarial challenge report to `.agents/teamwork/challenger_m5_2/handoff.md` with explicit verdict **APPROVE** or **REQUEST_CHANGES**, and notify the caller orchestrator via `send_message`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

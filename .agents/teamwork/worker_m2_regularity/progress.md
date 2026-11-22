@@ -95,3 +95,13 @@ Reporting exact proof states and blockers across all 4 contracts and integrating
 5. Verified `lake env lean tests/ChallengePhase2ModelA.lean` succeeds with exit code 0.
 6. Verified `lake env lean tests/AdversarialAttacksIter2.lean` succeeds with exit code 0.
 7. Phase 1 files in `GromovCompactness/Geometry/` and `Topology/` are 100% untouched and regression-free.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

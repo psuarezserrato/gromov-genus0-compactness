@@ -97,3 +97,13 @@ Lead and orchestrate Phase 3 (Iterative Bubbling, Bubble Tree Induction & Gromov
 - /Users/pablosuarez/Desktop/SympTopAutoForm/AUTOFORMALIZATION_PLAN.md — Implementation roadmap
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/orchestrator_phase3/SCOPE.md — Phase 3 Scope & Milestones
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/orchestrator_phase3/progress.md — Liveness & status
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -38,3 +38,13 @@ Send a brief summary message to your parent when completed.
 **Context**: Milestone M1 Environment & Prover Tooling Inspection
 **Content**: Checking in on your status. Have you completed the checks for workflow_control.py, lake build, and local Ollama pipeline? If any command (e.g. lake build) was blocked or slow due to sandbox permissions, proceed with inspecting files directly and summarizing findings in report.md and handoff.md.
 **Action**: Please update your progress.md and report your current findings.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

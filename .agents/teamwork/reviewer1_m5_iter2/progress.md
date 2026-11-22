@@ -20,3 +20,13 @@ Last visited: 2026-11-04T12:58:00Z
 - [x] Verify Contracts B01 and B02 signatures and proofs
 - [x] Adversarial stress test of assumptions, edge cases, degenerate inputs, and interfaces
 - [ ] Write handoff.md and report verdict to orchestrator
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

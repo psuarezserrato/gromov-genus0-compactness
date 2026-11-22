@@ -293,3 +293,13 @@ To independently verify the observations:
 
 4. **Invalidation Condition**:
    Removing `\leanok` from the proof blocks of open `sorry` theorems, correcting the binding of `b02:calibration` to `exists_calibrated_rescaling`, and updating the `a01` proof sketch will resolve all findings and invalidate the grounds for `REQUEST_CHANGES`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

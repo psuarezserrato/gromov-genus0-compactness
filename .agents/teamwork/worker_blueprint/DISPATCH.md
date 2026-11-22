@@ -74,4 +74,12 @@ Send a message to orchestrator when completed.
 "as a first pass, if there is needed result that is not found, as a first pass leave the proofs with 'sorry', so that it can continue with the results that are available. Please ensure this 'sorry'-first-pass strategy (leaving unavailable prerequisite lemmas/proofs as 'sorry' so downstream proofs and declarations can proceed using available results) is incorporated into the autoformalization plan, blueprint, and skills."
 **Action**: Update `GROMOV_COMPACTNESS_BLUEPRINT.md` and `AUTOFORMALIZATION_PLAN.md` to explicitly document this 'sorry'-first-pass strategy in the autoformalization methodology and acceptance criteria sections, ensuring downstream theorems can proceed unblocked against candidate type signatures. Update handoff.md when done.
 
+---
 
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

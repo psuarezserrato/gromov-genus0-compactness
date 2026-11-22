@@ -187,3 +187,13 @@ To independently reproduce all empirical results:
    - Any compiler error in `GromovCompactness` or test files.
    - `sorryAx` appearing in `#print axioms` of any declaration in `GromovCompactness.Extensions.Automorphisms`.
    - Failure of any connection or intermediate theorem check in `#audit_wiring`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

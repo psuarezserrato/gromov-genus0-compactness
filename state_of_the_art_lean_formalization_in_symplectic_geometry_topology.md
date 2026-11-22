@@ -50,3 +50,13 @@ The ultimate formalization of Symplectic Geometry relies entirely on Lean's capa
 ## 5. Conclusion and Future Trajectory
 
 As of late 2026, the foundational geometric properties required for Symplectic Topology (manifolds, limits, specific bounds like Hofer's lemma) are well-established in Lean. Meanwhile, AI-driven autoformalization agents like Aristotle and AlphaProof have proven their ability to navigate complex proof trees and formalize advanced lemmas autonomously. The next major frontier will be combining these AI capabilities with human-directed blueprints to formally map out Floer homology and holomorphic curve invariants.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

@@ -251,3 +251,13 @@ To independently verify all findings and counterexamples:
      refine ⟨⟨1, by norm_num, 1, by norm_num, 1, by norm_num, 1/2, by norm_num, by norm_num, by norm_num, by norm_num⟩⟩" | lake env lean --stdin
    ```
    *Result*: Exits with code 0, proving threshold existence is completely uncoupled from geometry.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

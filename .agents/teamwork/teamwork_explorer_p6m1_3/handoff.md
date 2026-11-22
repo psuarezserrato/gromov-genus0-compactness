@@ -146,3 +146,13 @@ To independently verify the observations and conclusions in this report:
 
 3. **Inspect Analysis and Code Layout:**
    Inspect `/Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/teamwork_explorer_p6m1_3/analysis.md` for the complete mathematical and Lean 4 code specification.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

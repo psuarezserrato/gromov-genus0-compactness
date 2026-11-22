@@ -30,3 +30,13 @@ Whenever modifying `blueprint/src/content.tex` or discharging/updating blueprint
      `(cd report && pdflatex -interaction=nonstopmode gromov_lean_report.tex && pdflatex -interaction=nonstopmode gromov_lean_report.tex)`
 4. **Verify Node Colors & All `blueprint/lean_decls` Axioms**:
    - Use `~/.gemini/config/skills/lean-blueprint-autoformalization/scripts/verify_blueprint.py` (from the global `lean-blueprint-autoformalization` skill) to verify `fillcolor` counts (`#1CAC78` proved, `#B0ECA3` definition, `0` `#9CEC8B` / `#A3D6FF` regressions) and `#print axioms` across every declaration in `blueprint/lean_decls`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

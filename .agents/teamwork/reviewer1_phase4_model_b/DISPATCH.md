@@ -35,3 +35,13 @@ Perform comprehensive review of Phase 4 Model B Zero-Sorry Foundation Proofs acr
 2. Run independent verification commands: lake build GromovCompactness, python3 tools/workflow_control.py status, pdflatex blueprint.
 3. Check \leanok synchronization in blueprint/src/content.tex Chapter 5.
 4. Record your verdict (APPROVE or REQUEST_CHANGES) in /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/reviewer1_phase4_model_b/handoff.md and notify me via send_message.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

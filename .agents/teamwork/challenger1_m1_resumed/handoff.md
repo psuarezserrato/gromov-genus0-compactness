@@ -259,3 +259,13 @@ lake env lean tests/ChallengePhase2ModelA.lean
   - `challenge_A08_zero_energy_contradiction` (Contradiction on constant curves confirmed)
   - `challenge_B02_zero_energy_cannot_rescale` (Contradiction on zero-energy sequences confirmed)
   - `challenge_A10_collar_scaling_failure` (Decay scaling error confirmed)
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

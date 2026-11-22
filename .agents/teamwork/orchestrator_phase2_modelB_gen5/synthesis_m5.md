@@ -77,3 +77,13 @@ The implementation worker (`worker_m5_bubbling`) will structure `HoferRescaling.
 - Standard Lean 4 kernel axioms only: `propext`, `Classical.choice`, `Quot.sound`.
 - Worker MUST verify `lake build GromovCompactness` compiles with 0 errors.
 - Worker MUST verify `lake env lean tests/ChallengePhase2ModelA.lean` and `tests/AdversarialAttacksIter2.lean` pass with exit code 0.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

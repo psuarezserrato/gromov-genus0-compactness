@@ -1,7 +1,7 @@
-# BRIEFING — 2026-11-04T21:40:00Z
+# BRIEFING — 2026-11-08T14:37:00Z
 
 ## Mission
-Sentinel monitoring and coordination for Phase 6: Local Analysis (A01–A12, declarations #1–#13 + B01) following COMPLETION_PLAN.md with strict 9B-only local compute.
+Sentinel monitoring and progress reporting for first-principles formalization of the 7 Coordinate PDE Certificates on arbitrary closed tame target [ClosedTameTarget I M].
 
 ## 🔒 My Identity
 - Archetype: sentinel
@@ -14,6 +14,14 @@ Sentinel monitoring and coordination for Phase 6: Local Analysis (A01–A12, dec
 - Phase 4 Sentinel Victory Auditor: 4daa042f-a012-4575-a0dd-0f86508ebf13
 - Phase 5 Orchestrator: 8e7bd612-f2f7-4a5c-8f0d-e33b6e7beac0
 - Phase 6 Orchestrator: e4354bdc-2304-4fb6-aeff-2c64b3064f6a
+- Normal Charts Orchestrator: 1e6690b3-e7c2-48c0-8bdc-c6cb8d25b692
+- 7 PDE Certificates Orchestrator: 05f2d59d-a48e-47a9-a861-07542d816004
+- Victory Auditor: 5a257f48-0534-4c82-a5c5-ecdfccde4a85 (7 PDE Certificates Independent Victory Auditor)
+- Current Active Orchestrator: 1e6690b3-e7c2-48c0-8bdc-c6cb8d25b692 (Normal Charts Orchestrator)
+- Normal Charts Victory Auditor: 4e8b4f51-f573-428a-bf9e-23baa1d85473
+- Active 7 PDE Certificates Orchestrator: 05f2d59d-a48e-47a9-a861-07542d816004
+- Iteration 1 Victory Auditor: 5a257f48-0534-4c82-a5c5-ecdfccde4a85 (VICTORY REJECTED)
+- Round 2 Independent Victory Auditor: b0eda6b8-9190-4388-a97b-c9e7f6413aa2
 
 ## 🔒 Key Constraints
 - No technical decisions — relay only
@@ -37,41 +45,57 @@ Sentinel monitoring and coordination for Phase 6: Local Analysis (A01–A12, dec
 - Restrict local LLM strictly to 9B-class Gemma models (gemma-lean4:latest / gemma2:9b); never invoke 12B/27B models
 - Fine-tune / specialize Gemma 9B on accepted zero-sorry proofs and log every prover call to .agents/gemma_usage.jsonl
 - Mathlib naming alignment across all definitions and lemmas
+- Follow Milestones N1 through N3 of normal_darboux_charts_plan.md
+- Discharge all local-chart and frame-consistency hypotheses (h_fin, h_weitz, h_hit_exit, h_osc, h_decay, h_punc, h_tower, h_aa) on abstract compact manifold [MetricSpace M] [ChartedSpace H M] [IsManifold I ∞ M] [CompactSpace M] [ClosedTameTarget I M] without adding chart-compatibility axioms to ClosedTameTarget
+- Milestone N4 (full symplectic Moser Darboux theorem) is out of scope
+- lake build completes with 0 compilation errors across the workspace
+- Hypotheses must be proven and discharged unconditionally without any sorry or sorryAx
+- No extra chart-compatibility axioms added to ClosedTameTarget
+- CRITICAL GIT RULE: Avoid `git reset --hard` / `git checkout .` on main; use standard commits only
+- FILE LOCK: Prohibit edits to `GromovCompactness/Compactness/Assembly.lean`, `GromovCompactness/Compactness/GenusZero.lean`, and `GromovCompactness/Main.lean` while parent restates h_graft_extract
+- First-principles derivation of 7 coordinate PDE certificates (h_weitz, h_hit_exit, h_osc, h_decay, h_punc, h_tower, h_aa) for arbitrary closed tame target without adding axioms to ClosedTameTarget
+- Zero sorryAx across all modules
 
 ## Routing Decision
 - Path: General (`teamwork_orchestrator`)
-- Rationale: Multi-module definition repair, statement audit, Ollama 9B specialization, and first sorry-free proof closures following COMPLETION_PLAN.md.
+- Rationale: Formalization of 7 coordinate PDE certificates (`h_weitz`, `h_hit_exit`, `h_osc`, `h_decay`, `h_punc`, `h_tower`, `h_aa`) from first principles for arbitrary closed tame target without adding axioms to ClosedTameTarget.
 
 ## User Context
-- **Last user request**: User instruction: "Continue" — Proceed immediately with Phase 6: Local Analysis (A01–A12, declarations #1–#13 in COMPLETION_PLAN.md §3.1).
+- **Last user request**: Formalize and verify complete, first-principles Lean 4 (v4.35.0) proofs with 0 sorryAx of all 7 coordinate PDE certificates (`h_weitz`, `h_hit_exit`, `h_osc`, `h_decay`, `h_punc`, `h_tower`, `h_aa`) for arbitrary closed tame target without adding axioms to ClosedTameTarget.
 - **Pending clarifications**: none
 - **Delivered results**:
-  - Phase 1 Foundations F00–F06 Complete & Certified (VICTORY CONFIRMED, commit `bad4363`)
-  - Leanblueprint setup & CI Complete & Certified (VICTORY CONFIRMED, commit `aaea655`)
-  - Phase 2 Model A & Model B Complete & Certified (VICTORY CONFIRMED, commit `3fb0b9c`)
-  - Phase 3 Model A & Model B Complete & Certified (VICTORY CONFIRMED, commits `cc8f175`, `cd69c2c`)
-  - Phase 4 Model A & Model B Complete & Certified (VICTORY CONFIRMED, commits `8a2a3df`, `f385f4b`)
-  - Phase 5 Definition Repair, Statement Audit & First Closures Complete & Certified (VICTORY CONFIRMED, commit `e77a1e7`, checkpoint `chk_20261105T090929Z_phase5_complete`)
+  - Milestone M0 (NormalCharts Baseline Cleanup): COMPLETE & GATED PASS (0 sorryAx)
+  - Milestone M1 (Pillar A: Metric & Curvature `h_weitz`, `h_hit_exit`): COMPLETE & GATED PASS (0 sorryAx)
+  - Milestone M2 (Pillar B: Annular Analysis & Singularity Removal `h_osc`, `h_decay`, `h_punc`): COMPLETE & GATED PASS (0 sorryAx)
+  - Milestone M3 (Pillar C: Regularity & Compactness `h_tower`, `h_aa`): COMPLETE & GATED PASS (0 sorryAx)
+  - Milestone M4 (Master Integration & Repository Axiom Census): COMPLETE & GATED PASS (0 sorryAx, all 11 master unconditional theorems integrated, 76/76 census clean, 3,642/3,642 repository declarations clean, VICTORY CONFIRMED).
 
 ## Project Status
-- **Phase**: in progress (Phase 6 Local Analysis A01–A12 + B01; Milestone 1 active — worker teamwork_worker_p6m1 compiling Energy.lean and splicing machine-verified zero-sorry proofs into Bochner.lean A02, Monotonicity.lean A01, and EpsilonRegularity.lean A03)
+- **Phase**: complete (VICTORY CONFIRMED by Independent Victory Auditor b0eda6b8-9190-4388-a97b-c9e7f6413aa2)
 
 ## Victory Audit Status
-- **Triggered**: no (Phase 5 audit certified VICTORY CONFIRMED; Phase 6 audit pending completion of Phase 6)
-- **Verdict**: pending
-- **Retry count**: 0
+- **Triggered**: yes
+- **Verdict**: VICTORY CONFIRMED
+- **Retry count**: 1
 
 ## Artifact Index
 - /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/ORIGINAL_REQUEST.md — Original approved user request
-- /Users/pablosuarez/Desktop/SympTopAutoForm/COMPLETION_PLAN.md — Master autoformalization and phase completion plan
-- /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/checkpoints/checkpoint_20261105T090929Z_phase5_complete.json — Phase 5 completion checkpoint
-- /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/orchestrator_phase5/handoff.md — Phase 5 completion handoff report
-- /Users/pablosuarez/Desktop/SympTopAutoForm/GROMOV_COMPACTNESS_BLUEPRINT.md — Formal Lean 4 blueprint
-- /Users/pablosuarez/Desktop/SympTopAutoForm/AUTOFORMALIZATION_PLAN.md — 6-phase autoformalization plan
-- /Users/pablosuarez/Desktop/SympTopAutoForm/GromovCompactness/ — Phase 1 Lean 4 foundation package (100% zero-sorry)
-- /Users/pablosuarez/Desktop/SympTopAutoForm/blueprint/ — Leanblueprint LaTeX plasTeX tree
-- /Users/pablosuarez/.github/workflows/ — GitHub Actions CI workflows
-- /Users/pablosuarez/Desktop/SympTopAutoForm/skills/ — Reusable agent skills
-- /Users/pablosuarez/Desktop/SympTopAutoForm/tools/ — Ollama client and workflow pause/resume controller
-- /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/checkpoints/checkpoint_20261103T233300Z_blueprint_and_ci_complete.json — Blueprint & CI complete checkpoint
-- /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/victory_auditor_blueprint_ci/handoff.md — Blueprint & CI Victory audit report (VICTORY CONFIRMED)
+- /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/PROJECT.md — Feature inventory & milestone architecture
+- /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/TEST_INFRA.md — 4-tier verification protocol
+- /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/TEST_READY.md — Readiness logs and audit trail
+- /Users/pablosuarez/Desktop/SympTopAutoForm/tests/TestCertificatesCensus.lean — Multi-tier certificate census test harness (76 declarations clean)
+- /Users/pablosuarez/Desktop/SympTopAutoForm/tests/PhaseAxiomCensus.lean — Repository-wide axiom census test harness (3,642 declarations clean)
+- /Users/pablosuarez/Desktop/SympTopAutoForm/GromovCompactness/Geometry/NormalCharts.lean — Normal charts and certificate bridges (0 sorry, Section 6 master unconditional theorems)
+- /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/victory_auditor_7pde_r2/handoff.md — Round 2 Independent Victory Audit Report (VICTORY CONFIRMED)
+- /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/orchestrator_7pde/GATE_STATUS.md — Gate status ledger
+- /Users/pablosuarez/Desktop/SympTopAutoForm/.agents/teamwork/orchestrator_7pde/progress.md — Lead Orchestrator progress tracker
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

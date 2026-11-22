@@ -282,3 +282,13 @@ Each phase closes only under §0. Current status as of `0a3de26` (7 Nov 2026):
 - Every certified milestone: git commit + checkpoint + census output in the hand-off.
 - Team shape per milestone: 1 worker (+ up to 3 explorers), then the 5-agent gate (2 reviewers, 2 challengers, 1 forensic auditor). After the final phase gate, an independent victory auditor with no shared context.
 - **Agent summaries are not evidence.** Completion claims must cite kernel output (§0).
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

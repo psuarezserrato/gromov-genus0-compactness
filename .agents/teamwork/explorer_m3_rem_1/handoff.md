@@ -97,3 +97,13 @@ Invalidation conditions:
 - Any occurrence of circular hypothesis `h_trans` in `exists_unique_moebius_three_points`.
 - Any definition of `affine_scaling`, `inversion`, or `rotation` returning `MoebiusFrame.id` without genuine matrix or homeomorphism components.
 - Any failure of `north_pole_not_mem_disk`.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).

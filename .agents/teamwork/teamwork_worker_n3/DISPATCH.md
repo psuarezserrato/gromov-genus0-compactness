@@ -57,3 +57,13 @@ When finished, notify parent (`1e6690b3-e7c2-48c0-8bdc-c6cb8d25b692`) via `send_
 
 ## 2026-11-08T00:39:31Z
 Status check from parent: Please report on your current progress for Milestone N3 implementation (`NormalCharts.lean` certificate proofs). Update your progress.md with latest timestamp and completed steps.
+
+---
+
+## License & Citation
+
+Licensed under the **GNU Affero General Public License v3.0 (AGPLv3)** for non-commercial use — see [LICENSE.md](https://github.com/psuarezserrato/Turing-recursive/blob/main/LICENSE.md) ([local copy](LICENSE.md)) for details:
+
+> This project is licensed under non-commercial use. If you wish to use this software in a commercial product, service, or enterprise environment, please contact the developer to purchase a commercial license or negotiate royalty terms.
+
+Authored by **Pablo Suárez-Serrato** (November 2026).
